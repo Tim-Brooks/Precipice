@@ -19,7 +19,7 @@ The basis of Precipice is the Service interface. A default implementation can be
 String name = "Identity Service";
 int poolSize = 10;
 int concurrencyLevel = 1000;
-Service service = Service.defaultService(name, poolSize, concurrencyLevel);
+Service service = Services.defaultService(name, poolSize, concurrencyLevel);
 ```
 
 In order can either submit or perform an action on this service. A submitted action is ran on the threadpool associated with the service. A performed action is completed on the thread calling performAction.
