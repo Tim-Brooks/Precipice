@@ -78,7 +78,18 @@ public class ShotgunPattern<C> implements Pattern<C> {
 
     @Override
     public <T> ResilientPromise<T> performAction(ResilientPatternAction<T, C> action) {
-        return null;
+        final int[] servicesToTry = strategy.executorIndices();
+        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
+
+        for (int serviceIndex : servicesToTry) {
+            try {
+                actionWithContext.context = contexts[serviceIndex];
+                return services[serviceIndex].performAction(actionWithContext);
+            } catch (RejectedActionException e) {
+            }
+        }
+
+        throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
     }
 
     @Override
