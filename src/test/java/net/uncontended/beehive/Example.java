@@ -20,7 +20,7 @@ public class Example {
         ActionMetrics actionMetrics = new DefaultActionMetrics();
         BreakerConfig breakerConfig = new BreakerConfigBuilder().trailingPeriodMillis(5000)
                 .failureThreshold(100).backOffTimeMillis(2000).build();
-        ServiceExecutor serviceExecutor = Service.defaultService("Test", 25, 120, actionMetrics,
+        Service service = Services.defaultService("Test", 25, 120, actionMetrics,
                 new DefaultCircuitBreaker(actionMetrics, breakerConfig));
 //        BreakerConfig breakerConfig2 = new BreakerConfig.BreakerConfigBuilder().trailingPeriodInMillis(5000)
 //                .failureThreshold(400).backOffTimeInMillis(2000).build();
@@ -35,7 +35,7 @@ public class Example {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            Thread thread = new Thread(new ExampleRequest(serviceExecutor));
+            Thread thread = new Thread(new ExampleRequest(service));
             threads.add(thread);
             thread.start();
         }
@@ -67,7 +67,7 @@ public class Example {
         for (Thread t : threads) {
             t.interrupt();
         }
-        serviceExecutor.shutdown();
+        service.shutdown();
     }
 
 }

@@ -12,21 +12,21 @@ import java.util.Map;
  */
 public class LoadBalancerPattern<C> implements Pattern<C> {
 
-    private final ServiceExecutor[] services;
+    private final Service[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
 
     @SuppressWarnings("unchecked")
-    public LoadBalancerPattern(LoadBalancerStrategy strategy, Map<ServiceExecutor, C> executorToContext) {
+    public LoadBalancerPattern(LoadBalancerStrategy strategy, Map<Service, C> executorToContext) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create LoadBalancer with 0 Executors.");
         }
 
         this.strategy = strategy;
-        services = new ServiceExecutor[executorToContext.size()];
+        services = new Service[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<ServiceExecutor, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<Service, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
@@ -96,7 +96,7 @@ public class LoadBalancerPattern<C> implements Pattern<C> {
 
     @Override
     public void shutdown() {
-        for (ServiceExecutor e : services) {
+        for (Service e : services) {
             e.shutdown();
         }
     }

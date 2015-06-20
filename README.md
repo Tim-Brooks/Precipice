@@ -1,8 +1,9 @@
-# Beehive
+# Precipice
 
-Beehive is a library to manage access to application services. Services are essentially targets of actions that can fail. Beehive provides a group of tools that can be composed together depending on your Service's needs: metrics, circuit breakers, in process load balancers, patterns, and more.
+Precipice is a library to manage access to services. Services are essentially targets of actions that can
+fail. Precipice provides a group of tools that can be composed together depending on your Service's needs: metrics, circuit breakers, in process load balancers, patterns, and more.
 
-Actions can be submitted in either a synchronous or asynchronous manner. Beehive was designed with both performance and concurrency in mind.
+Actions can be submitted in either a synchronous or asynchronous manner. Precipice was designed with both performance and concurrency in mind.
 
 ## Version
 
@@ -12,7 +13,7 @@ In particular: the project will likely be moved from Lein to Gradle. It will be 
 
 ## Usage
 
-The basis of Beehive is the ServiceExecutor interface. A default implementation can be created from the static methods on the Service class.
+The basis of Precipice is the ServiceExecutor interface. A default implementation can be created from the static methods on the Service class.
 
 ```java
 String name = "Identity Service";

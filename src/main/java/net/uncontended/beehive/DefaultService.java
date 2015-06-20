@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by timbrooks on 12/23/14.
  */
-public class DefaultExecutor extends AbstractServiceExecutor {
+public class DefaultService extends AbstractService {
 
     private final AtomicBoolean isShutdown = new AtomicBoolean(false);
     private final ExecutorService service;
@@ -26,20 +26,20 @@ public class DefaultExecutor extends AbstractServiceExecutor {
     private final ExecutorSemaphore semaphore;
 
 
-    public DefaultExecutor(ExecutorService service, int concurrencyLevel) {
+    public DefaultService(ExecutorService service, int concurrencyLevel) {
         this(service, concurrencyLevel, new DefaultActionMetrics());
     }
 
-    public DefaultExecutor(ExecutorService service, int concurrencyLevel, ActionMetrics actionMetrics) {
+    public DefaultService(ExecutorService service, int concurrencyLevel, ActionMetrics actionMetrics) {
         this(service, concurrencyLevel, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
                 BreakerConfigBuilder().failureThreshold(20).trailingPeriodMillis(5000).build()));
     }
 
-    public DefaultExecutor(ExecutorService service, int concurrencyLevel, CircuitBreaker breaker) {
+    public DefaultService(ExecutorService service, int concurrencyLevel, CircuitBreaker breaker) {
         this(service, concurrencyLevel, new DefaultActionMetrics(), breaker);
     }
 
-    public DefaultExecutor(ExecutorService service, int concurrencyLevel, ActionMetrics actionMetrics, CircuitBreaker
+    public DefaultService(ExecutorService service, int concurrencyLevel, ActionMetrics actionMetrics, CircuitBreaker
             circuitBreaker) {
         super(circuitBreaker, actionMetrics);
         this.semaphore = new ExecutorSemaphore(concurrencyLevel);

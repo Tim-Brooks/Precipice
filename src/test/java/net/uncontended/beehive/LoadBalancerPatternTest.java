@@ -22,9 +22,9 @@ import static org.mockito.Mockito.*;
 public class LoadBalancerPatternTest {
 
     @Mock
-    private ServiceExecutor executor1;
+    private Service executor1;
     @Mock
-    private ServiceExecutor executor2;
+    private Service executor2;
     @Mock
     private LoadBalancerStrategy strategy;
     @Mock
@@ -45,7 +45,7 @@ public class LoadBalancerPatternTest {
         context1.put("port", 8000);
         context2 = new HashMap<>();
         context2.put("host", 8001);
-        Map<ServiceExecutor, Map<String, Object>> map = new LinkedHashMap<>();
+        Map<Service, Map<String, Object>> map = new LinkedHashMap<>();
         map.put(executor1, context1);
         map.put(executor2, context2);
 

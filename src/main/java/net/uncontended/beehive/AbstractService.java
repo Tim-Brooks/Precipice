@@ -6,11 +6,11 @@ import net.uncontended.beehive.metrics.ActionMetrics;
 /**
  * Created by timbrooks on 12/23/14.
  */
-public abstract class AbstractServiceExecutor implements ServiceExecutor {
+public abstract class AbstractService implements Service {
     final ActionMetrics actionMetrics;
     final CircuitBreaker circuitBreaker;
 
-    public AbstractServiceExecutor(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics) {
+    public AbstractService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics) {
         this.circuitBreaker = circuitBreaker;
         this.actionMetrics = actionMetrics;
     }

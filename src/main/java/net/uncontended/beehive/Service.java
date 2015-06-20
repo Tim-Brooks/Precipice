@@ -1,50 +1,115 @@
 package net.uncontended.beehive;
 
 import net.uncontended.beehive.circuit.CircuitBreaker;
-import net.uncontended.beehive.circuit.NoOpCircuitBreaker;
+import net.uncontended.beehive.concurrent.ResilientFuture;
+import net.uncontended.beehive.concurrent.ResilientPromise;
 import net.uncontended.beehive.metrics.ActionMetrics;
-import net.uncontended.beehive.utils.ServiceThreadFactory;
-
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Created by timbrooks on 6/3/15.
+ * A service that actions can be submitted to or performed on. A service
+ * has associated metrics and a circuit breaker. If actions are failing or
+ * the service is being overloaded with submissions, the service will
+ * apply backpressure.
  */
-public class Service {
+public interface Service {
+    long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
 
-    public static final int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
+    /**
+     * Submits a {@link ResilientAction} that will be run asynchronously.
+     * The result of the action will be delivered to the future returned
+     * by this call. An attempt to cancel the action will be made if it
+     * does not complete before the timeout.
+     *
+     * @param action        the action to submit
+     * @param millisTimeout milliseconds before the action times out
+     * @param <T>           the type of the result of the action
+     * @return a {@link ResilientFuture} representing pending completion of the action
+     * @throws RejectedActionException if the action is rejected
+     */
+    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, long millisTimeout);
 
-    public static ServiceExecutor defaultService(String name, int poolSize, int concurrencyLevel) {
-        ExecutorService service = createExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultExecutor(service, concurrencyLevel);
-    }
+    /**
+     * Submits a {@link ResilientAction} that will be run asynchronously similar to
+     * {@link #submitAction(ResilientAction, long)}. However, at the completion of the task,
+     * the provided callback will be executed. The callback will be run regardless of the result
+     * of the action.
+     *
+     * @param action        the action to submit
+     * @param callback      to run on action completion
+     * @param millisTimeout milliseconds before the action times out
+     * @param <T>           the type of the result of the action
+     * @return a {@link ResilientFuture} representing pending completion of the action
+     * @throws RejectedActionException if the action is rejected
+     */
+    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientCallback<T> callback, long
+            millisTimeout);
 
-    public static ServiceExecutor defaultServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
-        ExecutorService service = createExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultExecutor(service, concurrencyLevel, new NoOpCircuitBreaker());
-    }
+    /**
+     * Submits a {@link ResilientAction} that will be run asynchronously
+     * similar to {@link #submitAction(ResilientAction, long)}. However, at the
+     * completion of the task, the result will be delivered to the promise provided.
+     *
+     * @param action        the action to submit
+     * @param promise       a promise to which deliver the result
+     * @param millisTimeout milliseconds before the action times out
+     * @param <T>           the type of the result of the action
+     * @return a {@link ResilientFuture} representing pending completion of the action
+     * @throws RejectedActionException if the action is rejected
+     */
+    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientPromise<T> promise, long
+            millisTimeout);
 
-    public static ServiceExecutor defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
-            metrics) {
-        ExecutorService service = createExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultExecutor(service, concurrencyLevel, metrics);
-    }
+    /**
+     * Submits a {@link ResilientAction} that will be run asynchronously similar to
+     * {@link #submitAction(ResilientAction, long)}. However, at the completion
+     * of the task, the result will be delivered to the promise provided. And the provided
+     * callback will be executed.
+     *
+     * @param action        the action to submit
+     * @param promise       a promise to which deliver the result
+     * @param callback      to run on action completion
+     * @param millisTimeout milliseconds before the action times out
+     * @param <T>           the type of the result of the action
+     * @return a {@link ResilientFuture} representing pending completion of the action
+     * @throws RejectedActionException if the action is rejected
+     */
+    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientPromise<T> promise,
+                                        ResilientCallback<T> callback, long millisTimeout);
 
-    public static ServiceExecutor defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
-            metrics, CircuitBreaker breaker) {
-        ExecutorService service = createExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultExecutor(service, concurrencyLevel, metrics, breaker);
-    }
+    /**
+     * Performs a {@link ResilientAction} that will be run synchronously on the calling
+     * thread. However, at the completion of the task, the result will be delivered to
+     * the promise provided. And the provided callback will be executed.
+     * <p/>
+     * If the ResilientAction throws a {@link ActionTimeoutException}, the result of
+     * the action will be a timeout. Any other exception and the result of the action
+     * will be an error.
+     *
+     * @param action the action to run
+     * @param <T>    the type of the result of the action
+     * @return a {@link ResilientPromise} representing result of the action
+     * @throws RejectedActionException if the action is rejected
+     */
+    <T> ResilientPromise<T> performAction(ResilientAction<T> action);
 
-    private static ExecutorService createExecutor(String name, int poolSize, int concurrencyLevel) {
-        if (concurrencyLevel > MAX_CONCURRENCY_LEVEL) {
-            throw new IllegalArgumentException("Concurrency Level \"" + concurrencyLevel + "\" is greater than the " +
-                    "allowed maximum: " + MAX_CONCURRENCY_LEVEL + ".");
-        }
-        return new ThreadPoolExecutor(poolSize, poolSize, Long.MAX_VALUE, TimeUnit.DAYS,
-                new ArrayBlockingQueue<Runnable>(concurrencyLevel * 2), new ServiceThreadFactory(name));
-    }
+    /**
+     * Returns the {@link ActionMetrics} for this service.
+     *
+     * @return the metrics backing this service
+     */
+    ActionMetrics getActionMetrics();
+
+    /**
+     * Returns the {@link CircuitBreaker} for this service.
+     *
+     * @return the circuit breaker for this service
+     */
+    CircuitBreaker getCircuitBreaker();
+
+    /**
+     * Attempts to shutdown the service. Calls made to submitAction or performAction
+     * after this call will throw a {@link RejectedActionException}. Implementations
+     * may differ on if pending or executing actions are cancelled.
+     */
+    void shutdown();
 }
