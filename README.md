@@ -100,6 +100,16 @@ TimeUnit slotUnit = TimeUnit.SECONDS;
 ActionMetrics metrics = DefaultActionMetrics(slotsToTrack, resolution, slotUnit)
 ```
 
+## Roadmap
+
+There are a variety of changes that are already planned.
+
+1. Revisit all names. As we near a finalize API, any method or class name that can be improved will be improved.
+2. Continue to add documentation. This includes Javadoc, examples, and discussion of architecture.
+3. Improved metrics. Currently metrics are pretty basic and only include counts. Some sense of latency seems to make
+sense.
+4. Improved performance of submitting to the DefaultServiceExecutor.
+
 ## License
 
 Copyright © 2014 Tim Brooks
