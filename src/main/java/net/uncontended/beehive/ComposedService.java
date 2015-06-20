@@ -13,7 +13,7 @@ import net.uncontended.beehive.concurrent.ResilientPromise;
  *
  * @param <C> the context passed to an pattern action
  */
-public interface Pattern<C> {
+public interface ComposedService<C> {
     /**
      * Submits a {@link ResilientPatternAction} that will be run asynchronously.
      * The result of the action will be delivered to the future returned

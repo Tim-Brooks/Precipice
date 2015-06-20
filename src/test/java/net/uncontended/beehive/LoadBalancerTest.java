@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
  * Created by timbrooks on 6/11/15.
  */
 @SuppressWarnings("unchecked")
-public class LoadBalancerPatternTest {
+public class LoadBalancerTest {
 
     @Mock
     private Service executor1;
@@ -34,7 +34,7 @@ public class LoadBalancerPatternTest {
 
     private Map<String, Object> context1;
     private Map<String, Object> context2;
-    private LoadBalancerPattern<Map<String, Object>> balancer;
+    private LoadBalancer<Map<String, Object>> balancer;
 
 
     @Before
@@ -49,7 +49,7 @@ public class LoadBalancerPatternTest {
         map.put(executor1, context1);
         map.put(executor2, context2);
 
-        balancer = new LoadBalancerPattern<>(strategy, map);
+        balancer = new LoadBalancer<>(strategy, map);
     }
 
     @Test

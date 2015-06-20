@@ -1,6 +1,5 @@
 package net.uncontended.beehive;
 
-
 import net.uncontended.beehive.concurrent.DefaultResilientPromise;
 import net.uncontended.beehive.concurrent.ResilientFuture;
 import net.uncontended.beehive.concurrent.ResilientPromise;
@@ -8,21 +7,22 @@ import net.uncontended.beehive.concurrent.ResilientPromise;
 import java.util.Map;
 
 /**
- * Created by timbrooks on 6/4/15.
+ * Created by timbrooks on 6/16/15.
  */
-public class LoadBalancerPattern<C> implements Pattern<C> {
+public class Shotgun<C> implements ComposedService<C> {
 
     private final Service[] services;
+    private final ShotgunStrategy strategy;
     private final C[] contexts;
-    private final LoadBalancerStrategy strategy;
 
     @SuppressWarnings("unchecked")
-    public LoadBalancerPattern(LoadBalancerStrategy strategy, Map<Service, C> executorToContext) {
+    public Shotgun(Map<Service, C> executorToContext, int submissionCount) {
         if (executorToContext.size() == 0) {
-            throw new IllegalArgumentException("Cannot create LoadBalancer with 0 Executors.");
+            throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
+        } else if (submissionCount > executorToContext.size()) {
+            throw new IllegalArgumentException("Submission count cannot be fewer than number of services provided.");
         }
 
-        this.strategy = strategy;
         services = new Service[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
@@ -31,6 +31,8 @@ public class LoadBalancerPattern<C> implements Pattern<C> {
             contexts[i] = entry.getValue();
             ++i;
         }
+
+        this.strategy = new ShotgunStrategy(services.length, submissionCount);
     }
 
     @Override
@@ -51,54 +53,50 @@ public class LoadBalancerPattern<C> implements Pattern<C> {
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+    public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
                                                ResilientCallback<T> callback, long millisTimeout) {
-        final int firstServiceToTry = strategy.nextExecutorIndex();
+        final int[] servicesToTry = strategy.executorIndices();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
-        int j = 0;
-        int serviceCount = services.length;
-        while (true) {
+        int submittedCount = 0;
+        for (int serviceIndex : servicesToTry) {
             try {
-                int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].submitAction(actionWithContext, promise, callback, millisTimeout);
+                services[serviceIndex].submitAction(actionWithContext, promise, callback, millisTimeout);
+                ++submittedCount;
             } catch (RejectedActionException e) {
-                ++j;
-                if (j == serviceCount) {
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
-                }
+            }
+            if (submittedCount == strategy.submissionCount) {
+                break;
             }
         }
-
+        if (submittedCount == 0) {
+            throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
+        }
+        return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> ResilientPromise<T> performAction(final ResilientPatternAction<T, C> action) {
-        final int firstServiceToTry = strategy.nextExecutorIndex();
+    public <T> ResilientPromise<T> performAction(ResilientPatternAction<T, C> action) {
+        final int[] servicesToTry = strategy.executorIndices();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
-        int j = 0;
-        int serviceCount = services.length;
-        while (true) {
+        for (int serviceIndex : servicesToTry) {
             try {
-                int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
                 return services[serviceIndex].performAction(actionWithContext);
             } catch (RejectedActionException e) {
-                ++j;
-                if (j == serviceCount) {
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
-                }
             }
         }
+
+        throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
     }
 
     @Override
     public void shutdown() {
-        for (Service e : services) {
-            e.shutdown();
+        for (Service service : services) {
+            service.shutdown();
         }
-    }
 
+    }
 }
