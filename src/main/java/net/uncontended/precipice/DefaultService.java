@@ -32,7 +32,7 @@ public class DefaultService extends AbstractService {
 
     public DefaultService(ExecutorService service, int concurrencyLevel, ActionMetrics actionMetrics) {
         this(service, concurrencyLevel, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
-                BreakerConfigBuilder().failureThreshold(20).trailingPeriodMillis(5000).build()));
+                BreakerConfigBuilder().build()));
     }
 
     public DefaultService(ExecutorService service, int concurrencyLevel, CircuitBreaker breaker) {

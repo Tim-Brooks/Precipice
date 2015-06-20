@@ -13,6 +13,7 @@ import net.uncontended.precipice.metrics.ActionMetrics;
  */
 public interface Service {
     long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
+    int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
 
     /**
      * Submits a {@link ResilientAction} that will be run asynchronously.
