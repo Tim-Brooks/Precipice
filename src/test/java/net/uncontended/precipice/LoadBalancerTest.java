@@ -49,7 +49,7 @@ public class LoadBalancerTest {
         map.put(executor1, context1);
         map.put(executor2, context2);
 
-        balancer = new LoadBalancer<>(strategy, map);
+        balancer = new LoadBalancer<>(map, strategy);
     }
 
     @Test

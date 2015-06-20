@@ -17,7 +17,7 @@ public class LoadBalancer<C> implements ComposedService<C> {
     private final LoadBalancerStrategy strategy;
 
     @SuppressWarnings("unchecked")
-    public LoadBalancer(LoadBalancerStrategy strategy, Map<Service, C> executorToContext) {
+    public LoadBalancer(Map<Service, C> executorToContext, LoadBalancerStrategy strategy) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create LoadBalancer with 0 Executors.");
         }
