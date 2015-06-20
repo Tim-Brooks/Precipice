@@ -13,13 +13,13 @@ In particular: the project will likely be moved from Lein to Gradle. It will be 
 
 ## Usage
 
-The basis of Precipice is the ServiceExecutor interface. A default implementation can be created from the static methods on the Service class.
+The basis of Precipice is the Service interface. A default implementation can be created from the static methods on the Service class.
 
 ```java
 String name = "Identity Service";
 int poolSize = 10;
 int concurrencyLevel = 1000;
-ServiceExecutor service = Service.defaultService(name, poolSize, concurrencyLevel);
+Service service = Service.defaultService(name, poolSize, concurrencyLevel);
 ```
 
 In order can either submit or perform an action on this service. A submitted action is ran on the threadpool associated with the service. A performed action is completed on the thread calling performAction.
@@ -61,15 +61,15 @@ int concurrencyLevel = 1000;
 // This creates a no op circuit breaker. The circuit will never open based on failures.
 // However, the circuit can still be opened and closed manually be calling 
 // forceOpen or forceClosed.
-ServiceExecutor service = Service.defaultServiceWithNoOpBreaker(name, poolSize, concurrencyLevel);
+Service service = Services.defaultServiceWithNoOpBreaker(name, poolSize, concurrencyLevel);
 
 // Service with user provided metrics.
 ActionMetrics metrics = new UserCreatedMetrics();
-ServiceExecutor service = Service.defaultService(name, poolSize, concurrencyLevel, metrics);
+Service service = Services.defaultService(name, poolSize, concurrencyLevel, metrics);
 
 // Service with user provided metrics and circuit breaker.
 CircuitBreaker breaker = new UserProvidedBreaker();
-ServiceExecutor service = Service.defaultService(name, poolSize, concurrencyLevel, metrics, breaker);
+Service service = Services.defaultService(name, poolSize, concurrencyLevel, metrics, breaker);
 ```
 
 Often, you will want to use the default metrics and breaker. There are a number of configurations of which you might want to be aware.
@@ -109,7 +109,7 @@ There are a variety of changes that are already planned.
 2. Continue to add documentation. This includes Javadoc, examples, and discussion of architecture.
 3. Improved metrics. Currently metrics are pretty basic and only include counts. Some sense of latency seems to make
 sense.
-4. Improved performance of submitting to the DefaultServiceExecutor.
+4. Improved performance of submitting to the DefaultService.
 
 ## License
 
