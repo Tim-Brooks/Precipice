@@ -7,7 +7,8 @@ Actions can be submitted in either a synchronous or asynchronous manner. Precipi
 
 ## Version
 
-This library has not yet hit alpha. It is used in production at Staples SparX. However, the API may still change.
+This library has not yet hit alpha. It is used in production at [Staples SparX](http://www.staples-sparx.com). However,
+the API may still change.
 
 In particular: the project will likely be moved from Lein to Gradle. It will be split so that the Java component can be used without Clojure.
 
