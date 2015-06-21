@@ -27,7 +27,7 @@ public interface ResilientPromise<T> {
      * this method will return false.
      *
      * @param result the result of the promise
-     * @return a boolean indicating if the result was successfully set.
+     * @return a boolean indicating if the result was successfully delivered
      */
     boolean deliverResult(T result);
 
@@ -36,7 +36,7 @@ public interface ResilientPromise<T> {
      * this method will return false.
      *
      * @param error the error to deliver
-     * @return a boolean indicating if the result was successfully set.
+     * @return a boolean indicating if the error was successfully delivered
      */
     boolean deliverError(Throwable error);
 
@@ -53,25 +53,68 @@ public interface ResilientPromise<T> {
      * Block on this promise being completed and return the result. If promise is
      * not successfully completed, this will return null.
      *
-     * @return T the result of the promise.
+     * @return T the result of the promise
      * @throws InterruptedException
      */
     T awaitResult() throws InterruptedException;
 
+    /**
+     * Return any result that has been delivered. If promise is not successfully completed
+     * or is still pending, this will return null.
+     *
+     * @return T the result of the promise
+     */
     T getResult();
 
+    /**
+     * Return any error that has been delivered. If action did not error or is still pending,
+     * this will return null.
+     *
+     * @return Throwable the error of the promise
+     */
     Throwable getError();
 
+    /**
+     * Return the status of the promise.
+     *
+     * @return Status the status of the promise
+     */
     Status getStatus();
 
+    /**
+     * Set the promise {@link Status} to timeout. If the promise has already been completed,
+     * this method will return false.
+     *
+     * @return a boolean indicating if the status was successfully set to timeout
+     */
     boolean setTimedOut();
 
+    /**
+     * Indicate if the {@link Status} of the promise is successful.
+     *
+     * @return boolean indicating if the status is successful
+     */
     boolean isSuccessful();
 
+    /**
+     * Indicate if the {@link Status} of the promise is not pending.
+     *
+     * @return boolean indicating if the promise is not pending
+     */
     boolean isDone();
 
+    /**
+     * Indicate if the {@link Status} of the promise is error.
+     *
+     * @return boolean indicating if the status is error
+     */
     boolean isError();
 
+    /**
+     * Indicate if the {@link Status} of the promise is timeout.
+     *
+     * @return boolean indicating if the status is timeout
+     */
     boolean isTimedOut();
 
 }
