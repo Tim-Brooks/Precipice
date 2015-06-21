@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.test_utils.SystemTime;
+import net.uncontended.precipice.utils.SystemTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

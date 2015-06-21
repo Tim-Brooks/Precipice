@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.test_utils;
+package net.uncontended.precipice.utils;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

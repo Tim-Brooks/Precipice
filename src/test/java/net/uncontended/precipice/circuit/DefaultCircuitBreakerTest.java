@@ -19,7 +19,7 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
-import net.uncontended.precipice.test_utils.SystemTime;
+import net.uncontended.precipice.utils.SystemTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

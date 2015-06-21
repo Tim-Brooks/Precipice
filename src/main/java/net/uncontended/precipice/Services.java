@@ -20,7 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.NoOpCircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.test_utils.PrecipiceExecutors;
+import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.concurrent.ExecutorService;
 

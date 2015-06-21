@@ -21,7 +21,7 @@ import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.test_utils.PrecipiceExecutors;
+import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.HashMap;
 import java.util.List;
