@@ -19,15 +19,43 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Status;
 
+import java.util.concurrent.TimeUnit;
+
 public interface ResilientPromise<T> {
+    /**
+     * Deliver the result to this promise. If the promise has already been completed,
+     * this method will return false.
+     *
+     * @param result the result of the promise
+     * @return a boolean indicating if the result was successfully set.
+     */
     boolean deliverResult(T result);
 
+    /**
+     * Deliver an error to this promise. If the promise has already been completed,
+     * this method will return false.
+     *
+     * @param error the error to deliver
+     * @return a boolean indicating if the result was successfully set.
+     */
     boolean deliverError(Throwable error);
 
+    /**
+     * Block on this promise being completed.
+     *
+     * @throws InterruptedException
+     */
     void await() throws InterruptedException;
 
-    boolean await(long millis) throws InterruptedException;
+    boolean await(long timePeriod, TimeUnit unit) throws InterruptedException;
 
+    /**
+     * Block on this promise being completed and return the result. If promise is
+     * not successfully completed, this will return null.
+     *
+     * @return T the result of the promise.
+     * @throws InterruptedException
+     */
     T awaitResult() throws InterruptedException;
 
     T getResult();

@@ -36,8 +36,8 @@ public abstract class AbstractResilientPromise<T> implements ResilientPromise<T>
     }
 
     @Override
-    public boolean await(long millis) throws InterruptedException {
-        return latch.await(millis, TimeUnit.MILLISECONDS);
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+        return latch.await(timeout, unit);
     }
 
     @Override

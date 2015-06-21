@@ -44,7 +44,7 @@ public class ResilientFuture<T> implements Future {
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        boolean await = promise.await(unit.convert(timeout, TimeUnit.MILLISECONDS));
+        boolean await = promise.await(timeout, unit);
         if (!await) {
             throw new TimeoutException();
         }
@@ -61,7 +61,7 @@ public class ResilientFuture<T> implements Future {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException("Cancellation not supported at this time");
+        throw new UnsupportedOperationException("Cancellation is not supported.");
     }
 
     @Override
