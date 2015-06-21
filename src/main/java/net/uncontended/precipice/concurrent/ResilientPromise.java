@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A class wrapping the result of an action. It is similar to {@link ResilientFuture}.
  * However, unlike a future, a promise can be written to. A promise can only
- * completed once. Once it is completed, all further attemps to update the status
+ * completed once. Once it is completed, all further attempts to update the status
  * should fail.
  *
  * @param <T> the result returned by the action
