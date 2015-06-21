@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.test_utils.SystemTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -30,9 +30,6 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by timbrooks on 6/3/15.
- */
 public class DefaultActionMetricsTest {
 
     @Mock

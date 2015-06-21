@@ -15,15 +15,12 @@
  *
  */
 
-package net.uncontended.precipice.utils;
+package net.uncontended.precipice.test_utils;
 
 import net.uncontended.precipice.ResilientAction;
 
 import java.util.concurrent.CountDownLatch;
 
-/**
- * Created by timbrooks on 1/12/15.
- */
 public class TestActions {
 
     public static ResilientAction<String> blockedAction(final CountDownLatch blockingLatch) {

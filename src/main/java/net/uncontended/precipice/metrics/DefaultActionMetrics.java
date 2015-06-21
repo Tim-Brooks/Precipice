@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.test_utils.SystemTime;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

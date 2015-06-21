@@ -23,9 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by timbrooks on 6/15/15.
- */
 public class RoundRobinStrategyTest {
 
     @Test

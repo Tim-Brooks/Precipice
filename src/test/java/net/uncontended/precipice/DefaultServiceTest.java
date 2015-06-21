@@ -26,8 +26,8 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
-import net.uncontended.precipice.utils.TestActions;
-import net.uncontended.precipice.utils.TestCallbacks;
+import net.uncontended.precipice.test_utils.TestActions;
+import net.uncontended.precipice.test_utils.TestCallbacks;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,10 +40,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
-
-/**
- * Created by timbrooks on 1/7/15.
- */
 public class DefaultServiceTest {
 
     private Service blockingExecutor;

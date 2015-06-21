@@ -15,16 +15,13 @@
  *
  */
 
-package net.uncontended.precipice.utils;
+package net.uncontended.precipice.test_utils;
 
 import net.uncontended.precipice.ResilientCallback;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 
 import java.util.concurrent.CountDownLatch;
 
-/**
- * Created by timbrooks on 1/17/15.
- */
 public class TestCallbacks {
 
     public static <T> ResilientCallback<T> completePromiseCallback(final ResilientPromise<ResilientPromise<T>>

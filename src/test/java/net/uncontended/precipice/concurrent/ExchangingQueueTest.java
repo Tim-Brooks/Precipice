@@ -27,9 +27,6 @@ import java.util.concurrent.locks.LockSupport;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by timbrooks on 11/21/14.
- */
 public class ExchangingQueueTest {
 
     private ExchangingQueue<Integer> exchangingQueue;

@@ -28,9 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by timbrooks on 11/6/14.
- */
 public class Example {
 
     public static void main(String[] args) {

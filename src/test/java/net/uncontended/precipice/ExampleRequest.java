@@ -27,9 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Created by timbrooks on 11/16/14.
- */
 public class ExampleRequest implements Runnable {
 
     private final Service service;

@@ -24,9 +24,6 @@ import net.uncontended.precipice.metrics.Metric;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by timbrooks on 6/3/15.
- */
 public class MetricsExample {
 
     public static void main(String[] args) {

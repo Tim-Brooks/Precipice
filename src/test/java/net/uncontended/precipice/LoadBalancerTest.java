@@ -32,9 +32,6 @@ import java.util.Map;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Created by timbrooks on 6/11/15.
- */
 @SuppressWarnings("unchecked")
 public class LoadBalancerTest {
 

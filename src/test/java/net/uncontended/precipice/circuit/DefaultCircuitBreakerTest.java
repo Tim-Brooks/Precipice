@@ -19,7 +19,7 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.test_utils.SystemTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -31,9 +31,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by timbrooks on 11/20/14.
- */
 public class DefaultCircuitBreakerTest {
 
     @Mock

@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.utils;
+package net.uncontended.precipice.test_utils;
 
 import net.uncontended.precipice.Service;
 

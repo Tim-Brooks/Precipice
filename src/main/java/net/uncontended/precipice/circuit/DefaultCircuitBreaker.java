@@ -19,7 +19,7 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.test_utils.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;

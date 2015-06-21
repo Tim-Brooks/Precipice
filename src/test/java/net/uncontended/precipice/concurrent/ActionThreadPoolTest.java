@@ -26,9 +26,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-/**
- * Created by timbrooks on 12/3/14.
- */
 public class ActionThreadPoolTest {
 
     private ActionThreadPool threadPool;
