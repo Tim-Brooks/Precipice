@@ -22,10 +22,10 @@ import net.uncontended.precipice.Status;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A class wrapping the result of an action. It is similar to {@link ResilientFuture}.
- * However, unlike a future, a promise can be written to. A promise can only
- * completed once. Once it is completed, all further attempts to update the status
- * should fail.
+ * A class wrapping the result of an action that will be completed at some point in
+ * the future. It is similar to {@link ResilientFuture}. However, unlike a future, a
+ * promise can be written to. A promise can only completed once. Once it is completed,
+ * all further attempts to update the status should fail.
  *
  * @param <T> the result returned by the action
  */

@@ -24,6 +24,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * A class wrapping the result of an action that will be completed at some
+ * point in the future.
+ *
+ * @param <T> the result returned by the action
+ */
 public class ResilientFuture<T> implements Future {
 
     public final ResilientPromise<T> promise;
@@ -32,6 +38,9 @@ public class ResilientFuture<T> implements Future {
         this.promise = promise;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public T get() throws InterruptedException, ExecutionException {
         promise.await();
@@ -42,6 +51,9 @@ public class ResilientFuture<T> implements Future {
         return promise.getResult();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         boolean await = promise.await(timeout, unit);
@@ -54,21 +66,42 @@ public class ResilientFuture<T> implements Future {
         return promise.getResult();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isDone() {
         return promise.isDone();
     }
 
+    /**
+     * This will always throw UnsupportedOperationException. Cancelling is not supported.
+     *
+     * @param mayInterruptIfRunning flag
+     * @throws UnsupportedOperationException
+     * @return boolean
+     */
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         throw new UnsupportedOperationException("Cancellation is not supported.");
     }
 
+
+    /**
+     * This will always return false since cancelling is not supported.
+     *
+     * @return boolean indicating if future is cancelled.
+     */
     @Override
     public boolean isCancelled() {
         return false;
     }
 
+    /**
+     * Returns the {@link Status} of the future.
+     *
+     * @return status of the future
+     */
     public Status getStatus() {
         return promise.getStatus();
     }
