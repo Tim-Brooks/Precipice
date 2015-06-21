@@ -23,9 +23,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Created by timbrooks on 12/22/14.
- */
 public abstract class AbstractResilientPromise<T> implements ResilientPromise<T> {
     protected volatile T result;
     volatile Throwable error;

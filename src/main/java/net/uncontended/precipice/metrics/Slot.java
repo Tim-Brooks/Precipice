@@ -19,9 +19,6 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.concurrent.LongAdder;
 
-/**
- * Created by timbrooks on 6/1/15.
- */
 public class Slot {
 
     private final LongAdder successes = new LongAdder();

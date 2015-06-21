@@ -25,9 +25,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;
 
-/**
- * Created by timbrooks on 12/2/14.
- */
 public class ActionThreadPool implements Executor {
 
     private final NavigableSet<ThreadManager> pool;

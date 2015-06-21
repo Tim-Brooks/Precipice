@@ -24,9 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by timbrooks on 6/20/15.
- */
 public class PrecipiceExecutors {
 
     public static ExecutorService threadPoolExecutor(String name, int poolSize, int concurrencyLevel) {

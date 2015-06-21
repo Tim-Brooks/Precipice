@@ -19,9 +19,6 @@ package net.uncontended.precipice;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Created by timbrooks on 6/15/15.
- */
 public class RoundRobinStrategy implements LoadBalancerStrategy {
 
     private static final int FLIP_POINT = Integer.MAX_VALUE / 2;

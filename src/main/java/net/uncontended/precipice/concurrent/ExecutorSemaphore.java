@@ -19,9 +19,6 @@ package net.uncontended.precipice.concurrent;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Created by timbrooks on 1/12/15.
- */
 public class ExecutorSemaphore {
 
     private final AtomicInteger permitsRemaining;

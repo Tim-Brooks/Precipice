@@ -22,9 +22,6 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Created by timbrooks on 5/30/15.
- */
 public class TimeoutService {
 
     public static final TimeoutService defaultTimeoutService = new TimeoutService("default");

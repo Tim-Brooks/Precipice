@@ -20,9 +20,6 @@ package net.uncontended.precipice.concurrent;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
-/**
- * Created by timbrooks on 11/11/14.
- */
 public class ExchangingQueue<T> {
 
     private final T[] queue;

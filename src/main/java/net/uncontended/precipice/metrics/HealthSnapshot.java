@@ -17,9 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-/**
- * Created by timbrooks on 6/11/15.
- */
 public class HealthSnapshot {
     public final long total;
     public final long failures;

@@ -26,9 +26,6 @@ import net.uncontended.precipice.metrics.Metric;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
-/**
- * Created by timbrooks on 6/12/15.
- */
 public class ResilientTask<T> extends FutureTask<Void> {
 
     private final ResilientPromise<T> userPromise;

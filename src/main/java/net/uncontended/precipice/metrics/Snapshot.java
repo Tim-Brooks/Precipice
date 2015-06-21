@@ -20,9 +20,6 @@ package net.uncontended.precipice.metrics;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by timbrooks on 6/11/15.
- */
 public class Snapshot {
 
     public static final String TOTAL = "total";

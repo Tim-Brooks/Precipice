@@ -20,9 +20,6 @@ package net.uncontended.precipice;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Created by timbrooks on 6/19/15.
- */
 public class ShotgunStrategy {
 
     public final int submissionCount;

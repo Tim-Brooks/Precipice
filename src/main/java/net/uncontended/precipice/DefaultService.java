@@ -32,9 +32,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Created by timbrooks on 12/23/14.
- */
 public class DefaultService extends AbstractService {
 
     private final AtomicBoolean isShutdown = new AtomicBoolean(false);

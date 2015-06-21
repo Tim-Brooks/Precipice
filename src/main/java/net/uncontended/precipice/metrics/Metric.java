@@ -19,9 +19,6 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.Status;
 
-/**
- * Created by timbrooks on 6/1/15.
- */
 public enum Metric {
     SUCCESS(false),
     ERROR(false),

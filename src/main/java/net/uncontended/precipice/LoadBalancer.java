@@ -24,9 +24,6 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
 
 import java.util.Map;
 
-/**
- * Created by timbrooks on 6/4/15.
- */
 public class LoadBalancer<C> implements ComposedService<C> {
 
     private final Service[] services;

@@ -24,9 +24,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-/**
- * Created by timbrooks on 1/10/15.
- */
 public class ResilientFuture<T> implements Future {
 
     public final ResilientPromise<T> promise;

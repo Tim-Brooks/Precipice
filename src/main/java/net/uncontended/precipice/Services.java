@@ -24,9 +24,6 @@ import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.concurrent.ExecutorService;
 
-/**
- * Created by timbrooks on 6/3/15.
- */
 public class Services {
 
     public static final int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;

@@ -19,9 +19,6 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Status;
 
-/**
- * Created by timbrooks on 12/22/14.
- */
 public class DefaultResilientPromise<T> extends AbstractResilientPromise<T> {
 
     @Override

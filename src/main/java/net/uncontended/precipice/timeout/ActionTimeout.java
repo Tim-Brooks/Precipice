@@ -23,9 +23,6 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by timbrooks on 5/30/15.
- */
 public class ActionTimeout implements Delayed {
 
     public final long millisAbsoluteTimeout;

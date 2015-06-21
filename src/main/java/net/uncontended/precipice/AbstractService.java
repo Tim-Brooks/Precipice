@@ -20,9 +20,6 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
-/**
- * Created by timbrooks on 12/23/14.
- */
 public abstract class AbstractService implements Service {
     final ActionMetrics actionMetrics;
     final CircuitBreaker circuitBreaker;
