@@ -27,9 +27,10 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     private final AtomicReferenceArray<Slot> metrics;
     private final SystemTime systemTime;
+    private final int mask;
     private final int totalSlots;
+    private final int millisecondsPerSlot;
     private final long startTime;
-    private final long millisecondsPerSlot;
 
     public DefaultActionMetrics() {
         this(3600, 1, TimeUnit.SECONDS);
@@ -40,37 +41,51 @@ public class DefaultActionMetrics implements ActionMetrics {
     }
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, SystemTime systemTime) {
+        this.systemTime = systemTime;
         long millisecondsPerSlot = TimeUnit.MILLISECONDS.convert(resolution, slotUnit);
-        if (100 > millisecondsPerSlot) {
+        if (millisecondsPerSlot < 0) {
+            throw new IllegalArgumentException(String.format("Too low of resolution. %s milliseconds per slot is the " +
+                    "lowest valid resolution", Integer.MAX_VALUE));
+        } else if (100 > millisecondsPerSlot) {
             throw new IllegalArgumentException(String.format("Too low of resolution: [%s milliseconds]. 100 " +
                     "milliseconds is the minimum resolution.", millisecondsPerSlot));
         }
 
-        this.millisecondsPerSlot = millisecondsPerSlot;
+
+        this.millisecondsPerSlot = (int) millisecondsPerSlot;
         this.startTime = systemTime.currentTimeMillis();
         this.totalSlots = slotsToTrack;
-        this.metrics = new AtomicReferenceArray<>(slotsToTrack);
-        this.systemTime = systemTime;
 
-        for (int i = 0; i < slotsToTrack; ++i) {
+        int arraySlot = nextPositivePowerOfTwo(slotsToTrack);
+        this.mask = arraySlot - 1;
+        this.metrics = new AtomicReferenceArray<>(arraySlot);
+
+        for (int i = 0; i < arraySlot; ++i) {
             metrics.set(i, new Slot(i));
         }
     }
 
     @Override
     public void incrementMetricCount(Metric metric) {
-        int absoluteSlot = currentAbsoluteSlot();
-        int relativeSlot = absoluteSlot % totalSlots;
-        for (; ; ) {
-            Slot slot = metrics.get(relativeSlot);
-            if (slot.getAbsoluteSlot() == absoluteSlot) {
-                slot.incrementMetric(metric);
-                break;
-            } else {
-                Slot newSlot = new Slot(absoluteSlot);
-                if (metrics.compareAndSet(relativeSlot, slot, newSlot)) {
-                    newSlot.incrementMetric(metric);
+        long currentTime = systemTime.currentTimeMillis();
+        int absoluteSlot = currentAbsoluteSlot(currentTime);
+        int relativeSlot = absoluteSlot & mask;
+        Slot slot = metrics.get(relativeSlot);
+
+        if (slot.getAbsoluteSlot() == absoluteSlot) {
+            slot.incrementMetric(metric);
+        } else {
+            for (; ; ) {
+                slot = metrics.get(relativeSlot);
+                if (slot.getAbsoluteSlot() == absoluteSlot) {
+                    slot.incrementMetric(metric);
                     break;
+                } else {
+                    Slot newSlot = new Slot(absoluteSlot);
+                    if (metrics.compareAndSet(relativeSlot, slot, newSlot)) {
+                        newSlot.incrementMetric(metric);
+                        break;
+                    }
                 }
             }
         }
@@ -80,17 +95,18 @@ public class DefaultActionMetrics implements ActionMetrics {
     @Override
     public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
         int slots = convertToSlots(timePeriod, timeUnit);
+        long currentTime = systemTime.currentTimeMillis();
 
-        int absoluteSlot = currentAbsoluteSlot();
+        int absoluteSlot = currentAbsoluteSlot(currentTime);
         int startSlot = 1 + absoluteSlot - slots;
         int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
 
-        int count = 0;
+        long count = 0;
         for (int i = adjustedStartSlot; i <= absoluteSlot; ++i) {
-            int relativeSlot = i % totalSlots;
+            int relativeSlot = i & mask;
             Slot slot = metrics.get(relativeSlot);
             if (slot.getAbsoluteSlot() == i) {
-                count = count + slot.getMetric(metric).intValue();
+                count = count + slot.getMetric(metric).longValue();
             }
         }
 
@@ -132,14 +148,15 @@ public class DefaultActionMetrics implements ActionMetrics {
     }
 
     private Slot[] collectActiveSlots(int slots) {
-        int absoluteSlot = currentAbsoluteSlot();
+        long currentTime = systemTime.currentTimeMillis();
+        int absoluteSlot = currentAbsoluteSlot(currentTime);
         int startSlot = 1 + absoluteSlot - slots;
         int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
 
         Slot[] slotArray = new Slot[slots];
         int j = 0;
         for (int i = adjustedStartSlot; i <= absoluteSlot; ++i) {
-            int relativeSlot = i % totalSlots;
+            int relativeSlot = i & mask;
             Slot slot = metrics.get(relativeSlot);
             if (slot.getAbsoluteSlot() == i) {
                 slotArray[j] = slot;
@@ -149,8 +166,8 @@ public class DefaultActionMetrics implements ActionMetrics {
         return slotArray;
     }
 
-    private int currentAbsoluteSlot() {
-        return (int) ((systemTime.currentTimeMillis() - startTime) / millisecondsPerSlot);
+    private int currentAbsoluteSlot(long currentTime) {
+        return ((int) (currentTime - startTime)) / millisecondsPerSlot;
     }
 
     private int convertToSlots(long timePeriod, TimeUnit timeUnit) {
@@ -165,6 +182,10 @@ public class DefaultActionMetrics implements ActionMetrics {
             throw new IllegalArgumentException(message);
         }
         return (int) longSlots;
+    }
+
+    private int nextPositivePowerOfTwo(int slotsToTrack) {
+        return 1 << (32 - Integer.numberOfLeadingZeros(slotsToTrack - 1));
     }
 
 }
