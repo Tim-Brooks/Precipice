@@ -16,6 +16,25 @@
  */
 
 apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+group = 'net.uncontended'
+version = '0.1.0-SNAPSHOT'
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+ext {
+    if (!project.hasProperty('ossrhUsername'))
+        ossrhUsername = ''
+
+    if (!project.hasProperty('ossrhPassword'))
+        ossrhPassword = ''
+}
+
+compileJava {
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}
 
 repositories {
     mavenCentral()
@@ -24,4 +43,79 @@ repositories {
 dependencies {
     testCompile 'org.mockito:mockito-core:1.10.8'
     testCompile 'junit:junit:4.12'
+}
+
+javadoc {
+    title = '<h1>Precipice</h1>'
+
+    options.bottom = '<i>Copyright &#169; 2014 Tim Brooks. All Rights Reserved.</i>'
+    options.addStringOption('XDignore.symbol.file', '-quiet')
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from tasks.javadoc.destinationDir
+    classifier = 'javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives jar
+
+    archives javadocJar
+    archives sourcesJar
+}
+
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            pom.project {
+                name = 'Precipice'
+                packaging = 'jar'
+                description = 'Tools to manage access to and usage of services.'
+                url = 'https://github.com/tbrooks8/Precipice'
+
+                scm {
+                    url = 'https://github.com:tbrooks8/Precipice.git'
+                    connection = 'scm:git@github.com:tbrooks8/Precipice.git'
+                    developerConnection = 'scm:git@github.com:tbrooks8/Precipice.git'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'tbrooks8'
+                        name = 'Tim Brooks'
+                        email = 'tim@uncontended.net'
+                        url = 'https://github.com/tbrooks8'
+                    }
+                }
+            }
+        }
+    }
 }
