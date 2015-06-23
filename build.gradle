@@ -21,7 +21,17 @@ apply plugin: 'signing'
 
 group = 'net.uncontended'
 version = '0.1.1-SNAPSHOT'
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+
+def isReleaseBuild = version.endsWith("SNAPSHOT")
+
+def sonatypeRepositoryUrl
+
+if (isReleaseBuild) {
+    sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+} else {
+    sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+}
 
 ext {
     if (!project.hasProperty('ossrhUsername'))
@@ -71,27 +81,24 @@ artifacts {
 }
 
 signing {
-    required {isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
     sign configurations.archives
 }
 
 uploadArchives {
     repositories {
         mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
+            if (isReleaseBuild) {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
             }
 
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+            repository(url: sonatypeRepositoryUrl) {
                 authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
 
             pom.project {
                 name = 'Precipice'
                 packaging = 'jar'
-                description = 'Tools to manage access to and usage of services.'
+                description = 'Precipice provides tools to manage access to and usage of services.'
                 url = 'https://github.com/tbrooks8/Precipice'
 
                 scm {
