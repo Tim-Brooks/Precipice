@@ -23,13 +23,15 @@ group = 'net.uncontended'
 version = '0.1.1-SNAPSHOT'
 
 
-def isReleaseBuild = version.endsWith("SNAPSHOT")
+def isReleaseBuild
 
 def sonatypeRepositoryUrl
 
-if (isReleaseBuild) {
+if (!version.endsWith("SNAPSHOT")) {
+    isReleaseBuild = true
     sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 } else {
+    isReleaseBuild = false
     sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
