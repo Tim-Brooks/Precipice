@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.Status;
 
@@ -25,10 +26,11 @@ import net.uncontended.precipice.Status;
  * However, unlike a future, a promise can be written to. A promise can only
  * completed once. Once it is completed, all further attempts to update the status
  * should fail.
- *
- *  <p/> This class is designed to be written to by ONE thread only. It primarily exists to
- *  avoid expensive compareAndSet calls that are required in the multiple writer scenario.
- *  This promise is used in synchronous {@link Service#performAction)} calls.
+ * <p/>
+ * This class is designed to be written to by ONE thread only. It primarily exists to
+ * avoid expensive compareAndSet calls that are required in the multiple writer scenario.
+ * This promise is used in synchronous {@link Service#performAction(ResilientAction) performAction)}
+ * calls.
  *
  * @param <T> the result returned by the action
  */
