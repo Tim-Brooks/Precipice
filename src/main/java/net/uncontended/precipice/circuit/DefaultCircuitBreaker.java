@@ -39,6 +39,8 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     private final ActionMetrics actionMetrics;
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastTestedTime = new AtomicLong(0);
+    private final AtomicLong lastHealthTime = new AtomicLong(0);
+    private final AtomicReference<HealthSnapshot> health = new AtomicReference<>();
     private final AtomicReference<BreakerConfig> breakerConfig;
 
     public DefaultCircuitBreaker(ActionMetrics actionMetrics, BreakerConfig breakerConfig) {
@@ -80,16 +82,30 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
             }
         } else {
             if (state.get() == CLOSED) {
+                long currentTime = systemTime.currentTimeMillis();
                 BreakerConfig config = this.breakerConfig.get();
-                HealthSnapshot health = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+                HealthSnapshot health = getHealthSnapshot(config, currentTime);
                 long failures = health.failures;
                 double failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || config.failurePercentageThreshold < failurePercentage) {
-                    lastTestedTime.set(systemTime.currentTimeMillis());
+                    lastTestedTime.set(currentTime);
                     state.compareAndSet(CLOSED, OPEN);
                 }
             }
         }
+    }
+
+    private HealthSnapshot getHealthSnapshot(BreakerConfig config, long currentTime) {
+        long lastHealthTime = this.lastHealthTime.get();
+        if (lastHealthTime + config.healthRefreshMillis < currentTime) {
+            if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
+                HealthSnapshot newHealth = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+                health.set(newHealth);
+                return newHealth;
+            }
+        }
+
+        return health.get();
     }
 
     @Override
