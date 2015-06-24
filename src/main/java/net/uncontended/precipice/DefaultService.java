@@ -60,27 +60,27 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientAction<T> action, long millisTimeout) {
-        return submitAction(action, (ResilientCallback<T>) null, millisTimeout);
+    public <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
+        return submit(action, (ResilientCallback<T>) null, millisTimeout);
     }
 
     @Override
-    public <T> void submitAction(ResilientAction<T> action, ResilientPromise<T> promise, long
+    public <T> void submit(ResilientAction<T> action, ResilientPromise<T> promise, long
             millisTimeout) {
-        submitAction(action, promise, null, millisTimeout);
+        submit(action, promise, null, millisTimeout);
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientCallback<T> callback, long
+    public <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long
             millisTimeout) {
         ResilientPromise<T> promise = new DefaultResilientPromise<>();
-        submitAction(action, promise, callback, millisTimeout);
+        submit(action, promise, callback, millisTimeout);
         return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> void submitAction(final ResilientAction<T> action, final ResilientPromise<T> promise,
-                                 final ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submit(final ResilientAction<T> action, final ResilientPromise<T> promise,
+                           final ResilientCallback<T> callback, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
             ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
@@ -100,7 +100,7 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
-    public <T> T performAction(final ResilientAction<T> action) throws Exception {
+    public <T> T run(final ResilientAction<T> action) throws Exception {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
             T result = action.run();

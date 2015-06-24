@@ -47,13 +47,13 @@ public class LoadBalancer<C> implements MultiPattern<C> {
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submitAction(action, (ResilientCallback<T>) null, millisTimeout);
+    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+        return submit(action, (ResilientCallback<T>) null, millisTimeout);
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
-                                               long millisTimeout) {
+    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
+                                         long millisTimeout) {
         final int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -63,7 +63,7 @@ public class LoadBalancer<C> implements MultiPattern<C> {
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].submitAction(actionWithContext, callback, millisTimeout);
+                return services[serviceIndex].submit(actionWithContext, callback, millisTimeout);
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
@@ -74,14 +74,14 @@ public class LoadBalancer<C> implements MultiPattern<C> {
     }
 
     @Override
-    public <T> void submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                 long millisTimeout) {
-        submitAction(action, promise, null, millisTimeout);
+    public <T> void submit(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                           long millisTimeout) {
+        submit(action, promise, null, millisTimeout);
     }
 
     @Override
-    public <T> void submitAction(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                 ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submit(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                           ResilientCallback<T> callback, long millisTimeout) {
         final int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -91,7 +91,7 @@ public class LoadBalancer<C> implements MultiPattern<C> {
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                services[serviceIndex].submitAction(actionWithContext, promise, callback, millisTimeout);
+                services[serviceIndex].submitAndComplete(actionWithContext, promise, callback, millisTimeout);
                 break;
             } catch (RejectedActionException e) {
                 ++j;
@@ -104,7 +104,7 @@ public class LoadBalancer<C> implements MultiPattern<C> {
     }
 
     @Override
-    public <T> T performAction(final ResilientPatternAction<T, C> action) throws Exception {
+    public <T> T run(final ResilientPatternAction<T, C> action) throws Exception {
         final int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -114,7 +114,7 @@ public class LoadBalancer<C> implements MultiPattern<C> {
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].performAction(actionWithContext);
+                return services[serviceIndex].run(actionWithContext);
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {

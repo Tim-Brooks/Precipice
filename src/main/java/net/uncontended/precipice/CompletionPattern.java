@@ -31,7 +31,7 @@ public interface CompletionPattern<C> extends Pattern {
      * @param <T>           the type of the result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> void submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise, long
+    <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise, long
             millisTimeout);
 
     /**
@@ -46,6 +46,6 @@ public interface CompletionPattern<C> extends Pattern {
      * @param <T>           the type of the result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> void submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                          ResilientCallback<T> callback, long millisTimeout);
+    <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                               ResilientCallback<T> callback, long millisTimeout);
 }

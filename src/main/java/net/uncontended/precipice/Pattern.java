@@ -20,7 +20,7 @@ package net.uncontended.precipice;
 public interface Pattern {
 
     /**
-     * Attempts to shutdown all the services. Calls made to submitAction or performAction
+     * Attempts to shutdown all the services. Calls made to submit or run
      * after this call will throw a {@link RejectedActionException}. Implementations
      * may differ on if pending or executing actions are cancelled.
      */

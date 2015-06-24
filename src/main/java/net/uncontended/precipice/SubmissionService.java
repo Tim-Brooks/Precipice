@@ -39,11 +39,11 @@ public interface SubmissionService extends Service {
      * @return a {@link ResilientFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, long millisTimeout);
+    <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout);
 
     /**
      * Submits a {@link ResilientAction} that will be run asynchronously similar to
-     * {@link #submitAction(ResilientAction, long)}. However, at the completion of the task,
+     * {@link #submit(ResilientAction, long)}. However, at the completion of the task,
      * the provided callback will be executed. The callback will be run regardless of the result
      * of the action.
      *
@@ -54,6 +54,6 @@ public interface SubmissionService extends Service {
      * @return a {@link ResilientFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientCallback<T> callback, long
+    <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long
             millisTimeout);
 }

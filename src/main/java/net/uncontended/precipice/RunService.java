@@ -32,5 +32,5 @@ public interface RunService extends Service {
      * @return a {@link ResilientPromise} representing result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> T performAction(ResilientAction<T> action) throws Exception;
+    <T> T run(ResilientAction<T> action) throws Exception;
 }

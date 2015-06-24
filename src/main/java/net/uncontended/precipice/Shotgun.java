@@ -49,27 +49,27 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submitAction(action, (ResilientCallback<T>) null, millisTimeout);
+    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+        return submit(action, (ResilientCallback<T>) null, millisTimeout);
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
-                                               long millisTimeout) {
+    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
+                                         long millisTimeout) {
         DefaultResilientPromise<T> promise = new DefaultResilientPromise<>();
-        submitAction(action, promise, callback, millisTimeout);
+        submit(action, promise, callback, millisTimeout);
         return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> void submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                 long millisTimeout) {
-        submitAction(action, promise, null, millisTimeout);
+    public <T> void submit(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                           long millisTimeout) {
+        submit(action, promise, null, millisTimeout);
     }
 
     @Override
-    public <T> void submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                 ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submit(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                           ResilientCallback<T> callback, long millisTimeout) {
         final int[] servicesToTry = strategy.executorIndices();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -77,7 +77,7 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
         for (int serviceIndex : servicesToTry) {
             try {
                 actionWithContext.context = contexts[serviceIndex];
-                services[serviceIndex].submitAction(actionWithContext, promise, callback, millisTimeout);
+                services[serviceIndex].submitAndComplete(actionWithContext, promise, callback, millisTimeout);
                 ++submittedCount;
             } catch (RejectedActionException e) {
             }

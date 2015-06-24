@@ -36,5 +36,5 @@ public interface RunPattern<C> extends Pattern {
      * @return a {@link ResilientPromise} representing result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> T performAction(ResilientPatternAction<T, C> action) throws Exception;
+    <T> T run(ResilientPatternAction<T, C> action) throws Exception;
 }

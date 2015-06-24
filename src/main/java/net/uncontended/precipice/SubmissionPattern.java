@@ -18,7 +18,6 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.ResilientFuture;
-import net.uncontended.precipice.concurrent.ResilientPromise;
 
 /**
  * A group of services that actions can be run on. Different implementations can
@@ -43,11 +42,11 @@ public interface SubmissionPattern<C> {
      * @return a {@link ResilientFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, long millisTimeout);
+    <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
 
     /**
      * Submits a {@link ResilientPatternAction} that will be run asynchronously similar to
-     * {@link #submitAction(ResilientPatternAction, long)}. However, at the completion of the
+     * {@link #submit(ResilientPatternAction, long)}. However, at the completion of the
      * task, the provided callback will be executed. The callback will be run regardless of
      * the result of the action.
      *
@@ -58,6 +57,6 @@ public interface SubmissionPattern<C> {
      * @return a {@link ResilientFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientCallback<T> callback, long millisTimeout);
+    <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback, long millisTimeout);
 
 }
