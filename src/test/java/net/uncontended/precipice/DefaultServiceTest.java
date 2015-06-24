@@ -42,24 +42,24 @@ import static org.junit.Assert.*;
 
 public class DefaultServiceTest {
 
-    private MultiService blockingExecutor;
+    private MultiService service;
 
     @Before
     public void setUp() {
-        blockingExecutor = Services.defaultService("Test", 1, 30);
+        service = Services.defaultService("Test", 1, 30);
     }
 
     @After
     public void tearDown() {
-        blockingExecutor.shutdown();
+        service.shutdown();
     }
 
     @Test
     public void actionRejectedIfShutdown() {
-        blockingExecutor.shutdown();
+        service.shutdown();
 
         try {
-            blockingExecutor.submit(TestActions.successAction(0), Long.MAX_VALUE);
+            service.submit(TestActions.successAction(0), Long.MAX_VALUE);
             fail("Action should have been rejected due to shutdown.");
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.SERVICE_SHUTDOWN, e.reason);
@@ -68,19 +68,19 @@ public class DefaultServiceTest {
 
     @Test
     public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
-        blockingExecutor = Services.defaultService("Test", 1, 2);
+        service = Services.defaultService("Test", 1, 2);
         CountDownLatch latch = new CountDownLatch(1);
-        blockingExecutor.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
-        blockingExecutor.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
 
         try {
-            blockingExecutor.submit(TestActions.successAction(1), Long.MAX_VALUE);
+            service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             fail();
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
-            blockingExecutor.run(TestActions.successAction(1));
+            service.run(TestActions.successAction(1));
             fail();
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
@@ -90,15 +90,15 @@ public class DefaultServiceTest {
 
     @Test
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
-        blockingExecutor = Services.defaultService("Test", 1, 1);
+        service = Services.defaultService("Test", 1, 1);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
-            ResilientFuture<String> future = blockingExecutor.submit(TestActions.successAction(1), 500);
+            ResilientFuture<String> future = service.submit(TestActions.successAction(1), 500);
             future.get();
             int j = 0;
             while (true) {
                 try {
-                    blockingExecutor.run(TestActions.successAction(1));
+                    service.run(TestActions.successAction(1));
                     break;
                 } catch (RejectedActionException e) {
                     Thread.sleep(5);
@@ -113,7 +113,7 @@ public class DefaultServiceTest {
 
     @Test
     public void actionIsSubmittedAndRan() throws Exception {
-        ResilientFuture<String> f = blockingExecutor.submit(TestActions.successAction(1), 500);
+        ResilientFuture<String> f = service.submit(TestActions.successAction(1), 500);
 
         assertEquals("Success", f.get());
         assertEquals(Status.SUCCESS, f.getStatus());
@@ -122,7 +122,7 @@ public class DefaultServiceTest {
     @Test
     public void futureIsPendingUntilSubmittedActionFinished() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        ResilientFuture<String> f = blockingExecutor.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        ResilientFuture<String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
         assertEquals(Status.PENDING, f.getStatus());
         latch.countDown();
         f.get();
@@ -131,14 +131,14 @@ public class DefaultServiceTest {
 
     @Test
     public void performActionCompletesAction() throws Exception {
-        String result = blockingExecutor.run(TestActions.successAction(1));
+        String result = service.run(TestActions.successAction(1));
         assertEquals("Success", result);
     }
 
     @Test
     public void promisePassedToExecutorWillBeCompleted() throws Exception {
         DefaultResilientPromise<String> promise = new DefaultResilientPromise<>();
-        blockingExecutor.submitAndComplete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
+        service.submitAndComplete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
 
         assertEquals("Same Promise", promise.awaitResult());
 
@@ -149,7 +149,7 @@ public class DefaultServiceTest {
         CountDownLatch latch = new CountDownLatch(1);
         DefaultResilientPromise<String> promise = new DefaultResilientPromise<>();
 
-        blockingExecutor.submitAndComplete(TestActions.blockedAction(latch), promise, Long.MAX_VALUE);
+        service.submitAndComplete(TestActions.blockedAction(latch), promise, Long.MAX_VALUE);
 
         promise.deliverResult("CompleteOnThisThread");
         latch.countDown();
@@ -162,7 +162,7 @@ public class DefaultServiceTest {
 
     @Test
     public void submittedActionWillTimeout() throws Exception {
-        ResilientFuture<String> future = blockingExecutor.submit(TestActions.blockedAction(new CountDownLatch
+        ResilientFuture<String> future = service.submit(TestActions.blockedAction(new CountDownLatch
                 (1)), 1);
 
         assertNull(future.get());
@@ -172,7 +172,7 @@ public class DefaultServiceTest {
     @Test
     public void erredActionWillReturnedException() {
         RuntimeException exception = new RuntimeException();
-        ResilientFuture<String> future = blockingExecutor.submit(TestActions.erredAction(exception), 100);
+        ResilientFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
 
         try {
             future.get();
@@ -194,11 +194,11 @@ public class DefaultServiceTest {
 
         CountDownLatch blockingLatch = new CountDownLatch(1);
 
-        ResilientFuture<String> errorF = blockingExecutor.submit(TestActions.erredAction(new IOException()),
+        ResilientFuture<String> errorF = service.submit(TestActions.erredAction(new IOException()),
                 TestCallbacks.completePromiseCallback(errorPromise), 100);
-        ResilientFuture<String> timeOutF = blockingExecutor.submit(TestActions.blockedAction(blockingLatch),
+        ResilientFuture<String> timeOutF = service.submit(TestActions.blockedAction(blockingLatch),
                 TestCallbacks.completePromiseCallback(timeOutPromise), 1);
-        ResilientFuture<String> successF = blockingExecutor.submit(TestActions.successAction(50, "Success"),
+        ResilientFuture<String> successF = service.submit(TestActions.successAction(50, "Success"),
                 TestCallbacks.completePromiseCallback(successPromise), Long.MAX_VALUE);
 
         errorPromise.await();
@@ -217,11 +217,11 @@ public class DefaultServiceTest {
         CountDownLatch blockingLatch = new CountDownLatch(3);
 
         ResilientCallback<String> countdownCallback = TestCallbacks.latchedCallback(blockingLatch);
-        ResilientFuture<String> errorF = blockingExecutor.submit(TestActions.erredAction(new IOException()),
+        ResilientFuture<String> errorF = service.submit(TestActions.erredAction(new IOException()),
                 countdownCallback, 100);
-        ResilientFuture<String> timeOutF = blockingExecutor.submit(TestActions.blockedAction(timeoutLatch),
+        ResilientFuture<String> timeOutF = service.submit(TestActions.blockedAction(timeoutLatch),
                 countdownCallback, 1);
-        ResilientFuture<String> successF = blockingExecutor.submit(TestActions.successAction(50, "Success"),
+        ResilientFuture<String> successF = service.submit(TestActions.successAction(50, "Success"),
                 countdownCallback, Long.MAX_VALUE);
 
         for (ResilientFuture<String> f : Arrays.asList(errorF, timeOutF, successF)) {
@@ -233,7 +233,7 @@ public class DefaultServiceTest {
             }
         }
 
-        ActionMetrics metrics = blockingExecutor.getActionMetrics();
+        ActionMetrics metrics = service.getActionMetrics();
         Map<Object, Integer> expectedCounts = new HashMap<>();
         expectedCounts.put(Status.SUCCESS, 1);
         expectedCounts.put(Status.ERROR, 1);
@@ -246,16 +246,16 @@ public class DefaultServiceTest {
 
     @Test
     public void rejectedMetricsUpdated() throws Exception {
-        blockingExecutor = Services.defaultService("Test", 1, 1);
+        service = Services.defaultService("Test", 1, 1);
         CountDownLatch latch = new CountDownLatch(1);
         CountDownLatch blockingLatch = new CountDownLatch(1);
         ResilientCallback<String> callback = TestCallbacks.latchedCallback(blockingLatch);
 
-        ResilientFuture<String> f = blockingExecutor.submit(TestActions.blockedAction(latch), callback,
+        ResilientFuture<String> f = service.submit(TestActions.blockedAction(latch), callback,
                 Long.MAX_VALUE);
 
         try {
-            blockingExecutor.submit(TestActions.successAction(1), callback, Long.MAX_VALUE);
+            service.submit(TestActions.successAction(1), callback, Long.MAX_VALUE);
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
@@ -263,12 +263,12 @@ public class DefaultServiceTest {
         latch.countDown();
         f.get();
         blockingLatch.await();
-        blockingExecutor.getCircuitBreaker().forceOpen();
+        service.getCircuitBreaker().forceOpen();
 
         int maxConcurrencyErrors = 1;
         for (int i = 0; i < 5; ++i) {
             try {
-                blockingExecutor.submit(TestActions.successAction(1), Long.MAX_VALUE);
+                service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             } catch (RejectedActionException e) {
                 if (e.reason == RejectionReason.CIRCUIT_OPEN) {
                     break;
@@ -283,7 +283,7 @@ public class DefaultServiceTest {
         expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
         expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
 
-        assertNewMetrics(blockingExecutor.getActionMetrics(), expectedCounts);
+        assertNewMetrics(service.getActionMetrics(), expectedCounts);
     }
 
     @Test
@@ -298,11 +298,11 @@ public class DefaultServiceTest {
         timeoutP.deliverResult("Done");
         successP.deliverResult("Done");
 
-        blockingExecutor.submitAndComplete(TestActions.erredAction(new IOException()), errP, callback, 100);
-        blockingExecutor.submitAndComplete(TestActions.blockedAction(timeoutLatch), timeoutP, callback, 1);
-        blockingExecutor.submitAndComplete(TestActions.successAction(50, "Success"), successP, callback, Long.MAX_VALUE);
+        service.submitAndComplete(TestActions.erredAction(new IOException()), errP, callback, 100);
+        service.submitAndComplete(TestActions.blockedAction(timeoutLatch), timeoutP, callback, 1);
+        service.submitAndComplete(TestActions.successAction(50, "Success"), successP, callback, Long.MAX_VALUE);
 
-        ActionMetrics metrics = blockingExecutor.getActionMetrics();
+        ActionMetrics metrics = service.getActionMetrics();
         for (int i = 0; i < 9; ++i) {
             if (metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
                 break;
@@ -328,13 +328,13 @@ public class DefaultServiceTest {
 
     @Test
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
-        blockingExecutor = Services.defaultService("Test", 1, 1);
-        blockingExecutor.submit(TestActions.successAction(0), TestCallbacks.exceptionCallback(""), Long.MAX_VALUE);
+        service = Services.defaultService("Test", 1, 1);
+        service.submit(TestActions.successAction(0), TestCallbacks.exceptionCallback(""), Long.MAX_VALUE);
 
         int i = 0;
         while (true) {
             try {
-                blockingExecutor.run(TestActions.successAction(0));
+                service.run(TestActions.successAction(0));
                 break;
             } catch (RejectedActionException e) {
                 Thread.sleep(5);
@@ -358,11 +358,11 @@ public class DefaultServiceTest {
 
         ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
         CircuitBreaker breaker = new DefaultCircuitBreaker(metrics, builder.build());
-        blockingExecutor = Services.defaultService("Test", 1, 100, metrics, breaker);
+        service = Services.defaultService("Test", 1, 100, metrics, breaker);
 
         List<ResilientFuture<String>> fs = new ArrayList<>();
         for (int i = 0; i < 6; ++i) {
-            fs.add(blockingExecutor.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
+            fs.add(service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
         }
 
         for (ResilientFuture<String> f : fs) {
@@ -375,7 +375,7 @@ public class DefaultServiceTest {
         Thread.sleep(10);
 
         try {
-            blockingExecutor.submit(TestActions.successAction(0), 100);
+            service.submit(TestActions.successAction(0), 100);
             fail("Should have been rejected due to open circuit.");
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
@@ -383,10 +383,10 @@ public class DefaultServiceTest {
 
         Thread.sleep(150);
 
-        ResilientFuture<String> f = blockingExecutor.submit(TestActions.successAction(0, "Result"), 100);
+        ResilientFuture<String> f = service.submit(TestActions.successAction(0, "Result"), 100);
         assertEquals("Result", f.get());
 
-        ResilientFuture<String> fe = blockingExecutor.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
+        ResilientFuture<String> fe = service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
         try {
             fe.get();
         } catch (ExecutionException e) {
@@ -395,7 +395,7 @@ public class DefaultServiceTest {
         Thread.sleep(10);
 
         try {
-            blockingExecutor.submit(TestActions.successAction(0), 100);
+            service.submit(TestActions.successAction(0), 100);
             fail("Should have been rejected due to open circuit.");
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);

@@ -18,15 +18,22 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.concurrent.ExecutorSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractService implements Service {
-    final ActionMetrics actionMetrics;
-    final CircuitBreaker circuitBreaker;
+    protected final ExecutorSemaphore semaphore;
+    protected final AtomicBoolean isShutdown = new AtomicBoolean(false);
+    protected final ActionMetrics actionMetrics;
+    protected final CircuitBreaker circuitBreaker;
 
-    public AbstractService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics) {
+    public AbstractService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, ExecutorSemaphore semaphore) {
         this.circuitBreaker = circuitBreaker;
         this.actionMetrics = actionMetrics;
+        this.semaphore = semaphore;
     }
 
     @Override
@@ -39,4 +46,21 @@ public abstract class AbstractService implements Service {
         return circuitBreaker;
     }
 
+    protected void acquirePermitOrRejectIfActionNotAllowed() {
+        if (isShutdown.get()) {
+            throw new RejectedActionException(RejectionReason.SERVICE_SHUTDOWN);
+        }
+
+        boolean isPermitAcquired = semaphore.acquirePermit();
+        if (!isPermitAcquired) {
+            actionMetrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            throw new RejectedActionException(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        }
+
+        if (!circuitBreaker.allowAction()) {
+            actionMetrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
+            semaphore.releasePermit();
+            throw new RejectedActionException(RejectionReason.CIRCUIT_OPEN);
+        }
+    }
 }
