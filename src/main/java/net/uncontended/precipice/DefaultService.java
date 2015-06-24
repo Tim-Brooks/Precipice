@@ -29,29 +29,28 @@ import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultService extends AbstractService implements MultiService {
 
     private final ExecutorService service;
     private final TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
 
-    public DefaultService(ExecutorService service, int concurrencyLevel) {
-        this(service, concurrencyLevel, new DefaultActionMetrics());
+    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore) {
+        this(service, semaphore, new DefaultActionMetrics());
     }
 
-    public DefaultService(ExecutorService service, int concurrencyLevel, ActionMetrics actionMetrics) {
-        this(service, concurrencyLevel, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
+    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
+        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
                 BreakerConfigBuilder().build()));
     }
 
-    public DefaultService(ExecutorService service, int concurrencyLevel, CircuitBreaker breaker) {
-        this(service, concurrencyLevel, new DefaultActionMetrics(), breaker);
+    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {
+        this(service, semaphore, new DefaultActionMetrics(), breaker);
     }
 
-    public DefaultService(ExecutorService service, int concurrencyLevel, ActionMetrics actionMetrics, CircuitBreaker
+    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker
             circuitBreaker) {
-        super(circuitBreaker, actionMetrics, new ExecutorSemaphore(concurrencyLevel));
+        super(circuitBreaker, actionMetrics, semaphore);
         this.service = service;
     }
 

@@ -20,29 +20,28 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.ExecutorSemaphore;
+import net.uncontended.precipice.concurrent.IntegerSemaphore;
+import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 
 public class DefaultRunService extends AbstractService implements RunService {
 
-    public DefaultRunService(int concurrencyLevel) {
-        this(concurrencyLevel, new DefaultActionMetrics());
+    public DefaultRunService(PrecipiceSemaphore semaphore) {
+        this(semaphore, new DefaultActionMetrics());
     }
 
-    public DefaultRunService(int concurrencyLevel, ActionMetrics actionMetrics) {
-        this(concurrencyLevel, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
-                BreakerConfigBuilder().build()));
+    public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
+        this(semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new BreakerConfigBuilder().build()));
     }
 
-    public DefaultRunService(int concurrencyLevel, CircuitBreaker breaker) {
-        this(concurrencyLevel, new DefaultActionMetrics(), breaker);
+    public DefaultRunService(PrecipiceSemaphore semaphore, CircuitBreaker breaker) {
+        this(semaphore, new DefaultActionMetrics(), breaker);
     }
 
-    public DefaultRunService(int concurrencyLevel, ActionMetrics actionMetrics, CircuitBreaker
-            circuitBreaker) {
-        super(circuitBreaker, actionMetrics, new ExecutorSemaphore(concurrencyLevel));
+    public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker circuitBreaker) {
+        super(circuitBreaker, actionMetrics, semaphore);
     }
 
     @Override

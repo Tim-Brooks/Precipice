@@ -18,19 +18,20 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.concurrent.ExecutorSemaphore;
+import net.uncontended.precipice.concurrent.IntegerSemaphore;
+import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractService implements Service {
-    protected final ExecutorSemaphore semaphore;
+    protected final PrecipiceSemaphore semaphore;
     protected final AtomicBoolean isShutdown = new AtomicBoolean(false);
     protected final ActionMetrics actionMetrics;
     protected final CircuitBreaker circuitBreaker;
 
-    public AbstractService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, ExecutorSemaphore semaphore) {
+    public AbstractService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore semaphore) {
         this.circuitBreaker = circuitBreaker;
         this.actionMetrics = actionMetrics;
         this.semaphore = semaphore;

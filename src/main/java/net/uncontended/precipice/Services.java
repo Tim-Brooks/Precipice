@@ -19,6 +19,7 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.NoOpCircuitBreaker;
+import net.uncontended.precipice.concurrent.IntegerSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.utils.PrecipiceExecutors;
 
@@ -28,77 +29,77 @@ public class Services {
 
     public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel));
     }
 
     public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, metrics);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
     }
 
     public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static SubmissionService submissionService(ExecutorService executor, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
-        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel));
     }
 
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, metrics);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
     }
 
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static CompletionService completionService(ExecutorService executor, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
-        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static CompletionService completionServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, new NoOpCircuitBreaker());
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), new NoOpCircuitBreaker());
     }
 
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel));
     }
 
     public static MultiService defaultServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, new NoOpCircuitBreaker());
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), new NoOpCircuitBreaker());
     }
 
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, metrics);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
     }
 
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static MultiService defaultService(ExecutorService executor, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
-        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 }

@@ -31,13 +31,13 @@ public class ResilientTask<T> implements Runnable {
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     private final ResilientPromise<T> promise;
     private final ActionMetrics metrics;
-    private final ExecutorSemaphore semaphore;
+    private final PrecipiceSemaphore semaphore;
     private final CircuitBreaker breaker;
     private final ResilientAction<T> action;
     private final ResilientCallback<T> callback;
     private volatile Thread runner;
 
-    public ResilientTask(ActionMetrics metrics, ExecutorSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
+    public ResilientTask(ActionMetrics metrics, PrecipiceSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
             action, ResilientCallback<T> callback, ResilientPromise<T> promise) {
         this.metrics = metrics;
         this.semaphore = semaphore;

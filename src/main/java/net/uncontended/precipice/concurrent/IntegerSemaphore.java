@@ -19,14 +19,15 @@ package net.uncontended.precipice.concurrent;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ExecutorSemaphore {
+public class IntegerSemaphore implements PrecipiceSemaphore {
 
     private final AtomicInteger permitsRemaining;
 
-    public ExecutorSemaphore(int concurrencyLevel) {
+    public IntegerSemaphore(int concurrencyLevel) {
         permitsRemaining = new AtomicInteger(concurrencyLevel);
     }
 
+    @Override
     public boolean acquirePermit() {
         for (; ; ) {
             int permitsRemaining = this.permitsRemaining.get();
@@ -40,6 +41,7 @@ public class ExecutorSemaphore {
         }
     }
 
+    @Override
     public void releasePermit() {
         this.permitsRemaining.getAndIncrement();
     }
