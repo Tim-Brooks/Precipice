@@ -26,31 +26,29 @@ import java.util.concurrent.ExecutorService;
 
 public class Services {
 
-    public static final int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
-
-    public static Service defaultService(String name, int poolSize, int concurrencyLevel) {
+    public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         return new DefaultService(executor, concurrencyLevel);
     }
 
-    public static Service defaultServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
+    public static MultiService defaultServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         return new DefaultService(executor, concurrencyLevel, new NoOpCircuitBreaker());
     }
 
-    public static Service defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
+    public static MultiService defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         return new DefaultService(executor, concurrencyLevel, metrics);
     }
 
-    public static Service defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
+    public static MultiService defaultService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         return new DefaultService(executor, concurrencyLevel, metrics, breaker);
     }
 
-    public static Service defaultService(ExecutorService executor, int concurrencyLevel, ActionMetrics
+    public static MultiService defaultService(ExecutorService executor, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         return new DefaultService(executor, concurrencyLevel, metrics, breaker);
     }

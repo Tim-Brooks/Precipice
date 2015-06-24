@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultService extends AbstractService {
+public class DefaultService extends AbstractService implements MultiService {
 
     private final AtomicBoolean isShutdown = new AtomicBoolean(false);
     private final ExecutorService service;

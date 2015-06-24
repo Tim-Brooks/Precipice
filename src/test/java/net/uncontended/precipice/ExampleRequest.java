@@ -29,9 +29,9 @@ import java.util.Random;
 
 public class ExampleRequest implements Runnable {
 
-    private final Service service;
+    private final SubmissionService service;
 
-    public ExampleRequest(Service service) {
+    public ExampleRequest(SubmissionService service) {
         this.service = service;
     }
 

@@ -42,11 +42,11 @@ import static org.junit.Assert.*;
 
 public class DefaultServiceTest {
 
-    private DefaultService blockingExecutor;
+    private MultiService blockingExecutor;
 
     @Before
     public void setUp() {
-        blockingExecutor = (DefaultService) Services.defaultService("Test", 1, 30);
+        blockingExecutor = Services.defaultService("Test", 1, 30);
     }
 
     @After
@@ -68,7 +68,7 @@ public class DefaultServiceTest {
 
     @Test
     public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
-        blockingExecutor = (DefaultService) Services.defaultService("Test", 1, 2);
+        blockingExecutor = Services.defaultService("Test", 1, 2);
         CountDownLatch latch = new CountDownLatch(1);
         blockingExecutor.submitAction(TestActions.blockedAction(latch), Long.MAX_VALUE);
         blockingExecutor.submitAction(TestActions.blockedAction(latch), Long.MAX_VALUE);
@@ -90,7 +90,7 @@ public class DefaultServiceTest {
 
     @Test
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
-        blockingExecutor = (DefaultService) Services.defaultService("Test", 1, 1);
+        blockingExecutor = Services.defaultService("Test", 1, 1);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
             ResilientFuture<String> future = blockingExecutor.submitAction(TestActions.successAction(1), 500);
@@ -246,7 +246,7 @@ public class DefaultServiceTest {
 
     @Test
     public void rejectedMetricsUpdated() throws Exception {
-        blockingExecutor = (DefaultService) Services.defaultService("Test", 1, 1);
+        blockingExecutor = Services.defaultService("Test", 1, 1);
         CountDownLatch latch = new CountDownLatch(1);
         CountDownLatch blockingLatch = new CountDownLatch(1);
         ResilientCallback<String> callback = TestCallbacks.latchedCallback(blockingLatch);
@@ -328,7 +328,7 @@ public class DefaultServiceTest {
 
     @Test
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
-        blockingExecutor = (DefaultService) Services.defaultService("Test", 1, 1);
+        blockingExecutor = Services.defaultService("Test", 1, 1);
         blockingExecutor.submitAction(TestActions.successAction(0), TestCallbacks.exceptionCallback(""), Long.MAX_VALUE);
 
         int i = 0;
@@ -356,7 +356,7 @@ public class DefaultServiceTest {
 
         ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
         CircuitBreaker breaker = new DefaultCircuitBreaker(metrics, builder.build());
-        blockingExecutor = (DefaultService) Services.defaultService("Test", 1, 100, metrics, breaker);
+        blockingExecutor = Services.defaultService("Test", 1, 100, metrics, breaker);
 
         List<ResilientFuture<String>> fs = new ArrayList<>();
         for (int i = 0; i < 6; ++i) {

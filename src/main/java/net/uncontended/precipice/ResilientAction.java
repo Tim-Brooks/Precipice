@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 
 /**
  * An action that returns a result and may throw an exception. This class
- * exists to be submitted or performed on a {@link Service}. Implementers
+ * exists to be submitted or performed on a {@link SubmissionService}. Implementers
  * must only implement the run() method.
  *
  *  <p/>This class is very similar in behavior to {@link Callable}.

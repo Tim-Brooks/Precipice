@@ -20,10 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 
-/**
- * Created by timbrooks on 6/23/15.
- */
-interface CompleteService {
+public interface CompletionService {
 
     /**
      * Submits a {@link ResilientAction} that will be run asynchronously. At the

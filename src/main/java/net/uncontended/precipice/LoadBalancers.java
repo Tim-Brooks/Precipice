@@ -30,18 +30,18 @@ import java.util.concurrent.ExecutorService;
 
 public class LoadBalancers {
 
-    public static <C> SubmitPattern<C> newRoundRobin(Map<DefaultService, C> serviceToContext) {
+    public static <C> SubmitPattern<C> newRoundRobin(Map<MultiService, C> serviceToContext) {
         return new LoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
     public static <C> SubmitPattern<C> newRoundRobinWithSharedPool(List<C> contexts, String name, int poolSize, int
             concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        Map<DefaultService, C> serviceToContext = new HashMap<>();
+        Map<MultiService, C> serviceToContext = new HashMap<>();
         for (C context : contexts) {
             BreakerConfig configBuilder = new BreakerConfigBuilder().build();
             ActionMetrics metrics = new DefaultActionMetrics();
-            DefaultService service = (DefaultService) Services.defaultService(executor, concurrencyLevel, metrics,
+            MultiService service = Services.defaultService(executor, concurrencyLevel, metrics,
                     new DefaultCircuitBreaker(metrics, configBuilder));
             serviceToContext.put(service, context);
         }

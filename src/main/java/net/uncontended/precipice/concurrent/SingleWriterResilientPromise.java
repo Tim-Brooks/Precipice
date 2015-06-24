@@ -18,7 +18,7 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.ResilientAction;
-import net.uncontended.precipice.Service;
+import net.uncontended.precipice.SubmissionService;
 import net.uncontended.precipice.Status;
 
 /**
@@ -29,7 +29,7 @@ import net.uncontended.precipice.Status;
  * <p/>
  * This class is designed to be written to by ONE thread only. It primarily exists to
  * avoid expensive compareAndSet calls that are required in the multiple writer scenario.
- * This promise is used in synchronous {@link Service#performAction(ResilientAction) performAction)}
+ * This promise is used in synchronous {@link SubmissionService#performAction(ResilientAction) performAction)}
  * calls.
  *
  * @param <T> the result returned by the action

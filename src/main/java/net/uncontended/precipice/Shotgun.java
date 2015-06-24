@@ -24,22 +24,22 @@ import java.util.Map;
 
 public class Shotgun<C> implements SubmitPattern<C>, CompletePattern<C> {
 
-    private final DefaultService[] services;
+    private final MultiService[] services;
     private final ShotgunStrategy strategy;
     private final C[] contexts;
 
     @SuppressWarnings("unchecked")
-    public Shotgun(Map<DefaultService, C> executorToContext, int submissionCount) {
+    public Shotgun(Map<MultiService, C> executorToContext, int submissionCount) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
         } else if (submissionCount > executorToContext.size()) {
             throw new IllegalArgumentException("Submission count cannot be fewer than number of services provided.");
         }
 
-        services = new DefaultService[executorToContext.size()];
+        services = new MultiService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<DefaultService, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<MultiService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
@@ -97,7 +97,7 @@ public class Shotgun<C> implements SubmitPattern<C>, CompletePattern<C> {
 
     @Override
     public void shutdown() {
-        for (Service service : services) {
+        for (MultiService service : services) {
             service.shutdown();
         }
 

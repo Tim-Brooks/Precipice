@@ -25,21 +25,21 @@ import java.util.Map;
 
 public class LoadBalancer<C> implements SubmitPattern<C>, CompletePattern<C> {
 
-    private final DefaultService[] services;
+    private final MultiService[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
 
     @SuppressWarnings("unchecked")
-    public LoadBalancer(Map<DefaultService, C> executorToContext, LoadBalancerStrategy strategy) {
+    public LoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create LoadBalancer with 0 Executors.");
         }
 
         this.strategy = strategy;
-        services = new DefaultService[executorToContext.size()];
+        services = new MultiService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<DefaultService, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<MultiService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
@@ -126,7 +126,7 @@ public class LoadBalancer<C> implements SubmitPattern<C>, CompletePattern<C> {
 
     @Override
     public void shutdown() {
-        for (Service e : services) {
+        for (MultiService e : services) {
             e.shutdown();
         }
     }

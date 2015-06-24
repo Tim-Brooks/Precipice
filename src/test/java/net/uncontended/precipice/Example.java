@@ -34,7 +34,7 @@ public class Example {
         ActionMetrics actionMetrics = new DefaultActionMetrics();
         BreakerConfig breakerConfig = new BreakerConfigBuilder().trailingPeriodMillis(5000)
                 .failureThreshold(100).backOffTimeMillis(2000).build();
-        Service service = Services.defaultService("Test", 25, 120, actionMetrics,
+        MultiService service = Services.defaultService("Test", 25, 120, actionMetrics,
                 new DefaultCircuitBreaker(actionMetrics, breakerConfig));
 //        BreakerConfig breakerConfig2 = new BreakerConfig.BreakerConfigBuilder().trailingPeriodInMillis(5000)
 //                .failureThreshold(400).backOffTimeInMillis(2000).build();
