@@ -36,9 +36,9 @@ import static org.mockito.Mockito.*;
 public class LoadBalancerTest {
 
     @Mock
-    private Service executor1;
+    private DefaultService executor1;
     @Mock
-    private Service executor2;
+    private DefaultService executor2;
     @Mock
     private LoadBalancerStrategy strategy;
     @Mock
@@ -59,7 +59,7 @@ public class LoadBalancerTest {
         context1.put("port", 8000);
         context2 = new HashMap<>();
         context2.put("host", 8001);
-        Map<Service, Map<String, Object>> map = new LinkedHashMap<>();
+        Map<DefaultService, Map<String, Object>> map = new LinkedHashMap<>();
         map.put(executor1, context1);
         map.put(executor2, context2);
 
@@ -107,8 +107,8 @@ public class LoadBalancerTest {
         ResilientCallback<String> callback = mock(ResilientCallback.class);
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
-        when(executor1.submitAction(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout))).thenThrow(new
-                RejectedActionException(RejectionReason.CIRCUIT_OPEN));
+        doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
+                .submitAction(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));
         balancer.submitAction(action, promise, callback, timeout);
         verify(executor2).submitAction(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));
         actionCaptor.getValue().run();

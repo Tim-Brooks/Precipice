@@ -17,7 +17,9 @@
 
 package net.uncontended.precipice.timeout;
 
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.concurrent.ResilientTask;
 
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,9 +58,8 @@ public class TimeoutService {
                         ActionTimeout timeout = timeoutQueue.take();
                         @SuppressWarnings("unchecked")
                         ResilientPromise<Object> promise = (ResilientPromise<Object>) timeout.promise;
-                        if (promise.setTimedOut()) {
-                            timeout.future.cancel(true);
-                        }
+                        promise.setTimedOut();
+                        timeout.task.setTimedOut();
                     } catch (InterruptedException e) {
                         break;
                     }

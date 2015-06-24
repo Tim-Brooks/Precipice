@@ -19,70 +19,76 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.ResilientCallback;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class ResilientTask<T> extends FutureTask<Void> {
+public class ResilientTask<T> implements Runnable {
 
-    private final ResilientPromise<T> userPromise;
+    public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
+    private final ResilientPromise<T> promise;
     private final ActionMetrics metrics;
     private final ExecutorSemaphore semaphore;
     private final CircuitBreaker breaker;
+    private final ResilientAction<T> action;
     private final ResilientCallback<T> callback;
-    private final ResilientPromise<T> internalPromise;
+    private volatile Thread runner;
 
     public ResilientTask(ActionMetrics metrics, ExecutorSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
-            action, ResilientCallback<T> callback, ResilientPromise<T> internalPromise, ResilientPromise<T> userPromise) {
-        super(new ResilientCallable<>(action, internalPromise));
+            action, ResilientCallback<T> callback, ResilientPromise<T> promise) {
         this.metrics = metrics;
         this.semaphore = semaphore;
         this.breaker = breaker;
+        this.action = action;
         this.callback = callback;
-        this.internalPromise = internalPromise;
-        this.userPromise = userPromise;
+        this.promise = promise;
     }
 
     @Override
-    protected void done() {
-        metrics.incrementMetricCount(Metric.statusToMetric(internalPromise.getStatus()));
-        breaker.informBreakerOfResult(internalPromise.isSuccessful());
+    public void run() {
         try {
-            if (callback != null) {
-                callback.run(userPromise == null ? internalPromise : userPromise);
+            if (status.get() == Status.PENDING) {
+                runner = Thread.currentThread();
+                T result = action.run();
+                if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
+                    promise.deliverResult(result);
+                }
             }
+        } catch (InterruptedException e) {
+            Thread.interrupted();
         } catch (Exception e) {
-            // TODO: strategy for handling callback exception.
-
+            if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
+                promise.deliverError(e);
+            }
         } finally {
-            semaphore.releasePermit();
+            done();
         }
     }
 
-
-    private static class ResilientCallable<T> implements Callable<Void> {
-        private final ResilientPromise<T> promise;
-        private final ResilientAction<T> action;
-
-        public ResilientCallable(ResilientAction<T> action, ResilientPromise<T> promise) {
-            this.action = action;
-            this.promise = promise;
-        }
-
-        @Override
-        public Void call() throws Exception {
-            try {
-                T result = action.run();
-                promise.deliverResult(result);
-            } catch (InterruptedException e) {
-                Thread.interrupted();
-            } catch (Exception e) {
-                promise.deliverError(e);
+    public void setTimedOut() {
+        if (status.get() == Status.PENDING) {
+            if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+                if (runner != null) {
+                    runner.interrupt();
+                }
             }
-            return null;
+        }
+    }
+
+    private void done() {
+        metrics.incrementMetricCount(Metric.statusToMetric(status.get()));
+        breaker.informBreakerOfResult(status.get() == Status.SUCCESS);
+        try {
+            if (callback != null) {
+                callback.run(promise);
+            }
+        } catch (Exception e) {
+            // TODO: strategy for handling callback exception.
+        } finally {
+            semaphore.releasePermit();
         }
     }
 

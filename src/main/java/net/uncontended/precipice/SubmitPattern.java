@@ -30,7 +30,7 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
  *
  * @param <C> the context passed to an pattern action
  */
-public interface ComposedService<C> {
+public interface SubmitPattern<C> {
     /**
      * Submits a {@link ResilientPatternAction} that will be run asynchronously.
      * The result of the action will be delivered to the future returned
@@ -61,38 +61,6 @@ public interface ComposedService<C> {
     <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientCallback<T> callback, long millisTimeout);
 
     /**
-     * Submits a {@link ResilientPatternAction} that will be run asynchronously similar to
-     * {@link #submitAction(ResilientPatternAction, long)}. However, at the completion of
-     * the task, the result will be delivered to the promise provided.
-     *
-     * @param action        the action to submit
-     * @param promise       a promise to which deliver the result
-     * @param millisTimeout milliseconds before the action times out
-     * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise, long
-            millisTimeout);
-
-    /**
-     * Submits a {@link ResilientPatternAction} that will be run asynchronously similar to
-     * {@link #submitAction(ResilientPatternAction, long)}. However, at the completion
-     * of the task, the result will be delivered to the promise provided. And the provided
-     * callback will be executed.
-     *
-     * @param action        the action to submit
-     * @param promise       a promise to which deliver the result
-     * @param callback      to run on action completion
-     * @param millisTimeout milliseconds before the action times out
-     * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                        ResilientCallback<T> callback, long millisTimeout);
-
-    /**
      * Performs a {@link ResilientPatternAction} that will be run synchronously on the
      * calling thread. However, at the completion of the task, the result will be delivered
      * to the promise provided. And the provided callback will be executed.
@@ -107,7 +75,7 @@ public interface ComposedService<C> {
      * @return a {@link ResilientPromise} representing result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientPromise<T> performAction(ResilientPatternAction<T, C> action);
+    <T> T performAction(ResilientPatternAction<T, C> action) throws Exception;
 
     /**
      * Attempts to shutdown the service. Calls made to submitAction or performAction

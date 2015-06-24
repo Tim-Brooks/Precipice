@@ -63,38 +63,6 @@ public interface Service {
             millisTimeout);
 
     /**
-     * Submits a {@link ResilientAction} that will be run asynchronously
-     * similar to {@link #submitAction(ResilientAction, long)}. However, at the
-     * completion of the task, the result will be delivered to the promise provided.
-     *
-     * @param action        the action to submit
-     * @param promise       a promise to which deliver the result
-     * @param millisTimeout milliseconds before the action times out
-     * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientPromise<T> promise, long
-            millisTimeout);
-
-    /**
-     * Submits a {@link ResilientAction} that will be run asynchronously similar to
-     * {@link #submitAction(ResilientAction, long)}. However, at the completion
-     * of the task, the result will be delivered to the promise provided. And the provided
-     * callback will be executed.
-     *
-     * @param action        the action to submit
-     * @param promise       a promise to which deliver the result
-     * @param callback      to run on action completion
-     * @param millisTimeout milliseconds before the action times out
-     * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientPromise<T> promise,
-                                        ResilientCallback<T> callback, long millisTimeout);
-
-    /**
      * Performs a {@link ResilientAction} that will be run synchronously on the calling
      * thread. However, at the completion of the task, the result will be delivered to
      * the promise provided. And the provided callback will be executed.
@@ -108,7 +76,7 @@ public interface Service {
      * @return a {@link ResilientPromise} representing result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientPromise<T> performAction(ResilientAction<T> action);
+    <T> T performAction(ResilientAction<T> action) throws Exception;
 
     /**
      * Returns the {@link ActionMetrics} for this service.

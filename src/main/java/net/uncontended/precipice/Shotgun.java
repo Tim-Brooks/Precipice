@@ -22,24 +22,24 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
 
 import java.util.Map;
 
-public class Shotgun<C> implements ComposedService<C> {
+public class Shotgun<C> implements SubmitPattern<C>, CompletePattern<C> {
 
-    private final Service[] services;
+    private final DefaultService[] services;
     private final ShotgunStrategy strategy;
     private final C[] contexts;
 
     @SuppressWarnings("unchecked")
-    public Shotgun(Map<Service, C> executorToContext, int submissionCount) {
+    public Shotgun(Map<DefaultService, C> executorToContext, int submissionCount) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
         } else if (submissionCount > executorToContext.size()) {
             throw new IllegalArgumentException("Submission count cannot be fewer than number of services provided.");
         }
 
-        services = new Service[executorToContext.size()];
+        services = new DefaultService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<Service, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<DefaultService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
@@ -50,24 +50,26 @@ public class Shotgun<C> implements ComposedService<C> {
 
     @Override
     public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submitAction(action, new DefaultResilientPromise<T>(), null, millisTimeout);
+        return submitAction(action, (ResilientCallback<T>) null, millisTimeout);
     }
 
     @Override
     public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
                                                long millisTimeout) {
-        return submitAction(action, new DefaultResilientPromise<T>(), callback, millisTimeout);
+        DefaultResilientPromise<T> promise = new DefaultResilientPromise<>();
+        submitAction(action, promise, callback, millisTimeout);
+        return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                               long millisTimeout) {
-        return submitAction(action, promise, null, millisTimeout);
+    public <T> void submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                                 long millisTimeout) {
+        submitAction(action, promise, null, millisTimeout);
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                               ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAction(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                                 ResilientCallback<T> callback, long millisTimeout) {
         final int[] servicesToTry = strategy.executorIndices();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -86,23 +88,11 @@ public class Shotgun<C> implements ComposedService<C> {
         if (submittedCount == 0) {
             throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
         }
-        return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> ResilientPromise<T> performAction(ResilientPatternAction<T, C> action) {
-        final int[] servicesToTry = strategy.executorIndices();
-        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-
-        for (int serviceIndex : servicesToTry) {
-            try {
-                actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].performAction(actionWithContext);
-            } catch (RejectedActionException e) {
-            }
-        }
-
-        throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
+    public <T> T performAction(ResilientPatternAction<T, C> action) {
+        throw new UnsupportedOperationException("");
     }
 
     @Override

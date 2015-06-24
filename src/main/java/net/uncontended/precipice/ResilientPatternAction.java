@@ -19,9 +19,9 @@ package net.uncontended.precipice;
 
 /**
  * An action that returns a result and may throw an exception. This class
- * exists to be submitted or performed on a {@link ComposedService}. It is very
+ * exists to be submitted or performed on a {@link SubmitPattern}. It is very
  * similar to the {@link ResilientAction}. The primary difference is that
- * the ComposedService will pass a C context to the {@code run} method. The context
+ * the SubmitPattern will pass a C context to the {@code run} method. The context
  * is the specific context for the {@link Service} this action
  * is being ran on.
  *

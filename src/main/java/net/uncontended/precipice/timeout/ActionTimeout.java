@@ -18,6 +18,7 @@
 package net.uncontended.precipice.timeout;
 
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.concurrent.ResilientTask;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.Future;
@@ -26,14 +27,13 @@ import java.util.concurrent.TimeUnit;
 public class ActionTimeout implements Delayed {
 
     public final long millisAbsoluteTimeout;
-    public final Future<Void> future;
+    public final ResilientTask<?> task;
     public final ResilientPromise<?> promise;
 
-    public ActionTimeout(long millisRelativeTimeout, ResilientPromise<?> promise, Future<Void>
-            future) {
+    public ActionTimeout(long millisRelativeTimeout, ResilientPromise<?> promise, ResilientTask<?> task) {
         this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
         this.promise = promise;
-        this.future = future;
+        this.task = task;
     }
 
     @Override

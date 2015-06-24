@@ -29,7 +29,6 @@ import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultService extends AbstractService {
@@ -62,70 +61,60 @@ public class DefaultService extends AbstractService {
 
     @Override
     public <T> ResilientFuture<T> submitAction(ResilientAction<T> action, long millisTimeout) {
-        return submitAction(action, (ResilientPromise<T>) null, millisTimeout);
+        return submitAction(action, (ResilientCallback<T>) null, millisTimeout);
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientPromise<T> promise, long
+    public <T> void submitAction(ResilientAction<T> action, ResilientPromise<T> promise, long
             millisTimeout) {
-        return submitAction(action, promise, null, millisTimeout);
+        submitAction(action, promise, null, millisTimeout);
     }
 
     @Override
     public <T> ResilientFuture<T> submitAction(ResilientAction<T> action, ResilientCallback<T> callback, long
             millisTimeout) {
-        return submitAction(action, null, callback, millisTimeout);
+        ResilientPromise<T> promise = new DefaultResilientPromise<>();
+        submitAction(action, promise, callback, millisTimeout);
+        return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> ResilientFuture<T> submitAction(final ResilientAction<T> action, final ResilientPromise<T> promise,
-                                               final ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAction(final ResilientAction<T> action, final ResilientPromise<T> promise,
+                                 final ResilientCallback<T> callback, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
-        final AbstractResilientPromise<T> internalPromise = new DefaultResilientPromise<>();
-        if (promise != null) {
-            internalPromise.wrapPromise(promise);
-        }
         try {
-            RunnableFuture<Void> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
-                    internalPromise, promise);
+            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
+                    promise);
             service.execute(task);
 
             if (millisTimeout > MAX_TIMEOUT_MILLIS) {
-                timeoutService.scheduleTimeout(new ActionTimeout(MAX_TIMEOUT_MILLIS, internalPromise, task));
+                timeoutService.scheduleTimeout(new ActionTimeout(MAX_TIMEOUT_MILLIS, promise, task));
             } else {
-                timeoutService.scheduleTimeout(new ActionTimeout(millisTimeout, internalPromise, task));
+                timeoutService.scheduleTimeout(new ActionTimeout(millisTimeout, promise, task));
             }
         } catch (RejectedExecutionException e) {
             actionMetrics.incrementMetricCount(Metric.QUEUE_FULL);
             semaphore.releasePermit();
             throw new RejectedActionException(RejectionReason.QUEUE_FULL);
         }
-
-        if (promise != null) {
-            return new ResilientFuture<>(promise);
-        } else {
-            return new ResilientFuture<>(internalPromise);
-        }
-
     }
 
     @Override
-    public <T> ResilientPromise<T> performAction(final ResilientAction<T> action) {
-        ResilientPromise<T> promise = new SingleWriterResilientPromise<>();
+    public <T> T performAction(final ResilientAction<T> action) throws Exception {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
             T result = action.run();
-            promise.deliverResult(result);
+            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.SUCCESS));
+            return result;
         } catch (ActionTimeoutException e) {
-            promise.setTimedOut();
+            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.TIMEOUT));
+            throw e;
         } catch (Exception e) {
-            promise.deliverError(e);
+            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.ERROR));
+            throw e;
+        } finally {
+            semaphore.releasePermit();
         }
-
-        actionMetrics.incrementMetricCount(Metric.statusToMetric(promise.getStatus()));
-        semaphore.releasePermit();
-
-        return promise;
     }
 
     @Override
