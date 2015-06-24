@@ -74,14 +74,14 @@ public class LoadBalancer<C> implements MultiPattern<C> {
     }
 
     @Override
-    public <T> void submit(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                           long millisTimeout) {
-        submit(action, promise, null, millisTimeout);
+    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                                      long millisTimeout) {
+        submitAndComplete(action, promise, null, millisTimeout);
     }
 
     @Override
-    public <T> void submit(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                           ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAndComplete(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                                      ResilientCallback<T> callback, long millisTimeout) {
         final int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 

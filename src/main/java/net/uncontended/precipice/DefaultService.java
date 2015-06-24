@@ -61,26 +61,26 @@ public class DefaultService extends AbstractService implements MultiService {
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        return submit(action, (ResilientCallback<T>) null, millisTimeout);
+        return submit(action, null, millisTimeout);
     }
 
     @Override
-    public <T> void submit(ResilientAction<T> action, ResilientPromise<T> promise, long
+    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, long
             millisTimeout) {
-        submit(action, promise, null, millisTimeout);
+        submitAndComplete(action, promise, null, millisTimeout);
     }
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long
             millisTimeout) {
         ResilientPromise<T> promise = new DefaultResilientPromise<>();
-        submit(action, promise, callback, millisTimeout);
+        submitAndComplete(action, promise, callback, millisTimeout);
         return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> void submit(final ResilientAction<T> action, final ResilientPromise<T> promise,
-                           final ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAndComplete(final ResilientAction<T> action, final ResilientPromise<T> promise,
+                                      final ResilientCallback<T> callback, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
             ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,

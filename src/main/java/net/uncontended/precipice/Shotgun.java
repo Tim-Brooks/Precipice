@@ -50,26 +50,26 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submit(action, (ResilientCallback<T>) null, millisTimeout);
+        return submit(action, null, millisTimeout);
     }
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
                                          long millisTimeout) {
         DefaultResilientPromise<T> promise = new DefaultResilientPromise<>();
-        submit(action, promise, callback, millisTimeout);
+        submitAndComplete(action, promise, callback, millisTimeout);
         return new ResilientFuture<>(promise);
     }
 
     @Override
-    public <T> void submit(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                           long millisTimeout) {
-        submit(action, promise, null, millisTimeout);
+    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                                      long millisTimeout) {
+        submitAndComplete(action, promise, null, millisTimeout);
     }
 
     @Override
-    public <T> void submit(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                           ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+                                      ResilientCallback<T> callback, long millisTimeout) {
         final int[] servicesToTry = strategy.executorIndices();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 

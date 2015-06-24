@@ -20,9 +20,6 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
-/**
- * Created by timbrooks on 6/23/15.
- */
 public interface Service {
     long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
     int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
@@ -42,9 +39,9 @@ public interface Service {
     CircuitBreaker getCircuitBreaker();
 
     /**
-     * Attempts to shutdown the service. Calls made to submit or run
-     * after this call will throw a {@link RejectedActionException}. Implementations
-     * may differ on if pending or executing actions are cancelled.
+     * Attempts to shutdown the service. Actions after this call will throw a
+     * {@link RejectedActionException}. Implementations may differ on if pending
+     * or executing actions are cancelled.
      */
     void shutdown();
 }
