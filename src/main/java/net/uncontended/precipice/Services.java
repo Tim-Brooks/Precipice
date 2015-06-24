@@ -26,6 +26,33 @@ import java.util.concurrent.ExecutorService;
 
 public class Services {
 
+    public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel) {
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        return new DefaultService(executor, concurrencyLevel);
+    }
+
+    public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
+            metrics) {
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        return new DefaultService(executor, concurrencyLevel, metrics);
+    }
+
+    public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
+            metrics, CircuitBreaker breaker) {
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+    }
+
+    public static SubmissionService submissionService(ExecutorService executor, int concurrencyLevel, ActionMetrics
+            metrics, CircuitBreaker breaker) {
+        return new DefaultService(executor, concurrencyLevel, metrics, breaker);
+    }
+
+    public static SubmissionService submissionServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        return new DefaultService(executor, concurrencyLevel, new NoOpCircuitBreaker());
+    }
+
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         return new DefaultService(executor, concurrencyLevel);
