@@ -48,7 +48,7 @@ public class LoadBalancer<C> implements MultiPattern<C> {
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submit(action, (ResilientCallback<T>) null, millisTimeout);
+        return submit(action, null, millisTimeout);
     }
 
     @Override
