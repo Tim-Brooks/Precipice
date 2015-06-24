@@ -30,7 +30,7 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
  *
  * @param <C> the context passed to an pattern action
  */
-public interface SubmitPattern<C> {
+public interface SubmissionPattern<C> {
     /**
      * Submits a {@link ResilientPatternAction} that will be run asynchronously.
      * The result of the action will be delivered to the future returned
@@ -60,27 +60,4 @@ public interface SubmitPattern<C> {
      */
     <T> ResilientFuture<T> submitAction(ResilientPatternAction<T, C> action, ResilientCallback<T> callback, long millisTimeout);
 
-    /**
-     * Performs a {@link ResilientPatternAction} that will be run synchronously on the
-     * calling thread. However, at the completion of the task, the result will be delivered
-     * to the promise provided. And the provided callback will be executed.
-     * <p/>
-     * <p/>
-     * If the ResilientPatternAction throws a {@link ActionTimeoutException}, the result
-     * of the action will be a timeout. Any other exception and the result of the action
-     * will be an error.
-     *
-     * @param action the action to run
-     * @param <T>    the type of the result of the action
-     * @return a {@link ResilientPromise} representing result of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> T performAction(ResilientPatternAction<T, C> action) throws Exception;
-
-    /**
-     * Attempts to shutdown the service. Calls made to submitAction or performAction
-     * after this call will throw a {@link RejectedActionException}. Implementations
-     * may differ on if pending or executing actions are cancelled.
-     */
-    void shutdown();
 }

@@ -22,7 +22,7 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
 
 import java.util.Map;
 
-public class Shotgun<C> implements SubmitPattern<C>, CompletePattern<C> {
+public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
 
     private final MultiService[] services;
     private final ShotgunStrategy strategy;
@@ -88,11 +88,6 @@ public class Shotgun<C> implements SubmitPattern<C>, CompletePattern<C> {
         if (submittedCount == 0) {
             throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
         }
-    }
-
-    @Override
-    public <T> T performAction(ResilientPatternAction<T, C> action) {
-        throw new UnsupportedOperationException("");
     }
 
     @Override

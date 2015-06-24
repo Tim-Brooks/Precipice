@@ -23,7 +23,7 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
 
 import java.util.Map;
 
-public class LoadBalancer<C> implements SubmitPattern<C>, CompletePattern<C> {
+public class LoadBalancer<C> implements SubmissionPattern<C>, CompletionPattern<C>, RunPattern<C> {
 
     private final MultiService[] services;
     private final C[] contexts;

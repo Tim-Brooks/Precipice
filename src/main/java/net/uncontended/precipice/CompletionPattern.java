@@ -19,7 +19,7 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.ResilientPromise;
 
-public interface CompletePattern<C> {
+public interface CompletionPattern<C> extends Pattern {
 
     /**
      * Submits a {@link ResilientPatternAction} that will be run asynchronously.

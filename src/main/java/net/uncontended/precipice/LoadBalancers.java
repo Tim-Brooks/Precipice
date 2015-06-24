@@ -30,11 +30,11 @@ import java.util.concurrent.ExecutorService;
 
 public class LoadBalancers {
 
-    public static <C> SubmitPattern<C> newRoundRobin(Map<MultiService, C> serviceToContext) {
+    public static <C> SubmissionPattern<C> newRoundRobin(Map<MultiService, C> serviceToContext) {
         return new LoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
-    public static <C> SubmitPattern<C> newRoundRobinWithSharedPool(List<C> contexts, String name, int poolSize, int
+    public static <C> SubmissionPattern<C> newRoundRobinWithSharedPool(List<C> contexts, String name, int poolSize, int
             concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         Map<MultiService, C> serviceToContext = new HashMap<>();
