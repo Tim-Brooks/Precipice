@@ -34,6 +34,7 @@ public class DefaultService extends AbstractService implements MultiService {
 
     private final ExecutorService service;
     private final TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
+    private final RunService runService;
 
     public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore) {
         this(service, semaphore, new DefaultActionMetrics());
@@ -52,6 +53,7 @@ public class DefaultService extends AbstractService implements MultiService {
             circuitBreaker) {
         super(circuitBreaker, actionMetrics, semaphore);
         this.service = service;
+        this.runService = new DefaultRunService(new NoOpSemaphore(), actionMetrics, circuitBreaker);
     }
 
     @Override
@@ -98,15 +100,7 @@ public class DefaultService extends AbstractService implements MultiService {
     public <T> T run(final ResilientAction<T> action) throws Exception {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
-            T result = action.run();
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.SUCCESS));
-            return result;
-        } catch (ActionTimeoutException e) {
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.TIMEOUT));
-            throw e;
-        } catch (Exception e) {
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.ERROR));
-            throw e;
+            return runService.run(action);
         } finally {
             semaphore.releasePermit();
         }
@@ -115,6 +109,7 @@ public class DefaultService extends AbstractService implements MultiService {
     @Override
     public void shutdown() {
         isShutdown.compareAndSet(false, true);
+        runService.shutdown();
         service.shutdown();
     }
 }
