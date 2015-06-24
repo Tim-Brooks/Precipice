@@ -48,7 +48,7 @@ public class LoadBalancerTest {
 
     private Map<String, Object> context1;
     private Map<String, Object> context2;
-    private LoadBalancer<Map<String, Object>> balancer;
+    private MultiPattern<Map<String, Object>> balancer;
 
 
     @Before
