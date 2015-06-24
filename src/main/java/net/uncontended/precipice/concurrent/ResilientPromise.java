@@ -46,7 +46,7 @@ public interface ResilientPromise<T> {
      * @param error the error to deliver
      * @return a boolean indicating if the error was successfully delivered
      */
-    boolean deliverError(Throwable error);
+    boolean deliverError(Exception error);
 
     /**
      * Block on this promise being completed.
@@ -78,9 +78,9 @@ public interface ResilientPromise<T> {
      * Return any error that has been delivered. If action did not error or is still pending,
      * this will return null.
      *
-     * @return Throwable the error of the promise
+     * @return Exception the error of the promise
      */
-    Throwable getError();
+    Exception getError();
 
     /**
      * Return the status of the promise.

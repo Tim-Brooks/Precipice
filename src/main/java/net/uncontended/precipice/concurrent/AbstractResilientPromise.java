@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractResilientPromise<T> implements ResilientPromise<T> {
     protected volatile T result;
-    volatile Throwable error;
+    volatile Exception error;
     final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     final CountDownLatch latch = new CountDownLatch(1);
     ResilientPromise<T> wrappedPromise;
@@ -52,7 +52,7 @@ public abstract class AbstractResilientPromise<T> implements ResilientPromise<T>
     }
 
     @Override
-    public Throwable getError() {
+    public Exception getError() {
         return error;
     }
 

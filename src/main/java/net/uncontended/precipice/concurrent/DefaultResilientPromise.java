@@ -37,7 +37,7 @@ public class DefaultResilientPromise<T> extends AbstractResilientPromise<T> {
     }
 
     @Override
-    public boolean deliverError(Throwable error) {
+    public boolean deliverError(Exception error) {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
                 this.error = error;

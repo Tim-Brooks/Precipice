@@ -15,57 +15,57 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.example;
 
-import net.uncontended.precipice.concurrent.ResilientFuture;
+import net.uncontended.precipice.CompletionService;
+import net.uncontended.precipice.ResilientAction;
+import net.uncontended.precipice.Services;
+import net.uncontended.precipice.Status;
+import net.uncontended.precipice.concurrent.DefaultResilientPromise;
+import net.uncontended.precipice.concurrent.ResilientPromise;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 
-public class NewExample {
+public class CompletingExample {
 
     public static void main(String[] args) throws InterruptedException {
         String serviceName = "Identity Service";
         int poolSize = 5;
         int concurrencyLevel = 100;
-        SubmissionService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
+        CompletionService service = Services.completionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
-        ResilientFuture<Integer> successFuture = service.submit(new SuccessAction(), millisTimeout);
+        ResilientPromise<Integer> successPromise = new DefaultResilientPromise<>();
+        service.submitAndComplete(new SuccessAction(), successPromise, millisTimeout);
 
-        try {
-            // Should return 64
-            successFuture.get();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        assert (successFuture.getStatus() == Status.SUCCESS);
+        // Should return 64
+        successPromise.awaitResult();
 
-        ResilientFuture<Integer> errorFuture = service.submit(new ErrorAction(), millisTimeout);
+        assert (successPromise.getStatus() == Status.SUCCESS);
 
-        try {
-            // Should throw ExecutionException
-            errorFuture.get();
-        } catch (ExecutionException e) {
-            // Should be Runtime Exception.
-            Throwable cause = e.getCause();
-            // Should be "Action Failed."
-            cause.getMessage();
-        }
-        assert (errorFuture.getStatus() == Status.ERROR);
+        ResilientPromise<Integer> errorPromise = new DefaultResilientPromise<>();
+        service.submitAndComplete(new ErrorAction(), errorPromise, millisTimeout);
+
+        // Should return null
+        errorPromise.awaitResult();
+        // Should be Runtime Exception.
+        Exception cause = errorPromise.getError();
+        // Should be "Action Failed."
+        cause.getMessage();
+
+        assert (errorPromise.getStatus() == Status.ERROR);
 
         CountDownLatch latch = new CountDownLatch(1);
-        ResilientFuture<String> timeoutFuture = service.submit(new TimeoutAction(latch), millisTimeout);
+        ResilientPromise<String> timeoutPromise = new DefaultResilientPromise<>();
+        service.submitAndComplete(new TimeoutAction(latch), timeoutPromise, millisTimeout);
 
-        assert (timeoutFuture.getStatus() == Status.PENDING);
-        try {
-            // Should return null
-            timeoutFuture.get();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        // Should return Status.TIMEOUT
-        assert (timeoutFuture.getStatus() == Status.TIMEOUT);
+        assert (timeoutPromise.getStatus() == Status.PENDING);
+
+        // Should return null
+        timeoutPromise.awaitResult();
+
+        assert (timeoutPromise.getStatus() == Status.TIMEOUT);
+
         latch.countDown();
         service.shutdown();
     }
@@ -100,4 +100,5 @@ public class NewExample {
             return "Done";
         }
     }
+
 }
