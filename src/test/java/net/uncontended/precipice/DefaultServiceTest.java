@@ -353,6 +353,8 @@ public class DefaultServiceTest {
         builder.trailingPeriodMillis = 10000;
         builder.failureThreshold = 5;
         builder.backOffTimeMillis = 50;
+        // A hack to ensure that health is always refreshed.
+        builder.healthRefreshMillis = -1;
 
         ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
         CircuitBreaker breaker = new DefaultCircuitBreaker(metrics, builder.build());
