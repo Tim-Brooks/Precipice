@@ -17,7 +17,7 @@ package net.uncontended.precipice;/*
 
 import net.uncontended.precipice.concurrent.ResilientPromise;
 
-public interface RunService {
+public interface RunService extends Service {
     /**
      * Performs a {@link ResilientAction} that will be run synchronously on the calling
      * thread. However, at the completion of the task, the result will be delivered to

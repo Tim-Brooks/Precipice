@@ -20,7 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 
-public interface CompletionService extends Pattern {
+public interface CompletionService extends Service {
 
     /**
      * Submits a {@link ResilientAction} that will be run asynchronously. At the

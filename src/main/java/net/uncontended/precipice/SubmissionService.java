@@ -25,7 +25,7 @@ import net.uncontended.precipice.concurrent.ResilientFuture;
  * the service is being overloaded with submissions, the service will
  * apply backpressure.
  */
-public interface SubmissionService {
+public interface SubmissionService extends Service {
 
     /**
      * Submits a {@link ResilientAction} that will be run asynchronously.
