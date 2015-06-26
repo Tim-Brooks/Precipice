@@ -20,6 +20,7 @@ import net.uncontended.precipice.concurrent.DefaultResilientPromise;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
@@ -71,13 +72,14 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
     public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
                                       ResilientCallback<T> callback, long millisTimeout) {
         final int[] servicesToTry = strategy.executorIndices();
-        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
             try {
+                ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
                 actionWithContext.context = contexts[serviceIndex];
-                services[serviceIndex].submitAndComplete(actionWithContext, promise, callback, millisTimeout);
+                MultiService service = services[serviceIndex];
+                service.submitAndComplete(actionWithContext, promise, callback, millisTimeout);
                 ++submittedCount;
             } catch (RejectedActionException e) {
             }
