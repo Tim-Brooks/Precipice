@@ -22,10 +22,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class ShotgunStrategy {
 
-    public final int submissionCount;
+    private final int submissionCount;
     private final int serviceCount;
     private final int[] serviceIndices;
-
     public ShotgunStrategy(int serviceCount, int submissionCount) {
         this.serviceCount = serviceCount;
         this.submissionCount = submissionCount;
@@ -42,6 +41,10 @@ public class ShotgunStrategy {
         shuffle(orderToTry);
 
         return orderToTry;
+    }
+
+    public int getSubmissionCount() {
+        return submissionCount;
     }
 
     private void shuffle(int[] orderToTry) {

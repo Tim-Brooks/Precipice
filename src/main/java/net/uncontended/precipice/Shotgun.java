@@ -87,7 +87,7 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
                 ++submittedCount;
             } catch (RejectedActionException e) {
             }
-            if (submittedCount == strategy.submissionCount) {
+            if (submittedCount == strategy.getSubmissionCount()) {
                 break;
             }
         }

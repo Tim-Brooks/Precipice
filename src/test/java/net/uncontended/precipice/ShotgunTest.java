@@ -24,8 +24,7 @@ import org.mockito.*;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
@@ -60,6 +59,8 @@ public class ShotgunTest {
         services.put(service2, context2);
         services.put(service3, context3);
         this.shotgun = new Shotgun<>(services, 2, strategy);
+
+        when(strategy.getSubmissionCount()).thenReturn(2);
     }
 
     @Test
@@ -90,10 +91,10 @@ public class ShotgunTest {
     public void actionsSubmittedToBackupServicesIfRejected() throws Exception {
         int[] indices = {2, 0, 1};
         when(strategy.executorIndices()).thenReturn(indices);
-        shotgun.submit(patternAction, 100L);
 
         doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
-                (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+                (any(ResilientAction.class), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+        shotgun.submit(patternAction, 100L);
         InOrder inOrder = inOrder(service3, service1, service2);
         inOrder.verify(service3).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
                 (ResilientCallback.class), eq(100L));
@@ -112,6 +113,55 @@ public class ShotgunTest {
         List<Object> contexts = contextCaptor.getAllValues();
         assertEquals(context3, contexts.get(0));
         assertEquals(context2, contexts.get(1));
+    }
+
+    @Test
+    public void submitSucceedsIfAtLeastOnceServiceAccepts() throws Exception {
+        int[] indices = {2, 0, 1};
+        when(strategy.executorIndices()).thenReturn(indices);
+
+        try {
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).submitAndComplete
+                    (any(ResilientAction.class), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
+                    (any(ResilientAction.class), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+            shotgun.submit(patternAction, 100L);
+            InOrder inOrder = inOrder(service3, service1, service2);
+            inOrder.verify(service3).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
+                    (ResilientCallback.class), eq(100L));
+            inOrder.verify(service1).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
+                    (ResilientCallback.class), eq(100L));
+            inOrder.verify(service2).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
+                    (ResilientCallback.class), eq(100L));
+        } catch (RejectedActionException e) {
+            fail("Action should have been accepted by one service.");
+        }
+    }
+
+    @Test
+    public void submitFailsIfAllServicesReject() throws Exception {
+        int[] indices = {2, 0, 1};
+        when(strategy.executorIndices()).thenReturn(indices);
+
+        try {
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).submitAndComplete
+                    (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
+                    (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service2).submitAndComplete
+                    (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+            shotgun.submit(patternAction, 100L);
+            InOrder inOrder = inOrder(service3, service1, service2);
+            inOrder.verify(service3).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
+                    (ResilientCallback.class), eq(100L));
+            inOrder.verify(service1).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
+                    (ResilientCallback.class), eq(100L));
+            inOrder.verify(service2).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
+                    (ResilientCallback.class), eq(100L));
+            fail();
+        } catch (RejectedActionException e) {
+            assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);
+        }
     }
 
     @Test
