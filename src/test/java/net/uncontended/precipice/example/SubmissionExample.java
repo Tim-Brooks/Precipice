@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.example;
 
-import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.SubmissionService;

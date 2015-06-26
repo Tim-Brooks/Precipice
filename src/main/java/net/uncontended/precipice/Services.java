@@ -49,6 +49,23 @@ public class Services {
         return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
+    public static RunService runService(String name, int concurrencyLevel) {
+        return new DefaultRunService(new IntegerSemaphore(concurrencyLevel));
+    }
+
+    public static RunService runService(String name, int concurrencyLevel, ActionMetrics metrics) {
+        return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), metrics);
+    }
+
+    public static RunService runService(String name, int concurrencyLevel, ActionMetrics metrics,
+                                        CircuitBreaker breaker) {
+        return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), metrics, breaker);
+    }
+
+    public static RunService completionServiceWithNoOpBreaker(String name, int concurrencyLevel) {
+        return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), new NoOpCircuitBreaker());
+    }
+
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel));
