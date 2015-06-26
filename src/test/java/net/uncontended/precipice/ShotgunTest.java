@@ -87,6 +87,34 @@ public class ShotgunTest {
     }
 
     @Test
+    public void actionsSubmittedToBackupServicesIfRejected() throws Exception {
+        int[] indices = {2, 0, 1};
+        when(strategy.executorIndices()).thenReturn(indices);
+        shotgun.submit(patternAction, 100L);
+
+        doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
+                (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+        InOrder inOrder = inOrder(service3, service1, service2);
+        inOrder.verify(service3).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
+                (ResilientCallback.class), eq(100L));
+        inOrder.verify(service1).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
+                (ResilientCallback.class), eq(100L));
+        inOrder.verify(service2).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
+                (ResilientCallback.class), eq(100L));
+
+        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
+
+        actions.get(0).run();
+        actions.get(1).run();
+        verify(patternAction, times(2)).run(contextCaptor.capture());
+
+
+        List<Object> contexts = contextCaptor.getAllValues();
+        assertEquals(context3, contexts.get(0));
+        assertEquals(context2, contexts.get(1));
+    }
+
+    @Test
     public void shotgunSubmitsCorrectNumberOfTimesToRandomlySelectedServices() throws Exception {
         Set<Object> contextsUsed = new HashSet<>();
 
