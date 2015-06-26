@@ -35,7 +35,7 @@ public class SubmissionExample {
         SubmissionService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
-        ResilientFuture<Integer> successFuture = service.submit(new SuccessAction(), millisTimeout);
+        ResilientFuture<Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);
 
         try {
             // Should return 64
@@ -45,7 +45,7 @@ public class SubmissionExample {
         }
         assert (successFuture.getStatus() == Status.SUCCESS);
 
-        ResilientFuture<Integer> errorFuture = service.submit(new ErrorAction(), millisTimeout);
+        ResilientFuture<Integer> errorFuture = service.submit(Actions.errorAction(), millisTimeout);
 
         try {
             // Should throw ExecutionException
@@ -59,7 +59,7 @@ public class SubmissionExample {
         assert (errorFuture.getStatus() == Status.ERROR);
 
         CountDownLatch latch = new CountDownLatch(1);
-        ResilientFuture<String> timeoutFuture = service.submit(new TimeoutAction(latch), millisTimeout);
+        ResilientFuture<Integer> timeoutFuture = service.submit(Actions.timeoutAction(latch), millisTimeout);
 
         assert (timeoutFuture.getStatus() == Status.PENDING);
         try {
@@ -72,36 +72,5 @@ public class SubmissionExample {
         assert (timeoutFuture.getStatus() == Status.TIMEOUT);
         latch.countDown();
         service.shutdown();
-    }
-
-    private static class SuccessAction implements ResilientAction<Integer> {
-
-        @Override
-        public Integer run() throws Exception {
-            return 8 * 8;
-        }
-    }
-
-    private static class ErrorAction implements ResilientAction<Integer> {
-
-        @Override
-        public Integer run() throws Exception {
-            throw new RuntimeException("Action failed.");
-        }
-    }
-
-    private static class TimeoutAction implements ResilientAction<String> {
-
-        private final CountDownLatch latch;
-
-        public TimeoutAction(CountDownLatch latch) {
-            this.latch = latch;
-        }
-
-        @Override
-        public String run() throws Exception {
-            latch.await();
-            return "Done";
-        }
     }
 }
