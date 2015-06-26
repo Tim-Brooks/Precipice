@@ -20,9 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import java.util.*;
 
@@ -30,14 +28,66 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unchecked")
 public class ShotgunTest {
 
-    @SuppressWarnings("unchecked")
+    private Object context1 = new Object();
+    private Object context2 = new Object();
+    private Object context3 = new Object();
+    @Mock
+    private MultiService service1;
+    @Mock
+    private MultiService service2;
+    @Mock
+    private MultiService service3;
+    @Mock
+    private ResilientPatternAction<String, Object> patternAction;
+    @Mock
+    private ShotgunStrategy strategy;
+    @Captor
+    private ArgumentCaptor<ResilientAction<String>> actionCaptor;
+    @Captor
+    private ArgumentCaptor<Object> contextCaptor;
+
+    private Shotgun<Object> shotgun;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+
+        Map<MultiService, Object> services = new LinkedHashMap<>();
+        services.put(service1, context1);
+        services.put(service2, context2);
+        services.put(service3, context3);
+        this.shotgun = new Shotgun<>(services, 2, strategy);
+    }
+
     @Test
-    public void testShotgunSubmitsCorrectNumberOfTimesRandomly() throws Exception {
-        Object context1 = new Object();
-        Object context2 = new Object();
-        Object context3 = new Object();
+    public void actionsSubmittedToServicesAndContextsProvided() throws Exception {
+        int[] indices = {2, 0, 1};
+        when(strategy.executorIndices()).thenReturn(indices);
+        shotgun.submit(patternAction, 100L);
+
+        InOrder inOrder = inOrder(service3, service1);
+        inOrder.verify(service3).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
+                (ResilientCallback.class), eq(100L));
+        inOrder.verify(service1).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
+                (ResilientCallback.class), eq(100L));
+
+        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
+
+        actions.get(0).run();
+        actions.get(1).run();
+        verify(patternAction, times(2)).run(contextCaptor.capture());
+
+
+        List<Object> contexts = contextCaptor.getAllValues();
+        assertEquals(context3, contexts.get(0));
+        assertEquals(context1, contexts.get(1));
+    }
+
+    @Test
+    public void shotgunSubmitsCorrectNumberOfTimesToRandomlySelectedServices() throws Exception {
         Set<Object> contextsUsed = new HashSet<>();
 
         for (int i = 0; i < 25; ++i) {

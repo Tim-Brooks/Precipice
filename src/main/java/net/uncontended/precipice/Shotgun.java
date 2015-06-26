@@ -29,12 +29,17 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
     private final ShotgunStrategy strategy;
     private final C[] contexts;
 
-    @SuppressWarnings("unchecked")
     public Shotgun(Map<MultiService, C> executorToContext, int submissionCount) {
+        this(executorToContext, submissionCount, new ShotgunStrategy(executorToContext.size(), submissionCount));
+    }
+
+    @SuppressWarnings("unchecked")
+    public Shotgun(Map<MultiService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
         } else if (submissionCount > executorToContext.size()) {
-            throw new IllegalArgumentException("Submission count cannot be fewer than number of services provided.");
+            throw new IllegalArgumentException("Submission count cannot be greater than the number of services " +
+                    "provided.");
         }
 
         services = new MultiService[executorToContext.size()];
@@ -46,7 +51,7 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
             ++i;
         }
 
-        this.strategy = new ShotgunStrategy(services.length, submissionCount);
+        this.strategy = strategy;
     }
 
     @Override
