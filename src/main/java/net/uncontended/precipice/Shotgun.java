@@ -20,21 +20,20 @@ import net.uncontended.precipice.concurrent.DefaultResilientPromise;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 
-import java.util.Arrays;
 import java.util.Map;
 
 public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
 
-    private final MultiService[] services;
+    private final CompletionService[] services;
     private final ShotgunStrategy strategy;
     private final C[] contexts;
 
-    public Shotgun(Map<MultiService, C> executorToContext, int submissionCount) {
+    public Shotgun(Map<CompletionService, C> executorToContext, int submissionCount) {
         this(executorToContext, submissionCount, new ShotgunStrategy(executorToContext.size(), submissionCount));
     }
 
     @SuppressWarnings("unchecked")
-    public Shotgun(Map<MultiService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
+    public Shotgun(Map<CompletionService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
         } else if (submissionCount > executorToContext.size()) {
@@ -42,10 +41,10 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
                     "provided.");
         }
 
-        services = new MultiService[executorToContext.size()];
+        services = new CompletionService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<MultiService, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<CompletionService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
@@ -83,7 +82,7 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
             try {
                 ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
                 actionWithContext.context = contexts[serviceIndex];
-                MultiService service = services[serviceIndex];
+                CompletionService service = services[serviceIndex];
                 service.submitAndComplete(actionWithContext, promise, callback, millisTimeout);
                 ++submittedCount;
             } catch (RejectedActionException e) {
@@ -99,7 +98,7 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
 
     @Override
     public void shutdown() {
-        for (MultiService service : services) {
+        for (CompletionService service : services) {
             service.shutdown();
         }
 

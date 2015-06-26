@@ -35,11 +35,11 @@ public class ShotgunTest {
     private Object context2 = new Object();
     private Object context3 = new Object();
     @Mock
-    private MultiService service1;
+    private CompletionService service1;
     @Mock
-    private MultiService service2;
+    private CompletionService service2;
     @Mock
-    private MultiService service3;
+    private CompletionService service3;
     @Mock
     private ResilientPatternAction<String, Object> patternAction;
     @Mock
@@ -55,7 +55,7 @@ public class ShotgunTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        Map<MultiService, Object> services = new LinkedHashMap<>();
+        Map<CompletionService, Object> services = new LinkedHashMap<>();
         services.put(service1, context1);
         services.put(service2, context2);
         services.put(service3, context3);
@@ -93,11 +93,11 @@ public class ShotgunTest {
         for (int i = 0; i < 25; ++i) {
             ArgumentCaptor<Object> contextCaptor = ArgumentCaptor.forClass(Object.class);
             ArgumentCaptor<ResilientAction> actionCaptor = ArgumentCaptor.forClass(ResilientAction.class);
-            MultiService service1 = mock(MultiService.class);
-            MultiService service2 = mock(MultiService.class);
-            MultiService service3 = mock(MultiService.class);
+            CompletionService service1 = mock(CompletionService.class);
+            CompletionService service2 = mock(CompletionService.class);
+            CompletionService service3 = mock(CompletionService.class);
             ResilientPatternAction<String, Object> patternAction = mock(ResilientPatternAction.class);
-            Map<MultiService, Object> services = new HashMap<>();
+            Map<CompletionService, Object> services = new HashMap<>();
             services.put(service1, context1);
             services.put(service2, context2);
             services.put(service3, context3);
