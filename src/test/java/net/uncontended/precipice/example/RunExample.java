@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.example;
 
+import net.uncontended.precipice.ActionTimeoutException;
 import net.uncontended.precipice.RunService;
 import net.uncontended.precipice.Services;
 
@@ -39,6 +40,16 @@ public class RunExample {
             Integer result = service.run(Actions.errorAction());
         } catch (Exception e) {
             // Should be "Action Failed."
+            e.getMessage();
+        }
+
+        try {
+            // Throws RuntimeException
+            Integer result = service.run(Actions.runTimeoutAction());
+        } catch (ActionTimeoutException e) {
+            // Should be Action timeout.
+            e.getMessage();
+        } catch (Exception e) {
             e.getMessage();
         }
     }

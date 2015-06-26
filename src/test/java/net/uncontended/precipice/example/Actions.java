@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.example;
 
+import net.uncontended.precipice.ActionTimeoutException;
 import net.uncontended.precipice.ResilientAction;
 
 import java.util.concurrent.CountDownLatch;
@@ -35,6 +36,10 @@ public class Actions {
         return new TimeoutAction(latch);
     }
 
+    public static ResilientAction<Integer> runTimeoutAction() {
+        return new RunTimeoutAction();
+    }
+
     private static class SuccessAction implements ResilientAction<Integer> {
 
         @Override
@@ -48,6 +53,14 @@ public class Actions {
         @Override
         public Integer run() throws Exception {
             throw new RuntimeException("Action failed.");
+        }
+    }
+
+    private static class RunTimeoutAction implements ResilientAction<Integer> {
+
+        @Override
+        public Integer run() throws Exception {
+            throw new ActionTimeoutException("Action timeout.");
         }
     }
 
