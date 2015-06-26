@@ -18,7 +18,6 @@
 package net.uncontended.precipice.example;
 
 import net.uncontended.precipice.CompletionService;
-import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.DefaultResilientPromise;
@@ -36,7 +35,7 @@ public class CompletingExample {
 
         int millisTimeout = 10;
         ResilientPromise<Integer> successPromise = new DefaultResilientPromise<>();
-        service.submitAndComplete(new SuccessAction(), successPromise, millisTimeout);
+        service.submitAndComplete(Actions.successAction(), successPromise, millisTimeout);
 
         // Should return 64
         successPromise.awaitResult();
@@ -44,7 +43,7 @@ public class CompletingExample {
         assert (successPromise.getStatus() == Status.SUCCESS);
 
         ResilientPromise<Integer> errorPromise = new DefaultResilientPromise<>();
-        service.submitAndComplete(new ErrorAction(), errorPromise, millisTimeout);
+        service.submitAndComplete(Actions.errorAction(), errorPromise, millisTimeout);
 
         // Should return null
         errorPromise.awaitResult();
@@ -56,8 +55,8 @@ public class CompletingExample {
         assert (errorPromise.getStatus() == Status.ERROR);
 
         CountDownLatch latch = new CountDownLatch(1);
-        ResilientPromise<String> timeoutPromise = new DefaultResilientPromise<>();
-        service.submitAndComplete(new TimeoutAction(latch), timeoutPromise, millisTimeout);
+        ResilientPromise<Integer> timeoutPromise = new DefaultResilientPromise<>();
+        service.submitAndComplete(Actions.timeoutAction(latch), timeoutPromise, millisTimeout);
 
         assert (timeoutPromise.getStatus() == Status.PENDING);
 
@@ -68,37 +67,6 @@ public class CompletingExample {
 
         latch.countDown();
         service.shutdown();
-    }
-
-    private static class SuccessAction implements ResilientAction<Integer> {
-
-        @Override
-        public Integer run() throws Exception {
-            return 8 * 8;
-        }
-    }
-
-    private static class ErrorAction implements ResilientAction<Integer> {
-
-        @Override
-        public Integer run() throws Exception {
-            throw new RuntimeException("Action failed.");
-        }
-    }
-
-    private static class TimeoutAction implements ResilientAction<String> {
-
-        private final CountDownLatch latch;
-
-        public TimeoutAction(CountDownLatch latch) {
-            this.latch = latch;
-        }
-
-        @Override
-        public String run() throws Exception {
-            latch.await();
-            return "Done";
-        }
     }
 
 }
