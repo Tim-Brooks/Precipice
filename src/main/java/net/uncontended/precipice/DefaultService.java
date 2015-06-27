@@ -20,21 +20,20 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.*;
+import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
+import net.uncontended.precipice.concurrent.ResilientFuture;
+import net.uncontended.precipice.concurrent.ResilientPromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.metrics.Metric;
-import net.uncontended.precipice.timeout.ActionTimeout;
-import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
 
 public class DefaultService extends AbstractService implements MultiService {
 
     private final ExecutorService service;
-    private final TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private final RunService runService;
+    private final DefaultSubmissionService submissionService;
+    private final DefaultCompletionService completionService;
 
     public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore) {
         this(service, semaphore, new DefaultActionMetrics());
@@ -53,52 +52,34 @@ public class DefaultService extends AbstractService implements MultiService {
             circuitBreaker) {
         super(circuitBreaker, actionMetrics, semaphore);
         this.service = service;
-        this.runService = new DefaultRunService(new NoOpSemaphore(), actionMetrics, circuitBreaker);
+        this.runService = new DefaultRunService(semaphore, actionMetrics, circuitBreaker);
+        this.submissionService = new DefaultSubmissionService(service, semaphore, actionMetrics, circuitBreaker);
+        this.completionService = new DefaultCompletionService(service, semaphore, actionMetrics, circuitBreaker);
     }
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        return submit(action, null, millisTimeout);
+        return submissionService.submit(action, millisTimeout);
     }
 
     @Override
-    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, long
-            millisTimeout) {
-        submitAndComplete(action, promise, null, millisTimeout);
+    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, long millisTimeout) {
+        completionService.submitAndComplete(action, promise, null, millisTimeout);
     }
 
     @Override
-    public <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long
-            millisTimeout) {
-        ResilientPromise<T> promise = new DefaultResilientPromise<>();
-        submitAndComplete(action, promise, callback, millisTimeout);
-        return new ResilientFuture<>(promise);
+    public <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long millisTimeout) {
+        return submissionService.submit(action, callback, millisTimeout);
     }
 
     @Override
-    public <T> void submitAndComplete(final ResilientAction<T> action, final ResilientPromise<T> promise,
-                                      final ResilientCallback<T> callback, long millisTimeout) {
-        acquirePermitOrRejectIfActionNotAllowed();
-        try {
-            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
-                    promise);
-            service.execute(task);
-
-            if (millisTimeout > MAX_TIMEOUT_MILLIS) {
-                timeoutService.scheduleTimeout(new ActionTimeout(MAX_TIMEOUT_MILLIS, promise, task));
-            } else {
-                timeoutService.scheduleTimeout(new ActionTimeout(millisTimeout, promise, task));
-            }
-        } catch (RejectedExecutionException e) {
-            actionMetrics.incrementMetricCount(Metric.QUEUE_FULL);
-            semaphore.releasePermit();
-            throw new RejectedActionException(RejectionReason.QUEUE_FULL);
-        }
+    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise,
+                                      ResilientCallback<T> callback, long millisTimeout) {
+        completionService.submitAndComplete(action, promise, callback, millisTimeout);
     }
 
     @Override
-    public <T> T run(final ResilientAction<T> action) throws Exception {
-        acquirePermitOrRejectIfActionNotAllowed();
+    public <T> T run(ResilientAction<T> action) throws Exception {
         try {
             return runService.run(action);
         } finally {
@@ -110,6 +91,8 @@ public class DefaultService extends AbstractService implements MultiService {
     public void shutdown() {
         isShutdown.compareAndSet(false, true);
         runService.shutdown();
+        submissionService.shutdown();
+        completionService.shutdown();
         service.shutdown();
     }
 }

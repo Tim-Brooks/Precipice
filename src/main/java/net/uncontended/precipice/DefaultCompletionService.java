@@ -17,28 +17,68 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.concurrent.ResilientTask;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeout;
+import net.uncontended.precipice.timeout.TimeoutService;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 public class DefaultCompletionService extends AbstractService implements CompletionService {
+    private final ExecutorService service;
+    private final TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
 
+    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore) {
+        this(service, semaphore, new DefaultActionMetrics());
+    }
 
-    public DefaultCompletionService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics,
-                                    PrecipiceSemaphore semaphore) {
+    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
+        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
+                BreakerConfigBuilder().build()));
+    }
+
+    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {
+        this(service, semaphore, new DefaultActionMetrics(), breaker);
+    }
+
+    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
+                                    CircuitBreaker circuitBreaker) {
         super(circuitBreaker, actionMetrics, semaphore);
+        this.service = service;
     }
 
     @Override
     public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, long millisTimeout) {
-
+        submitAndComplete(action, promise, null, millisTimeout);
     }
 
     @Override
     public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise,
                                       ResilientCallback<T> callback, long millisTimeout) {
+        acquirePermitOrRejectIfActionNotAllowed();
+        try {
+            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
+                    promise);
+            service.execute(task);
 
+            if (millisTimeout > MAX_TIMEOUT_MILLIS) {
+                timeoutService.scheduleTimeout(new ActionTimeout(MAX_TIMEOUT_MILLIS, promise, task));
+            } else {
+                timeoutService.scheduleTimeout(new ActionTimeout(millisTimeout, promise, task));
+            }
+        } catch (RejectedExecutionException e) {
+            actionMetrics.incrementMetricCount(Metric.QUEUE_FULL);
+            semaphore.releasePermit();
+            throw new RejectedActionException(RejectionReason.QUEUE_FULL);
+        }
     }
 
     @Override
