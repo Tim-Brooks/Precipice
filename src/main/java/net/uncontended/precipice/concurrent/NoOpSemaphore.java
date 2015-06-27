@@ -15,9 +15,7 @@
  *
  */
 
-package net.uncontended.precipice;
-
-import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
+package net.uncontended.precipice.concurrent;
 
 public class NoOpSemaphore implements PrecipiceSemaphore {
     @Override
