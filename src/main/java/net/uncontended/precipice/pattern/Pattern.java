@@ -15,7 +15,9 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
+
+import net.uncontended.precipice.RejectedActionException;
 
 public interface Pattern {
 

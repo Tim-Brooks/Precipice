@@ -15,8 +15,9 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
 
+import net.uncontended.precipice.pattern.RoundRobinStrategy;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;

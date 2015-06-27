@@ -15,15 +15,17 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
 
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.pattern.LoadBalancer;
+import net.uncontended.precipice.pattern.LoadBalancerStrategy;
+import net.uncontended.precipice.pattern.MultiPattern;
+import net.uncontended.precipice.pattern.ResilientPatternAction;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -107,7 +109,7 @@ public class LoadBalancerTest {
         ResilientCallback<String> callback = mock(ResilientCallback.class);
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
-        doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
+        Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
                 .submitAndComplete(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));
         balancer.submitAndComplete(action, promise, callback, timeout);
         verify(executor2).submitAndComplete(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));

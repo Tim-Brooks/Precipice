@@ -15,9 +15,13 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
 
 
+import net.uncontended.precipice.MultiService;
+import net.uncontended.precipice.RejectedActionException;
+import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.ResilientCallback;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 

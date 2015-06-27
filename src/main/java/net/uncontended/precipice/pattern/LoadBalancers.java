@@ -14,8 +14,10 @@
  * limitations under the License.
  *
  */
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
 
+import net.uncontended.precipice.MultiService;
+import net.uncontended.precipice.Services;
 import net.uncontended.precipice.circuit.BreakerConfig;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;

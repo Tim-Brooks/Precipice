@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;

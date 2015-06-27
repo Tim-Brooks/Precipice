@@ -15,7 +15,10 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
+
+import net.uncontended.precipice.ResilientAction;
+import net.uncontended.precipice.SubmissionService;
 
 /**
  * An action that returns a result and may throw an exception. This class

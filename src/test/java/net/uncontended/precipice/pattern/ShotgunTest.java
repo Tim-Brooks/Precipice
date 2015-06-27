@@ -15,9 +15,13 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
 
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.pattern.ResilientPatternAction;
+import net.uncontended.precipice.pattern.Shotgun;
+import net.uncontended.precipice.pattern.ShotgunStrategy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -92,7 +96,7 @@ public class ShotgunTest {
         int[] indices = {2, 0, 1};
         when(strategy.executorIndices()).thenReturn(indices);
 
-        doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
+        Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
                 (any(ResilientAction.class), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
         shotgun.submit(patternAction, 100L);
         InOrder inOrder = inOrder(service3, service1, service2);

@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.pattern;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
