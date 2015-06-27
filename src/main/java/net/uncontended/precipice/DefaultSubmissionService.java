@@ -17,24 +17,67 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
-import net.uncontended.precipice.concurrent.ResilientFuture;
+import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
+import net.uncontended.precipice.concurrent.*;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeout;
+import net.uncontended.precipice.timeout.TimeoutService;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 public class DefaultSubmissionService extends AbstractService implements SubmissionService {
-    public DefaultSubmissionService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore semaphore) {
+    private final ExecutorService service;
+    private final TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
+
+    public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore) {
+        this(service, semaphore, new DefaultActionMetrics());
+    }
+
+    public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
+        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
+                BreakerConfigBuilder().build()));
+    }
+
+    public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {
+        this(service, semaphore, new DefaultActionMetrics(), breaker);
+    }
+
+    public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
+                                    CircuitBreaker circuitBreaker) {
         super(circuitBreaker, actionMetrics, semaphore);
+        this.service = service;
     }
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        return null;
+        return submit(action, null, millisTimeout);
     }
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long millisTimeout) {
-        return null;
+        acquirePermitOrRejectIfActionNotAllowed();
+        ResilientPromise<T> promise = new DefaultResilientPromise<>();
+        try {
+            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
+                    promise);
+            service.execute(task);
+
+            if (millisTimeout > MAX_TIMEOUT_MILLIS) {
+                timeoutService.scheduleTimeout(new ActionTimeout(MAX_TIMEOUT_MILLIS, promise, task));
+            } else {
+                timeoutService.scheduleTimeout(new ActionTimeout(millisTimeout, promise, task));
+            }
+        } catch (RejectedExecutionException e) {
+            actionMetrics.incrementMetricCount(Metric.QUEUE_FULL);
+            semaphore.releasePermit();
+            throw new RejectedActionException(RejectionReason.QUEUE_FULL);
+        }
+        return new ResilientFuture<>(promise);
     }
 
     @Override
