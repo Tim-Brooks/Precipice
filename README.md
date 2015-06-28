@@ -17,16 +17,20 @@ To require the current version in Gradle, add the following to the dependencies 
 
 ## Usage
 
-The basis of Precipice is the Service interface. A default implementation can be created from the static methods on the Service class.
+Precipice provides three service interfaces: CompletionService, SubmissionService, and RunService. Each provides a
+different model concurrency model. SubmissionService is the style most similar to Java ExecutorServices. You provide
+an action to be performed asynchronously and receive a future representing that asynchronous computation.
+
+Default implementations can be created from the static methods on the Services class.
 
 ```java
 String name = "Identity Service";
 int poolSize = 10;
 int concurrencyLevel = 1000;
-Service service = Services.defaultService(name, poolSize, concurrencyLevel);
+Service service = Services.submissionService(name, poolSize, concurrencyLevel);
 ```
 
-In order can either submit or perform an action on this service. A submitted action is ran on the threadpool associated with the service. A performed action is completed on the thread calling performAction.
+An action submitted to this services is executed in the background on a threadpool associated with the service.
 
 ```java
 ResilientAction<Integer> action = new ResilientAction<> {
@@ -46,15 +50,19 @@ ResilientFuture<Integer> future = service.submitAction(action, timeoutInMillis);
 Integer result = future.get();
 ```
 
-The default service includes both metrics and a load balancer. Actions that return successfully will be tallied as successes. Thrown exceptions will be tallied as errors. And a timeout will be tallied as a timeout.
+The default service in this example provides both metrics and a load balancer. Actions that return successfully will
+ be tallied as successes. Thrown exceptions will be tallied as errors. And a timeout will be tallied as a timeout.
 
 There are two main mechanisms of back pressure to protect the service.
 
-First, the concurrencyLevel is the maximum amount of uncompleted actions that a service can be working on at one time. Both performed and submitted actions add to this restriction.
+First, the concurrencyLevel is the maximum amount of uncompleted actions that a service can be working on at one time.
 
-Second, if a certain threshold is passed for failures (timeouts + errors) the circuit will open for a configurable time. Actions will be rejected while the circuit is open.
+Second, if a certain threshold is passed for failures (timeouts + errors) the circuit will open for a configurable time.
+Actions will be rejected while the circuit is open.
 
-All components of the library are designed to be composable. If you would like to provide your own circuit breaker implementation or metrics implementation you are free to do so. The default metrics implementation is designed to be performant, avoid unnecessary allocations, and be lock free. It should be sufficient for most use cases.
+All components of the library are designed to be composable. If you would like to provide your own circuit breaker
+implementation or metrics implementation you are free to do so. The default metrics implementation is designed to be
+performant, avoid unnecessary allocations, and be lock free. It should be sufficient for most use cases.
 
 Here are some common options for creating a service:
 ```java
@@ -65,18 +73,19 @@ int concurrencyLevel = 1000;
 // This creates a no op circuit breaker. The circuit will never open based on failures.
 // However, the circuit can still be opened and closed manually be calling 
 // forceOpen or forceClosed.
-Service service = Services.defaultServiceWithNoOpBreaker(name, poolSize, concurrencyLevel);
+SubmissionService service = Service.submissionServiceWithNoOpBreaker(name, poolSize, concurrencyLevel);
 
 // Service with user provided metrics.
 ActionMetrics metrics = new UserCreatedMetrics();
-Service service = Services.defaultService(name, poolSize, concurrencyLevel, metrics);
+SubmissionService service = Services.submissionService(name, poolSize, concurrencyLevel, metrics);
 
 // Service with user provided metrics and circuit breaker.
 CircuitBreaker breaker = new UserProvidedBreaker();
-Service service = Services.defaultService(name, poolSize, concurrencyLevel, metrics, breaker);
+SubmissionService service = Services.submissionService(name, poolSize, concurrencyLevel, metrics, breaker);
 ```
 
-Often, you will want to use the default metrics and breaker. There are a number of configurations of which you might want to be aware.
+Most of the time you will want to use the default metrics and breaker. There are a number of configurations of which
+you might want to be aware.
 
 ```java
 // Circuit Breaker
@@ -105,6 +114,14 @@ TimeUnit slotUnit = TimeUnit.SECONDS;
 ActionMetrics metrics = DefaultActionMetrics(slotsToTrack, resolution, slotUnit)
 ```
 
+Further examples of service usage can be found in the [example](https://github.com/tbrooks8/Precipice/tree/master/src/test/java/net/uncontended/precipice/example)
+package.
+
+In that package, there are examples for both the RunService interface and the CompletionService. The RunService executes
+actions on the calling thread. The CompletionService executes actions asynchronously in the background. However, the
+submitAndComplete method is void opposed to returning a future. To receive the result, the user supplies a promise
+that will be completed.
+
 ## Roadmap
 
 There are a variety of changes that are already planned.
@@ -113,7 +130,7 @@ There are a variety of changes that are already planned.
 2. Continue to add documentation. This includes Javadoc, examples, and discussion of architecture.
 3. Improved metrics. Currently metrics are pretty basic and only include counts. Some sense of latency seems to make
 sense.
-4. Improved performance of submitting to the DefaultService.
+4. Improved performance of submitting to the defautl services.
 
 ## License
 

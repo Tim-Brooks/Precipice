@@ -55,6 +55,11 @@ public class Services {
         return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
+    public static SubmissionService submissionServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel), new NoOpCircuitBreaker());
+    }
+
     public static RunService runService(String name, int concurrencyLevel) {
         return new DefaultRunService(new IntegerSemaphore(concurrencyLevel));
     }
@@ -72,7 +77,7 @@ public class Services {
         return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
-    public static RunService completionServiceWithNoOpBreaker(String name, int concurrencyLevel) {
+    public static RunService runServiceWithNoOpBreaker(String name, int concurrencyLevel) {
         return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), new NoOpCircuitBreaker());
     }
 
