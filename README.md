@@ -12,7 +12,8 @@ concurrency in mind.
 This library has not yet hit alpha. It is used in production at [Staples SparX](http://www.staples-sparx.com). However,
 the API may still change.
 
-
+To require the current version in Gradle, add the following to the dependencies section of your build file:
+> compile 'net.uncontended:Precipice:0.1.0'
 
 ## Usage
 
