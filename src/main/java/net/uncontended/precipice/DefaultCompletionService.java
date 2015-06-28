@@ -31,6 +31,7 @@ import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultCompletionService extends AbstractService implements CompletionService {
     private final ExecutorService service;
@@ -52,6 +53,12 @@ public class DefaultCompletionService extends AbstractService implements Complet
     public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
                                     CircuitBreaker circuitBreaker) {
         super(circuitBreaker, actionMetrics, semaphore);
+        this.service = service;
+    }
+
+    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
+                                    CircuitBreaker circuitBreaker, AtomicBoolean isShutdown) {
+        super(circuitBreaker, actionMetrics, semaphore, isShutdown);
         this.service = service;
     }
 
@@ -84,5 +91,6 @@ public class DefaultCompletionService extends AbstractService implements Complet
     @Override
     public void shutdown() {
         isShutdown.compareAndSet(false, true);
+        service.shutdown();
     }
 }

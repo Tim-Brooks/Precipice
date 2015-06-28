@@ -25,6 +25,8 @@ import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class DefaultRunService extends AbstractService implements RunService {
 
     public DefaultRunService(PrecipiceSemaphore semaphore) {
@@ -41,6 +43,11 @@ public class DefaultRunService extends AbstractService implements RunService {
 
     public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker circuitBreaker) {
         super(circuitBreaker, actionMetrics, semaphore);
+    }
+
+    public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker
+            circuitBreaker, AtomicBoolean isShutdown) {
+        super(circuitBreaker, actionMetrics, semaphore, isShutdown);
     }
 
     @Override

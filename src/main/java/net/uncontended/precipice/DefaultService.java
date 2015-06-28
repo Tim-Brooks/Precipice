@@ -27,6 +27,7 @@ import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultService extends AbstractService implements MultiService {
 
@@ -50,11 +51,16 @@ public class DefaultService extends AbstractService implements MultiService {
 
     public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker
             circuitBreaker) {
-        super(circuitBreaker, actionMetrics, semaphore);
+        this(service, semaphore, actionMetrics, circuitBreaker, new AtomicBoolean(false));
+    }
+
+    private DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
+                           CircuitBreaker circuitBreaker, AtomicBoolean isShutdown) {
+        super(circuitBreaker, actionMetrics, semaphore, isShutdown);
         this.service = service;
-        this.runService = new DefaultRunService(semaphore, actionMetrics, circuitBreaker);
-        this.submissionService = new DefaultSubmissionService(service, semaphore, actionMetrics, circuitBreaker);
-        this.completionService = new DefaultCompletionService(service, semaphore, actionMetrics, circuitBreaker);
+        this.runService = new DefaultRunService(semaphore, actionMetrics, circuitBreaker, isShutdown);
+        this.submissionService = new DefaultSubmissionService(service, semaphore, actionMetrics, circuitBreaker, isShutdown);
+        this.completionService = new DefaultCompletionService(service, semaphore, actionMetrics, circuitBreaker, isShutdown);
     }
 
     @Override
@@ -90,9 +96,6 @@ public class DefaultService extends AbstractService implements MultiService {
     @Override
     public void shutdown() {
         isShutdown.compareAndSet(false, true);
-        runService.shutdown();
-        submissionService.shutdown();
-        completionService.shutdown();
         service.shutdown();
     }
 }

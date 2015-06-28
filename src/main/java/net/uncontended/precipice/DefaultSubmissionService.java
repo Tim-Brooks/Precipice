@@ -29,6 +29,7 @@ import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultSubmissionService extends AbstractService implements SubmissionService {
     private final ExecutorService service;
@@ -50,6 +51,12 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
     public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
                                     CircuitBreaker circuitBreaker) {
         super(circuitBreaker, actionMetrics, semaphore);
+        this.service = service;
+    }
+
+    public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
+                                    CircuitBreaker circuitBreaker, AtomicBoolean isShutdown) {
+        super(circuitBreaker, actionMetrics, semaphore, isShutdown);
         this.service = service;
     }
 
@@ -83,5 +90,6 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
     @Override
     public void shutdown() {
         isShutdown.compareAndSet(false, true);
+        service.shutdown();
     }
 }
