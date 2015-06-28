@@ -27,7 +27,7 @@ Default implementations can be created from the static methods on the Services c
 String name = "Identity Service";
 int poolSize = 10;
 int concurrencyLevel = 1000;
-Service service = Services.submissionService(name, poolSize, concurrencyLevel);
+SubmissionService service = Services.submissionService(name, poolSize, concurrencyLevel);
 ```
 
 An action submitted to this services is executed in the background on a threadpool associated with the service.
