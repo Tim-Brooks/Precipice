@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.ActionTimeoutException;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 

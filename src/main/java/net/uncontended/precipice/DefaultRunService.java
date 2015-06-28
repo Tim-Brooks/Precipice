@@ -24,6 +24,7 @@ import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

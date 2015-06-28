@@ -16,6 +16,7 @@ package net.uncontended.precipice;/*
  */
 
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 public interface RunService extends Service {
     /**

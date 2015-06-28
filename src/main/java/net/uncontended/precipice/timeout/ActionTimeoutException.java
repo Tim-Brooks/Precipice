@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.timeout;
 
 public class ActionTimeoutException extends RuntimeException {
 
