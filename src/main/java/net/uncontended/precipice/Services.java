@@ -38,6 +38,12 @@ public class Services {
         return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
     }
 
+    public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, CircuitBreaker
+            breaker) {
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel), breaker);
+    }
+
     public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
