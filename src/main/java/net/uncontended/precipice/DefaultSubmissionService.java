@@ -24,7 +24,6 @@ import net.uncontended.precipice.concurrent.*;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
-import net.uncontended.precipice.timeout.ActionTimeout;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
@@ -71,14 +70,10 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
         ResilientPromise<T> promise = new DefaultResilientPromise<>();
         try {
             ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
-                    promise);
+                    promise, millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout);
             service.execute(task);
+            timeoutService.scheduleTimeout(task);
 
-            if (millisTimeout > MAX_TIMEOUT_MILLIS) {
-                timeoutService.scheduleTimeout(new ActionTimeout(MAX_TIMEOUT_MILLIS, promise, task));
-            } else {
-                timeoutService.scheduleTimeout(new ActionTimeout(millisTimeout, promise, task));
-            }
         } catch (RejectedExecutionException e) {
             actionMetrics.incrementMetricCount(Metric.QUEUE_FULL);
             semaphore.releasePermit();

@@ -23,12 +23,16 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.utils.SystemTime;
 
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ResilientTask<T> implements Runnable {
+public class ResilientTask<T> implements Runnable, Delayed {
 
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
+    public final long millisAbsoluteTimeout;
     private final ResilientPromise<T> promise;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
@@ -38,13 +42,14 @@ public class ResilientTask<T> implements Runnable {
     private volatile Thread runner;
 
     public ResilientTask(ActionMetrics metrics, PrecipiceSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
-            action, ResilientCallback<T> callback, ResilientPromise<T> promise) {
+            action, ResilientCallback<T> callback, ResilientPromise<T> promise, long millisRelativeTimeout) {
         this.metrics = metrics;
         this.semaphore = semaphore;
         this.breaker = breaker;
         this.action = action;
         this.callback = callback;
         this.promise = promise;
+        this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
     }
 
     @Override
@@ -68,9 +73,23 @@ public class ResilientTask<T> implements Runnable {
         }
     }
 
+    @Override
+    public long getDelay(TimeUnit unit) {
+        return unit.convert(millisAbsoluteTimeout - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public int compareTo(Delayed o) {
+        if (o instanceof ResilientTask) {
+            return Long.compare(millisAbsoluteTimeout, ((ResilientTask) o).millisAbsoluteTimeout);
+        }
+        return Long.compare(getDelay(TimeUnit.MILLISECONDS), o.getDelay(TimeUnit.MILLISECONDS));
+    }
+
     public void setTimedOut() {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+                promise.setTimedOut();
                 if (runner != null) {
                     runner.interrupt();
                 }

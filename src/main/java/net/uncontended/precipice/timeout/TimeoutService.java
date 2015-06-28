@@ -17,8 +17,6 @@
 
 package net.uncontended.precipice.timeout;
 
-import net.uncontended.precipice.Status;
-import net.uncontended.precipice.concurrent.ResilientPromise;
 import net.uncontended.precipice.concurrent.ResilientTask;
 
 import java.util.concurrent.DelayQueue;
@@ -27,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TimeoutService {
 
     public static final TimeoutService defaultTimeoutService = new TimeoutService("default");
-    private final DelayQueue<ActionTimeout> timeoutQueue = new DelayQueue<>();
+    private final DelayQueue<ResilientTask<?>> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
     private AtomicBoolean isStarted = new AtomicBoolean(false);
 
@@ -36,11 +34,11 @@ public class TimeoutService {
         this.timeoutThread.setName(name + "-timeout-thread");
     }
 
-    public void scheduleTimeout(ActionTimeout timeout) {
+    public void scheduleTimeout(ResilientTask<?> task) {
         if (!isStarted.get()) {
             startThread();
         }
-        timeoutQueue.offer(timeout);
+        timeoutQueue.offer(task);
     }
 
     private void startThread() {
@@ -55,11 +53,8 @@ public class TimeoutService {
             public void run() {
                 for (; ; ) {
                     try {
-                        ActionTimeout timeout = timeoutQueue.take();
-                        @SuppressWarnings("unchecked")
-                        ResilientPromise<Object> promise = (ResilientPromise<Object>) timeout.promise;
-                        promise.setTimedOut();
-                        timeout.task.setTimedOut();
+                        ResilientTask<?> task = timeoutQueue.take();
+                        task.setTimedOut();
                     } catch (InterruptedException e) {
                         break;
                     }
