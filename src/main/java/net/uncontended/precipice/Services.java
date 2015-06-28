@@ -29,24 +29,24 @@ public class Services {
 
     public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel));
+        return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel));
     }
 
     public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
+        return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
     }
 
     public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
+        return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static SubmissionService submissionService(ExecutorService executor, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
+        return new DefaultSubmissionService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static RunService runService(String name, int concurrencyLevel) {
@@ -68,29 +68,29 @@ public class Services {
 
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel));
+        return new DefaultCompletionService(executor, new IntegerSemaphore(concurrencyLevel));
     }
 
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
+        return new DefaultCompletionService(executor, new IntegerSemaphore(concurrencyLevel), metrics);
     }
 
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
+        return new DefaultCompletionService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static CompletionService completionService(ExecutorService executor, int concurrencyLevel, ActionMetrics
             metrics, CircuitBreaker breaker) {
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
+        return new DefaultCompletionService(executor, new IntegerSemaphore(concurrencyLevel), metrics, breaker);
     }
 
     public static CompletionService completionServiceWithNoOpBreaker(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        return new DefaultService(executor, new IntegerSemaphore(concurrencyLevel), new NoOpCircuitBreaker());
+        return new DefaultCompletionService(executor, new IntegerSemaphore(concurrencyLevel), new NoOpCircuitBreaker());
     }
 
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {
