@@ -1,16 +1,18 @@
 # Precipice
 
-Precipice is a library to manage access to services. Services are essentially targets of actions that can
-fail. Precipice provides a group of tools that can be composed together depending on your Service's needs: metrics, circuit breakers, in process load balancers, patterns, and more.
+Precipice is a library to manage access to local or remote services. Services are essentially targets of actions that
+ can fail. Precipice provides a group of tools that can be composed together depending on your Service's needs: metrics,
+circuit breakers, in-process load balancers, patterns, and more.
 
-Actions can be submitted in either a synchronous or asynchronous manner. Precipice was designed with both performance and concurrency in mind.
+Actions can be executed both synchronously or asynchronously manner. Precipice was designed with both performance and
+concurrency in mind.
 
 ## Version
 
 This library has not yet hit alpha. It is used in production at [Staples SparX](http://www.staples-sparx.com). However,
 the API may still change.
 
-In particular: the project will likely be moved from Lein to Gradle. It will be split so that the Java component can be used without Clojure.
+
 
 ## Usage
 
