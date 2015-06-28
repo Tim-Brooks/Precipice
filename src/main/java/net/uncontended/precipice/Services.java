@@ -57,6 +57,10 @@ public class Services {
         return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), metrics);
     }
 
+    public static RunService runService(String name, int concurrencyLevel, CircuitBreaker breaker) {
+        return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), breaker);
+    }
+
     public static RunService runService(String name, int concurrencyLevel, ActionMetrics metrics,
                                         CircuitBreaker breaker) {
         return new DefaultRunService(new IntegerSemaphore(concurrencyLevel), metrics, breaker);
