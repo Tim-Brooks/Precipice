@@ -19,10 +19,6 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
-import net.uncontended.precipice.pattern.LoadBalancer;
-import net.uncontended.precipice.pattern.LoadBalancerStrategy;
-import net.uncontended.precipice.pattern.MultiPattern;
-import net.uncontended.precipice.pattern.ResilientPatternAction;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -35,7 +31,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
-public class LoadBalancerTest {
+public class MultiLoadBalancerTest {
 
     @Mock
     private MultiService executor1;
@@ -65,7 +61,7 @@ public class LoadBalancerTest {
         map.put(executor1, context1);
         map.put(executor2, context2);
 
-        balancer = new LoadBalancer<>(map, strategy);
+        balancer = new MultiLoadBalancer<>(map, strategy);
     }
 
     @Test

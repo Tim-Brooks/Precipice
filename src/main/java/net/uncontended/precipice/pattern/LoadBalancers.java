@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutorService;
 public class LoadBalancers {
 
     public static <C> MultiPattern<C> multiRoundRobin(Map<MultiService, C> serviceToContext) {
-        return new LoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
+        return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
     public static <C> SubmissionPattern<C> submittingRoundRobin(Map<? extends SubmissionService, C> serviceToContext) {
@@ -58,6 +58,6 @@ public class LoadBalancers {
                     new DefaultCircuitBreaker(metrics, configBuilder));
             serviceToContext.put(service, context);
         }
-        return new LoadBalancer<>(serviceToContext, new RoundRobinStrategy(contexts.size()));
+        return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(contexts.size()));
     }
 }

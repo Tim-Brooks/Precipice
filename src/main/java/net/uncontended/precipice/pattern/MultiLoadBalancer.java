@@ -25,7 +25,7 @@ import net.uncontended.precipice.concurrent.ResilientPromise;
 
 import java.util.Map;
 
-public class LoadBalancer<C> implements MultiPattern<C> {
+public class MultiLoadBalancer<C> implements MultiPattern<C> {
 
     private final SubmissionPattern<C> submissionBalancer;
     private final CompletionPattern<C> completionBalancer;
@@ -33,7 +33,7 @@ public class LoadBalancer<C> implements MultiPattern<C> {
     private final MultiService[] services;
 
     @SuppressWarnings("unchecked")
-    public LoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
+    public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }

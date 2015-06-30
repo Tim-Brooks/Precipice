@@ -102,7 +102,7 @@ public class LoadBalancerExample {
             }
         };
 
-        MultiPattern<Map<String, String>> balancerWithUserStrategy = new LoadBalancer<>(serviceToContext, strategy);
+        MultiPattern<Map<String, String>> balancerWithUserStrategy = new MultiLoadBalancer<>(serviceToContext, strategy);
     }
 
     public void sharedThreadpool() {
