@@ -2,32 +2,30 @@
 
 Precipice is a library that provides the building blocks to manage access to services that your application utilizes. A service can be a number of different things. A service could be a in-process logger performing file IO. Or a service could be something remote, like a different HTTP server. 
 
-Generally, a service is an isolated **system** that can fail. When that service fails, Precipice provides you the tools to handle and isolate that failure within your application.
+Generally, a service is an self-contained unit of functionality that can fail. When one of your services fails, Precipice provides you the tools to handle and isolate that failure within your application.
 
 ## Design
 
-A Precipice service has two primary features:
+The concept of a **service** is the basic abstraction backing Precipice. A Precipice service has two primary features:
 
 1. Metrics about the success and failures of actions on that service.
-2. Backpressure when the service is overloaded or failing.
+2. A mechanism to provide backpressure when the service is overloaded or failing.
 
-Precipice does not mandate any specific execution model. There are a variety of interfaces that allow you to decide on what makes most sense for your use case. It is even possible for an action run on a Precipice service to be executed synchronously (on the calling thread).
+Precipice does not mandate any specific execution model. There are a variety of interfaces that allow you to decide what makes most sense for your use case. It is even possible for an action run on a Precipice service to be executed synchronously (on the calling thread).
 
-All of the default Precipice services are composed of four components: an execution model (often a threadpool), a semaphore, metrics, and a circuit breaker. The semaphore prevents too many pending actions. The metrics provide feedback for executed actions. And the circuit breaker exists to reject actions when the service is failing. The circuit breaker can also be opened manually.
+All of the default Precipice services are composed of four components: an execution model (often a threadpool), a semaphore, metrics, and a circuit breaker. The semaphore prevents too many pending actions. The metrics provide feedback for executed actions. And the circuit breaker rejects actions when the service is failing. The circuit breaker can also be opened manually.
 
-All components are designed to be composable. This allows you to create a service that specifically meets your needs. Two examples:
+All components are designed to be composable. This allows you to create a service that specifically meets your needs. Two examples might be:
 
-1. Use one of the default services and circuit breakers, but provide a different metrics class to capture additional information about actions.
+1. Use one of the default services and circuit breakers, but provide a different metrics class to capture additional information about service actions.
 2. Use the default metrics and circuit breaker, but implement a different execution model using something like [Quasar](https://github.com/puniverse/quasar).
 
-One tactic to increase resiliency of your services is to combine redundant services into *Patterns*. A Precipice Pattern is multiple services combined together with a strategy for how to handle new actions.
+One tactic to increase resiliency of your services is to combine redundant services into **patterns**. A Precipice pattern is multiple services combined together with a strategy for how to handle new actions.
 
 There are two patterns included:
 
-1. Load balancer: The load balancer will distribute actions to different services, preferring services that are not failing.
-2. Shotgun: The shotgun will send an action to multiple services. The first service to respond will be the result of the action.
-
-To read more about patterns: [load balancer](https://github.com/tbrooks8/Precipice/blob/master/doc/load-balancer.md).
+1. [Load balancer](https://github.com/tbrooks8/Precipice/blob/master/doc/load-balancer.md) - The load balancer will distribute actions to different services, preferring services that are not failing.
+2. [Shotgun](https://github.com/tbrooks8/Precipice/blob/master/doc/shotgun.md) - The shotgun will send an action to multiple services. The first service to respond will be the result of the action.
 
 ## Version
 
@@ -45,9 +43,9 @@ The latest release is available on Maven Central:
 
 ## Usage
 
-Precipice provides three service interfaces: CompletionService, SubmissionService, and RunService. Each provides a different model concurrency model. SubmissionService is the style most similar to Java ExecutorServices. You provide an action to be performed asynchronously and receive a future representing that asynchronous computation.
+Precipice provides three service interfaces: [CompletionService](https://github.com/tbrooks8/Precipice/blob/master/src/main/java/net/uncontended/precipice/CompletionService.java), [SubmissionService](https://github.com/tbrooks8/Precipice/blob/master/src/main/java/net/uncontended/precipice/SubmissionService.java), and [RunService](https://github.com/tbrooks8/Precipice/blob/master/src/main/java/net/uncontended/precipice/RunService.java). Each provides a different model concurrency model. SubmissionService is the style most similar to the Java ExecutorService. You provide an action to be performed asynchronously and receive a future representing that asynchronous computation.
 
-Default implementations can be created from the static methods on the Services class.
+Default implementations can be created from the static methods on the [Services](https://github.com/tbrooks8/Precipice/blob/master/src/main/java/net/uncontended/precipice/Services.java) class.
 
 ```java
 String name = "Identity Service";
@@ -56,7 +54,7 @@ int concurrencyLevel = 1000;
 SubmissionService service = Services.submissionService(name, poolSize, concurrencyLevel);
 ```
 
-An action submitted to this services is executed in the background on a threadpool associated with the service.
+An action submitted to this service is executed in the background on a threadpool associated with the service.
 
 ```java
 ResilientAction<Integer> action = new ResilientAction<> {
@@ -68,9 +66,6 @@ ResilientAction<Integer> action = new ResilientAction<> {
     }
 }
 
-ResilientPromise<Integer> promise = service.performAction(action);
-Integer result = promise.awaitResult();
-// Or:
 long timeoutInMillis = 100;
 ResilientFuture<Integer> future = service.submitAction(action, timeoutInMillis);
 Integer result = future.get();
@@ -80,9 +75,8 @@ The default service in this example provides both metrics and a load balancer. A
 
 There are two main mechanisms of back pressure to protect the service.
 
-First, the concurrencyLevel is the maximum amount of uncompleted actions that a service can be working on at one time.
-
-Second, if a certain threshold is passed for failures (timeouts + errors) the circuit will open for a configurable time. Actions will be rejected while the circuit is open.
+1. The concurrencyLevel is the maximum amount of uncompleted actions that a service can be working on at one time.
+2. If a certain threshold is passed for failures (timeouts + errors) the circuit will open for a configurable time. Actions will be rejected while the circuit is open.
 
 All components of the library are designed to be composable. If you would like to provide your own circuit breaker implementation or metrics implementation you are free to do so. The default metrics implementation is designed to be performant, avoid unnecessary allocations, and be lock free. It should be sufficient for most use cases.
 
@@ -95,7 +89,7 @@ int concurrencyLevel = 1000;
 // This creates a no op circuit breaker. The circuit will never open based on failures.
 // However, the circuit can still be opened and closed manually be calling 
 // forceOpen or forceClosed.
-SubmissionService service = Service.submissionServiceWithNoOpBreaker(name, poolSize, concurrencyLevel);
+SubmissionService service = Services.submissionServiceWithNoOpBreaker(name, poolSize, concurrencyLevel);
 
 // Service with user provided metrics.
 ActionMetrics metrics = new UserCreatedMetrics();
@@ -125,9 +119,9 @@ CircuitBreaker config = configBuilder.build();
 // Slots to track is the size of the array.
 int slotsToTrack = 3600;
 
-// This this the resolution for the array. It is combined with the TimeUnit to determined
-// when to move to the next slot. So a resolution of 1 combined with a TimeUnit.SECONDS
-// means that each array slot contains the data for one second. A resolution of 500 with a 
+// This this the resolution for the array. It is combined with the TimeUnit to determine
+// when to move to the next slot. So a resolution of 1 combined with TimeUnit.SECONDS
+// means that each array slot contains the data for one second. A resolution of 500 with 
 // TimeUnit.MILLISECONDS means that each array slot contains the data for 500
 // milliseconds.
 long resolution = 1;
@@ -144,7 +138,8 @@ In that package, there are examples for both the RunService interface and the Co
 1. Revisit all names. As we near a finalize API, any method or class name that can be improved will be improved. The final public API should be determined by the end of August.
 2. Continue to add documentation. This includes Javadoc, examples, and discussion of architecture.
 3. Improved metrics. Currently metrics are pretty basic and only include counts. Some sense of latency seems to make sense. Additionally, it may make sense for patterns to have their own metrics.
-4. Improved performance of submitting to the default services.
+4. Ensure some amount of compatibility with [reactive streams](http://www.reactive-streams.org/).
+5. Improved performance of submitting to the default services.
 
 ## License
 
