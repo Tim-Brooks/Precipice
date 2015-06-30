@@ -17,21 +17,19 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.timeout.ActionTimeoutException;
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
-public interface RunPattern<C> extends Pattern {
+public interface RunPattern<C> extends Pattern<C> {
 
     /**
      * Performs a {@link ResilientPatternAction} that will be run synchronously on the
-     * calling thread. However, at the completion of the task, the result will be delivered
-     * to the promise provided. And the provided callback will be executed.
+     * calling thread. The result of the action will be returned.
      * <p/>
-     * <p/>
-     * If the ResilientPatternAction throws a {@link ActionTimeoutException}, the result
-     * of the action will be a timeout. Any other exception and the result of the action
-     * will be an error.
+     * If the ResilientPatternAction throws a {@link ActionTimeoutException}, the result of
+     * the action will be recorded as a timeout in the service's metrics. Any other exception
+     * and the result of the action will be recorded as an error.
      *
      * @param action the action to run
      * @param <T>    the type of the result of the action

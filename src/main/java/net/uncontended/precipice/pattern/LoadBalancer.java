@@ -19,8 +19,6 @@ package net.uncontended.precipice.pattern;
 
 
 import net.uncontended.precipice.MultiService;
-import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.RejectionReason;
 import net.uncontended.precipice.ResilientCallback;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
@@ -29,103 +27,58 @@ import java.util.Map;
 
 public class LoadBalancer<C> implements MultiPattern<C> {
 
+    private final SubmissionPattern<C> submissionBalancer;
+    private final CompletionPattern<C> completionBalancer;
+    private final RunPattern<C> runBalancer;
     private final MultiService[] services;
-    private final C[] contexts;
-    private final LoadBalancerStrategy strategy;
 
     @SuppressWarnings("unchecked")
     public LoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
         if (executorToContext.size() == 0) {
-            throw new IllegalArgumentException("Cannot create LoadBalancer with 0 Executors.");
+            throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
 
-        this.strategy = strategy;
         services = new MultiService[executorToContext.size()];
-        contexts = (C[]) new Object[executorToContext.size()];
+        C[] contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
         for (Map.Entry<MultiService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
         }
+        this.submissionBalancer = new SubmissionLoadBalancer<>(services, contexts, strategy);
+        this.completionBalancer = new CompletionLoadBalancer<>(services, contexts, strategy);
+        this.runBalancer = new RunLoadBalancer<C>(services, contexts, strategy);
+
     }
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submit(action, null, millisTimeout);
+        return submissionBalancer.submit(action, millisTimeout);
     }
 
     @Override
     public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
                                          long millisTimeout) {
-        final int firstServiceToTry = strategy.nextExecutorIndex();
-        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-
-        int j = 0;
-        int serviceCount = services.length;
-        while (true) {
-            try {
-                int serviceIndex = (firstServiceToTry + j) % serviceCount;
-                actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].submit(actionWithContext, callback, millisTimeout);
-            } catch (RejectedActionException e) {
-                ++j;
-                if (j == serviceCount) {
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
-                }
-            }
-        }
+        return submissionBalancer.submit(action, callback, millisTimeout);
     }
 
     @Override
     public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
                                       long millisTimeout) {
-        submitAndComplete(action, promise, null, millisTimeout);
+        completionBalancer.submitAndComplete(action, promise, millisTimeout);
     }
 
     @Override
     public <T> void submitAndComplete(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
                                       ResilientCallback<T> callback, long millisTimeout) {
-        final int firstServiceToTry = strategy.nextExecutorIndex();
-        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-
-        int j = 0;
-        int serviceCount = services.length;
-        while (true) {
-            try {
-                int serviceIndex = (firstServiceToTry + j) % serviceCount;
-                actionWithContext.context = contexts[serviceIndex];
-                services[serviceIndex].submitAndComplete(actionWithContext, promise, callback, millisTimeout);
-                break;
-            } catch (RejectedActionException e) {
-                ++j;
-                if (j == serviceCount) {
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
-                }
-            }
-        }
+        completionBalancer.submitAndComplete(action, promise, callback, millisTimeout);
 
     }
 
     @Override
     public <T> T run(final ResilientPatternAction<T, C> action) throws Exception {
-        final int firstServiceToTry = strategy.nextExecutorIndex();
-        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-
-        int j = 0;
-        int serviceCount = services.length;
-        while (true) {
-            try {
-                int serviceIndex = (firstServiceToTry + j) % serviceCount;
-                actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].run(actionWithContext);
-            } catch (RejectedActionException e) {
-                ++j;
-                if (j == serviceCount) {
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
-                }
-            }
-        }
+        return runBalancer.run(action);
     }
 
     @Override
@@ -134,5 +87,4 @@ public class LoadBalancer<C> implements MultiPattern<C> {
             e.shutdown();
         }
     }
-
 }

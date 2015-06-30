@@ -1,25 +1,51 @@
 # Precipice
 
-Precipice is a library to manage access to local or remote services. Services are essentially targets of actions that
- can fail. Precipice provides a group of tools that can be composed together depending on your Service's needs: metrics,
-circuit breakers, in-process load balancers, patterns, and more.
+Precipice is a library that provides the building blocks to manage access to services that your application utilizes. A service can be a multitude of things. A service could be a in-process logger performing file IO. Or a service could be something remote, like a call to a different HTTP server. 
 
-Actions can be executed both synchronously or asynchronously manner. Precipice was designed with both performance and
-concurrency in mind.
+Generally, a service is an isolated **system** that can fail. When that service fails, Precipice provides you the tools to handle and isolate that failure within your application.
+
+## Design
+
+A Precipice service has two primary features:
+
+1. Metrics about the success and failures of actions on that service.
+2. Backpressure when the service is overloaded or failing.
+
+Precipice does not mandate any specific execution model. There are a variety of interfaces that allow you to decide on what makes most sense for your use case. It is even possible for an action run on a Precipice service to be executed synchronously (on the calling thread).
+
+All of the default Precipice services are composed of four components: an execution model (often a threadpool), a semaphore, metrics, and a circuit breaker. The semaphore prevents too many pending actions. The metrics provide feedback for executed actions. And the circuit breaker exists to reject actions when the service is failing. The circuit breaker can also be opened manually.
+
+All components are designed to be composable. This allows you to create a service that specifically meets your needs. Two examples:
+
+1. Use one of the default services and circuit breakers, but provide a different metrics class to capture additional information about actions.
+2. Use the default metrics and circuit breaker, but implement a different execution model using something like [Quasar](https://github.com/puniverse/quasar).
+
+One tactic to increase resiliency of your services is to combine redundant services into *Patterns*. A Precipice Pattern is multiple services combined together with a strategy for how to handle new actions.
+
+There are two patterns included:
+
+1. Load balancer: The load balancer will distribute actions to different services, preferring services that are not failing.
+2. Shotgun: The shotgun will send an action to multiple services. The first service to respond will be the result of the action.
+
+To read more about patterns: [load balancer](https://github.com/tbrooks8/Precipice/blob/master/doc/load-balancer.md).
 
 ## Version
 
-This library has not yet hit alpha. It is used in production at [Staples SparX](http://www.staples-sparx.com). However,
-the API may still change.
+This library has not yet hit alpha. It is used in production at [Staples SparX](http://www.staples-sparx.com). However, the API may still change.
 
-To require the current version in Gradle, add the following to the dependencies section of your build file:
-> compile 'net.uncontended:Precipice:0.1.0'
+The latest release is available on Maven Central:
+
+```xml
+<dependency>
+  <groupId>net.uncontended</groupId>
+  <artifactId>Precipice</artifactId>
+  <version>0.1.1</version>
+</dependency>
+```
 
 ## Usage
 
-Precipice provides three service interfaces: CompletionService, SubmissionService, and RunService. Each provides a
-different model concurrency model. SubmissionService is the style most similar to Java ExecutorServices. You provide
-an action to be performed asynchronously and receive a future representing that asynchronous computation.
+Precipice provides three service interfaces: CompletionService, SubmissionService, and RunService. Each provides a different model concurrency model. SubmissionService is the style most similar to Java ExecutorServices. You provide an action to be performed asynchronously and receive a future representing that asynchronous computation.
 
 Default implementations can be created from the static methods on the Services class.
 
@@ -50,19 +76,15 @@ ResilientFuture<Integer> future = service.submitAction(action, timeoutInMillis);
 Integer result = future.get();
 ```
 
-The default service in this example provides both metrics and a load balancer. Actions that return successfully will
- be tallied as successes. Thrown exceptions will be tallied as errors. And a timeout will be tallied as a timeout.
+The default service in this example provides both metrics and a load balancer. Actions that return successfully will be tallied as successes. Thrown exceptions will be tallied as errors. And a timeout will be tallied as a timeout.
 
 There are two main mechanisms of back pressure to protect the service.
 
 First, the concurrencyLevel is the maximum amount of uncompleted actions that a service can be working on at one time.
 
-Second, if a certain threshold is passed for failures (timeouts + errors) the circuit will open for a configurable time.
-Actions will be rejected while the circuit is open.
+Second, if a certain threshold is passed for failures (timeouts + errors) the circuit will open for a configurable time. Actions will be rejected while the circuit is open.
 
-All components of the library are designed to be composable. If you would like to provide your own circuit breaker
-implementation or metrics implementation you are free to do so. The default metrics implementation is designed to be
-performant, avoid unnecessary allocations, and be lock free. It should be sufficient for most use cases.
+All components of the library are designed to be composable. If you would like to provide your own circuit breaker implementation or metrics implementation you are free to do so. The default metrics implementation is designed to be performant, avoid unnecessary allocations, and be lock free. It should be sufficient for most use cases.
 
 Here are some common options for creating a service:
 ```java
@@ -84,8 +106,7 @@ CircuitBreaker breaker = new UserProvidedBreaker();
 SubmissionService service = Services.submissionService(name, poolSize, concurrencyLevel, metrics, breaker);
 ```
 
-Most of the time you will want to use the default metrics and breaker. There are a number of configurations of which
-you might want to be aware.
+Most of the time you will want to use the default metrics and breaker. There are a number of configurations of which you might want to be aware.
 
 ```java
 // Circuit Breaker
@@ -114,23 +135,16 @@ TimeUnit slotUnit = TimeUnit.SECONDS;
 ActionMetrics metrics = DefaultActionMetrics(slotsToTrack, resolution, slotUnit)
 ```
 
-Further examples of service usage can be found in the [example](https://github.com/tbrooks8/Precipice/tree/master/src/test/java/net/uncontended/precipice/example)
-package.
+Further examples of service usage can be found in the [example](https://github.com/tbrooks8/Precipice/tree/master/src/test/java/net/uncontended/precipice/example) package.
 
-In that package, there are examples for both the RunService interface and the CompletionService. The RunService executes
-actions on the calling thread. The CompletionService executes actions asynchronously in the background. However, the
-submitAndComplete method is void opposed to returning a future. To receive the result, the user supplies a promise
-that will be completed.
+In that package, there are examples for both the RunService interface and the CompletionService. The RunService executes actions on the calling thread. The CompletionService executes actions asynchronously in the background. However, the submitAndComplete method is void opposed to returning a future. To receive the result, the user supplies a promise that will be completed.
 
 ## Roadmap
 
-There are a variety of changes that are already planned.
-
-1. Revisit all names. As we near a finalize API, any method or class name that can be improved will be improved.
+1. Revisit all names. As we near a finalize API, any method or class name that can be improved will be improved. The final public API should be determined by the end of August.
 2. Continue to add documentation. This includes Javadoc, examples, and discussion of architecture.
-3. Improved metrics. Currently metrics are pretty basic and only include counts. Some sense of latency seems to make
-sense.
-4. Improved performance of submitting to the defautl services.
+3. Improved metrics. Currently metrics are pretty basic and only include counts. Some sense of latency seems to make sense. Additionally, it may make sense for patterns to have their own metrics.
+4. Improved performance of submitting to the default services.
 
 ## License
 

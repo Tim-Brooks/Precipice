@@ -23,7 +23,6 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
-import net.uncontended.precipice.utils.SystemTime;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;

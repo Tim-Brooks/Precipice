@@ -18,8 +18,19 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.RejectedActionException;
+import net.uncontended.precipice.ResilientAction;
 
-public interface Pattern {
+/**
+ * A group of services that actions can be run on. Different implementations can
+ * have different strategies for how to actions are distributed across the services.
+ * This class receives {@link ResilientPatternAction} opposed to {@link ResilientAction}.
+ * <p/>
+ * The {@link ResilientPatternAction} {@code run} method is passed a context
+ * specific to the service on which it is run.
+ *
+ * @param <C> the context passed to an pattern action
+ */
+public interface Pattern<C> {
 
     /**
      * Attempts to shutdown all the services. Actions after this
