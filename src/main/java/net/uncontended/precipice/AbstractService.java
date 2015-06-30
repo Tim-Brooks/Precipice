@@ -52,6 +52,17 @@ public abstract class AbstractService implements Service {
         return circuitBreaker;
     }
 
+    @Override
+    public int remainingCapacity() {
+        throw new UnsupportedOperationException("Unimplemented");
+
+    }
+
+    @Override
+    public int currentlyPending() {
+        throw new UnsupportedOperationException("Unimplemented");
+    }
+
     protected void acquirePermitOrRejectIfActionNotAllowed() {
         if (isShutdown.get()) {
             throw new RejectedActionException(RejectionReason.SERVICE_SHUTDOWN);

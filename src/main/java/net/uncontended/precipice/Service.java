@@ -39,6 +39,20 @@ public interface Service {
     CircuitBreaker getCircuitBreaker();
 
     /**
+     * Returns the remaining action capacity before max concurrency level has been hit.
+     *
+     * @return the remaining capacity
+     */
+    int remainingCapacity();
+
+    /**
+     * Returns the currently pending actions count.
+     *
+     * @return the currently pending actions count
+     */
+    int currentlyPending();
+
+    /**
      * Attempts to shutdown the service. Actions after this call will throw a
      * {@link RejectedActionException}. Implementations may differ on if pending
      * or executing actions are cancelled.
