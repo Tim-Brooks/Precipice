@@ -1,6 +1,6 @@
 # Precipice
 
-Precipice is a library that provides the building blocks to manage access to services that your application utilizes. A service can be a multitude of things. A service could be a in-process logger performing file IO. Or a service could be something remote, like a call to a different HTTP server. 
+Precipice is a library that provides the building blocks to manage access to services that your application utilizes. A service can be a number of different things. A service could be a in-process logger performing file IO. Or a service could be something remote, like a different HTTP server. 
 
 Generally, a service is an isolated **system** that can fail. When that service fails, Precipice provides you the tools to handle and isolate that failure within your application.
 
