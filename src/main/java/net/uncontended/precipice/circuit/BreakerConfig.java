@@ -17,9 +17,6 @@
 
 package net.uncontended.precipice.circuit;
 
-/**
- * Created by timbrooks on 11/10/14.
- */
 public class BreakerConfig {
 
     public final int failurePercentageThreshold;

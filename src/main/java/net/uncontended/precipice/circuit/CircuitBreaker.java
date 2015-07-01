@@ -17,9 +17,6 @@
 
 package net.uncontended.precipice.circuit;
 
-/**
- * Created by timbrooks on 11/5/14.
- */
 public interface CircuitBreaker {
 
     boolean isOpen();

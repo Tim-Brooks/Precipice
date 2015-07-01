@@ -59,7 +59,11 @@ public class Servers {
         @Override
         public void handleRequest(HttpServerExchange exchange) throws Exception {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-            exchange.getResponseSender().send("Response: " + count.incrementAndGet());
+            int i = count.incrementAndGet();
+            if (i > 20 && i < 40) {
+                Thread.sleep(70);
+            }
+            exchange.getResponseSender().send("Server1 Response: " + i);
         }
     }
 
@@ -70,7 +74,11 @@ public class Servers {
         @Override
         public void handleRequest(HttpServerExchange exchange) throws Exception {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-            exchange.getResponseSender().send("Response: " + count.incrementAndGet());
+            int i = count.incrementAndGet();
+            if (i > 30 && i < 50) {
+                Thread.sleep(70);
+            }
+            exchange.getResponseSender().send("Server2 Response: " + i);
         }
     }
 }

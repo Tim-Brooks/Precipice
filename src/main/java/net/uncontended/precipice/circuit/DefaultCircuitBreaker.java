@@ -26,9 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Created by timbrooks on 11/5/14.
- */
 public class DefaultCircuitBreaker implements CircuitBreaker {
 
     private static final int CLOSED = 0;

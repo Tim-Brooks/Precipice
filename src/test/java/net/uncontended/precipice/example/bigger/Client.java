@@ -18,9 +18,14 @@
 package net.uncontended.precipice.example.bigger;
 
 import com.squareup.okhttp.*;
+import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.Services;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.SubmissionService;
+import net.uncontended.precipice.circuit.BreakerConfigBuilder;
+import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.ResilientFuture;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.pattern.LoadBalancers;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
 import net.uncontended.precipice.pattern.SubmissionPattern;
@@ -28,6 +33,7 @@ import net.uncontended.precipice.pattern.SubmissionPattern;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class Client {
 
@@ -43,22 +49,20 @@ public class Client {
     }
 
     public void run() throws InterruptedException {
-        for (int i = 0; i < 10; ++i) {
-            ResilientFuture<String> f = loadBalancer.submit(new ResilientPatternAction<String, Map<String, Object>>() {
-                @Override
-                public String run(Map<String, Object> context) throws Exception {
-                    HttpUrl.Builder builder = new HttpUrl.Builder().scheme("http");
-                    HttpUrl url = builder.port((int) context.get("port")).host((String) context.get("host")).build();
-                    Request request = new Request.Builder().url(url).build();
-                    Response response = client.newCall(request).execute();
-                    ResponseBody body = response.body();
-                    return body.string();
-                }
-            }, 100L);
+        for (int i = 0; i < 100; ++i) {
+            Thread.sleep(200);
 
             try {
-                System.out.println(f.get());
-                System.out.println(f.getStatus());
+                ResilientFuture<String> f = loadBalancer.submit(new Action(), 50L);
+                String result = f.get();
+                Status status = f.getStatus();
+
+
+                System.out.println(result);
+                System.out.println(status);
+
+            } catch (RejectedActionException e) {
+                System.out.println(e.reason);
             } catch (ExecutionException e) {
                 e.printStackTrace();
             }
@@ -69,10 +73,28 @@ public class Client {
 
 
     private void addServiceToMap(Map<SubmissionService, Map<String, Object>> services, String name, int port) {
-        SubmissionService service = Services.defaultService(name, 5, 20);
+        BreakerConfigBuilder builder = new BreakerConfigBuilder()
+                .backOffTimeMillis(2000)
+                .failureThreshold(2)
+                .trailingPeriodMillis(2000);
+        DefaultActionMetrics actionMetrics = new DefaultActionMetrics(100, 100, TimeUnit.MILLISECONDS);
+        DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(actionMetrics, builder.build());
+        SubmissionService service = Services.defaultService(name, 5, 20, actionMetrics, breaker);
         Map<String, Object> context = new HashMap<>();
         context.put("host", "127.0.0.1");
         context.put("port", port);
         services.put(service, context);
+    }
+
+    private class Action implements ResilientPatternAction<String, Map<String, Object>> {
+        @Override
+        public String run(Map<String, Object> context) throws Exception {
+            HttpUrl.Builder builder = new HttpUrl.Builder().scheme("http");
+            HttpUrl url = builder.port((int) context.get("port")).host((String) context.get("host")).build();
+            Request request = new Request.Builder().url(url).build();
+            Response response = client.newCall(request).execute();
+            ResponseBody body = response.body();
+            return body.string();
+        }
     }
 }
