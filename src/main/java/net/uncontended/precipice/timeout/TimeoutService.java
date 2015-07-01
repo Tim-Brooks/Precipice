@@ -32,6 +32,8 @@ public class TimeoutService {
     public TimeoutService(String name) {
         this.timeoutThread = createThread();
         this.timeoutThread.setName(name + "-timeout-thread");
+        // TODO: Determine correct strategy for shutting down timeout service.
+        this.timeoutThread.setDaemon(true);
     }
 
     public void scheduleTimeout(ResilientTask<?> task) {
