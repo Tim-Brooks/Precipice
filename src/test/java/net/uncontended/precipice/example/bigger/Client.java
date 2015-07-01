@@ -50,7 +50,7 @@ public class Client {
 
     public void run() throws InterruptedException {
         for (int i = 0; i < 100; ++i) {
-            Thread.sleep(200);
+            Thread.sleep(500);
 
             try {
                 ResilientFuture<String> f = loadBalancer.submit(new Action(), 50L);
@@ -76,8 +76,8 @@ public class Client {
         BreakerConfigBuilder builder = new BreakerConfigBuilder()
                 .backOffTimeMillis(2000)
                 .failureThreshold(2)
-                .trailingPeriodMillis(2000);
-        DefaultActionMetrics actionMetrics = new DefaultActionMetrics(100, 100, TimeUnit.MILLISECONDS);
+                .trailingPeriodMillis(3000);
+        DefaultActionMetrics actionMetrics = new DefaultActionMetrics(20, 500, TimeUnit.MILLISECONDS);
         DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(actionMetrics, builder.build());
         SubmissionService service = Services.defaultService(name, 5, 20, actionMetrics, breaker);
         Map<String, Object> context = new HashMap<>();
