@@ -64,7 +64,8 @@ public class Client {
             } catch (RejectedActionException e) {
                 System.out.println(e.reason);
             } catch (ExecutionException e) {
-                e.printStackTrace();
+                System.out.println("ERROR");
+                System.out.println(e.getCause().getMessage());
             }
         }
 
@@ -93,8 +94,13 @@ public class Client {
             HttpUrl url = builder.port((int) context.get("port")).host((String) context.get("host")).build();
             Request request = new Request.Builder().url(url).build();
             Response response = client.newCall(request).execute();
-            ResponseBody body = response.body();
-            return body.string();
+            if (response.code() != 500) {
+                ResponseBody body = response.body();
+                return body.string();
+            } else {
+                throw new RuntimeException("Server Error");
+            }
+
         }
     }
 }
