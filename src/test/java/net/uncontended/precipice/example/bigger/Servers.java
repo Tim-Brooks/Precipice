@@ -29,7 +29,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class Servers {
 
-    List<Undertow> servers = new ArrayList<>();
+    private List<Undertow> servers = new ArrayList<>();
+
 
     public Servers() {
         servers.add(create(6001, new Handler1()));
