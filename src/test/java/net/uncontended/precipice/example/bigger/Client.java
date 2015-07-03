@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.example.bigger;
 
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.squareup.okhttp.*;
 import net.uncontended.precipice.RejectedActionException;
@@ -28,7 +27,6 @@ import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.metrics.Snapshot;
 import net.uncontended.precipice.pattern.LoadBalancers;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
 import net.uncontended.precipice.pattern.SubmissionPattern;
@@ -42,10 +40,10 @@ public class Client {
 
     private final SubmissionPattern<Map<String, Object>> loadBalancer;
     private final OkHttpClient client = new OkHttpClient();
-    private final MetricRegistry metrics;
+    private final ExampleMetrics metrics;
 
     public Client(MetricRegistry metrics) {
-        this.metrics = metrics;
+        this.metrics = new ExampleMetrics(metrics);
         Map<SubmissionService, Map<String, Object>> services = new HashMap<>();
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
@@ -91,13 +89,7 @@ public class Client {
         context.put("port", port);
         services.put(service, context);
 
-        metrics.register(name + " Total", new Gauge<Long>() {
-
-            @Override
-            public Long getValue() {
-                return (Long) service.getActionMetrics().snapshot(1, TimeUnit.SECONDS).get(Snapshot.TOTAL);
-            }
-        });
+        metrics.addMetrics(name, service.getActionMetrics());
     }
 
     private class Action implements ResilientPatternAction<String, Map<String, Object>> {
