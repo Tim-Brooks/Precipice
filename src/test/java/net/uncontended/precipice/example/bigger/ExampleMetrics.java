@@ -22,59 +22,73 @@ import com.codahale.metrics.MetricRegistry;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Snapshot;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ExampleMetrics {
 
     private final MetricRegistry metrics;
+    private final ActionMetrics actionMetrics;
+    private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
+    private volatile Map<Object, Object> currentMetrics;
 
-    public ExampleMetrics(MetricRegistry metrics) {
+    public ExampleMetrics(MetricRegistry metrics, String name, ActionMetrics actionMetrics) {
         this.metrics = metrics;
-    }
+        this.actionMetrics = actionMetrics;
 
-    public void addMetrics(String name, final ActionMetrics actionMetrics) {
         metrics.register(name + " Total", new Gauge<Long>() {
 
             @Override
             public Long getValue() {
-                return (Long) actionMetrics.snapshot(1, TimeUnit.SECONDS).get(Snapshot.TOTAL);
+                return getMetrics(Snapshot.TOTAL);
             }
         });
 
         metrics.register(name + " Successes", new Gauge<Long>() {
             @Override
             public Long getValue() {
-                return (Long) actionMetrics.snapshot(1, TimeUnit.SECONDS).get(Snapshot.SUCCESSES);
+                return getMetrics(Snapshot.SUCCESSES);
             }
         });
 
-        metrics.register(name + " Successes", new Gauge<Long>() {
+        metrics.register(name + " Errors", new Gauge<Long>() {
             @Override
             public Long getValue() {
-                return (Long) actionMetrics.snapshot(1, TimeUnit.SECONDS).get(Snapshot.ERRORS);
+                return getMetrics(Snapshot.ERRORS);
             }
         });
 
-        metrics.register(name + " Successes", new Gauge<Long>() {
+        metrics.register(name + " Timeouts", new Gauge<Long>() {
             @Override
             public Long getValue() {
-                return (Long) actionMetrics.snapshot(1, TimeUnit.SECONDS).get(Snapshot.TIMEOUTS);
+                return getMetrics(Snapshot.TIMEOUTS);
             }
         });
 
-        metrics.register(name + " Successes", new Gauge<Long>() {
+        metrics.register(name + " Rejections - Circuit Open", new Gauge<Long>() {
             @Override
             public Long getValue() {
-                return (Long) actionMetrics.snapshot(1, TimeUnit.SECONDS).get(Snapshot.CIRCUIT_OPEN);
+                return getMetrics(Snapshot.CIRCUIT_OPEN);
             }
         });
 
-        metrics.register(name + " Successes", new Gauge<Long>() {
+        metrics.register(name + " Rejections - Max Concurrency", new Gauge<Long>() {
             @Override
             public Long getValue() {
-                return (Long) actionMetrics.snapshot(1, TimeUnit.SECONDS).get(Snapshot.MAX_CONCURRENCY);
+                return getMetrics(Snapshot.MAX_CONCURRENCY);
             }
         });
+    }
+
+    private Long getMetrics(String metric) {
+        long currentTime = System.currentTimeMillis();
+        long lastUpdateTime = lastUpdateTimestamp.get();
+        if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
+            currentMetrics = actionMetrics.snapshot(1, TimeUnit.SECONDS);
+        }
+
+        return (Long) currentMetrics.get(metric);
     }
 
 

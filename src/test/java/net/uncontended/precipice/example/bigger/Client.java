@@ -31,7 +31,9 @@ import net.uncontended.precipice.pattern.LoadBalancers;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
 import net.uncontended.precipice.pattern.SubmissionPattern;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,11 +41,12 @@ import java.util.concurrent.TimeUnit;
 public class Client {
 
     private final SubmissionPattern<Map<String, Object>> loadBalancer;
+    private final MetricRegistry metrics;
     private final OkHttpClient client = new OkHttpClient();
-    private final ExampleMetrics metrics;
+    private final List<ExampleMetrics> exampleMetrics = new ArrayList<>();
 
     public Client(MetricRegistry metrics) {
-        this.metrics = new ExampleMetrics(metrics);
+        this.metrics = metrics;
         Map<SubmissionService, Map<String, Object>> services = new HashMap<>();
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
@@ -89,7 +92,7 @@ public class Client {
         context.put("port", port);
         services.put(service, context);
 
-        metrics.addMetrics(name, service.getActionMetrics());
+        exampleMetrics.add(new ExampleMetrics(metrics, name, actionMetrics));
     }
 
     private class Action implements ResilientPatternAction<String, Map<String, Object>> {
