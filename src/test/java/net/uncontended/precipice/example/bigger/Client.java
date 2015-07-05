@@ -85,7 +85,7 @@ public class Client {
                 .failureThreshold(2)
                 .trailingPeriodMillis(3000);
         DefaultActionMetrics actionMetrics = new DefaultActionMetrics(20, 500, TimeUnit.MILLISECONDS);
-        DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(actionMetrics, builder.build());
+        DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
         final SubmissionService service = Services.defaultService(name, 5, 20, actionMetrics, breaker);
         Map<String, Object> context = new HashMap<>();
         context.put("host", "127.0.0.1");

@@ -15,25 +15,16 @@
  *
  */
 
-package net.uncontended.precipice.circuit;
+package net.uncontended.precipice;
 
+import net.uncontended.precipice.circuit.BreakerConfigBuilder;
+import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
-public interface CircuitBreaker {
+public class ServiceBuilder {
 
-    boolean isOpen();
-
-    boolean allowAction();
-
-    void informBreakerOfResult(boolean successful);
-
-    void setActionMetrics(ActionMetrics metrics);
-
-    void setBreakerConfig(BreakerConfig breakerConfig);
-
-    BreakerConfig getBreakerConfig();
-
-    void forceOpen();
-
-    void forceClosed();
+    private ActionMetrics metrics = new DefaultActionMetrics();
+    private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
 }

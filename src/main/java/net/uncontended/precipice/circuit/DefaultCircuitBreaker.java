@@ -33,20 +33,19 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     private static final int FORCED_OPEN = 2;
 
     private final SystemTime systemTime;
-    private final ActionMetrics actionMetrics;
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastTestedTime = new AtomicLong(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
     private final AtomicReference<HealthSnapshot> health = new AtomicReference<>();
     private final AtomicReference<BreakerConfig> breakerConfig;
+    private ActionMetrics actionMetrics;
 
-    public DefaultCircuitBreaker(ActionMetrics actionMetrics, BreakerConfig breakerConfig) {
-        this(actionMetrics, breakerConfig, new SystemTime());
+    public DefaultCircuitBreaker(BreakerConfig breakerConfig) {
+        this(breakerConfig, new SystemTime());
     }
 
-    public DefaultCircuitBreaker(ActionMetrics actionMetrics, BreakerConfig breakerConfig, SystemTime systemTime) {
+    public DefaultCircuitBreaker(BreakerConfig breakerConfig, SystemTime systemTime) {
         this.systemTime = systemTime;
-        this.actionMetrics = actionMetrics;
         this.breakerConfig = new AtomicReference<>(breakerConfig);
     }
 
@@ -92,19 +91,6 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         }
     }
 
-    private HealthSnapshot getHealthSnapshot(BreakerConfig config, long currentTime) {
-        long lastHealthTime = this.lastHealthTime.get();
-        if (lastHealthTime + config.healthRefreshMillis < currentTime) {
-            if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                HealthSnapshot newHealth = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
-                health.set(newHealth);
-                return newHealth;
-            }
-        }
-
-        return health.get();
-    }
-
     @Override
     public BreakerConfig getBreakerConfig() {
         return breakerConfig.get();
@@ -116,6 +102,11 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     }
 
     @Override
+    public void setActionMetrics(ActionMetrics actionMetrics) {
+        this.actionMetrics = actionMetrics;
+    }
+
+    @Override
     public void forceOpen() {
         state.set(FORCED_OPEN);
     }
@@ -123,5 +114,18 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     @Override
     public void forceClosed() {
         state.set(CLOSED);
+    }
+
+    private HealthSnapshot getHealthSnapshot(BreakerConfig config, long currentTime) {
+        long lastHealthTime = this.lastHealthTime.get();
+        if (lastHealthTime + config.healthRefreshMillis < currentTime) {
+            if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
+                HealthSnapshot newHealth = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+                health.set(newHealth);
+                return newHealth;
+            }
+        }
+
+        return health.get();
     }
 }

@@ -35,7 +35,7 @@ public class DefaultRunService extends AbstractService implements RunService {
     }
 
     public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
-        this(semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new BreakerConfigBuilder().build()));
+        this(semaphore, actionMetrics, new DefaultCircuitBreaker(new BreakerConfigBuilder().build()));
     }
 
     public DefaultRunService(PrecipiceSemaphore semaphore, CircuitBreaker breaker) {

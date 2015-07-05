@@ -39,8 +39,7 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
     }
 
     public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
-        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
-                BreakerConfigBuilder().build()));
+        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(new BreakerConfigBuilder().build()));
     }
 
     public DefaultSubmissionService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {

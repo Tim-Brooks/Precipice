@@ -41,8 +41,7 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
-        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
-                BreakerConfigBuilder().build()));
+        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(new BreakerConfigBuilder().build()));
     }
 
     public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {

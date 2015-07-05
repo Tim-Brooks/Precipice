@@ -41,8 +41,7 @@ public class DefaultCompletionService extends AbstractService implements Complet
     }
 
     public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
-        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(actionMetrics, new
-                BreakerConfigBuilder().build()));
+        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(new BreakerConfigBuilder().build()));
     }
 
     public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {

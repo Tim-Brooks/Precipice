@@ -357,7 +357,7 @@ public class DefaultServiceTest {
         builder.healthRefreshMillis = -1;
 
         ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
-        CircuitBreaker breaker = new DefaultCircuitBreaker(metrics, builder.build());
+        CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
         service = Services.defaultService("Test", 1, 100, metrics, breaker);
 
         List<ResilientFuture<String>> fs = new ArrayList<>();

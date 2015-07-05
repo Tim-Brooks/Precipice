@@ -54,8 +54,7 @@ public class LoadBalancers {
         for (C context : contexts) {
             BreakerConfig configBuilder = new BreakerConfigBuilder().build();
             ActionMetrics metrics = new DefaultActionMetrics();
-            MultiService service = Services.defaultService(executor, concurrencyLevel, metrics,
-                    new DefaultCircuitBreaker(metrics, configBuilder));
+            MultiService service = Services.defaultService(executor, concurrencyLevel, metrics, new DefaultCircuitBreaker(configBuilder));
             serviceToContext.put(service, context);
         }
         return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(contexts.size()));

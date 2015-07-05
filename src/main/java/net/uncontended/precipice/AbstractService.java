@@ -40,6 +40,7 @@ public abstract class AbstractService implements Service {
         this.actionMetrics = actionMetrics;
         this.semaphore = semaphore;
         this.isShutdown = isShutdown;
+        this.circuitBreaker.setActionMetrics(actionMetrics);
     }
 
     @Override

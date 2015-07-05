@@ -49,7 +49,8 @@ public class DefaultCircuitBreakerTest {
     public void testCircuitIsClosedByDefault() {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(20)
                 .backOffTimeMillis(5000).build();
-        circuitBreaker = new DefaultCircuitBreaker(actionMetrics, breakerConfig);
+        circuitBreaker = new DefaultCircuitBreaker(breakerConfig);
+        circuitBreaker.setActionMetrics(actionMetrics);
         assertFalse(circuitBreaker.isOpen());
     }
 
@@ -61,7 +62,8 @@ public class DefaultCircuitBreakerTest {
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(5).backOffTimeMillis
                 (trailingPeriodInMillis).build();
-        circuitBreaker = new DefaultCircuitBreaker(actionMetrics, breakerConfig, systemTime);
+        circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
+        circuitBreaker.setActionMetrics(actionMetrics);
 
         assertFalse(circuitBreaker.isOpen());
 
@@ -83,7 +85,8 @@ public class DefaultCircuitBreakerTest {
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(5).trailingPeriodMillis
                 (trailingPeriodInMillis).build();
-        circuitBreaker = new DefaultCircuitBreaker(actionMetrics, breakerConfig, systemTime);
+        circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
+        circuitBreaker.setActionMetrics(actionMetrics);
 
         assertFalse(circuitBreaker.isOpen());
 
@@ -105,7 +108,8 @@ public class DefaultCircuitBreakerTest {
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(10).trailingPeriodMillis
                 (1000).build();
-        circuitBreaker = new DefaultCircuitBreaker(actionMetrics, breakerConfig, systemTime);
+        circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
+        circuitBreaker.setActionMetrics(actionMetrics);
 
         when(actionMetrics.healthSnapshot(1000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
         when(systemTime.currentTimeMillis()).thenReturn(501L);
@@ -126,7 +130,8 @@ public class DefaultCircuitBreakerTest {
     public void testActionAllowedIfCircuitClosed() {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(20)
                 .backOffTimeMillis(5000).build();
-        circuitBreaker = new DefaultCircuitBreaker(actionMetrics, breakerConfig);
+        circuitBreaker = new DefaultCircuitBreaker(breakerConfig);
+        circuitBreaker.setActionMetrics(actionMetrics);
         assertFalse(circuitBreaker.isOpen());
         assertTrue(circuitBreaker.allowAction());
     }
@@ -139,7 +144,8 @@ public class DefaultCircuitBreakerTest {
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).build();
-        circuitBreaker = new DefaultCircuitBreaker(actionMetrics, breakerConfig, systemTime);
+        circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
+        circuitBreaker.setActionMetrics(actionMetrics);
 
         assertFalse(circuitBreaker.isOpen());
         assertTrue(circuitBreaker.allowAction());
@@ -165,7 +171,8 @@ public class DefaultCircuitBreakerTest {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).backOffTimeMillis(1000).build();
 
-        circuitBreaker = new DefaultCircuitBreaker(actionMetrics, breakerConfig, systemTime);
+        circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
+        circuitBreaker.setActionMetrics(actionMetrics);
 
         assertFalse(circuitBreaker.isOpen());
         assertTrue(circuitBreaker.allowAction());
