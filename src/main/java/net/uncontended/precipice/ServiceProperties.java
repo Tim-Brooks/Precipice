@@ -22,9 +22,23 @@ import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.timeout.TimeoutService;
 
-public class ServiceBuilder {
+public class ServiceProperties {
 
     private ActionMetrics metrics = new DefaultActionMetrics();
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
+    private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
+
+    public void actionMetrics(ActionMetrics metrics) {
+        this.metrics = metrics;
+    }
+
+    public void ircuitBreaker(CircuitBreaker breaker) {
+        this.breaker = breaker;
+    }
+
+    public void timeoutService(TimeoutService timeoutService) {
+        this.timeoutService = timeoutService;
+    }
 }
