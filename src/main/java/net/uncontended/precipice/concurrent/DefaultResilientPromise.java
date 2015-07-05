@@ -26,9 +26,6 @@ public class DefaultResilientPromise<T> extends AbstractResilientPromise<T> {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
                 this.result = result;
-                if (wrappedPromise != null) {
-                    wrappedPromise.deliverResult(result);
-                }
                 latch.countDown();
                 return true;
             }
@@ -41,9 +38,6 @@ public class DefaultResilientPromise<T> extends AbstractResilientPromise<T> {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
                 this.error = error;
-                if (wrappedPromise != null) {
-                    wrappedPromise.deliverError(error);
-                }
                 latch.countDown();
                 return true;
             }
@@ -55,9 +49,6 @@ public class DefaultResilientPromise<T> extends AbstractResilientPromise<T> {
     public boolean setTimedOut() {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                if (wrappedPromise != null) {
-                    wrappedPromise.setTimedOut();
-                }
                 latch.countDown();
                 return true;
             }

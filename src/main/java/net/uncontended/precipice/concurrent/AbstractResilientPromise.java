@@ -28,7 +28,6 @@ public abstract class AbstractResilientPromise<T> implements ResilientPromise<T>
     volatile Exception error;
     final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     final CountDownLatch latch = new CountDownLatch(1);
-    ResilientPromise<T> wrappedPromise;
 
     @Override
     public void await() throws InterruptedException {
@@ -79,10 +78,6 @@ public abstract class AbstractResilientPromise<T> implements ResilientPromise<T>
     @Override
     public boolean isTimedOut() {
         return status.get() == Status.TIMEOUT;
-    }
-
-    public void wrapPromise(ResilientPromise<T> promise) {
-        wrappedPromise = promise;
     }
 
 }
