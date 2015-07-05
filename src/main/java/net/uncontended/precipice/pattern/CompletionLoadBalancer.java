@@ -19,10 +19,12 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
 import java.util.Map;
 
-public class CompletionLoadBalancer<C> implements CompletionPattern<C> {
+public class CompletionLoadBalancer<C> extends AbstractPattern<C> implements CompletionPattern<C> {
 
     private final CompletionService[] services;
     private final C[] contexts;
@@ -30,6 +32,7 @@ public class CompletionLoadBalancer<C> implements CompletionPattern<C> {
 
     @SuppressWarnings("unchecked")
     public CompletionLoadBalancer(Map<? extends CompletionService, C> executorToContext, LoadBalancerStrategy strategy) {
+        super(new DefaultActionMetrics());
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -45,7 +48,9 @@ public class CompletionLoadBalancer<C> implements CompletionPattern<C> {
         }
     }
 
-    public CompletionLoadBalancer(CompletionService[] services, C[] contexts, LoadBalancerStrategy strategy) {
+    public CompletionLoadBalancer(ActionMetrics metrics, CompletionService[] services, C[] contexts,
+                                  LoadBalancerStrategy strategy) {
+        super(metrics);
         this.strategy = strategy;
         this.services = services;
         this.contexts = contexts;

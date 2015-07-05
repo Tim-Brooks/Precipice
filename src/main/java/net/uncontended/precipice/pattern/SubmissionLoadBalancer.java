@@ -19,10 +19,12 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientFuture;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
 import java.util.Map;
 
-public class SubmissionLoadBalancer<C> implements SubmissionPattern<C> {
+public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements SubmissionPattern<C> {
 
     private final SubmissionService[] services;
     private final C[] contexts;
@@ -30,6 +32,7 @@ public class SubmissionLoadBalancer<C> implements SubmissionPattern<C> {
 
     @SuppressWarnings("unchecked")
     public SubmissionLoadBalancer(Map<? extends SubmissionService, C> executorToContext, LoadBalancerStrategy strategy) {
+        super(new DefaultActionMetrics());
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -45,7 +48,9 @@ public class SubmissionLoadBalancer<C> implements SubmissionPattern<C> {
         }
     }
 
-    public SubmissionLoadBalancer(SubmissionService[] services, C[] contexts, LoadBalancerStrategy strategy) {
+    public SubmissionLoadBalancer(ActionMetrics metrics, SubmissionService[] services, C[] contexts,
+                                  LoadBalancerStrategy strategy) {
+        super(metrics);
         this.strategy = strategy;
         this.services = services;
         this.contexts = contexts;

@@ -23,10 +23,11 @@ import net.uncontended.precipice.ResilientCallback;
 import net.uncontended.precipice.concurrent.DefaultResilientPromise;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
 import java.util.Map;
 
-public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
+public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<C>, CompletionPattern<C> {
 
     private final CompletionService[] services;
     private final ShotgunStrategy strategy;
@@ -38,6 +39,7 @@ public class Shotgun<C> implements SubmissionPattern<C>, CompletionPattern<C> {
 
     @SuppressWarnings("unchecked")
     public Shotgun(Map<CompletionService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
+        super(new DefaultActionMetrics());
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
         } else if (submissionCount > executorToContext.size()) {

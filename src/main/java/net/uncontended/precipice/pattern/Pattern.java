@@ -19,6 +19,7 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.ResilientAction;
+import net.uncontended.precipice.metrics.ActionMetrics;
 
 /**
  * A group of services that actions can be run on. Different implementations can
@@ -31,6 +32,8 @@ import net.uncontended.precipice.ResilientAction;
  * @param <C> the context passed to an pattern action
  */
 public interface Pattern<C> {
+
+    ActionMetrics getActionMetrics();
 
     /**
      * Attempts to shutdown all the services. Actions after this

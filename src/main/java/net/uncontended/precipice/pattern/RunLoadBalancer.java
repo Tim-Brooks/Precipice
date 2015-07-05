@@ -21,10 +21,12 @@ import net.uncontended.precipice.MultiService;
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.RejectionReason;
 import net.uncontended.precipice.RunService;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
 import java.util.Map;
 
-public class RunLoadBalancer<C> implements RunPattern<C> {
+public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern<C> {
 
     private final RunService[] services;
     private final C[] contexts;
@@ -32,6 +34,7 @@ public class RunLoadBalancer<C> implements RunPattern<C> {
 
     @SuppressWarnings("unchecked")
     public RunLoadBalancer(Map<? extends RunService, C> executorToContext, LoadBalancerStrategy strategy) {
+        super(new DefaultActionMetrics());
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -47,7 +50,8 @@ public class RunLoadBalancer<C> implements RunPattern<C> {
         }
     }
 
-    public RunLoadBalancer(RunService[] services, C[] contexts, LoadBalancerStrategy strategy) {
+    public RunLoadBalancer(ActionMetrics metrics, RunService[] services, C[] contexts, LoadBalancerStrategy strategy) {
+        super(metrics);
         this.strategy = strategy;
         this.services = services;
         this.contexts = contexts;

@@ -22,8 +22,8 @@ import com.codahale.metrics.MetricRegistry;
 
 public class BiggerExample {
 
-    static final MetricRegistry metrics = new MetricRegistry();
-    static final JmxReporter reporter = JmxReporter.forRegistry(metrics).build();
+    private static final MetricRegistry metrics = new MetricRegistry();
+    private static final JmxReporter reporter = JmxReporter.forRegistry(metrics).build();
 
     public static void main(String[] args) {
         reporter.start();

@@ -22,18 +22,25 @@ import net.uncontended.precipice.MultiService;
 import net.uncontended.precipice.ResilientCallback;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
 import java.util.Map;
 
-public class MultiLoadBalancer<C> implements MultiPattern<C> {
+public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPattern<C> {
 
     private final SubmissionPattern<C> submissionBalancer;
     private final CompletionPattern<C> completionBalancer;
     private final RunPattern<C> runBalancer;
     private final MultiService[] services;
 
-    @SuppressWarnings("unchecked")
     public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
+        this(new DefaultActionMetrics(), executorToContext, strategy);
+    }
+
+    @SuppressWarnings("unchecked")
+    public MultiLoadBalancer(ActionMetrics metrics, Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
+        super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -46,10 +53,9 @@ public class MultiLoadBalancer<C> implements MultiPattern<C> {
             contexts[i] = entry.getValue();
             ++i;
         }
-        this.submissionBalancer = new SubmissionLoadBalancer<>(services, contexts, strategy);
-        this.completionBalancer = new CompletionLoadBalancer<>(services, contexts, strategy);
-        this.runBalancer = new RunLoadBalancer<C>(services, contexts, strategy);
-
+        this.submissionBalancer = new SubmissionLoadBalancer<>(metrics, services, contexts, strategy);
+        this.completionBalancer = new CompletionLoadBalancer<>(metrics, services, contexts, strategy);
+        this.runBalancer = new RunLoadBalancer<>(metrics, services, contexts, strategy);
     }
 
     @Override
