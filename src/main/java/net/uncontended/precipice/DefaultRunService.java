@@ -17,12 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 
@@ -30,25 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultRunService extends AbstractService implements RunService {
 
-    public DefaultRunService(PrecipiceSemaphore semaphore) {
-        this(semaphore, new DefaultActionMetrics());
+    public DefaultRunService(ServiceProperties properties) {
+        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
     }
 
-    public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
-        this(semaphore, actionMetrics, new DefaultCircuitBreaker(new BreakerConfigBuilder().build()));
-    }
-
-    public DefaultRunService(PrecipiceSemaphore semaphore, CircuitBreaker breaker) {
-        this(semaphore, new DefaultActionMetrics(), breaker);
-    }
-
-    public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker circuitBreaker) {
-        super(circuitBreaker, actionMetrics, semaphore);
-    }
-
-    public DefaultRunService(PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker
-            circuitBreaker, AtomicBoolean isShutdown) {
-        super(circuitBreaker, actionMetrics, semaphore, isShutdown);
+    public DefaultRunService(ServiceProperties properties, AtomicBoolean isShutdown) {
+        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
     }
 
     @Override

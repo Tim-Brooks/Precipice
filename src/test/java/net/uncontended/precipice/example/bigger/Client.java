@@ -19,10 +19,7 @@ package net.uncontended.precipice.example.bigger;
 
 import com.codahale.metrics.MetricRegistry;
 import com.squareup.okhttp.*;
-import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.Services;
-import net.uncontended.precipice.Status;
-import net.uncontended.precipice.SubmissionService;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.ResilientFuture;
@@ -86,7 +83,11 @@ public class Client {
                 .trailingPeriodMillis(3000);
         DefaultActionMetrics actionMetrics = new DefaultActionMetrics(20, 500, TimeUnit.MILLISECONDS);
         DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
-        final SubmissionService service = Services.defaultService(name, 5, 20, actionMetrics, breaker);
+        ServiceProperties properties = new ServiceProperties();
+        properties.actionMetrics(actionMetrics);
+        properties.circuitBreaker(breaker);
+        properties.concurrencyLevel(20);
+        final SubmissionService service = Services.defaultService(name, 5, properties);
         Map<String, Object> context = new HashMap<>();
         context.put("host", "127.0.0.1");
         context.put("port", port);

@@ -17,11 +17,6 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.circuit.BreakerConfig;
-import net.uncontended.precipice.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.HashMap;
@@ -47,14 +42,14 @@ public class LoadBalancers {
         return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
-    public static <C> MultiPattern<C> multiRoundRobinWithSharedPool(List<C> contexts, String name, int poolSize, int
-            concurrencyLevel) {
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+    public static <C> MultiPattern<C> multiRoundRobinWithSharedPool(List<C> contexts, String name, int poolSize,
+                                                                    ServiceProperties properties) {
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
         Map<MultiService, C> serviceToContext = new HashMap<>();
         for (C context : contexts) {
-            BreakerConfig configBuilder = new BreakerConfigBuilder().build();
-            ActionMetrics metrics = new DefaultActionMetrics();
-            MultiService service = Services.defaultService(executor, concurrencyLevel, metrics, new DefaultCircuitBreaker(configBuilder));
+            ServiceProperties serviceProperties = new ServiceProperties();
+            serviceProperties.concurrencyLevel(properties.concurrencyLevel());
+            MultiService service = new DefaultService(executor, serviceProperties);
             serviceToContext.put(service, context);
         }
         return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(contexts.size()));

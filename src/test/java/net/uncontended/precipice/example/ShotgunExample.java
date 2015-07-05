@@ -18,6 +18,7 @@
 package net.uncontended.precipice.example;
 
 import net.uncontended.precipice.CompletionService;
+import net.uncontended.precipice.ServiceProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
@@ -35,20 +36,26 @@ public class ShotgunExample {
         serviceToContext = new HashMap<>();
 
 
-        CompletionService service1 = Services.completionService("Service1", 10, 100);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(100);
+        CompletionService service1 = Services.completionService("Service1", 10, properties);
         HashMap<String, String> context1 = new HashMap<>();
         context1.put("port", "6001");
         serviceToContext.put(service1, context1);
 
-        CompletionService service2 = Services.completionService("Service2", 10, 100);
+        ServiceProperties properties2 = new ServiceProperties();
+        properties2.concurrencyLevel(100);
+        CompletionService service2 = Services.completionService("Service2", 10, properties2);
         HashMap<String, String> context2 = new HashMap<>();
         context1.put("port", "6002");
-        serviceToContext.put(service1, context1);
+        serviceToContext.put(service2, context2);
 
-        CompletionService service3 = Services.completionService("Service1", 10, 100);
+        ServiceProperties properties3 = new ServiceProperties();
+        properties3.concurrencyLevel(100);
+        CompletionService service3 = Services.completionService("Service1", 10, properties3);
         HashMap<String, String> context3 = new HashMap<>();
         context1.put("port", "6003");
-        serviceToContext.put(service1, context1);
+        serviceToContext.put(service3, context3);
 
     }
 

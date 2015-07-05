@@ -18,6 +18,7 @@
 package net.uncontended.precipice.example;
 
 import net.uncontended.precipice.MultiService;
+import net.uncontended.precipice.ServiceProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.concurrent.DefaultResilientPromise;
 import net.uncontended.precipice.concurrent.ResilientFuture;
@@ -42,11 +43,15 @@ public class LoadBalancerExample {
         serviceName2 = "Identity Service2";
         poolSize = 5;
         concurrencyLevel = 100;
-        MultiService service1 = Services.defaultService(serviceName1, poolSize, concurrencyLevel);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(concurrencyLevel);
+        MultiService service1 = Services.defaultService(serviceName1, poolSize, properties);
         Map<String, String> context1 = new HashMap<>();
         context1.put("address", "127.0.0.1");
         context1.put("port", "6001");
-        MultiService service2 = Services.defaultService(serviceName2, poolSize, concurrencyLevel);
+        ServiceProperties properties2 = new ServiceProperties();
+        properties2.concurrencyLevel(concurrencyLevel);
+        MultiService service2 = Services.defaultService(serviceName2, poolSize, properties2);
         Map<String, String> context2 = new HashMap<>();
         context2.put("address", "127.0.0.1");
         context2.put("port", "6002");
@@ -108,8 +113,10 @@ public class LoadBalancerExample {
     public void sharedThreadpool() {
         List<Map<String, String>> contexts = new ArrayList<>();
         contexts.addAll(serviceToContext.values());
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(concurrencyLevel);
         MultiPattern<Map<String, String>> balancer = LoadBalancers.multiRoundRobinWithSharedPool(contexts,
-                "Identity Service", poolSize, concurrencyLevel);
+                "Identity Service", poolSize, properties);
     }
 
     private static class ImplementedPatternAction implements ResilientPatternAction<String, Map<String, String>> {

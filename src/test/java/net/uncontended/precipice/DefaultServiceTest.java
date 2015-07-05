@@ -46,7 +46,9 @@ public class DefaultServiceTest {
 
     @Before
     public void setUp() {
-        service = Services.defaultService("Test", 1, 30);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(100);
+        service = Services.defaultService("Test", 1, properties);
     }
 
     @After
@@ -68,7 +70,9 @@ public class DefaultServiceTest {
 
     @Test
     public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
-        service = Services.defaultService("Test", 1, 2);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(2);
+        service = Services.defaultService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
         service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
         service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
@@ -90,7 +94,9 @@ public class DefaultServiceTest {
 
     @Test
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
-        service = Services.defaultService("Test", 1, 1);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(1);
+        service = Services.defaultService("Test", 1, properties);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
             ResilientFuture<String> future = service.submit(TestActions.successAction(1), 500);
@@ -246,7 +252,9 @@ public class DefaultServiceTest {
 
     @Test
     public void rejectedMetricsUpdated() throws Exception {
-        service = Services.defaultService("Test", 1, 1);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(1);
+        service = Services.defaultService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
         CountDownLatch blockingLatch = new CountDownLatch(1);
         ResilientCallback<String> callback = TestCallbacks.latchedCallback(blockingLatch);
@@ -328,7 +336,9 @@ public class DefaultServiceTest {
 
     @Test
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
-        service = Services.defaultService("Test", 1, 1);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(1);
+        service = Services.defaultService("Test", 1, properties);
         service.submit(TestActions.successAction(0), TestCallbacks.exceptionCallback(""), Long.MAX_VALUE);
 
         int i = 0;
@@ -358,7 +368,11 @@ public class DefaultServiceTest {
 
         ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
         CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
-        service = Services.defaultService("Test", 1, 100, metrics, breaker);
+        ServiceProperties properties = new ServiceProperties();
+        properties.actionMetrics(metrics);
+        properties.circuitBreaker(breaker);
+        properties.concurrencyLevel(100);
+        service = Services.defaultService("Test", 1, properties);
 
         List<ResilientFuture<String>> fs = new ArrayList<>();
         for (int i = 0; i < 6; ++i) {

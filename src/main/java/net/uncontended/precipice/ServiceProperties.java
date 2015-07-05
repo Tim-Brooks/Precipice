@@ -20,6 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
+import net.uncontended.precipice.concurrent.IntegerSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
@@ -33,23 +34,54 @@ public class ServiceProperties {
     private PrecipiceSemaphore semaphore = null;
     private int concurrencyLevel = Service.MAX_CONCURRENCY_LEVEL;
 
-    public void actionMetrics(ActionMetrics metrics) {
+    public ServiceProperties actionMetrics(ActionMetrics metrics) {
         this.metrics = metrics;
+        return this;
     }
 
-    public void ircuitBreaker(CircuitBreaker breaker) {
+    public ActionMetrics actionMetrics() {
+        return metrics;
+    }
+
+    public ServiceProperties circuitBreaker(CircuitBreaker breaker) {
         this.breaker = breaker;
+        return this;
     }
 
-    public void timeoutService(TimeoutService timeoutService) {
+    public CircuitBreaker circuitBreaker() {
+        return breaker;
+    }
+
+    public ServiceProperties timeoutService(TimeoutService timeoutService) {
         this.timeoutService = timeoutService;
+        return this;
     }
 
-    public void concurrencyLevel(int concurrencyLevel) {
+    public TimeoutService timeoutService() {
+        return timeoutService;
+    }
+
+    public ServiceProperties concurrencyLevel(int concurrencyLevel) {
         this.concurrencyLevel = concurrencyLevel;
+        return this;
     }
 
-    public void semaphore(PrecipiceSemaphore semaphore) {
+    public int concurrencyLevel() {
+        return concurrencyLevel;
+    }
+
+    public ServiceProperties semaphore(PrecipiceSemaphore semaphore) {
         this.semaphore = semaphore;
+        return this;
+    }
+
+    public PrecipiceSemaphore semaphore() {
+        // TODO: Consider whether this makes sense. It may not be clear.
+
+        if (semaphore == null) {
+            this.semaphore = new IntegerSemaphore(concurrencyLevel);
+            return this.semaphore;
+        }
+        return semaphore;
     }
 }

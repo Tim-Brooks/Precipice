@@ -17,14 +17,8 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.concurrent.ResilientPromise;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,30 +30,16 @@ public class DefaultService extends AbstractService implements MultiService {
     private final DefaultSubmissionService submissionService;
     private final DefaultCompletionService completionService;
 
-    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore) {
-        this(service, semaphore, new DefaultActionMetrics());
+    public DefaultService(ExecutorService service, ServiceProperties properties) {
+        this(service, properties, new AtomicBoolean(false));
     }
 
-    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
-        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(new BreakerConfigBuilder().build()));
-    }
-
-    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {
-        this(service, semaphore, new DefaultActionMetrics(), breaker);
-    }
-
-    public DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics, CircuitBreaker
-            circuitBreaker) {
-        this(service, semaphore, actionMetrics, circuitBreaker, new AtomicBoolean(false));
-    }
-
-    private DefaultService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
-                           CircuitBreaker circuitBreaker, AtomicBoolean isShutdown) {
-        super(circuitBreaker, actionMetrics, semaphore, isShutdown);
+    private DefaultService(ExecutorService service, ServiceProperties properties, AtomicBoolean isShutdown) {
+        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
         this.service = service;
-        this.runService = new DefaultRunService(semaphore, actionMetrics, circuitBreaker, isShutdown);
-        this.submissionService = new DefaultSubmissionService(service, semaphore, actionMetrics, circuitBreaker, isShutdown);
-        this.completionService = new DefaultCompletionService(service, semaphore, actionMetrics, circuitBreaker, isShutdown);
+        this.runService = new DefaultRunService(properties, isShutdown);
+        this.submissionService = new DefaultSubmissionService(service, properties, isShutdown);
+        this.completionService = new DefaultCompletionService(service, properties, isShutdown);
     }
 
     @Override

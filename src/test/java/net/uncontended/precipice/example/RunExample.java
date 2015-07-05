@@ -18,6 +18,7 @@
 package net.uncontended.precipice.example;
 
 import net.uncontended.precipice.RunService;
+import net.uncontended.precipice.ServiceProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 
@@ -25,8 +26,9 @@ public class RunExample {
 
     public static void main(String[] args) {
         String serviceName = "Identity Service";
-        int concurrencyLevel = 100;
-        RunService service = Services.runService(serviceName, concurrencyLevel);
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(100);
+        RunService service = Services.runService(serviceName, properties);
 
         try {
             // Should return 64

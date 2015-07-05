@@ -17,14 +17,8 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 import net.uncontended.precipice.concurrent.ResilientTask;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.TimeoutService;
 
@@ -34,29 +28,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultCompletionService extends AbstractService implements CompletionService {
     private final ExecutorService service;
-    private final TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
+    private final TimeoutService timeoutService;
 
-    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore) {
-        this(service, semaphore, new DefaultActionMetrics());
-    }
-
-    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics) {
-        this(service, semaphore, actionMetrics, new DefaultCircuitBreaker(new BreakerConfigBuilder().build()));
-    }
-
-    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, CircuitBreaker breaker) {
-        this(service, semaphore, new DefaultActionMetrics(), breaker);
-    }
-
-    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
-                                    CircuitBreaker circuitBreaker) {
-        super(circuitBreaker, actionMetrics, semaphore);
+    public DefaultCompletionService(ExecutorService service, ServiceProperties properties) {
+        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
+        this.timeoutService = properties.timeoutService();
         this.service = service;
     }
 
-    public DefaultCompletionService(ExecutorService service, PrecipiceSemaphore semaphore, ActionMetrics actionMetrics,
-                                    CircuitBreaker circuitBreaker, AtomicBoolean isShutdown) {
-        super(circuitBreaker, actionMetrics, semaphore, isShutdown);
+    public DefaultCompletionService(ExecutorService service, ServiceProperties properties, AtomicBoolean isShutdown) {
+        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
+        this.timeoutService = properties.timeoutService();
         this.service = service;
     }
 
