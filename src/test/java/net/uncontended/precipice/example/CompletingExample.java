@@ -18,7 +18,6 @@
 package net.uncontended.precipice.example;
 
 import net.uncontended.precipice.CompletionService;
-import net.uncontended.precipice.ServiceProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.DefaultResilientPromise;
@@ -32,9 +31,7 @@ public class CompletingExample {
         String serviceName = "Identity Service";
         int poolSize = 5;
         int concurrencyLevel = 100;
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(concurrencyLevel);
-        CompletionService service = Services.completionService(serviceName, poolSize, properties);
+        CompletionService service = Services.completionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
         ResilientPromise<Integer> successPromise = new DefaultResilientPromise<>();

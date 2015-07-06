@@ -18,7 +18,6 @@
 package net.uncontended.precipice.example;
 
 import net.uncontended.precipice.CompletionService;
-import net.uncontended.precipice.ServiceProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.concurrent.ResilientFuture;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
@@ -35,26 +34,21 @@ public class ShotgunExample {
     public ShotgunExample() {
         serviceToContext = new HashMap<>();
 
+        int concurrencyLevel = 100;
 
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(100);
-        CompletionService service1 = Services.completionService("Service1", 10, properties);
-        HashMap<String, String> context1 = new HashMap<>();
+        CompletionService service1 = Services.completionService("Service1", 10, concurrencyLevel);
+        Map<String, String> context1 = new HashMap<>();
         context1.put("port", "6001");
         serviceToContext.put(service1, context1);
 
-        ServiceProperties properties2 = new ServiceProperties();
-        properties2.concurrencyLevel(100);
-        CompletionService service2 = Services.completionService("Service2", 10, properties2);
-        HashMap<String, String> context2 = new HashMap<>();
-        context1.put("port", "6002");
+        CompletionService service2 = Services.completionService("Service2", 10, concurrencyLevel);
+        Map<String, String> context2 = new HashMap<>();
+        context2.put("port", "6002");
         serviceToContext.put(service2, context2);
 
-        ServiceProperties properties3 = new ServiceProperties();
-        properties3.concurrencyLevel(100);
-        CompletionService service3 = Services.completionService("Service1", 10, properties3);
-        HashMap<String, String> context3 = new HashMap<>();
-        context1.put("port", "6003");
+        CompletionService service3 = Services.completionService("Service1", 10, concurrencyLevel);
+        Map<String, String> context3 = new HashMap<>();
+        context3.put("port", "6003");
         serviceToContext.put(service3, context3);
 
     }

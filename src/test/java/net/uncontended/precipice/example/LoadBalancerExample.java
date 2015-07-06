@@ -43,15 +43,11 @@ public class LoadBalancerExample {
         serviceName2 = "Identity Service2";
         poolSize = 5;
         concurrencyLevel = 100;
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(concurrencyLevel);
-        MultiService service1 = Services.defaultService(serviceName1, poolSize, properties);
+        MultiService service1 = Services.defaultService(serviceName1, poolSize, concurrencyLevel);
         Map<String, String> context1 = new HashMap<>();
         context1.put("address", "127.0.0.1");
         context1.put("port", "6001");
-        ServiceProperties properties2 = new ServiceProperties();
-        properties2.concurrencyLevel(concurrencyLevel);
-        MultiService service2 = Services.defaultService(serviceName2, poolSize, properties2);
+        MultiService service2 = Services.defaultService(serviceName2, poolSize, concurrencyLevel);
         Map<String, String> context2 = new HashMap<>();
         context2.put("address", "127.0.0.1");
         context2.put("port", "6002");

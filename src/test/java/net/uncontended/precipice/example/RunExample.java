@@ -26,9 +26,8 @@ public class RunExample {
 
     public static void main(String[] args) {
         String serviceName = "Identity Service";
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(100);
-        RunService service = Services.runService(serviceName, properties);
+        int concurrencyLevel = 100;
+        RunService service = Services.runService(serviceName, concurrencyLevel);
 
         try {
             // Should return 64

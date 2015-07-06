@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.example;
 
-import net.uncontended.precipice.ServiceProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.SubmissionService;
@@ -31,9 +30,8 @@ public class SubmissionExample {
     public static void main(String[] args) throws InterruptedException {
         String serviceName = "Identity Service";
         int poolSize = 5;
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(100);
-        SubmissionService service = Services.submissionService(serviceName, poolSize, properties);
+        int concurrencyLevel = 100;
+        SubmissionService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
         ResilientFuture<Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);
