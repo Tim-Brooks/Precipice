@@ -17,9 +17,14 @@
 
 package net.uncontended.precipice.concurrent;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Channel<T> {
 
     private final ResilientPromise<T>[] promises;
+    private int tail = 0;
+    private AtomicInteger head = new AtomicInteger(0);
 
     @SuppressWarnings("unchecked")
     public Channel(int size) {
@@ -27,6 +32,23 @@ public class Channel<T> {
     }
 
     public ResilientPromise<T> select() {
-        return null;
+        return select(-1, null);
+    }
+
+    public ResilientPromise<T> select(long duration, TimeUnit unit) {
+        for (; ; ) {
+            ResilientPromise<T> promise = promises[tail];
+            if (promise != null) {
+                ++tail;
+                return promise;
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public void put(ResilientPromise<T> promise) {
+        int currentHead = head.getAndIncrement();
+        promises[currentHead] = promise;
     }
 }
