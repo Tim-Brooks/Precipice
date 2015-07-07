@@ -52,8 +52,8 @@ public class Client {
     }
 
     public void run() throws InterruptedException {
-        for (int i = 0; i < 100; ++i) {
-            Thread.sleep(500);
+        for (int i = 0; i < 5000; ++i) {
+            Thread.sleep(50);
 
             try {
                 ResilientFuture<String> f = loadBalancer.submit(new Action(), 50L);

@@ -29,7 +29,6 @@ public class IntegerSemaphore implements PrecipiceSemaphore {
 
     @Override
     public boolean acquirePermit() {
-        System.out.println(this);
         for (; ; ) {
             int permitsRemaining = this.permitsRemaining.get();
             if (permitsRemaining > 0) {

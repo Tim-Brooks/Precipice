@@ -62,7 +62,7 @@ public class Servers {
         public void handleRequest(HttpServerExchange exchange) throws Exception {
             long currentTime = System.currentTimeMillis();
             long lastRequestTime = this.lastRequestTime.getAndSet(currentTime);
-            if (currentTime - lastRequestTime < 700) {
+            if (currentTime - lastRequestTime < 50) {
                 exchange.setResponseCode(500);
             } else {
                 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
@@ -84,7 +84,7 @@ public class Servers {
         public void handleRequest(HttpServerExchange exchange) throws Exception {
             long currentTime = System.currentTimeMillis();
             long lastRequestTime = this.lastRequestTime.getAndSet(currentTime);
-            if (currentTime - lastRequestTime < 700) {
+            if (currentTime - lastRequestTime < 50) {
                 exchange.setResponseCode(500);
             } else {
                 exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
