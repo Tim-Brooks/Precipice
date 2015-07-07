@@ -17,8 +17,6 @@
 
 package net.uncontended.precipice.example.bigger;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Snapshot;
 
@@ -30,59 +28,47 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class ExampleMetrics {
 
-    private final MetricRegistry metrics;
     private final ActionMetrics actionMetrics;
     private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
     private volatile Map<Object, Object> currentMetrics;
 
-    public ExampleMetrics(MetricRegistry metrics, String name, ActionMetrics actionMetrics) {
-        this.metrics = metrics;
+    public ExampleMetrics(String name, ActionMetrics actionMetrics) {
         this.actionMetrics = actionMetrics;
-
-        metrics.register(MetricRegistry.name(Client.class, name + "-total"), new Gauge<Long>() {
-
-            @Override
-            public Long getValue() {
-                return getMetrics(Snapshot.TOTAL);
-            }
-        });
-
-        metrics.register(MetricRegistry.name(Client.class, name + "-errors"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return getMetrics(Snapshot.ERRORS);
-            }
-        });
-
-        metrics.register(MetricRegistry.name(Client.class, name + "-timeouts"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return getMetrics(Snapshot.TIMEOUTS);
-            }
-        });
-
-        metrics.register(MetricRegistry.name(Client.class, name + "-rejections-circuit-open"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return getMetrics(Snapshot.CIRCUIT_OPEN);
-            }
-        });
-
-        metrics.register(MetricRegistry.name(Client.class, name + "-rejections-max-concurrency"), new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-                return getMetrics(Snapshot.MAX_CONCURRENCY);
-            }
-        });
-
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
+
                 @Override
-                public long getCount() {
+                public long getTotal() {
+                    return getMetrics(Snapshot.TOTAL);
+                }
+
+                @Override
+                public long getSuccesses() {
                     return getMetrics(Snapshot.SUCCESSES);
                 }
-            }, new ObjectName(String.format("net.uncontended.precipice:type=long,name=%s-successes", name)));
+
+                @Override
+                public long getErrors() {
+                    return getMetrics(Snapshot.ERRORS);
+                }
+
+                @Override
+                public long getTimeouts() {
+                    return getMetrics(Snapshot.TIMEOUTS);
+                }
+
+                @Override
+                public long getMaxConcurrency() {
+                    return getMetrics(Snapshot.MAX_CONCURRENCY);
+                }
+
+                @Override
+                public long getCircuitOpen() {
+                    return getMetrics(Snapshot.CIRCUIT_OPEN);
+                }
+            }, new ObjectName(String.format("net.uncontended.precipice:type=Service,name=%s", name)));
+
         } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException |
                 MalformedObjectNameException e) {
             e.printStackTrace();
@@ -101,7 +87,17 @@ public class ExampleMetrics {
 
     @MXBean
     public interface ExampleMetric {
-        long getCount();
+        long getTotal();
+
+        long getSuccesses();
+
+        long getErrors();
+
+        long getTimeouts();
+
+        long getMaxConcurrency();
+
+        long getCircuitOpen();
     }
 
 

@@ -17,20 +17,13 @@
 
 package net.uncontended.precipice.example.bigger;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-
 public class BiggerExample {
 
-    private static final MetricRegistry metrics = new MetricRegistry();
-    private static final JmxReporter reporter = JmxReporter.forRegistry(metrics).build();
-
     public static void main(String[] args) {
-        reporter.start();
         Servers servers = new Servers();
 
         servers.start();
-        Client client = new Client(metrics);
+        Client client = new Client();
 
         try {
             client.run();
@@ -39,6 +32,5 @@ public class BiggerExample {
         }
 
         servers.stop();
-        reporter.stop();
     }
 }

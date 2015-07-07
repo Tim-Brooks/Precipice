@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.example.bigger;
 
-import com.codahale.metrics.MetricRegistry;
 import com.squareup.okhttp.*;
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
@@ -38,12 +37,10 @@ import java.util.concurrent.TimeUnit;
 public class Client {
 
     private final SubmissionPattern<Map<String, Object>> loadBalancer;
-    private final MetricRegistry metrics;
     private final OkHttpClient client = new OkHttpClient();
     private final List<ExampleMetrics> exampleMetrics = new ArrayList<>();
 
-    public Client(MetricRegistry metrics) {
-        this.metrics = metrics;
+    public Client() {
         Map<SubmissionService, Map<String, Object>> services = new HashMap<>();
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
@@ -93,7 +90,7 @@ public class Client {
         context.put("port", port);
         services.put(service, context);
 
-        exampleMetrics.add(new ExampleMetrics(metrics, name, actionMetrics));
+        exampleMetrics.add(new ExampleMetrics(name, actionMetrics));
     }
 
     private class Action implements ResilientPatternAction<String, Map<String, Object>> {
