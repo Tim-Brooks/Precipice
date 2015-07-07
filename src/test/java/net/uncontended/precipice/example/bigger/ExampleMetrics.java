@@ -75,14 +75,14 @@ public class ExampleMetrics {
         }
     }
 
-    private Long getMetrics(String metric) {
+    private long getMetrics(String metric) {
         long currentTime = System.currentTimeMillis();
         long lastUpdateTime = lastUpdateTimestamp.get();
         if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
             currentMetrics = actionMetrics.snapshot(1, TimeUnit.SECONDS);
         }
 
-        return (Long) currentMetrics.get(metric);
+        return (long) currentMetrics.get(metric);
     }
 
     @MXBean
