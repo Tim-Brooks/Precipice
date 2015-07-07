@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.example.bigger;
 
+import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Snapshot;
 
@@ -27,17 +28,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ExampleMetrics {
-
-    private final ActionMetrics actionMetrics;
     private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
     private volatile Map<Object, Object> currentMetrics;
 
-    public ExampleMetrics(String name, ActionMetrics actionMetrics) {
-        this.actionMetrics = actionMetrics;
+    public ExampleMetrics(String name, final ActionMetrics actionMetrics, final CircuitBreaker breaker) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
-
                 @Override
                 public long getTotal() {
                     return getMetrics(Snapshot.TOTAL);
@@ -67,22 +64,39 @@ public class ExampleMetrics {
                 public long getCircuitOpen() {
                     return getMetrics(Snapshot.CIRCUIT_OPEN);
                 }
+
+                private long getMetrics(String metric) {
+                    long currentTime = System.currentTimeMillis();
+                    long lastUpdateTime = lastUpdateTimestamp.get();
+                    if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
+                        currentMetrics = actionMetrics.snapshot(1, TimeUnit.SECONDS);
+                    }
+
+                    return (long) currentMetrics.get(metric);
+                }
             }, new ObjectName(String.format("net.uncontended.precipice:type=Service,name=%s", name)));
+
+            ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleBreakerMetric() {
+                @Override
+                public boolean isOpen() {
+                    return breaker.isOpen();
+                }
+
+                @Override
+                public void forceOpen() {
+                    breaker.forceOpen();
+                }
+
+                @Override
+                public void forceClose() {
+                    breaker.forceClosed();
+                }
+            }, new ObjectName(String.format("net.uncontended.precipice:type=CircuitBreaker,name=%s", name)));
 
         } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException |
                 MalformedObjectNameException e) {
             e.printStackTrace();
         }
-    }
-
-    private long getMetrics(String metric) {
-        long currentTime = System.currentTimeMillis();
-        long lastUpdateTime = lastUpdateTimestamp.get();
-        if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
-            currentMetrics = actionMetrics.snapshot(1, TimeUnit.SECONDS);
-        }
-
-        return (long) currentMetrics.get(metric);
     }
 
     @MXBean
@@ -98,6 +112,15 @@ public class ExampleMetrics {
         long getMaxConcurrency();
 
         long getCircuitOpen();
+    }
+
+    @MXBean
+    public interface ExampleBreakerMetric {
+        boolean isOpen();
+
+        void forceOpen();
+
+        void forceClose();
     }
 
 

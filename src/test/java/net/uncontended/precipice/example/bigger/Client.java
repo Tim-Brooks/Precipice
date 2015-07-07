@@ -90,7 +90,7 @@ public class Client {
         context.put("port", port);
         services.put(service, context);
 
-        exampleMetrics.add(new ExampleMetrics(name, actionMetrics));
+        exampleMetrics.add(new ExampleMetrics(name, actionMetrics, breaker));
     }
 
     private class Action implements ResilientPatternAction<String, Map<String, Object>> {
