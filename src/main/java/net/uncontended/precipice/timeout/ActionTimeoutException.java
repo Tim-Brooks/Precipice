@@ -19,6 +19,10 @@ package net.uncontended.precipice.timeout;
 
 public class ActionTimeoutException extends RuntimeException {
 
+    public ActionTimeoutException() {
+        super();
+    }
+
     public ActionTimeoutException(String message) {
         super(message);
     }

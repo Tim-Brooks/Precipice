@@ -23,6 +23,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -63,6 +64,10 @@ public class ResilientTask<T> implements Runnable, Delayed {
             }
         } catch (InterruptedException e) {
             Thread.interrupted();
+        } catch (ActionTimeoutException e) {
+            if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+                promise.setTimedOut();
+            }
         } catch (Exception e) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
                 promise.deliverError(e);

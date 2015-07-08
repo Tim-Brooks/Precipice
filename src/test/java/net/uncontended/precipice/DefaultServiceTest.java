@@ -28,6 +28,7 @@ import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.test_utils.TestActions;
 import net.uncontended.precipice.test_utils.TestCallbacks;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -136,7 +137,7 @@ public class DefaultServiceTest {
     }
 
     @Test
-    public void performActionCompletesAction() throws Exception {
+    public void runCompletesAction() throws Exception {
         String result = service.run(TestActions.successAction(1));
         assertEquals("Success", result);
     }
@@ -176,7 +177,16 @@ public class DefaultServiceTest {
     }
 
     @Test
-    public void erredActionWillReturnedException() {
+    public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
+        ActionTimeoutException exception = new ActionTimeoutException();
+        ResilientFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
+
+        assertNull(future.get());
+        assertEquals(Status.TIMEOUT, future.getStatus());
+    }
+
+    @Test
+    public void erredActionWillReturnException() {
         RuntimeException exception = new RuntimeException();
         ResilientFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
 
