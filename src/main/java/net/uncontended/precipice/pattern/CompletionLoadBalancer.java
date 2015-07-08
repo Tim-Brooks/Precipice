@@ -21,6 +21,7 @@ import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
 
 import java.util.Map;
 
@@ -85,6 +86,7 @@ public class CompletionLoadBalancer<C> extends AbstractPattern<C> implements Com
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
+                    metrics.incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
             }

@@ -25,7 +25,8 @@ public enum Metric {
     TIMEOUT(false),
     CIRCUIT_OPEN(true),
     QUEUE_FULL(true),
-    MAX_CONCURRENCY_LEVEL_EXCEEDED(true);
+    MAX_CONCURRENCY_LEVEL_EXCEEDED(true),
+    ALL_SERVICES_REJECTED(true);
 
     private final boolean actionRejected;
 

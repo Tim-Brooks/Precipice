@@ -21,6 +21,7 @@ import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -132,7 +133,7 @@ public class MultiLoadBalancerTest {
     }
 
     @Test
-    public void callbackUpdatesMetricsAndCallsUserCallback() throws Exception {
+    public void callbackUpdatesMetricsAndCallsUserCallbackForSubmitAndComplete() throws Exception {
         long timeout = 100L;
         ResilientPromise<String> promise = mock(ResilientPromise.class);
         ResilientCallback<String> callback = mock(ResilientCallback.class);
@@ -140,7 +141,7 @@ public class MultiLoadBalancerTest {
 
         balancer.submitAndComplete(action, promise, callback, timeout);
 
-        verify(executor1).submitAndComplete(actionCaptor.capture(), eq(promise), callbackCaptor.capture(), eq(timeout));
+        verify(executor1).submitAndComplete(any(ResilientAction.class), eq(promise), callbackCaptor.capture(), eq(timeout));
 
         when(promise.getStatus()).thenReturn(Status.SUCCESS);
 
@@ -149,4 +150,48 @@ public class MultiLoadBalancerTest {
         verify(metrics).incrementMetricCount(Metric.SUCCESS);
         verify(callback).run(promise);
     }
+
+    @Test
+    public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
+        long timeout = 100L;
+        ResilientPromise<String> promise = mock(ResilientPromise.class);
+        ResilientCallback<String> callback = mock(ResilientCallback.class);
+        ArgumentCaptor<ResilientCallback> callbackCaptor = ArgumentCaptor.forClass(ResilientCallback.class);
+
+        balancer.submit(action, callback, timeout);
+
+        verify(executor1).submit(any(ResilientAction.class), callbackCaptor.capture(), eq(timeout));
+
+        when(promise.getStatus()).thenReturn(Status.ERROR);
+
+        callbackCaptor.getValue().run(promise);
+
+        verify(metrics).incrementMetricCount(Metric.ERROR);
+        verify(callback).run(promise);
+    }
+
+    @Test
+    public void callbackUpdatesMetricsAndCallsUserCallbackForRun() throws Exception {
+        when(strategy.nextExecutorIndex()).thenReturn(0);
+        balancer.run(action);
+        verify(metrics).incrementMetricCount(Metric.SUCCESS);
+
+        try {
+            when(strategy.nextExecutorIndex()).thenReturn(0);
+            when(executor1.run(any(ResilientAction.class))).thenThrow(new RuntimeException());
+            balancer.run(action);
+        } catch (Exception e) {
+        }
+        verify(metrics).incrementMetricCount(Metric.ERROR);
+
+        try {
+            when(strategy.nextExecutorIndex()).thenReturn(1);
+            when(executor2.run(any(ResilientAction.class))).thenThrow(new ActionTimeoutException());
+            balancer.run(action);
+        } catch (ActionTimeoutException e) {
+        }
+        verify(metrics).incrementMetricCount(Metric.TIMEOUT);
+    }
+
+    // TODO Add tests for all services reject
 }
