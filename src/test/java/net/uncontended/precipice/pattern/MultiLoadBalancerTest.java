@@ -19,6 +19,8 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -41,6 +43,8 @@ public class MultiLoadBalancerTest {
     private LoadBalancerStrategy strategy;
     @Mock
     private ResilientPatternAction<String, Map<String, Object>> action;
+    @Mock
+    private ActionMetrics metrics;
     @Captor
     private ArgumentCaptor<ResilientAction<String>> actionCaptor;
 
@@ -61,7 +65,7 @@ public class MultiLoadBalancerTest {
         map.put(executor1, context1);
         map.put(executor2, context2);
 
-        balancer = new MultiLoadBalancer<>(map, strategy);
+        balancer = new MultiLoadBalancer<>(map, strategy, metrics);
     }
 
     @Test
@@ -87,13 +91,15 @@ public class MultiLoadBalancerTest {
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         balancer.submitAndComplete(action, promise, callback, timeout);
-        verify(executor1).submitAndComplete(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));
+        verify(executor1).submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class),
+                eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context1);
 
         when(strategy.nextExecutorIndex()).thenReturn(1);
         balancer.submitAndComplete(action, promise, callback, timeout);
-        verify(executor2).submitAndComplete(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));
+        verify(executor2).submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class),
+                eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -106,9 +112,10 @@ public class MultiLoadBalancerTest {
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
-                .submitAndComplete(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));
+                .submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class), eq(timeout));
         balancer.submitAndComplete(action, promise, callback, timeout);
-        verify(executor2).submitAndComplete(actionCaptor.capture(), eq(promise), eq(callback), eq(timeout));
+        verify(executor2).submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class),
+                eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -122,5 +129,24 @@ public class MultiLoadBalancerTest {
         verify(executor2).run(actionCaptor.capture());
         actionCaptor.getValue().run();
         verify(action).run(context2);
+    }
+
+    @Test
+    public void callbackUpdatesMetricsAndCallsUserCallback() throws Exception {
+        long timeout = 100L;
+        ResilientPromise<String> promise = mock(ResilientPromise.class);
+        ResilientCallback<String> callback = mock(ResilientCallback.class);
+        ArgumentCaptor<ResilientCallback> callbackCaptor = ArgumentCaptor.forClass(ResilientCallback.class);
+
+        balancer.submitAndComplete(action, promise, callback, timeout);
+
+        verify(executor1).submitAndComplete(actionCaptor.capture(), eq(promise), callbackCaptor.capture(), eq(timeout));
+
+        when(promise.getStatus()).thenReturn(Status.SUCCESS);
+
+        callbackCaptor.getValue().run(promise);
+
+        verify(metrics).incrementMetricCount(Metric.SUCCESS);
+        verify(callback).run(promise);
     }
 }

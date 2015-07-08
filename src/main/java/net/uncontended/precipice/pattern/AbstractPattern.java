@@ -21,7 +21,7 @@ import net.uncontended.precipice.metrics.ActionMetrics;
 
 public abstract class AbstractPattern<C> implements Pattern<C> {
 
-    private final ActionMetrics metrics;
+    protected final ActionMetrics metrics;
 
     public AbstractPattern(ActionMetrics metrics) {
         this.metrics = metrics;

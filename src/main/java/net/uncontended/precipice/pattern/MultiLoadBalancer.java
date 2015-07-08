@@ -35,11 +35,12 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
     private final MultiService[] services;
 
     public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(new DefaultActionMetrics(), executorToContext, strategy);
+        this(executorToContext, strategy, new DefaultActionMetrics());
     }
 
     @SuppressWarnings("unchecked")
-    public MultiLoadBalancer(ActionMetrics metrics, Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
+    public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy,
+                             ActionMetrics metrics) {
         super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");

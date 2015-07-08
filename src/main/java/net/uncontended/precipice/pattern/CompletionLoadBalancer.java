@@ -21,6 +21,7 @@ import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.ResilientPromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
 
 import java.util.Map;
 
@@ -30,9 +31,14 @@ public class CompletionLoadBalancer<C> extends AbstractPattern<C> implements Com
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
 
-    @SuppressWarnings("unchecked")
     public CompletionLoadBalancer(Map<? extends CompletionService, C> executorToContext, LoadBalancerStrategy strategy) {
-        super(new DefaultActionMetrics());
+        this(executorToContext, strategy, new DefaultActionMetrics());
+    }
+
+    @SuppressWarnings("unchecked")
+    public CompletionLoadBalancer(Map<? extends CompletionService, C> executorToContext, LoadBalancerStrategy strategy,
+                                  ActionMetrics metrics) {
+        super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -74,7 +80,8 @@ public class CompletionLoadBalancer<C> extends AbstractPattern<C> implements Com
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                services[serviceIndex].submitAndComplete(actionWithContext, promise, callback, millisTimeout);
+                MetricsCallback<T> metricsCallback = new MetricsCallback<>(metrics, callback);
+                services[serviceIndex].submitAndComplete(actionWithContext, promise, metricsCallback, millisTimeout);
                 break;
             } catch (RejectedActionException e) {
                 ++j;
@@ -90,6 +97,25 @@ public class CompletionLoadBalancer<C> extends AbstractPattern<C> implements Com
     public void shutdown() {
         for (CompletionService e : services) {
             e.shutdown();
+        }
+    }
+
+    private static class MetricsCallback<T> implements ResilientCallback<T> {
+
+        private final ActionMetrics metrics;
+        private final ResilientCallback<T> callback;
+
+        public MetricsCallback(ActionMetrics metrics, ResilientCallback<T> callback) {
+            this.metrics = metrics;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run(ResilientPromise<T> resultPromise) {
+            metrics.incrementMetricCount(Metric.statusToMetric(resultPromise.getStatus()));
+            if (callback != null) {
+                callback.run(resultPromise);
+            }
         }
     }
 }
