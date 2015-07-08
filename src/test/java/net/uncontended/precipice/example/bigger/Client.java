@@ -38,7 +38,7 @@ public class Client {
 
     private final SubmissionPattern<Map<String, Object>> loadBalancer;
     private final OkHttpClient client = new OkHttpClient();
-    private final List<ExampleMetrics> exampleMetrics = new ArrayList<>();
+    private final List<ClientMBeans> clientMBeans = new ArrayList<>();
 
     public Client() {
         Map<SubmissionService, Map<String, Object>> services = new HashMap<>();
@@ -90,7 +90,7 @@ public class Client {
         context.put("port", port);
         services.put(service, context);
 
-        exampleMetrics.add(new ExampleMetrics(name, actionMetrics, breaker));
+        clientMBeans.add(new ClientMBeans(name, actionMetrics, breaker));
     }
 
     private class Action implements ResilientPatternAction<String, Map<String, Object>> {

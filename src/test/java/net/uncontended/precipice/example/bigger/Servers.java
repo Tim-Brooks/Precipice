@@ -33,8 +33,8 @@ public class Servers {
 
 
     public Servers() {
-        servers.add(create(6001, new Handler1()));
-        servers.add(create(7001, new Handler2()));
+        servers.add(create(6001, new ServerHandler("Weather-1")));
+        servers.add(create(7001, new ServerHandler("Weather-2")));
     }
 
     public void start() {
@@ -51,50 +51,5 @@ public class Servers {
 
     private Undertow create(int port, HttpHandler handler) {
         return Undertow.builder().addHttpListener(port, "127.0.0.1").setHandler(handler).build();
-    }
-
-    private static class Handler1 implements HttpHandler {
-
-        AtomicLong lastRequestTime = new AtomicLong(0);
-        AtomicInteger count = new AtomicInteger(0);
-
-        @Override
-        public void handleRequest(HttpServerExchange exchange) throws Exception {
-            long currentTime = System.currentTimeMillis();
-            long lastRequestTime = this.lastRequestTime.getAndSet(currentTime);
-            if (currentTime - lastRequestTime < 50) {
-                exchange.setResponseCode(500);
-            } else {
-                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-                int i = count.incrementAndGet();
-                if (i > 20 && i < 30) {
-                    Thread.sleep(70);
-                }
-                exchange.getResponseSender().send("Server1 Response: " + i);
-            }
-        }
-    }
-
-    private static class Handler2 implements HttpHandler {
-
-        AtomicLong lastRequestTime = new AtomicLong(0);
-        AtomicInteger count = new AtomicInteger(0);
-
-        @Override
-        public void handleRequest(HttpServerExchange exchange) throws Exception {
-            long currentTime = System.currentTimeMillis();
-            long lastRequestTime = this.lastRequestTime.getAndSet(currentTime);
-            if (currentTime - lastRequestTime < 50) {
-                exchange.setResponseCode(500);
-            } else {
-                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-                int i = count.incrementAndGet();
-                if (i > 30 && i < 40) {
-                    Thread.sleep(70);
-                }
-                exchange.getResponseSender().send("Server2 Response: " + i);
-            }
-
-        }
     }
 }

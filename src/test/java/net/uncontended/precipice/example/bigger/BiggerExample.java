@@ -17,13 +17,25 @@
 
 package net.uncontended.precipice.example.bigger;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 public class BiggerExample {
 
     public static void main(String[] args) {
         Servers servers = new Servers();
-
         servers.start();
+
         Client client = new Client();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Push enter to start requests");
+        try {
+            br.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         try {
             client.run();

@@ -27,11 +27,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class ExampleMetrics {
+public class ClientMBeans {
     private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
     private volatile Map<Object, Object> currentMetrics;
 
-    public ExampleMetrics(String name, final ActionMetrics actionMetrics, final CircuitBreaker breaker) {
+    public ClientMBeans(String name, final ActionMetrics actionMetrics, final CircuitBreaker breaker) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
