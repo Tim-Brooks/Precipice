@@ -30,9 +30,14 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
 
-    @SuppressWarnings("unchecked")
     public SubmissionLoadBalancer(Map<? extends SubmissionService, C> executorToContext, LoadBalancerStrategy strategy) {
-        super(new DefaultActionMetrics());
+        this(executorToContext, strategy, new DefaultActionMetrics());
+    }
+
+    @SuppressWarnings("unchecked")
+    public SubmissionLoadBalancer(Map<? extends SubmissionService, C> executorToContext, LoadBalancerStrategy strategy,
+                                  ActionMetrics metrics) {
+        super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -48,8 +53,8 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
         }
     }
 
-    public SubmissionLoadBalancer(ActionMetrics metrics, SubmissionService[] services, C[] contexts,
-                                  LoadBalancerStrategy strategy) {
+    public SubmissionLoadBalancer(SubmissionService[] services, C[] contexts, LoadBalancerStrategy strategy,
+                                  ActionMetrics metrics) {
         super(metrics);
         this.strategy = strategy;
         this.services = services;
@@ -73,7 +78,8 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].submit(actionWithContext, callback, millisTimeout);
+                MetricsCallback<T> metricsCallback = new MetricsCallback<>(metrics, callback);
+                return services[serviceIndex].submit(actionWithContext, metricsCallback, millisTimeout);
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {

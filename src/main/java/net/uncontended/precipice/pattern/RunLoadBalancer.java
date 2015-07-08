@@ -23,6 +23,8 @@ import net.uncontended.precipice.RejectionReason;
 import net.uncontended.precipice.RunService;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.Map;
 
@@ -32,9 +34,14 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
 
-    @SuppressWarnings("unchecked")
     public RunLoadBalancer(Map<? extends RunService, C> executorToContext, LoadBalancerStrategy strategy) {
-        super(new DefaultActionMetrics());
+        this(executorToContext, strategy, new DefaultActionMetrics());
+    }
+
+    @SuppressWarnings("unchecked")
+    public RunLoadBalancer(Map<? extends RunService, C> executorToContext, LoadBalancerStrategy strategy,
+                           ActionMetrics metrics) {
+        super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -50,7 +57,7 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
         }
     }
 
-    public RunLoadBalancer(ActionMetrics metrics, RunService[] services, C[] contexts, LoadBalancerStrategy strategy) {
+    public RunLoadBalancer(RunService[] services, C[] contexts, LoadBalancerStrategy strategy, ActionMetrics metrics) {
         super(metrics);
         this.strategy = strategy;
         this.services = services;
@@ -68,12 +75,19 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].run(actionWithContext);
+                T result = services[serviceIndex].run(actionWithContext);
+                metrics.incrementMetricCount(Metric.SUCCESS);
+                return result;
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
+            } catch (ActionTimeoutException e) {
+                metrics.incrementMetricCount(Metric.TIMEOUT);
+            } catch (Exception e) {
+                metrics.incrementMetricCount(Metric.ERROR);
+                throw e;
             }
         }
     }
