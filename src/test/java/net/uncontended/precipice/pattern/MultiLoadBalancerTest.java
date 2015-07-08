@@ -26,10 +26,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
+import java.security.cert.CertPathValidatorException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -193,5 +196,23 @@ public class MultiLoadBalancerTest {
         verify(metrics).incrementMetricCount(Metric.TIMEOUT);
     }
 
-    // TODO Add tests for all services reject
+    @Test
+    public void scenarioWhereAllServicesReject() {
+        long timeout = 100L;
+        RejectedActionException rejected = new RejectedActionException(RejectionReason.CIRCUIT_OPEN);
+
+        when(strategy.nextExecutorIndex()).thenReturn(0).thenReturn(1);
+        when(executor1.submit(any(ResilientAction.class), any(ResilientCallback.class), eq(timeout))).thenThrow(rejected);
+        when(executor2.submit(any(ResilientAction.class), any(ResilientCallback.class), eq(timeout))).thenThrow(rejected);
+
+        try {
+            balancer.submit(action, timeout);
+            fail("Should have been rejected");
+        } catch (RejectedActionException e) {
+            assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);
+        }
+        verify(metrics).incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
+    }
+
+    // TODO: Add tests for other submission methods
 }
