@@ -194,6 +194,7 @@ public class DefaultActionMetricsTest {
         assertEquals(7L, snapshot.get(Snapshot.CIRCUIT_OPEN));
         assertEquals(1L, snapshot.get(Snapshot.QUEUE_FULL));
         assertEquals(2L, snapshot.get(Snapshot.MAX_CONCURRENCY));
+        assertEquals(0L, snapshot.get(Snapshot.ALL_REJECTED));
         assertEquals(6L, snapshot.get(Snapshot.MAX_1_TOTAL));
         assertEquals(2L, snapshot.get(Snapshot.MAX_1_SUCCESSES));
         assertEquals(1L, snapshot.get(Snapshot.MAX_1_TIMEOUTS));
@@ -201,6 +202,7 @@ public class DefaultActionMetricsTest {
         assertEquals(3L, snapshot.get(Snapshot.MAX_1_CIRCUIT_OPEN));
         assertEquals(1L, snapshot.get(Snapshot.MAX_1_QUEUE_FULL));
         assertEquals(1L, snapshot.get(Snapshot.MAX_1_MAX_CONCURRENCY));
+        assertEquals(0L, snapshot.get(Snapshot.MAX_1_ALL_REJECTED));
         assertEquals(10L, snapshot.get(Snapshot.MAX_2_TOTAL));
         assertEquals(3L, snapshot.get(Snapshot.MAX_2_SUCCESSES));
         assertEquals(2L, snapshot.get(Snapshot.MAX_2_TIMEOUTS));
@@ -208,6 +210,7 @@ public class DefaultActionMetricsTest {
         assertEquals(4L, snapshot.get(Snapshot.MAX_2_CIRCUIT_OPEN));
         assertEquals(1L, snapshot.get(Snapshot.MAX_2_QUEUE_FULL));
         assertEquals(2L, snapshot.get(Snapshot.MAX_2_MAX_CONCURRENCY));
+        assertEquals(0L, snapshot.get(Snapshot.MAX_2_ALL_REJECTED));
 
         Map<Object, Object> snapshot2 = metrics.snapshot(4, TimeUnit.SECONDS);
         assertEquals(19L, snapshot2.get(Snapshot.TOTAL));

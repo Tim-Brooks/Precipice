@@ -31,6 +31,63 @@ public class ClientMBeans {
     private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
     private volatile Map<Object, Object> currentMetrics;
 
+    public ClientMBeans(String name, final ActionMetrics actionMetrics) {
+
+        try {
+            ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
+                @Override
+                public long getTotal() {
+                    return getMetrics(Snapshot.TOTAL);
+                }
+
+                @Override
+                public long getSuccesses() {
+                    return getMetrics(Snapshot.SUCCESSES);
+                }
+
+                @Override
+                public long getErrors() {
+                    return getMetrics(Snapshot.ERRORS);
+                }
+
+                @Override
+                public long getTimeouts() {
+                    return getMetrics(Snapshot.TIMEOUTS);
+                }
+
+                @Override
+                public long getMaxConcurrency() {
+                    return getMetrics(Snapshot.MAX_CONCURRENCY);
+                }
+
+                @Override
+                public long getAllRejected() {
+                    return getMetrics(Snapshot.ALL_REJECTED);
+                }
+
+                @Override
+                public long getCircuitOpen() {
+                    return getMetrics(Snapshot.CIRCUIT_OPEN);
+                }
+
+                private long getMetrics(String metric) {
+                    long currentTime = System.currentTimeMillis();
+                    long lastUpdateTime = lastUpdateTimestamp.get();
+                    if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
+                        currentMetrics = actionMetrics.snapshot(1, TimeUnit.SECONDS);
+                    }
+
+                    return (long) currentMetrics.get(metric);
+                }
+            }, new ObjectName(String.format("net.uncontended.precipice:type=Service,name=%s", name)));
+
+        } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException |
+                MalformedObjectNameException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public ClientMBeans(String name, final ActionMetrics actionMetrics, final CircuitBreaker breaker) {
 
         try {
@@ -58,6 +115,11 @@ public class ClientMBeans {
                 @Override
                 public long getMaxConcurrency() {
                     return getMetrics(Snapshot.MAX_CONCURRENCY);
+                }
+
+                @Override
+                public long getAllRejected() {
+                    return getMetrics(Snapshot.ALL_REJECTED);
                 }
 
                 @Override
@@ -112,6 +174,8 @@ public class ClientMBeans {
         long getMaxConcurrency();
 
         long getCircuitOpen();
+
+        long getAllRejected();
     }
 
     @MXBean

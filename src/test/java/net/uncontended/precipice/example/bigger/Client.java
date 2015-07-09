@@ -46,6 +46,8 @@ public class Client {
         addServiceToMap(services, "Weather-2", 7001);
 
         loadBalancer = LoadBalancers.submittingRoundRobin(services);
+
+        clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.getActionMetrics()));
     }
 
     public void run() throws InterruptedException {

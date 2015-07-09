@@ -29,6 +29,7 @@ public class Snapshot {
     public static final String MAX_CONCURRENCY = "max-concurrency";
     public static final String QUEUE_FULL = "queue-full";
     public static final String CIRCUIT_OPEN = "circuit-open";
+    public static final String ALL_REJECTED = "all-rejected";
     public static final String MAX_1_TOTAL = "max-1-total";
     public static final String MAX_1_SUCCESSES = "max-1-successes";
     public static final String MAX_1_TIMEOUTS = "max-1-timeouts";
@@ -36,6 +37,7 @@ public class Snapshot {
     public static final String MAX_1_MAX_CONCURRENCY = "max-1-max-concurrency";
     public static final String MAX_1_QUEUE_FULL = "max-1-queue-full";
     public static final String MAX_1_CIRCUIT_OPEN = "max-1-circuit-open";
+    public static final String MAX_1_ALL_REJECTED = "max-1-all-rejected";
     public static final String MAX_2_TOTAL = "max-2-total";
     public static final String MAX_2_SUCCESSES = "max-2-successes";
     public static final String MAX_2_TIMEOUTS = "max-2-timeouts";
@@ -43,6 +45,7 @@ public class Snapshot {
     public static final String MAX_2_MAX_CONCURRENCY = "max-2-max-concurrency";
     public static final String MAX_2_QUEUE_FULL = "max-2-queue-full";
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
+    public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
     public static Map<Object, Object> generate(Slot[] slots) {
         long total = 0;
@@ -52,6 +55,7 @@ public class Snapshot {
         long maxConcurrency = 0;
         long queueFull = 0;
         long circuitOpen = 0;
+        long allRejected = 0;
 
         long maxTotal = 0;
         long maxSuccesses = 0;
@@ -60,6 +64,7 @@ public class Snapshot {
         long maxMaxConcurrency = 0;
         long maxQueueFull = 0;
         long maxCircuitOpen = 0;
+        long maxAllRejected = 0;
 
         long max2Total = 0;
         long max2Successes = 0;
@@ -68,6 +73,7 @@ public class Snapshot {
         long max2MaxConcurrency = 0;
         long max2QueueFull = 0;
         long max2CircuitOpen = 0;
+        long max2AllRejected = 0;
 
         long previousTotal = 0;
         long previousSuccesses = 0;
@@ -76,6 +82,7 @@ public class Snapshot {
         long previousMaxConcurrency = 0;
         long previousQueueFull = 0;
         long previousCircuitOpen = 0;
+        long previousAllRejected = 0;
         for (Slot slot : slots) {
             if (slot != null) {
                 long slotSuccesses = slot.getMetric(Metric.SUCCESS).longValue();
@@ -84,8 +91,9 @@ public class Snapshot {
                 long slotMaxConcurrency = slot.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
                 long slotCircuitOpen = slot.getMetric(Metric.CIRCUIT_OPEN).longValue();
                 long slotQueueFull = slot.getMetric(Metric.QUEUE_FULL).longValue();
+                long slotAllRejected = slot.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
                 long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
-                        slotQueueFull;
+                        slotQueueFull + slotAllRejected;
                 total = total + slotTotal;
                 maxTotal = Math.max(maxTotal, slotTotal);
                 max2Total = Math.max(max2Total, slotTotal + previousTotal);
@@ -114,6 +122,10 @@ public class Snapshot {
                 maxCircuitOpen = Math.max(maxCircuitOpen, slotCircuitOpen);
                 max2CircuitOpen = Math.max(max2CircuitOpen, slotCircuitOpen + previousCircuitOpen);
 
+                allRejected = slotAllRejected + allRejected;
+                maxAllRejected = Math.max(maxAllRejected, slotAllRejected);
+                max2AllRejected = Math.max(max2AllRejected, slotAllRejected + previousAllRejected);
+
                 previousTotal = slotTotal;
                 previousSuccesses = slotSuccesses;
                 previousTimeouts = slotTimeouts;
@@ -132,6 +144,7 @@ public class Snapshot {
         metricsMap.put(MAX_CONCURRENCY, maxConcurrency);
         metricsMap.put(QUEUE_FULL, queueFull);
         metricsMap.put(CIRCUIT_OPEN, circuitOpen);
+        metricsMap.put(ALL_REJECTED, allRejected);
 
         metricsMap.put(MAX_1_TOTAL, maxTotal);
         metricsMap.put(MAX_1_SUCCESSES, maxSuccesses);
@@ -140,6 +153,7 @@ public class Snapshot {
         metricsMap.put(MAX_1_MAX_CONCURRENCY, maxMaxConcurrency);
         metricsMap.put(MAX_1_QUEUE_FULL, maxQueueFull);
         metricsMap.put(MAX_1_CIRCUIT_OPEN, maxCircuitOpen);
+        metricsMap.put(MAX_1_ALL_REJECTED, maxAllRejected);
 
         metricsMap.put(MAX_2_TOTAL, max2Total);
         metricsMap.put(MAX_2_SUCCESSES, max2Successes);
@@ -148,6 +162,7 @@ public class Snapshot {
         metricsMap.put(MAX_2_MAX_CONCURRENCY, max2MaxConcurrency);
         metricsMap.put(MAX_2_QUEUE_FULL, max2QueueFull);
         metricsMap.put(MAX_2_CIRCUIT_OPEN, max2CircuitOpen);
+        metricsMap.put(MAX_2_ALL_REJECTED, max2AllRejected);
 
         return metricsMap;
     }
