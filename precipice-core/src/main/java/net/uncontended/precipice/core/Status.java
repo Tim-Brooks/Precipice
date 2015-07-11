@@ -14,4 +14,10 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core;
+
+public enum Status {
+    SUCCESS, ERROR, PENDING, TIMEOUT
+}
+

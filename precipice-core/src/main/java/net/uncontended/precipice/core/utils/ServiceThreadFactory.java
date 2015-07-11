@@ -14,4 +14,24 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.utils;
+
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class ServiceThreadFactory implements ThreadFactory {
+
+    private final AtomicInteger count = new AtomicInteger(0);
+    private final String name;
+
+
+    public ServiceThreadFactory(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public Thread newThread(Runnable r) {
+        return new Thread(r, name + "-" + count.getAndIncrement());
+    }
+}

@@ -14,4 +14,12 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core;
+
+import net.uncontended.precipice.core.concurrent.ResilientPromise;
+
+public interface ResilientCallback<T> {
+
+    void run(ResilientPromise<T> resultPromise);
+}

@@ -14,4 +14,21 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.pattern;
+
+import net.uncontended.precipice.core.ResilientAction;
+
+class ResilientActionWithContext<T, C> implements ResilientAction<T> {
+    public C context;
+    private final ResilientPatternAction<T, C> action;
+
+    public ResilientActionWithContext(ResilientPatternAction<T, C> action) {
+        this.action = action;
+    }
+
+    @Override
+    public T run() throws Exception {
+        return action.run(context);
+    }
+}

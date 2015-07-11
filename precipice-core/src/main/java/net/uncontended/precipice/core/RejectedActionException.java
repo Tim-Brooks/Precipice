@@ -14,4 +14,15 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core;
+
+public class RejectedActionException extends RuntimeException {
+
+    public final RejectionReason reason;
+
+    public RejectedActionException(RejectionReason reason) {
+        this.reason = reason;
+    }
+
+}

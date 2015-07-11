@@ -14,4 +14,17 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.concurrent;
+
+public class NoOpSemaphore implements PrecipiceSemaphore {
+    @Override
+    public boolean acquirePermit() {
+        return true;
+    }
+
+    @Override
+    public void releasePermit() {
+
+    }
+}

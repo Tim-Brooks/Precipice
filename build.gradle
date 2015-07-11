@@ -15,13 +15,6 @@
  *
  */
 
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'signing'
-
-group = 'net.uncontended'
-version = '0.2.0-SNAPSHOT'
-
 
 def isReleaseBuild
 
@@ -43,93 +36,138 @@ ext {
         ossrhPassword = ''
 }
 
-compileJava {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
-}
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'signing'
 
-repositories {
-    mavenCentral()
-}
+    group = 'net.uncontended'
+    version = '0.2.0-SNAPSHOT'
 
-dependencies {
-    testCompile 'org.mockito:mockito-core:1.10.8'
-    testCompile 'junit:junit:4.12'
-    // Only for examples
-    testCompile 'io.undertow:undertow-core:1.2.8.Final'
-    testCompile 'com.squareup.okhttp:okhttp:2.4.0'
-    testCompile 'io.dropwizard.metrics:metrics-core:3.1.0'
-}
+    compileJava {
+        sourceCompatibility = 1.7
+        targetCompatibility = 1.7
+    }
 
-javadoc {
-    title = '<h1>Precipice</h1>'
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-    options.bottom = '<i>Copyright &#169; 2014 Tim Brooks. All Rights Reserved.</i>'
-    options.addStringOption('XDignore.symbol.file', '-quiet')
-    options.addStringOption('Xdoclint:none', '-quiet')
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    from tasks.javadoc.destinationDir
-    classifier = 'javadoc'
-}
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-}
-
-artifacts {
-    archives jar
-
-    archives javadocJar
-    archives sourcesJar
-}
-
-signing {
-    sign configurations.archives
-}
-
-uploadArchives {
     repositories {
-        mavenDeployer {
-            if (isReleaseBuild) {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            }
+        mavenCentral()
+    }
 
-            repository(url: sonatypeRepositoryUrl) {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
+    dependencies {
+        testCompile 'org.mockito:mockito-core:1.10.8'
+        testCompile 'junit:junit:4.12'
+    }
 
-            pom.project {
-                name = 'Precipice'
-                packaging = 'jar'
-                description = 'Precipice provides tools to manage access to and usage of services.'
-                url = 'https://github.com/tbrooks8/Precipice'
+    task testJar(type: Jar, dependsOn: testClasses) {
+        baseName = "test-${project.archivesBaseName}"
+        from sourceSets.test.output
+    }
 
-                scm {
-                    url = 'https://github.com:tbrooks8/Precipice.git'
-                    connection = 'scm:git@github.com:tbrooks8/Precipice.git'
-                    developerConnection = 'scm:git@github.com:tbrooks8/Precipice.git'
+    javadoc {
+        title = '<h1>Precipice</h1>'
+
+        options.bottom = '<i>Copyright &#169; 2014 Tim Brooks. All Rights Reserved.</i>'
+        options.addStringOption('XDignore.symbol.file', '-quiet')
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
+    signing {
+        sign configurations.archives
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                if (isReleaseBuild) {
+                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
                 }
 
-                licenses {
-                    license {
-                        name = 'The Apache Software License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution = 'repo'
+                repository(url: sonatypeRepositoryUrl) {
+                    authentication(userName: sonatypeUsername, password: sonatypePassword)
+                }
+
+                pom.project {
+                    name = 'Precipice'
+                    packaging = 'jar'
+                    description = 'Precipice provides tools to manage access to and usage of services.'
+                    url = 'https://github.com/tbrooks8/Precipice'
+
+                    scm {
+                        url = 'https://github.com:tbrooks8/Precipice.git'
+                        connection = 'scm:git@github.com:tbrooks8/Precipice.git'
+                        developerConnection = 'scm:git@github.com:tbrooks8/Precipice.git'
                     }
-                }
 
-                developers {
-                    developer {
-                        id = 'tbrooks8'
-                        name = 'Tim Brooks'
-                        email = 'tim@uncontended.net'
-                        url = 'https://github.com/tbrooks8'
+                    licenses {
+                        license {
+                            name = 'The Apache Software License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution = 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'tbrooks8'
+                            name = 'Tim Brooks'
+                            email = 'tim@uncontended.net'
+                            url = 'https://github.com/tbrooks8'
+                        }
                     }
                 }
             }
         }
     }
+}
+
+project(':precipice-core') {
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives jar
+
+        archives javadocJar
+        archives sourcesJar
+    }
+
+}
+
+project(':precipice-samples') {
+
+    dependencies {
+        compile 'io.undertow:undertow-core:1.2.8.Final'
+        compile 'com.squareup.okhttp:okhttp:2.4.0'
+        compile 'io.dropwizard.metrics:metrics-core:3.1.0'
+
+        compile project(':precipice-core')
+    }
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives jar
+
+        archives javadocJar
+        archives sourcesJar
+    }
+
 }

@@ -14,4 +14,26 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.circuit;
+
+import net.uncontended.precipice.core.metrics.ActionMetrics;
+
+public interface CircuitBreaker {
+
+    boolean isOpen();
+
+    boolean allowAction();
+
+    void informBreakerOfResult(boolean successful);
+
+    void setActionMetrics(ActionMetrics metrics);
+
+    void setBreakerConfig(BreakerConfig breakerConfig);
+
+    BreakerConfig getBreakerConfig();
+
+    void forceOpen();
+
+    void forceClosed();
+}

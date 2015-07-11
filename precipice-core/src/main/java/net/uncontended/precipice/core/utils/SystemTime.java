@@ -14,4 +14,16 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.utils;
+
+public class SystemTime {
+
+    public long currentTimeMillis() {
+        return System.currentTimeMillis();
+    }
+
+    public long nanoTime() {
+        return System.nanoTime();
+    }
+}

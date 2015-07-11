@@ -14,4 +14,8 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.pattern;
+
+public interface MultiPattern<C> extends RunPattern<C>, SubmissionPattern<C>, CompletionPattern<C> {
+}

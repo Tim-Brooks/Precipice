@@ -14,4 +14,8 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core;
+
+public interface MultiService extends CompletionService, SubmissionService, RunService {
+}

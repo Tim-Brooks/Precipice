@@ -14,4 +14,20 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.timeout;
+
+public class ActionTimeoutException extends RuntimeException {
+
+    public ActionTimeoutException() {
+        super();
+    }
+
+    public ActionTimeoutException(String message) {
+        super(message);
+    }
+
+    public ActionTimeoutException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
+}

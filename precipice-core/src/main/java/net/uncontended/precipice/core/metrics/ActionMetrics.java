@@ -14,4 +14,18 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core.metrics;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+public interface ActionMetrics {
+    void incrementMetricCount(Metric metric);
+
+    long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit);
+
+    HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit);
+
+    Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit);
+}

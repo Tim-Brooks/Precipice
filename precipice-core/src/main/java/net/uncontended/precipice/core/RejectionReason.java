@@ -14,4 +14,13 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+
+package net.uncontended.precipice.core;
+
+public enum RejectionReason {
+    CIRCUIT_OPEN,
+    QUEUE_FULL,
+    MAX_CONCURRENCY_LEVEL_EXCEEDED,
+    ALL_SERVICES_REJECTED,
+    SERVICE_SHUTDOWN
+}
