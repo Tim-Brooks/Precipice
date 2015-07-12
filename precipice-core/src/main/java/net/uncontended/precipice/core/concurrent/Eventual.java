@@ -22,11 +22,46 @@ import net.uncontended.precipice.core.Status;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<T> implements Future<T> {
+public class Eventual<T> implements Future<T>, Promise<T> {
     private volatile T result;
-    private Exception error;
+    private Throwable error;
     private final CountDownLatch latch = new CountDownLatch(1);
     private final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
+
+    @Override
+    public boolean complete(T result) {
+        if (status.get() == Status.PENDING) {
+            if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
+                this.result = result;
+                latch.countDown();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean completeExceptionally(Throwable ex) {
+        if (status.get() == Status.PENDING) {
+            if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
+                this.error = ex;
+                latch.countDown();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean completeWithTimeout() {
+        if (status.get() == Status.PENDING) {
+            if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+                latch.countDown();
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public T get() throws InterruptedException, ExecutionException {
