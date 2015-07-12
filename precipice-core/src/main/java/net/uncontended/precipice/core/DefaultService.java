@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice.core;
 
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,24 +44,13 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
-    public <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
+    public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
         return submissionService.submit(action, millisTimeout);
     }
 
     @Override
-    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, long millisTimeout) {
-        completionService.submitAndComplete(action, promise, null, millisTimeout);
-    }
-
-    @Override
-    public <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long millisTimeout) {
-        return submissionService.submit(action, callback, millisTimeout);
-    }
-
-    @Override
-    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise,
-                                      ResilientCallback<T> callback, long millisTimeout) {
-        completionService.submitAndComplete(action, promise, callback, millisTimeout);
+    public <T> void submitAndComplete(ResilientAction<T> action, Promise<T> promise, long millisTimeout) {
+        completionService.submitAndComplete(action, promise, millisTimeout);
     }
 
     @Override

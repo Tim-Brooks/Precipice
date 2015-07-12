@@ -18,6 +18,7 @@
 package net.uncontended.precipice.core;
 
 
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.concurrent.ResilientPromise;
 import net.uncontended.precipice.core.concurrent.ResilientTask;
 import net.uncontended.precipice.core.metrics.Metric;
@@ -45,16 +46,10 @@ public class DefaultCompletionService extends AbstractService implements Complet
     }
 
     @Override
-    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, long millisTimeout) {
-        submitAndComplete(action, promise, null, millisTimeout);
-    }
-
-    @Override
-    public <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise,
-                                      ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAndComplete(ResilientAction<T> action, Promise<T> promise, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
-            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
+            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action,
                     promise, millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout);
             service.execute(task);
             timeoutService.scheduleTimeout(task);

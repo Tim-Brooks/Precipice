@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.core;
 
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 /**
@@ -39,21 +40,5 @@ public interface SubmissionService extends Service {
      * @return a {@link ResilientFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout);
-
-    /**
-     * Submits a {@link ResilientAction} that will be run asynchronously similar to
-     * {@link #submit(ResilientAction, long)}. However, at the completion of the task,
-     * the provided callback will be executed. The callback will be run regardless of the result
-     * of the action.
-     *
-     * @param action        the action to submit
-     * @param callback      to run on action completion
-     * @param millisTimeout milliseconds before the action times out
-     * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long
-            millisTimeout);
+    <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout);
 }

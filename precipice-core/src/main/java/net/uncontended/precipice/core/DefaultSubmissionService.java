@@ -17,9 +17,8 @@
 
 package net.uncontended.precipice.core;
 
-import net.uncontended.precipice.core.concurrent.DefaultResilientPromise;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
+import net.uncontended.precipice.core.concurrent.Eventual;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.ResilientTask;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.TimeoutService;
@@ -46,17 +45,12 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
     }
 
     @Override
-    public <T> ResilientFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        return submit(action, null, millisTimeout);
-    }
-
-    @Override
-    public <T> ResilientFuture<T> submit(ResilientAction<T> action, ResilientCallback<T> callback, long millisTimeout) {
+    public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
-        ResilientPromise<T> promise = new DefaultResilientPromise<>();
+        Eventual<T> promise = new Eventual<>();
         try {
-            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, callback,
-                    promise, millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout);
+            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, promise,
+                    millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout);
             service.execute(task);
             timeoutService.scheduleTimeout(task);
 
@@ -65,7 +59,7 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
             semaphore.releasePermit();
             throw new RejectedActionException(RejectionReason.QUEUE_FULL);
         }
-        return new ResilientFuture<>(promise);
+        return promise;
     }
 
     @Override

@@ -18,7 +18,6 @@
 package net.uncontended.precipice.core.concurrent;
 
 import net.uncontended.precipice.core.ResilientAction;
-import net.uncontended.precipice.core.ResilientCallback;
 import net.uncontended.precipice.core.Status;
 import net.uncontended.precipice.core.circuit.CircuitBreaker;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
@@ -33,21 +32,19 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     public final long millisAbsoluteTimeout;
-    private final ResilientPromise<T> promise;
+    private final Promise<T> promise;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
     private final CircuitBreaker breaker;
     private final ResilientAction<T> action;
-    private final ResilientCallback<T> callback;
     private volatile Thread runner;
 
     public ResilientTask(ActionMetrics metrics, PrecipiceSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
-            action, ResilientCallback<T> callback, ResilientPromise<T> promise, long millisRelativeTimeout) {
+            action, Promise<T> promise, long millisRelativeTimeout) {
         this.metrics = metrics;
         this.semaphore = semaphore;
         this.breaker = breaker;
         this.action = action;
-        this.callback = callback;
         this.promise = promise;
         this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
     }
@@ -59,18 +56,18 @@ public class ResilientTask<T> implements Runnable, Delayed {
                 runner = Thread.currentThread();
                 T result = action.run();
                 if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
-                    promise.deliverResult(result);
+                    promise.complete(result);
                 }
             }
         } catch (InterruptedException e) {
             Thread.interrupted();
         } catch (ActionTimeoutException e) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                promise.setTimedOut();
+                promise.completeWithTimeout();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
-                promise.deliverError(e);
+                promise.completeExceptionally(e);
             }
         } finally {
             done();
@@ -93,7 +90,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public void setTimedOut() {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                promise.setTimedOut();
+                promise.completeWithTimeout();
                 if (runner != null) {
                     runner.interrupt();
                 }
@@ -105,9 +102,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
         metrics.incrementMetricCount(Metric.statusToMetric(status.get()));
         breaker.informBreakerOfResult(status.get() == Status.SUCCESS);
         try {
-            if (callback != null) {
-                callback.run(promise);
-            }
+            // Where we used to call the callbacks.
         } catch (Exception e) {
             // TODO: strategy for handling callback exception.
         } finally {

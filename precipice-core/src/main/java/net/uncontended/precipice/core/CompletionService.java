@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.core;
 
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
+import net.uncontended.precipice.core.concurrent.Promise;
 
 public interface CompletionService extends Service {
 
@@ -31,20 +31,5 @@ public interface CompletionService extends Service {
      * @param <T>           the type of the result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, long millisTimeout);
-
-    /**
-     * Submits a {@link ResilientAction} that will be run asynchronously. At the completion
-     * of the task, the result will be delivered to the promise provided. And the provided
-     * callback will be executed.
-     *
-     * @param action        the action to submit
-     * @param promise       a promise to which deliver the result
-     * @param callback      to run on action completion
-     * @param millisTimeout milliseconds before the action times out
-     * @param <T>           the type of the result of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> void submitAndComplete(ResilientAction<T> action, ResilientPromise<T> promise, ResilientCallback<T> callback,
-                               long millisTimeout);
+    <T> void submitAndComplete(ResilientAction<T> action, Promise<T> promise, long millisTimeout);
 }
