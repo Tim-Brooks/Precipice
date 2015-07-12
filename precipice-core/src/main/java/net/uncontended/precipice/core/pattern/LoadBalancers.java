@@ -44,15 +44,6 @@ public class LoadBalancers {
         return new SubmissionLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
     }
 
-    public static <C> CompletionPattern<C> completingRoundRobin(Map<? extends CompletionService, C> serviceToContext) {
-        return new CompletionLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
-    }
-
-    public static <C> CompletionPattern<C> completingRoundRobin(Map<? extends CompletionService, C> serviceToContext,
-                                                                ActionMetrics metrics) {
-        return new CompletionLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
-    }
-
     public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext) {
         return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }

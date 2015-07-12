@@ -17,5 +17,5 @@
 
 package net.uncontended.precipice.core.pattern;
 
-public interface MultiPattern<C> extends RunPattern<C>, SubmissionPattern<C>, CompletionPattern<C> {
+public interface MultiPattern<C> extends RunPattern<C>, SubmissionPattern<C> {
 }

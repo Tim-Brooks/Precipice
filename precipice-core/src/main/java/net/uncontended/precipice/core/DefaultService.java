@@ -28,7 +28,6 @@ public class DefaultService extends AbstractService implements MultiService {
     private final ExecutorService service;
     private final RunService runService;
     private final DefaultSubmissionService submissionService;
-    private final DefaultCompletionService completionService;
 
     public DefaultService(String name, ExecutorService service, ServiceProperties properties) {
         this(name, service, properties, new AtomicBoolean(false));
@@ -40,17 +39,11 @@ public class DefaultService extends AbstractService implements MultiService {
         this.service = service;
         this.runService = new DefaultRunService(name, properties, isShutdown);
         this.submissionService = new DefaultSubmissionService(name, service, properties, isShutdown);
-        this.completionService = new DefaultCompletionService(name, service, properties, isShutdown);
     }
 
     @Override
     public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
         return submissionService.submit(action, millisTimeout);
-    }
-
-    @Override
-    public <T> void submitAndComplete(ResilientAction<T> action, Promise<T> promise, long millisTimeout) {
-        completionService.submitAndComplete(action, promise, millisTimeout);
     }
 
     @Override

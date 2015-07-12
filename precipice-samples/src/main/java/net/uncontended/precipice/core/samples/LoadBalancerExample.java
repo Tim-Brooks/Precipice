@@ -21,6 +21,7 @@ import net.uncontended.precipice.core.MultiService;
 import net.uncontended.precipice.core.ServiceProperties;
 import net.uncontended.precipice.core.Services;
 import net.uncontended.precipice.core.concurrent.DefaultResilientPromise;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.ResilientFuture;
 import net.uncontended.precipice.core.pattern.*;
 
@@ -63,7 +64,7 @@ public class LoadBalancerExample {
 
         // Will submit the action to one of the services. If all of the services reject the action,
         // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
-        ResilientFuture<String> f = balancer.submit(new ResilientPatternAction<String, Map<String, String>>() {
+        PrecipiceFuture<String> f = balancer.submit(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {
                 return context.get("port");
@@ -80,11 +81,7 @@ public class LoadBalancerExample {
 
     public void specializedExample() {
         SubmissionPattern<Map<String, String>> submission = LoadBalancers.submittingRoundRobin(serviceToContext);
-        ResilientFuture<String> f = submission.submit(new ImplementedPatternAction(), 100L);
-
-        CompletionPattern<Map<String, String>> completion = LoadBalancers.completingRoundRobin(serviceToContext);
-        DefaultResilientPromise<String> p = new DefaultResilientPromise<>();
-        completion.submitAndComplete(new ImplementedPatternAction(), p, 100L);
+        PrecipiceFuture<String> f = submission.submit(new ImplementedPatternAction(), 100L);
 
         RunPattern<Map<String, String>> run = LoadBalancers.runRoundRobin(serviceToContext);
         try {

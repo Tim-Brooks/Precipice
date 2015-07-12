@@ -21,12 +21,11 @@ import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.RejectionReason;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 
 import java.util.Map;
 
-public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<C>, CompletionPattern<C> {
+public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<C> {
 
     private final CompletionService[] services;
     private final ShotgunStrategy strategy;
@@ -61,12 +60,6 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
     @Override
     public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         Eventual<T> promise = new Eventual<>();
-        submitAndComplete(action, promise, millisTimeout);
-        return promise;
-    }
-
-    @Override
-    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
         final int[] servicesToTry = strategy.executorIndices();
 
         int submittedCount = 0;
@@ -86,6 +79,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
         if (submittedCount == 0) {
             throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
         }
+        return promise;
     }
 
     @Override

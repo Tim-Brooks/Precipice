@@ -17,5 +17,5 @@
 
 package net.uncontended.precipice.core;
 
-public interface MultiService extends CompletionService, SubmissionService, RunService {
+public interface MultiService extends SubmissionService, RunService {
 }

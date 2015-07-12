@@ -19,9 +19,7 @@ package net.uncontended.precipice.core.pattern;
 
 
 import net.uncontended.precipice.core.MultiService;
-import net.uncontended.precipice.core.ResilientCallback;
-import net.uncontended.precipice.core.concurrent.Promise;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 
@@ -30,7 +28,6 @@ import java.util.Map;
 public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPattern<C> {
 
     private final SubmissionPattern<C> submissionBalancer;
-    private final CompletionPattern<C> completionBalancer;
     private final RunPattern<C> runBalancer;
     private final MultiService[] services;
 
@@ -55,25 +52,12 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
             ++i;
         }
         this.submissionBalancer = new SubmissionLoadBalancer<>(services, contexts, strategy, metrics);
-        this.completionBalancer = new CompletionLoadBalancer<>(services, contexts, strategy, metrics);
         this.runBalancer = new RunLoadBalancer<>(services, contexts, strategy, metrics);
     }
 
     @Override
-    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         return submissionBalancer.submit(action, millisTimeout);
-    }
-
-    @Override
-    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
-                                         long millisTimeout) {
-        return submissionBalancer.submit(action, callback, millisTimeout);
-    }
-
-    @Override
-    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, Promise<T> promise,
-                                      long millisTimeout) {
-        completionBalancer.submitAndComplete(action, promise, millisTimeout);
     }
 
     @Override

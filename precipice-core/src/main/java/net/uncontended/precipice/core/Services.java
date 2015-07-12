@@ -45,18 +45,6 @@ public class Services {
         return new DefaultRunService(name, serviceProperties);
     }
 
-    public static CompletionService completionService(String name, int poolSize, int concurrencyLevel) {
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(concurrencyLevel);
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultCompletionService(name, executor, properties);
-    }
-
-    public static CompletionService completionService(String name, int poolSize, ServiceProperties properties) {
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultCompletionService(name, executor, properties);
-    }
-
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
