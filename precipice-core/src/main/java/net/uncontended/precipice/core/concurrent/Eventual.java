@@ -17,16 +17,20 @@
 
 package net.uncontended.precipice.core.concurrent;
 
+import net.uncontended.precipice.core.PrecipiceFunction;
 import net.uncontended.precipice.core.Status;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<T> implements Future<T>, Promise<T> {
+public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     private volatile T result;
-    private Throwable error;
+    private volatile Throwable exception;
     private final CountDownLatch latch = new CountDownLatch(1);
     private final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
+    private final AtomicReference<PrecipiceFunction<T, ?>> successCallback = new AtomicReference<>();
+    private final AtomicReference<PrecipiceFunction<Throwable, ?>> errorCallback = new AtomicReference<>();
+    private final AtomicReference<PrecipiceFunction<Void, ?>> timeoutCallback = new AtomicReference<>();
 
     @Override
     public boolean complete(T result) {
@@ -34,6 +38,10 @@ public class Eventual<T> implements Future<T>, Promise<T> {
             if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
                 this.result = result;
                 latch.countDown();
+                PrecipiceFunction<T, ?> cb = successCallback.get();
+                if (cb != null && successCallback.compareAndSet(cb, null)) {
+                    cb.apply(result);
+                }
                 return true;
             }
         }
@@ -44,8 +52,12 @@ public class Eventual<T> implements Future<T>, Promise<T> {
     public boolean completeExceptionally(Throwable ex) {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
-                this.error = ex;
+                this.exception = ex;
                 latch.countDown();
+                PrecipiceFunction<Throwable, ?> cb = errorCallback.get();
+                if (cb != null && errorCallback.compareAndSet(cb, null)) {
+                    cb.apply(ex);
+                }
                 return true;
             }
         }
@@ -57,6 +69,10 @@ public class Eventual<T> implements Future<T>, Promise<T> {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
                 latch.countDown();
+                PrecipiceFunction<Void, ?> cb = timeoutCallback.get();
+                if (cb != null && timeoutCallback.compareAndSet(cb, null)) {
+                    cb.apply(null);
+                }
                 return true;
             }
         }
@@ -80,7 +96,7 @@ public class Eventual<T> implements Future<T>, Promise<T> {
             if (result != null) {
                 return result;
             } else {
-                throw new ExecutionException(error);
+                throw new ExecutionException(exception);
             }
         } else {
             throw new TimeoutException();
@@ -100,5 +116,44 @@ public class Eventual<T> implements Future<T>, Promise<T> {
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         throw new UnsupportedOperationException("Cancelling is not supported at this time");
+    }
+
+    @Override
+    public <R> void onSuccess(PrecipiceFunction<T, R> fn) {
+        if (status.get() == Status.SUCCESS) {
+            fn.apply(result);
+        } else {
+            if (successCallback.compareAndSet(null, fn)
+                    && status.get() == Status.SUCCESS
+                    && successCallback.compareAndSet(fn, null)) {
+                fn.apply(result);
+            }
+        }
+    }
+
+    @Override
+    public <R> void onError(PrecipiceFunction<Throwable, R> fn) {
+        if (status.get() == Status.ERROR) {
+            fn.apply(exception);
+        } else {
+            if (errorCallback.compareAndSet(null, fn)
+                    && status.get() == Status.ERROR
+                    && errorCallback.compareAndSet(fn, null)) {
+                fn.apply(exception);
+            }
+        }
+    }
+
+    @Override
+    public <R> void onTimeout(PrecipiceFunction<Void, R> fn) {
+        if (status.get() == Status.TIMEOUT) {
+            fn.apply(null);
+        } else {
+            if (timeoutCallback.compareAndSet(null, fn)
+                    && status.get() == Status.TIMEOUT
+                    && timeoutCallback.compareAndSet(fn, null)) {
+                fn.apply(null);
+            }
+        }
     }
 }
