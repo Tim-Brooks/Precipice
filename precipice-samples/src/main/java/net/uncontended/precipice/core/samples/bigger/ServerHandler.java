@@ -30,7 +30,7 @@ public class ServerHandler implements HttpHandler {
 
     private final AtomicInteger count = new AtomicInteger(0);
     private final AtomicLong lastRequestTime = new AtomicLong(0);
-    private final AtomicInteger millisBetweenSuccess = new AtomicInteger(70);
+    private final AtomicInteger millisBetweenSuccess = new AtomicInteger(15);
     private final AtomicLong errorUntilTime = new AtomicLong(0L);
     private final AtomicInteger successesPerTimeout = new AtomicInteger(100);
 
@@ -38,19 +38,29 @@ public class ServerHandler implements HttpHandler {
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ServerConfigs() {
                 @Override
-                public void millisBetweenSuccess(int milliseconds) {
-                    millisBetweenSuccess.set(milliseconds);
+                public int getMillisBetweenSuccess() {
+                    return millisBetweenSuccess.get();
                 }
 
                 @Override
-                public void millisSecondsToError(int milliseconds) {
+                public void setMillisBetweenSuccess(int milliseconds) {
+                    millisBetweenSuccess.set(milliseconds);
+                }
+
+
+                @Override
+                public void setMillisSecondsToError(int milliseconds) {
                     errorUntilTime.set(System.currentTimeMillis() + milliseconds);
                 }
 
                 @Override
-                public void successesPerTimeout(int successes) {
-                    successesPerTimeout.set(successes);
+                public int getSuccessesPerTimeout() {
+                    return successesPerTimeout.get();
+                }
 
+                @Override
+                public void setSuccessesPerTimeout(int successes) {
+                    successesPerTimeout.set(successes);
                 }
             }, new ObjectName(String.format("net.uncontended.precipice:type=ServerHandler,name=%s", name)));
         } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException |
@@ -70,7 +80,7 @@ public class ServerHandler implements HttpHandler {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
             int i = count.incrementAndGet();
             if (i % successesPerTimeout.get() == 0) {
-                Thread.sleep(70);
+                Thread.sleep(30);
             }
             exchange.getResponseSender().send("Server1 Response: " + i);
         }
@@ -78,11 +88,15 @@ public class ServerHandler implements HttpHandler {
 
     @MXBean
     public interface ServerConfigs {
-        void millisBetweenSuccess(int milliseconds);
+        int getMillisBetweenSuccess();
 
-        void millisSecondsToError(int milliseconds);
+        void setMillisBetweenSuccess(int milliseconds);
 
-        void successesPerTimeout(int successesPerTimeout);
+        void setMillisSecondsToError(int milliseconds);
+
+        int getSuccessesPerTimeout();
+
+        void setSuccessesPerTimeout(int successesPerTimeout);
     }
 
 

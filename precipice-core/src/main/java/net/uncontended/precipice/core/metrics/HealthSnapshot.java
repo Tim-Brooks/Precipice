@@ -28,11 +28,11 @@ public class HealthSnapshot {
         this.rejections = rejections;
     }
 
-    public double failurePercentage() {
-        return failures / total;
+    public int failurePercentage() {
+        return (int) ((100 * failures) / total);
     }
 
     public double rejectionPercentage() {
-        return rejections / total;
+        return (int) ((100 * rejections) / total);
     }
 }

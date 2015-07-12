@@ -82,7 +82,8 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
                 BreakerConfig config = this.breakerConfig.get();
                 HealthSnapshot health = getHealthSnapshot(config, currentTime);
                 long failures = health.failures;
-                double failurePercentage = health.failurePercentage();
+                int failurePercentage = health.failurePercentage();
+                System.out.println(failurePercentage);
                 if (config.failureThreshold < failures || config.failurePercentageThreshold < failurePercentage) {
                     lastTestedTime.set(currentTime);
                     state.compareAndSet(CLOSED, OPEN);

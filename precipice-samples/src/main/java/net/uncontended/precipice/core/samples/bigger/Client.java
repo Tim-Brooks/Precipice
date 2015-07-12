@@ -51,11 +51,11 @@ public class Client {
     }
 
     public void run() throws InterruptedException {
-        for (int i = 0; i < 5000; ++i) {
-            Thread.sleep(50);
+        for (int i = 0; i < Integer.MAX_VALUE; ++i) {
+            Thread.sleep(20);
 
             try {
-                ResilientFuture<String> f = loadBalancer.submit(new Action(), 50L);
+                ResilientFuture<String> f = loadBalancer.submit(new Action(), 20L);
                 String result = f.get();
                 Status status = f.getStatus();
 
@@ -78,7 +78,6 @@ public class Client {
     private void addServiceToMap(Map<SubmissionService, Map<String, Object>> services, String name, int port) {
         BreakerConfigBuilder builder = new BreakerConfigBuilder()
                 .backOffTimeMillis(2000)
-                .failureThreshold(2)
                 .trailingPeriodMillis(3000);
         DefaultActionMetrics actionMetrics = new DefaultActionMetrics(20, 500, TimeUnit.MILLISECONDS);
         DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
