@@ -25,6 +25,13 @@ public interface Service {
     int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
 
     /**
+     * Returns the name of this service.
+     *
+     * @return the name of this service
+     */
+    String getName();
+
+    /**
      * Returns the {@link ActionMetrics} for this service.
      *
      * @return the metrics backing this service

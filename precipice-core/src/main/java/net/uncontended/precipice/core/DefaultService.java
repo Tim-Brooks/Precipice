@@ -30,16 +30,17 @@ public class DefaultService extends AbstractService implements MultiService {
     private final DefaultSubmissionService submissionService;
     private final DefaultCompletionService completionService;
 
-    public DefaultService(ExecutorService service, ServiceProperties properties) {
-        this(service, properties, new AtomicBoolean(false));
+    public DefaultService(String name, ExecutorService service, ServiceProperties properties) {
+        this(name, service, properties, new AtomicBoolean(false));
     }
 
-    private DefaultService(ExecutorService service, ServiceProperties properties, AtomicBoolean isShutdown) {
-        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
+    private DefaultService(String name, ExecutorService service, ServiceProperties properties,
+                           AtomicBoolean isShutdown) {
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
         this.service = service;
-        this.runService = new DefaultRunService(properties, isShutdown);
-        this.submissionService = new DefaultSubmissionService(service, properties, isShutdown);
-        this.completionService = new DefaultCompletionService(service, properties, isShutdown);
+        this.runService = new DefaultRunService(name, properties, isShutdown);
+        this.submissionService = new DefaultSubmissionService(name, service, properties, isShutdown);
+        this.completionService = new DefaultCompletionService(name, service, properties, isShutdown);
     }
 
     @Override

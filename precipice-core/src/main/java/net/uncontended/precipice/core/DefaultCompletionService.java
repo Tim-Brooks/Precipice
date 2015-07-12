@@ -31,14 +31,15 @@ public class DefaultCompletionService extends AbstractService implements Complet
     private final ExecutorService service;
     private final TimeoutService timeoutService;
 
-    public DefaultCompletionService(ExecutorService service, ServiceProperties properties) {
-        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
+    public DefaultCompletionService(String name, ExecutorService service, ServiceProperties properties) {
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
         this.timeoutService = properties.timeoutService();
         this.service = service;
     }
 
-    public DefaultCompletionService(ExecutorService service, ServiceProperties properties, AtomicBoolean isShutdown) {
-        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
+    public DefaultCompletionService(String name, ExecutorService service, ServiceProperties properties,
+                                    AtomicBoolean isShutdown) {
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
         this.timeoutService = properties.timeoutService();
         this.service = service;
     }

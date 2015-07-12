@@ -19,8 +19,8 @@ package net.uncontended.precipice.core;
 
 import net.uncontended.precipice.core.circuit.CircuitBreaker;
 import net.uncontended.precipice.core.concurrent.PrecipiceSemaphore;
-import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
+import net.uncontended.precipice.core.metrics.Metric;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,18 +29,26 @@ public abstract class AbstractService implements Service {
     protected final AtomicBoolean isShutdown;
     protected final ActionMetrics actionMetrics;
     protected final CircuitBreaker circuitBreaker;
+    protected final String name;
 
-    public AbstractService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore semaphore) {
-        this(circuitBreaker, actionMetrics, semaphore, new AtomicBoolean(false));
+    public AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore
+            semaphore) {
+        this(name, circuitBreaker, actionMetrics, semaphore, new AtomicBoolean(false));
     }
 
-    public AbstractService(CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore semaphore,
-                           AtomicBoolean isShutdown) {
+    public AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore
+            semaphore, AtomicBoolean isShutdown) {
+        this.name = name;
         this.circuitBreaker = circuitBreaker;
         this.actionMetrics = actionMetrics;
         this.semaphore = semaphore;
         this.isShutdown = isShutdown;
         this.circuitBreaker.setActionMetrics(actionMetrics);
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

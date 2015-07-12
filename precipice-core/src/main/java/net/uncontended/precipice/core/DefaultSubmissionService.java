@@ -32,14 +32,15 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
     private final ExecutorService service;
     private final TimeoutService timeoutService;
 
-    public DefaultSubmissionService(ExecutorService service, ServiceProperties properties) {
-        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
+    public DefaultSubmissionService(String name, ExecutorService service, ServiceProperties properties) {
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
         this.timeoutService = properties.timeoutService();
         this.service = service;
     }
 
-    public DefaultSubmissionService(ExecutorService service, ServiceProperties properties, AtomicBoolean isShutdown) {
-        super(properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
+    public DefaultSubmissionService(String name, ExecutorService service, ServiceProperties properties,
+                                    AtomicBoolean isShutdown) {
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
         this.timeoutService = properties.timeoutService();
         this.service = service;
     }

@@ -27,45 +27,45 @@ public class Services {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultSubmissionService(executor, properties);
+        return new DefaultSubmissionService(name, executor, properties);
     }
 
     public static SubmissionService submissionService(String name, int poolSize, ServiceProperties properties) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultSubmissionService(executor, properties);
+        return new DefaultSubmissionService(name, executor, properties);
     }
 
     public static RunService runService(String name, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
-        return new DefaultRunService(properties);
+        return new DefaultRunService(name, properties);
     }
 
     public static RunService runService(String name, ServiceProperties serviceProperties) {
-        return new DefaultRunService(serviceProperties);
+        return new DefaultRunService(name, serviceProperties);
     }
 
     public static CompletionService completionService(String name, int poolSize, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultCompletionService(executor, properties);
+        return new DefaultCompletionService(name, executor, properties);
     }
 
     public static CompletionService completionService(String name, int poolSize, ServiceProperties properties) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultCompletionService(executor, properties);
+        return new DefaultCompletionService(name, executor, properties);
     }
 
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultService(executor, properties);
+        return new DefaultService(name, executor, properties);
     }
 
     public static MultiService defaultService(String name, int poolSize, ServiceProperties properties) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultService(executor, properties);
+        return new DefaultService(name, executor, properties);
     }
 }

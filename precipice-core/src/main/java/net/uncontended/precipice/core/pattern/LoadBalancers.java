@@ -65,11 +65,13 @@ public class LoadBalancers {
                                                                     ServiceProperties properties) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
         Map<MultiService, C> serviceToContext = new HashMap<>();
+        int i = 0;
         for (C context : contexts) {
             ServiceProperties serviceProperties = new ServiceProperties();
             serviceProperties.concurrencyLevel(properties.concurrencyLevel());
-            MultiService service = new DefaultService(executor, serviceProperties);
+            MultiService service = new DefaultService(name + "-" + i, executor, serviceProperties);
             serviceToContext.put(service, context);
+            ++i;
         }
         return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(contexts.size()));
     }
