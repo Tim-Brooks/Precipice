@@ -29,10 +29,18 @@ public class HealthSnapshot {
     }
 
     public int failurePercentage() {
-        return (int) ((100 * failures) / total);
+        if (total != 0) {
+            return (int) ((100 * failures) / total);
+        } else {
+            return 0;
+        }
     }
 
     public double rejectionPercentage() {
-        return (int) ((100 * rejections) / total);
+        if (total != 0) {
+            return (int) ((100 * rejections) / total);
+        } else {
+            return 0;
+        }
     }
 }

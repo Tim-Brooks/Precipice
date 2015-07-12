@@ -45,7 +45,7 @@ public class Client {
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
 
-        loadBalancer = LoadBalancers.submittingRoundRobin(services);
+        loadBalancer = LoadBalancers.submittingRoundRobin(services, new DefaultActionMetrics(20, 500, TimeUnit.MILLISECONDS));
 
         clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.getActionMetrics()));
     }

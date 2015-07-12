@@ -17,6 +17,7 @@
 package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.*;
+import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.utils.PrecipiceExecutors;
 
 import java.util.HashMap;
@@ -30,16 +31,34 @@ public class LoadBalancers {
         return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
+    public static <C> MultiPattern<C> multiRoundRobin(Map<MultiService, C> serviceToContext, ActionMetrics metrics) {
+        return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
+    }
+
     public static <C> SubmissionPattern<C> submittingRoundRobin(Map<? extends SubmissionService, C> serviceToContext) {
         return new SubmissionLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
+    }
+
+    public static <C> SubmissionPattern<C> submittingRoundRobin(Map<? extends SubmissionService, C> serviceToContext,
+                                                                ActionMetrics metrics) {
+        return new SubmissionLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
     }
 
     public static <C> CompletionPattern<C> completingRoundRobin(Map<? extends CompletionService, C> serviceToContext) {
         return new CompletionLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
+    public static <C> CompletionPattern<C> completingRoundRobin(Map<? extends CompletionService, C> serviceToContext,
+                                                                ActionMetrics metrics) {
+        return new CompletionLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
+    }
+
     public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext) {
         return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
+    }
+
+    public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext, ActionMetrics metrics) {
+        return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
     }
 
     public static <C> MultiPattern<C> multiRoundRobinWithSharedPool(List<C> contexts, String name, int poolSize,

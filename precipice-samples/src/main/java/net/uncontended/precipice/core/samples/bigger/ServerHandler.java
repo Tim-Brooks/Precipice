@@ -30,7 +30,7 @@ public class ServerHandler implements HttpHandler {
 
     private final AtomicInteger count = new AtomicInteger(0);
     private final AtomicLong lastRequestTime = new AtomicLong(0);
-    private final AtomicInteger millisBetweenSuccess = new AtomicInteger(15);
+    private final AtomicInteger millisBetweenSuccess = new AtomicInteger(1);
     private final AtomicLong errorUntilTime = new AtomicLong(0L);
     private final AtomicInteger successesPerTimeout = new AtomicInteger(100);
 
