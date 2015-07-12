@@ -19,6 +19,7 @@ package net.uncontended.precipice.core;
 
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.concurrent.ResilientTask;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.TimeoutService;
@@ -46,8 +47,14 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
 
     @Override
     public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        acquirePermitOrRejectIfActionNotAllowed();
         Eventual<T> promise = new Eventual<>();
+        complete(action, promise, millisTimeout);
+        return promise;
+    }
+
+    @Override
+    public <T> void complete(ResilientAction<T> action, Promise<T> promise, long millisTimeout) {
+        acquirePermitOrRejectIfActionNotAllowed();
         try {
             ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, promise,
                     millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout);
@@ -59,7 +66,6 @@ public class DefaultSubmissionService extends AbstractService implements Submiss
             semaphore.releasePermit();
             throw new RejectedActionException(RejectionReason.QUEUE_FULL);
         }
-        return promise;
     }
 
     @Override

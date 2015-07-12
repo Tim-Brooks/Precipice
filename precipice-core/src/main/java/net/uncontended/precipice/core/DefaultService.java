@@ -47,6 +47,11 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
+    public <T> void complete(ResilientAction<T> action, Promise<T> promise, long millisTimeout) {
+        submissionService.complete(action, promise, millisTimeout);
+    }
+
+    @Override
     public <T> T run(ResilientAction<T> action) throws Exception {
         try {
             return runService.run(action);

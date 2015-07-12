@@ -18,6 +18,7 @@
 package net.uncontended.precipice.core;
 
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 /**
@@ -41,4 +42,6 @@ public interface SubmissionService extends Service {
      * @throws RejectedActionException if the action is rejected
      */
     <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout);
+
+    <T> void complete(ResilientAction<T> action, Promise<T> promise, long millisTimeout);
 }

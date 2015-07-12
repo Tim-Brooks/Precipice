@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.core.samples;
 
-import net.uncontended.precipice.core.CompletionService;
 import net.uncontended.precipice.core.Services;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
+import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.pattern.ResilientPatternAction;
 import net.uncontended.precipice.core.pattern.Shotgun;
 
@@ -29,24 +29,24 @@ import java.util.concurrent.ExecutionException;
 
 public class ShotgunExample {
 
-    private final Map<CompletionService, Map<String, String>> serviceToContext;
+    private final Map<SubmissionService, Map<String, String>> serviceToContext;
 
     public ShotgunExample() {
         serviceToContext = new HashMap<>();
 
         int concurrencyLevel = 100;
 
-        CompletionService service1 = Services.completionService("Service1", 10, concurrencyLevel);
+        SubmissionService service1 = Services.submissionService("Service1", 10, concurrencyLevel);
         Map<String, String> context1 = new HashMap<>();
         context1.put("port", "6001");
         serviceToContext.put(service1, context1);
 
-        CompletionService service2 = Services.completionService("Service2", 10, concurrencyLevel);
+        SubmissionService service2 = Services.submissionService("Service2", 10, concurrencyLevel);
         Map<String, String> context2 = new HashMap<>();
         context2.put("port", "6002");
         serviceToContext.put(service2, context2);
 
-        CompletionService service3 = Services.completionService("Service1", 10, concurrencyLevel);
+        SubmissionService service3 = Services.submissionService("Service1", 10, concurrencyLevel);
         Map<String, String> context3 = new HashMap<>();
         context3.put("port", "6003");
         serviceToContext.put(service3, context3);
@@ -58,7 +58,7 @@ public class ShotgunExample {
 
         // Will submit the action to two of the services. If all of the services reject the action,
         // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
-        ResilientFuture<String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
+        PrecipiceFuture<String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {
                 return context.get("port");

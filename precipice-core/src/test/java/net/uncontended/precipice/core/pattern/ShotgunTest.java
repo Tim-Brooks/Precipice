@@ -17,8 +17,11 @@
 
 package net.uncontended.precipice.core.pattern;
 
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
-import net.uncontended.precipice.core.*;
+import net.uncontended.precipice.core.RejectedActionException;
+import net.uncontended.precipice.core.RejectionReason;
+import net.uncontended.precipice.core.ResilientAction;
+import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.concurrent.Promise;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -35,11 +38,11 @@ public class ShotgunTest {
     private Object context2 = new Object();
     private Object context3 = new Object();
     @Mock
-    private CompletionService service1;
+    private SubmissionService service1;
     @Mock
-    private CompletionService service2;
+    private SubmissionService service2;
     @Mock
-    private CompletionService service3;
+    private SubmissionService service3;
     @Mock
     private ResilientPatternAction<String, Object> patternAction;
     @Mock
@@ -55,7 +58,7 @@ public class ShotgunTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        Map<CompletionService, Object> services = new LinkedHashMap<>();
+        Map<SubmissionService, Object> services = new LinkedHashMap<>();
         services.put(service1, context1);
         services.put(service2, context2);
         services.put(service3, context3);
@@ -71,10 +74,8 @@ public class ShotgunTest {
         shotgun.submit(patternAction, 100L);
 
         InOrder inOrder = inOrder(service3, service1);
-        inOrder.verify(service3).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
-                (ResilientCallback.class), eq(100L));
-        inOrder.verify(service1).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
-                (ResilientCallback.class), eq(100L));
+        inOrder.verify(service3).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
+        inOrder.verify(service1).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
 
         List<ResilientAction<String>> actions = actionCaptor.getAllValues();
 
@@ -93,16 +94,13 @@ public class ShotgunTest {
         int[] indices = {2, 0, 1};
         when(strategy.executorIndices()).thenReturn(indices);
 
-        Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
-                (any(ResilientAction.class), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+        Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
+                (any(ResilientAction.class), any(Promise.class), eq(100L));
         shotgun.submit(patternAction, 100L);
         InOrder inOrder = inOrder(service3, service1, service2);
-        inOrder.verify(service3).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
-                (ResilientCallback.class), eq(100L));
-        inOrder.verify(service1).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
-                (ResilientCallback.class), eq(100L));
-        inOrder.verify(service2).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
-                (ResilientCallback.class), eq(100L));
+        inOrder.verify(service3).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
+        inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
+        inOrder.verify(service2).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
 
         List<ResilientAction<String>> actions = actionCaptor.getAllValues();
 
@@ -122,18 +120,15 @@ public class ShotgunTest {
         when(strategy.executorIndices()).thenReturn(indices);
 
         try {
-            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).submitAndComplete
-                    (any(ResilientAction.class), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
-            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
-                    (any(ResilientAction.class), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).complete
+                    (any(ResilientAction.class), any(Promise.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
+                    (any(ResilientAction.class), any(Promise.class), eq(100L));
             shotgun.submit(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
-            inOrder.verify(service3).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(100L));
-            inOrder.verify(service1).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(100L));
-            inOrder.verify(service2).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(100L));
+            inOrder.verify(service3).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
+            inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
+            inOrder.verify(service2).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
         } catch (RejectedActionException e) {
             fail("Action should have been accepted by one service.");
         }
@@ -145,20 +140,17 @@ public class ShotgunTest {
         when(strategy.executorIndices()).thenReturn(indices);
 
         try {
-            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).submitAndComplete
-                    (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
-            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).submitAndComplete
-                    (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
-            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service2).submitAndComplete
-                    (actionCaptor.capture(), any(ResilientPromise.class), isNull(ResilientCallback.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).complete
+                    (actionCaptor.capture(), any(Promise.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
+                    (actionCaptor.capture(), any(Promise.class), eq(100L));
+            doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service2).complete
+                    (actionCaptor.capture(), any(Promise.class), eq(100L));
             shotgun.submit(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
-            inOrder.verify(service3).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(100L));
-            inOrder.verify(service1).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(100L));
-            inOrder.verify(service2).submitAndComplete(any(ResilientAction.class), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(100L));
+            inOrder.verify(service3).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
+            inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
+            inOrder.verify(service2).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
             fail();
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);
@@ -172,11 +164,11 @@ public class ShotgunTest {
         for (int i = 0; i < 25; ++i) {
             ArgumentCaptor<Object> contextCaptor = ArgumentCaptor.forClass(Object.class);
             ArgumentCaptor<ResilientAction> actionCaptor = ArgumentCaptor.forClass(ResilientAction.class);
-            CompletionService service1 = mock(CompletionService.class);
-            CompletionService service2 = mock(CompletionService.class);
-            CompletionService service3 = mock(CompletionService.class);
+            SubmissionService service1 = mock(SubmissionService.class);
+            SubmissionService service2 = mock(SubmissionService.class);
+            SubmissionService service3 = mock(SubmissionService.class);
             ResilientPatternAction<String, Object> patternAction = mock(ResilientPatternAction.class);
-            Map<CompletionService, Object> services = new HashMap<>();
+            Map<SubmissionService, Object> services = new HashMap<>();
             services.put(service1, context1);
             services.put(service2, context2);
             services.put(service3, context3);
@@ -184,12 +176,9 @@ public class ShotgunTest {
 
             shotgun.submit(patternAction, 10);
 
-            verify(service1, atMost(1)).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(10L));
-            verify(service2, atMost(1)).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(10L));
-            verify(service3, atMost(1)).submitAndComplete(actionCaptor.capture(), any(ResilientPromise.class), isNull
-                    (ResilientCallback.class), eq(10L));
+            verify(service1, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));
+            verify(service2, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));
+            verify(service3, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));
 
             List<ResilientAction> actions = actionCaptor.getAllValues();
 
