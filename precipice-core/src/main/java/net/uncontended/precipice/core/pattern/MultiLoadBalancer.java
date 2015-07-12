@@ -20,8 +20,8 @@ package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.MultiService;
 import net.uncontended.precipice.core.ResilientCallback;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.concurrent.ResilientFuture;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 
@@ -71,16 +71,9 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
     }
 
     @Override
-    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
+    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, Promise<T> promise,
                                       long millisTimeout) {
         completionBalancer.submitAndComplete(action, promise, millisTimeout);
-    }
-
-    @Override
-    public <T> void submitAndComplete(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                      ResilientCallback<T> callback, long millisTimeout) {
-        completionBalancer.submitAndComplete(action, promise, callback, millisTimeout);
-
     }
 
     @Override

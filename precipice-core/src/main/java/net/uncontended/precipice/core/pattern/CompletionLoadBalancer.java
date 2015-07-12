@@ -17,11 +17,14 @@
 
 package net.uncontended.precipice.core.pattern;
 
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
-import net.uncontended.precipice.core.*;
+import net.uncontended.precipice.core.CompletionService;
+import net.uncontended.precipice.core.MultiService;
+import net.uncontended.precipice.core.RejectedActionException;
+import net.uncontended.precipice.core.RejectionReason;
+import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
-import net.uncontended.precipice.core.metrics.ActionMetrics;
 
 import java.util.Map;
 
@@ -63,14 +66,7 @@ public class CompletionLoadBalancer<C> extends AbstractPattern<C> implements Com
     }
 
     @Override
-    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                      long millisTimeout) {
-        submitAndComplete(action, promise, null, millisTimeout);
-    }
-
-    @Override
-    public <T> void submitAndComplete(final ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                      ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAndComplete(final ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
         final int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -80,8 +76,7 @@ public class CompletionLoadBalancer<C> extends AbstractPattern<C> implements Com
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                MetricsCallback<T> metricsCallback = new MetricsCallback<>(metrics, callback);
-                services[serviceIndex].submitAndComplete(actionWithContext, promise, metricsCallback, millisTimeout);
+                services[serviceIndex].submitAndComplete(actionWithContext, promise, millisTimeout);
                 break;
             } catch (RejectedActionException e) {
                 ++j;

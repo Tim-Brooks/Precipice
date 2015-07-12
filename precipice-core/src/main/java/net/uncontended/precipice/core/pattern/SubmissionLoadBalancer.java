@@ -17,8 +17,11 @@
 
 package net.uncontended.precipice.core.pattern;
 
-import net.uncontended.precipice.core.*;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
+import net.uncontended.precipice.core.MultiService;
+import net.uncontended.precipice.core.RejectedActionException;
+import net.uncontended.precipice.core.RejectionReason;
+import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
@@ -63,13 +66,7 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     }
 
     @Override
-    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submit(action, null, millisTimeout);
-    }
-
-    @Override
-    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
-                                         long millisTimeout) {
+    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         final int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -79,8 +76,7 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                MetricsCallback<T> metricsCallback = new MetricsCallback<>(metrics, callback);
-                return services[serviceIndex].submit(actionWithContext, metricsCallback, millisTimeout);
+                return services[serviceIndex].submit(actionWithContext, millisTimeout);
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {

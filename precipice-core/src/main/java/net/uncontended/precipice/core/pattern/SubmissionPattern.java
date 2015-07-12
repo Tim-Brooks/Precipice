@@ -19,6 +19,7 @@ package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.ResilientCallback;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 public interface SubmissionPattern<C> extends Pattern<C> {
@@ -34,21 +35,6 @@ public interface SubmissionPattern<C> extends Pattern<C> {
      * @return a {@link ResilientFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
-
-    /**
-     * Submits a {@link ResilientPatternAction} that will be run asynchronously similar to
-     * {@link #submit(ResilientPatternAction, long)}. However, at the completion of the
-     * task, the provided callback will be executed. The callback will be run regardless of
-     * the result of the action.
-     *
-     * @param action        the action to submit
-     * @param callback      to run on action completion
-     * @param millisTimeout milliseconds before the action times out
-     * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
-     * @throws RejectedActionException if the action is rejected
-     */
-    <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback, long millisTimeout);
+    <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
 
 }

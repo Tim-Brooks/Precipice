@@ -19,10 +19,9 @@ package net.uncontended.precipice.core.pattern;
 import net.uncontended.precipice.core.CompletionService;
 import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.RejectionReason;
-import net.uncontended.precipice.core.ResilientCallback;
-import net.uncontended.precipice.core.concurrent.DefaultResilientPromise;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
+import net.uncontended.precipice.core.concurrent.Eventual;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 
 import java.util.Map;
@@ -60,27 +59,14 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
     }
 
     @Override
-    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submit(action, null, millisTimeout);
+    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+        Eventual<T> promise = new Eventual<>();
+        submitAndComplete(action, promise, millisTimeout);
+        return promise;
     }
 
     @Override
-    public <T> ResilientFuture<T> submit(ResilientPatternAction<T, C> action, ResilientCallback<T> callback,
-                                         long millisTimeout) {
-        DefaultResilientPromise<T> promise = new DefaultResilientPromise<>();
-        submitAndComplete(action, promise, callback, millisTimeout);
-        return new ResilientFuture<>(promise);
-    }
-
-    @Override
-    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                      long millisTimeout) {
-        submitAndComplete(action, promise, null, millisTimeout);
-    }
-
-    @Override
-    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise,
-                                      ResilientCallback<T> callback, long millisTimeout) {
+    public <T> void submitAndComplete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
         final int[] servicesToTry = strategy.executorIndices();
 
         int submittedCount = 0;
@@ -89,7 +75,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
                 ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
                 actionWithContext.context = contexts[serviceIndex];
                 CompletionService service = services[serviceIndex];
-                service.submitAndComplete(actionWithContext, promise, callback, millisTimeout);
+                service.submitAndComplete(actionWithContext, promise, millisTimeout);
                 ++submittedCount;
             } catch (RejectedActionException e) {
             }
