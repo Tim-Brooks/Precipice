@@ -64,6 +64,11 @@ public class Eventual<T> implements Future<T>, Promise<T> {
     }
 
     @Override
+    public Future<T> future() {
+        return this;
+    }
+
+    @Override
     public T get() throws InterruptedException, ExecutionException {
         latch.await();
         return result;
