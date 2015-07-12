@@ -33,8 +33,7 @@ public interface CompletionPattern<C> extends Pattern<C> {
      * @param <T>           the type of the result of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise, long
-            millisTimeout);
+    <T> void submitAndComplete(ResilientPatternAction<T, C> action, ResilientPromise<T> promise, long millisTimeout);
 
     /**
      * Submits a {@link ResilientPatternAction} that will be run asynchronously.
