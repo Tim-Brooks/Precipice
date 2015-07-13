@@ -1,7 +1,23 @@
-<div id="lineChart" style="width: 800px; height: 200px"></div>
+<html>
+<head>
+    <script src="jquery-1.11.3.min.js"></script>
+    <script src="d3.min.js"></script>
+    <script src="epoch.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="epoch.min.css">
+</head>
+<body>
+<div id="lineChart" class="epoch category10" style="width: 800px; height: 200px"></div>
 <script>
+var lineChartData = [
+  {
+    label: "Series 1",
+    values: [{time: 1370044800, y: 100}, {time: 1370044801, y: 1000}, {time: 1370044804, y: 500}, {time: 1370054804, y: 500}]
+  }
+];
   $('#lineChart').epoch({
     type: 'time.line',
     data: lineChartData
   });
 </script>
+</body>
+</html>
