@@ -80,7 +80,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     }
 
     @Override
-    public Future<T> future() {
+    public PrecipiceFuture<T> future() {
         return this;
     }
 

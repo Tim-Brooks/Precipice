@@ -21,6 +21,7 @@ import net.uncontended.precipice.core.RejectionReason;
 import net.uncontended.precipice.core.SubmissionService;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 
 import java.util.Map;
@@ -80,6 +81,11 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
             throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
         }
         return promise;
+    }
+
+    @Override
+    public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
+
     }
 
     @Override
