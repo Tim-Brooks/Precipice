@@ -55,7 +55,7 @@ public class Client {
             Thread.sleep(20);
 
             try {
-                ResilientFuture<String> f = loadBalancer.submit(new Action(), 20L);
+                ResilientFuture<String> f = loadBalancer.complete(new Action(), 20L);
                 String result = f.get();
                 Status status = f.getStatus();
 

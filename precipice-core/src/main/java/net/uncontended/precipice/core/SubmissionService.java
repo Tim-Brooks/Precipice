@@ -35,7 +35,7 @@ public interface SubmissionService extends Service {
      * by this call. An attempt to cancel the action will be made if it
      * does not complete before the timeout.
      *
-     * @param action        the action to submit
+     * @param action        the action to complete
      * @param millisTimeout milliseconds before the action times out
      * @param <T>           the type of the result of the action
      * @return a {@link ResilientFuture} representing pending completion of the action

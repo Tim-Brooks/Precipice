@@ -58,7 +58,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
     }
 
     @Override
-    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+    public <T> PrecipiceFuture<T> complete(ResilientPatternAction<T, C> action, long millisTimeout) {
         Eventual<T> promise = new Eventual<>();
         final int[] servicesToTry = strategy.executorIndices();
 

@@ -20,6 +20,7 @@ package net.uncontended.precipice.core.samples;
 import net.uncontended.precipice.core.Services;
 import net.uncontended.precipice.core.Status;
 import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 import java.util.concurrent.CountDownLatch;
@@ -34,7 +35,7 @@ public class SubmissionExample {
         SubmissionService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
-        ResilientFuture<Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);
+        PrecipiceFuture<Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);
 
         try {
             // Should return 64
@@ -44,7 +45,7 @@ public class SubmissionExample {
         }
         assert (successFuture.getStatus() == Status.SUCCESS);
 
-        ResilientFuture<Integer> errorFuture = service.submit(Actions.errorAction(), millisTimeout);
+        PrecipiceFuture<Integer> errorFuture = service.submit(Actions.errorAction(), millisTimeout);
 
         try {
             // Should throw ExecutionException
@@ -58,7 +59,7 @@ public class SubmissionExample {
         assert (errorFuture.getStatus() == Status.ERROR);
 
         CountDownLatch latch = new CountDownLatch(1);
-        ResilientFuture<Integer> timeoutFuture = service.submit(Actions.timeoutAction(latch), millisTimeout);
+        PrecipiceFuture<Integer> timeoutFuture = service.submit(Actions.timeoutAction(latch), millisTimeout);
 
         assert (timeoutFuture.getStatus() == Status.PENDING);
         try {

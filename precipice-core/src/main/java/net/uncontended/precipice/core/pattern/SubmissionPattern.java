@@ -20,6 +20,7 @@ package net.uncontended.precipice.core.pattern;
 import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.ResilientCallback;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 public interface SubmissionPattern<C> extends Pattern<C> {
@@ -29,12 +30,14 @@ public interface SubmissionPattern<C> extends Pattern<C> {
      * by this call. An attempt to cancel the action will be made if it
      * does not complete before the timeout.
      *
-     * @param action        the action to submit
+     * @param action        the action to complete
      * @param millisTimeout milliseconds before the action times out
      * @param <T>           the type of the result of the action
      * @return a {@link ResilientFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
+    <T> PrecipiceFuture<T> complete(ResilientPatternAction<T, C> action, long millisTimeout);
+
+    <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout);
 
 }

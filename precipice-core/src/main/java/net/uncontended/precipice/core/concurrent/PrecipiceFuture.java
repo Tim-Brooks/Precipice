@@ -18,6 +18,7 @@
 package net.uncontended.precipice.core.concurrent;
 
 import net.uncontended.precipice.core.PrecipiceFunction;
+import net.uncontended.precipice.core.Status;
 
 import java.util.concurrent.Future;
 
@@ -28,4 +29,6 @@ public interface PrecipiceFuture<T> extends Future<T> {
     <R> void onError(PrecipiceFunction<Throwable, R> fn);
 
     <R> void onTimeout(PrecipiceFunction<Void, R> fn);
+
+    Status getStatus();
 }

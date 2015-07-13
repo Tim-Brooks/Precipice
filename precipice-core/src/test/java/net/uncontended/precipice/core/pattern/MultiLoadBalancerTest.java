@@ -17,11 +17,12 @@
 
 package net.uncontended.precipice.core.pattern;
 
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
 import net.uncontended.precipice.core.*;
+import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.ResilientPromise;
+import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
-import net.uncontended.precipice.core.metrics.ActionMetrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -89,20 +90,17 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitActionCalledWithCorrectArguments() throws Exception {
         long timeout = 100L;
-        ResilientPromise<String> promise = mock(ResilientPromise.class);
-        ResilientCallback<String> callback = mock(ResilientCallback.class);
+        Promise<String> promise = mock(Promise.class);
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
-        balancer.submitAndComplete(action, promise, callback, timeout);
-        verify(executor1).submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class),
-                eq(timeout));
+        balancer.complete(action, promise, timeout);
+        verify(executor1).complete(actionCaptor.capture(), eq(promise), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context1);
 
         when(strategy.nextExecutorIndex()).thenReturn(1);
-        balancer.submitAndComplete(action, promise, callback, timeout);
-        verify(executor2).submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class),
-                eq(timeout));
+        balancer.complete(action, promise, timeout);
+        verify(executor2).complete(actionCaptor.capture(), eq(promise), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -110,15 +108,13 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitTriedOnSecondServiceIfRejectedOnFirst() throws Exception {
         long timeout = 100L;
-        ResilientPromise<String> promise = mock(ResilientPromise.class);
-        ResilientCallback<String> callback = mock(ResilientCallback.class);
+        Promise<String> promise = mock(Promise.class);
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
-                .submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class), eq(timeout));
-        balancer.submitAndComplete(action, promise, callback, timeout);
-        verify(executor2).submitAndComplete(actionCaptor.capture(), eq(promise), any(ResilientCallback.class),
-                eq(timeout));
+                .complete(actionCaptor.capture(), eq(promise), eq(timeout));
+        balancer.complete(action, promise, timeout);
+        verify(executor2).complete(actionCaptor.capture(), eq(promise), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -137,39 +133,30 @@ public class MultiLoadBalancerTest {
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForSubmitAndComplete() throws Exception {
         long timeout = 100L;
-        ResilientPromise<String> promise = mock(ResilientPromise.class);
-        ResilientCallback<String> callback = mock(ResilientCallback.class);
+        Promise<String> promise = mock(Promise.class);
         ArgumentCaptor<ResilientCallback> callbackCaptor = ArgumentCaptor.forClass(ResilientCallback.class);
 
-        balancer.submitAndComplete(action, promise, callback, timeout);
+        balancer.complete(action, promise, timeout);
 
-        verify(executor1).submitAndComplete(any(ResilientAction.class), eq(promise), callbackCaptor.capture(), eq(timeout));
+        verify(executor1).complete(any(ResilientAction.class), eq(promise), eq(timeout));
 
-        when(promise.getStatus()).thenReturn(Status.SUCCESS);
-
-        callbackCaptor.getValue().run(promise);
+        when(promise.future().getStatus()).thenReturn(Status.SUCCESS);
 
         verify(metrics).incrementMetricCount(Metric.SUCCESS);
-        verify(callback).run(promise);
     }
 
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
         long timeout = 100L;
         ResilientPromise<String> promise = mock(ResilientPromise.class);
-        ResilientCallback<String> callback = mock(ResilientCallback.class);
-        ArgumentCaptor<ResilientCallback> callbackCaptor = ArgumentCaptor.forClass(ResilientCallback.class);
 
-        balancer.submit(action, callback, timeout);
+        balancer.complete(action, timeout);
 
-        verify(executor1).submit(any(ResilientAction.class), callbackCaptor.capture(), eq(timeout));
+        verify(executor1).submit(any(ResilientAction.class), eq(timeout));
 
         when(promise.getStatus()).thenReturn(Status.ERROR);
 
-        callbackCaptor.getValue().run(promise);
-
         verify(metrics).incrementMetricCount(Metric.ERROR);
-        verify(callback).run(promise);
     }
 
     @Test
@@ -201,11 +188,11 @@ public class MultiLoadBalancerTest {
         RejectedActionException rejected = new RejectedActionException(RejectionReason.CIRCUIT_OPEN);
 
         when(strategy.nextExecutorIndex()).thenReturn(0).thenReturn(1);
-        when(executor1.submit(any(ResilientAction.class), any(ResilientCallback.class), eq(timeout))).thenThrow(rejected);
-        when(executor2.submit(any(ResilientAction.class), any(ResilientCallback.class), eq(timeout))).thenThrow(rejected);
+        when(executor1.submit(any(ResilientAction.class), eq(timeout))).thenThrow(rejected);
+        when(executor2.submit(any(ResilientAction.class), eq(timeout))).thenThrow(rejected);
 
         try {
-            balancer.submit(action, timeout);
+            balancer.complete(action, timeout);
             fail("Should have been rejected");
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);

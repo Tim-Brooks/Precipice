@@ -56,9 +56,9 @@ public class ShotgunExample {
     public void shotgunExample() throws InterruptedException {
         Shotgun<Map<String, String>> shotgun = new Shotgun<>(serviceToContext, 2);
 
-        // Will submit the action to two of the services. If all of the services reject the action,
+        // Will complete the action to two of the services. If all of the services reject the action,
         // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
-        PrecipiceFuture<String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
+        PrecipiceFuture<String> f = shotgun.complete(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {
                 return context.get("port");

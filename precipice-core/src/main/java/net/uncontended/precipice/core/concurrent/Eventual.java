@@ -156,4 +156,9 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
             }
         }
     }
+
+    @Override
+    public Status getStatus() {
+        return status.get();
+    }
 }

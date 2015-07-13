@@ -71,7 +71,7 @@ public class ShotgunTest {
     public void actionsSubmittedToServicesAndContextsProvided() throws Exception {
         int[] indices = {2, 0, 1};
         when(strategy.executorIndices()).thenReturn(indices);
-        shotgun.submit(patternAction, 100L);
+        shotgun.complete(patternAction, 100L);
 
         InOrder inOrder = inOrder(service3, service1);
         inOrder.verify(service3).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
@@ -96,7 +96,7 @@ public class ShotgunTest {
 
         Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
                 (any(ResilientAction.class), any(Promise.class), eq(100L));
-        shotgun.submit(patternAction, 100L);
+        shotgun.complete(patternAction, 100L);
         InOrder inOrder = inOrder(service3, service1, service2);
         inOrder.verify(service3).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
         inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
@@ -124,7 +124,7 @@ public class ShotgunTest {
                     (any(ResilientAction.class), any(Promise.class), eq(100L));
             doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
                     (any(ResilientAction.class), any(Promise.class), eq(100L));
-            shotgun.submit(patternAction, 100L);
+            shotgun.complete(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
             inOrder.verify(service3).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
             inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
@@ -146,7 +146,7 @@ public class ShotgunTest {
                     (actionCaptor.capture(), any(Promise.class), eq(100L));
             doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service2).complete
                     (actionCaptor.capture(), any(Promise.class), eq(100L));
-            shotgun.submit(patternAction, 100L);
+            shotgun.complete(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
             inOrder.verify(service3).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
             inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
@@ -174,7 +174,7 @@ public class ShotgunTest {
             services.put(service3, context3);
             Shotgun<Object> shotgun = new Shotgun<>(services, 2);
 
-            shotgun.submit(patternAction, 10);
+            shotgun.complete(patternAction, 10);
 
             verify(service1, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));
             verify(service2, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));

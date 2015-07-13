@@ -17,8 +17,6 @@
 
 package net.uncontended.precipice.core.concurrent;
 
-import java.util.concurrent.Future;
-
 public interface Promise<T> {
 
     boolean complete(T result);
@@ -27,5 +25,5 @@ public interface Promise<T> {
 
     boolean completeWithTimeout();
 
-    Future<T> future();
+    PrecipiceFuture<T> future();
 }

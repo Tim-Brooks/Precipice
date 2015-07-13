@@ -121,7 +121,7 @@ public class DefaultServiceTest {
 
 //    @Test
 //    public void actionIsSubmittedAndRan() throws Exception {
-//        ResilientFuture<String> f = service.submit(TestActions.successAction(1), 500);
+//        ResilientFuture<String> f = service.complete(TestActions.successAction(1), 500);
 //
 //        assertEquals("Success", f.get());
 //        assertEquals(Status.SUCCESS, f.getStatus());
@@ -130,7 +130,7 @@ public class DefaultServiceTest {
 //    @Test
 //    public void futureIsPendingUntilSubmittedActionFinished() throws Exception {
 //        CountDownLatch latch = new CountDownLatch(1);
-//        ResilientFuture<String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+//        ResilientFuture<String> f = service.complete(TestActions.blockedAction(latch), Long.MAX_VALUE);
 //        assertEquals(Status.PENDING, f.getStatus());
 //        latch.countDown();
 //        f.get();
@@ -170,7 +170,7 @@ public class DefaultServiceTest {
 //
 //    @Test
 //    public void submittedActionWillTimeout() throws Exception {
-//        ResilientFuture<String> future = service.submit(TestActions.blockedAction(new CountDownLatch
+//        ResilientFuture<String> future = service.complete(TestActions.blockedAction(new CountDownLatch
 //                (1)), 1);
 //
 //        assertNull(future.get());
@@ -180,7 +180,7 @@ public class DefaultServiceTest {
 //    @Test
 //    public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
 //        ActionTimeoutException exception = new ActionTimeoutException();
-//        ResilientFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
+//        ResilientFuture<String> future = service.complete(TestActions.erredAction(exception), 100);
 //
 //        assertNull(future.get());
 //        assertEquals(Status.TIMEOUT, future.getStatus());
@@ -189,7 +189,7 @@ public class DefaultServiceTest {
 //    @Test
 //    public void erredActionWillReturnException() {
 //        RuntimeException exception = new RuntimeException();
-//        ResilientFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
+//        ResilientFuture<String> future = service.complete(TestActions.erredAction(exception), 100);
 //
 //        try {
 //            future.get();
@@ -211,11 +211,11 @@ public class DefaultServiceTest {
 //
 //        CountDownLatch blockingLatch = new CountDownLatch(1);
 //
-//        ResilientFuture<String> errorF = service.submit(TestActions.erredAction(new IOException()),
+//        ResilientFuture<String> errorF = service.complete(TestActions.erredAction(new IOException()),
 //                TestCallbacks.completePromiseCallback(errorPromise), 100);
-//        ResilientFuture<String> timeOutF = service.submit(TestActions.blockedAction(blockingLatch),
+//        ResilientFuture<String> timeOutF = service.complete(TestActions.blockedAction(blockingLatch),
 //                TestCallbacks.completePromiseCallback(timeOutPromise), 1);
-//        ResilientFuture<String> successF = service.submit(TestActions.successAction(50, "Success"),
+//        ResilientFuture<String> successF = service.complete(TestActions.successAction(50, "Success"),
 //                TestCallbacks.completePromiseCallback(successPromise), Long.MAX_VALUE);
 //
 //        errorPromise.await();
@@ -234,11 +234,11 @@ public class DefaultServiceTest {
 //        CountDownLatch blockingLatch = new CountDownLatch(3);
 //
 //        ResilientCallback<String> countdownCallback = TestCallbacks.latchedCallback(blockingLatch);
-//        ResilientFuture<String> errorF = service.submit(TestActions.erredAction(new IOException()),
+//        ResilientFuture<String> errorF = service.complete(TestActions.erredAction(new IOException()),
 //                countdownCallback, 100);
-//        ResilientFuture<String> timeOutF = service.submit(TestActions.blockedAction(timeoutLatch),
+//        ResilientFuture<String> timeOutF = service.complete(TestActions.blockedAction(timeoutLatch),
 //                countdownCallback, 1);
-//        ResilientFuture<String> successF = service.submit(TestActions.successAction(50, "Success"),
+//        ResilientFuture<String> successF = service.complete(TestActions.successAction(50, "Success"),
 //                countdownCallback, Long.MAX_VALUE);
 //
 //        for (ResilientFuture<String> f : Arrays.asList(errorF, timeOutF, successF)) {
@@ -270,11 +270,11 @@ public class DefaultServiceTest {
 //        CountDownLatch blockingLatch = new CountDownLatch(1);
 //        ResilientCallback<String> callback = TestCallbacks.latchedCallback(blockingLatch);
 //
-//        ResilientFuture<String> f = service.submit(TestActions.blockedAction(latch), callback,
+//        ResilientFuture<String> f = service.complete(TestActions.blockedAction(latch), callback,
 //                Long.MAX_VALUE);
 //
 //        try {
-//            service.submit(TestActions.successAction(1), callback, Long.MAX_VALUE);
+//            service.complete(TestActions.successAction(1), callback, Long.MAX_VALUE);
 //        } catch (RejectedActionException e) {
 //            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
 //        }
@@ -287,7 +287,7 @@ public class DefaultServiceTest {
 //        int maxConcurrencyErrors = 1;
 //        for (int i = 0; i < 5; ++i) {
 //            try {
-//                service.submit(TestActions.successAction(1), Long.MAX_VALUE);
+//                service.complete(TestActions.successAction(1), Long.MAX_VALUE);
 //            } catch (RejectedActionException e) {
 //                if (e.reason == RejectionReason.CIRCUIT_OPEN) {
 //                    break;
@@ -350,7 +350,7 @@ public class DefaultServiceTest {
 //        ServiceProperties properties = new ServiceProperties();
 //        properties.concurrencyLevel(1);
 //        service = Services.defaultService("Test", 1, properties);
-//        service.submit(TestActions.successAction(0), TestCallbacks.exceptionCallback(""), Long.MAX_VALUE);
+//        service.complete(TestActions.successAction(0), TestCallbacks.exceptionCallback(""), Long.MAX_VALUE);
 //
 //        int i = 0;
 //        while (true) {
@@ -387,7 +387,7 @@ public class DefaultServiceTest {
 //
 //        List<ResilientFuture<String>> fs = new ArrayList<>();
 //        for (int i = 0; i < 6; ++i) {
-//            fs.add(service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
+//            fs.add(service.complete(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
 //        }
 //
 //        for (ResilientFuture<String> f : fs) {
@@ -400,7 +400,7 @@ public class DefaultServiceTest {
 //        Thread.sleep(10);
 //
 //        try {
-//            service.submit(TestActions.successAction(0), 100);
+//            service.complete(TestActions.successAction(0), 100);
 //            fail("Should have been rejected due to open circuit.");
 //        } catch (RejectedActionException e) {
 //            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
@@ -408,10 +408,10 @@ public class DefaultServiceTest {
 //
 //        Thread.sleep(150);
 //
-//        ResilientFuture<String> f = service.submit(TestActions.successAction(0, "Result"), 100);
+//        ResilientFuture<String> f = service.complete(TestActions.successAction(0, "Result"), 100);
 //        assertEquals("Result", f.get());
 //
-//        ResilientFuture<String> fe = service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
+//        ResilientFuture<String> fe = service.complete(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
 //        try {
 //            fe.get();
 //        } catch (ExecutionException e) {
@@ -420,7 +420,7 @@ public class DefaultServiceTest {
 //        Thread.sleep(10);
 //
 //        try {
-//            service.submit(TestActions.successAction(0), 100);
+//            service.complete(TestActions.successAction(0), 100);
 //            fail("Should have been rejected due to open circuit.");
 //        } catch (RejectedActionException e) {
 //            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);

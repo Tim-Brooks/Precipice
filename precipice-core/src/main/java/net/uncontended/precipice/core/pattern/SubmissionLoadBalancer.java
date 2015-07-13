@@ -22,6 +22,7 @@ import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.RejectionReason;
 import net.uncontended.precipice.core.SubmissionService;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
@@ -66,8 +67,8 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     }
 
     @Override
-    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        final int firstServiceToTry = strategy.nextExecutorIndex();
+    public <T> PrecipiceFuture<T> complete(ResilientPatternAction<T, C> action, long millisTimeout) {
+        int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
         int j = 0;
@@ -85,6 +86,11 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
                 }
             }
         }
+    }
+
+    @Override
+    public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
+
     }
 
     @Override
