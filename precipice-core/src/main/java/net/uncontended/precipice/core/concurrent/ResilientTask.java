@@ -33,6 +33,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     public final long millisAbsoluteTimeout;
+    public final long millisRelativeTimeout;
     private final ResilientPromise<T> promise;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
@@ -49,6 +50,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
         this.action = action;
         this.callback = callback;
         this.promise = promise;
+        this.millisRelativeTimeout = millisRelativeTimeout;
         this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
     }
 
