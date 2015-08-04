@@ -24,6 +24,7 @@ import net.uncontended.precipice.core.circuit.CircuitBreaker;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
+import net.uncontended.precipice.core.timeout.TimeoutService;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +52,11 @@ public class ResilientTask<T> implements Runnable, Delayed {
         this.callback = callback;
         this.promise = promise;
         this.millisRelativeTimeout = millisRelativeTimeout;
-        this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
+        if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
+            this.millisAbsoluteTimeout = 0;
+        } else {
+            this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
+        }
     }
 
     @Override
