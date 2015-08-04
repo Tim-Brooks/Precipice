@@ -23,6 +23,7 @@ import net.uncontended.precipice.core.circuit.CircuitBreaker;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
+import net.uncontended.precipice.core.timeout.TimeoutService;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     public final long millisAbsoluteTimeout;
+    public final long millisRelativeTimeout;
     private final Promise<T> promise;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
@@ -46,7 +48,12 @@ public class ResilientTask<T> implements Runnable, Delayed {
         this.breaker = breaker;
         this.action = action;
         this.promise = promise;
-        this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
+        this.millisRelativeTimeout = millisRelativeTimeout;
+        if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
+            this.millisAbsoluteTimeout = 0;
+        } else {
+            this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
+        }
     }
 
     @Override

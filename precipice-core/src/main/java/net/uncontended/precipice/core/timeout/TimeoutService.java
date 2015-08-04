@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimeoutService {
 
+    public static final long NO_TIMEOUT = -1;
     public static final TimeoutService defaultTimeoutService = new TimeoutService("default");
     private final DelayQueue<ResilientTask<?>> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
@@ -40,7 +41,9 @@ public class TimeoutService {
         if (!isStarted.get()) {
             startThread();
         }
-        timeoutQueue.offer(task);
+        if (task.millisRelativeTimeout != NO_TIMEOUT) {
+            timeoutQueue.offer(task);
+        }
     }
 
     private void startThread() {

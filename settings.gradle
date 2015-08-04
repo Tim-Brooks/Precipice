@@ -14,4 +14,5 @@
  * limitations under the License.
  *
  */
-include 'precipice-core', 'precipice-samples'
+include 'precipice-core', 'precipice-samples', 'precipice-reporting'
+
