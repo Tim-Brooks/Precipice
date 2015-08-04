@@ -372,28 +372,32 @@ public class DefaultServiceTest {
 //        assertNewMetrics(metrics, expectedCounts);
 //    }
 //
-//    @Test
-//    public void semaphoreReleasedDespiteCallbackException() throws Exception {
-//        ServiceProperties properties = new ServiceProperties();
-//        properties.concurrencyLevel(1);
-//        service = Services.defaultService("Test", 1, properties);
-//        service.complete(TestActions.successAction(0), TestCallbacks.exceptionCallback(""), Long.MAX_VALUE);
-//
-//        int i = 0;
-//        while (true) {
-//            try {
-//                service.run(TestActions.successAction(0));
-//                break;
-//            } catch (RejectedActionException e) {
-//                Thread.sleep(5);
-//                if (i == 20) {
-//                    fail("Continue to receive action rejects.");
-//                }
-//            }
-//            ++i;
-//        }
-//
-//    }
+    @Test
+    public void semaphoreReleasedDespiteCallbackException() throws Exception {
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(1);
+        service = Services.defaultService("Test", 1, properties);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        future.onSuccess(TestCallbacks.exceptionCallback(""));
+        latch.countDown();
+
+        int i = 0;
+        while (true) {
+            try {
+                service.run(TestActions.successAction(0));
+                break;
+            } catch (RejectedActionException e) {
+                Thread.sleep(5);
+                if (i == 20) {
+                    fail("Continue to receive action rejects.");
+                }
+            }
+            ++i;
+        }
+
+    }
 //
 //    @Test
 //    public void circuitBreaker() throws Exception {

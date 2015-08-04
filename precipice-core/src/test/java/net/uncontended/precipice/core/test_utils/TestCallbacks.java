@@ -42,10 +42,10 @@ public class TestCallbacks {
         };
     }
 
-    public static <T> PrecipiceFunction<Throwable> exceptionCallback(T type) {
-        return new PrecipiceFunction<Throwable>() {
+    public static <T> PrecipiceFunction<T> exceptionCallback(T type) {
+        return new PrecipiceFunction<T>() {
             @Override
-            public void apply(Throwable exception) {
+            public void apply(T exception) {
                 throw new RuntimeException("Boom");
             }
         };
