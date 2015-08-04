@@ -20,16 +20,23 @@ package net.uncontended.precipice.core;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.metrics.ActionMetrics;
+import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.test_utils.TestActions;
+import net.uncontended.precipice.core.test_utils.TestCallbacks;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -165,7 +172,7 @@ public class DefaultServiceTest {
     public void submittedActionWillTimeout() throws Exception {
         PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(new CountDownLatch
                 (1)), 1);
-        
+
         assertNull(future.get());
 
         assertEquals(Status.TIMEOUT, future.getStatus());
@@ -243,40 +250,44 @@ public class DefaultServiceTest {
         assertSame(resultString, successF.get());
         assertTrue(isTimedOut.get());
     }
-//
-//    @Test
-//    public void resultMetricsUpdated() throws Exception {
-//        CountDownLatch timeoutLatch = new CountDownLatch(1);
-//        CountDownLatch blockingLatch = new CountDownLatch(3);
-//
-//        ResilientCallback<String> countdownCallback = TestCallbacks.latchedCallback(blockingLatch);
-//        ResilientFuture<String> errorF = service.complete(TestActions.erredAction(new IOException()),
-//                countdownCallback, 100);
-//        ResilientFuture<String> timeOutF = service.complete(TestActions.blockedAction(timeoutLatch),
-//                countdownCallback, 1);
-//        ResilientFuture<String> successF = service.complete(TestActions.successAction(50, "Success"),
-//                countdownCallback, Long.MAX_VALUE);
-//
-//        for (ResilientFuture<String> f : Arrays.asList(errorF, timeOutF, successF)) {
-//            try {
-//                f.get();
-//                f.get();
-//                f.get();
-//            } catch (ExecutionException e) {
-//            }
-//        }
-//
-//        ActionMetrics metrics = service.getActionMetrics();
-//        Map<Object, Integer> expectedCounts = new HashMap<>();
-//        expectedCounts.put(Status.SUCCESS, 1);
-//        expectedCounts.put(Status.ERROR, 1);
-//        expectedCounts.put(Status.TIMEOUT, 1);
-//
-//        blockingLatch.await();
-//
-//        assertNewMetrics(metrics, expectedCounts);
-//    }
-//
+
+    @Test
+    public void resultMetricsUpdated() throws Exception {
+        CountDownLatch timeoutLatch = new CountDownLatch(1);
+        CountDownLatch blockingLatch = new CountDownLatch(3);
+
+        PrecipiceFuture<String> errorF = service.submit(TestActions.erredAction(new IOException()), 100);
+        PrecipiceFunction<Throwable> callback = TestCallbacks.latchedCallback(blockingLatch);
+        errorF.onError(callback);
+        PrecipiceFuture<String> timeOutF = service.submit(TestActions.blockedAction(timeoutLatch), 1);
+        PrecipiceFunction<Void> callback2 = TestCallbacks.latchedCallback(blockingLatch);
+        timeOutF.onTimeout(callback2);
+
+        PrecipiceFuture<String> successF = service.submit(TestActions.successAction(50, "Success"), Long.MAX_VALUE);
+        PrecipiceFunction<String> callback3 = TestCallbacks.latchedCallback(blockingLatch);
+        successF.onSuccess(callback3);
+
+        for (PrecipiceFuture<String> f : Arrays.asList(errorF, timeOutF, successF)) {
+            try {
+                f.get();
+                f.get();
+                f.get();
+            } catch (ExecutionException e) {
+            }
+        }
+
+        ActionMetrics metrics = service.getActionMetrics();
+        Map<Object, Integer> expectedCounts = new HashMap<>();
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.ERROR, 1);
+        expectedCounts.put(Status.TIMEOUT, 1);
+
+        blockingLatch.await();
+
+        assertNewMetrics(metrics, expectedCounts);
+    }
+
+    //
 //    @Test
 //    public void rejectedMetricsUpdated() throws Exception {
 //        ServiceProperties properties = new ServiceProperties();
@@ -443,22 +454,22 @@ public class DefaultServiceTest {
 //        }
 //    }
 //
-//    private void assertNewMetrics(ActionMetrics metrics, Map<Object, Integer> expectedCounts) {
-//        int milliseconds = 5;
-//        int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
-//        int expectedSuccesses = expectedCounts.get(Status.SUCCESS) == null ? 0 : expectedCounts.get(Status.SUCCESS);
-//        int expectedTimeouts = expectedCounts.get(Status.TIMEOUT) == null ? 0 : expectedCounts.get(Status.TIMEOUT);
-//        int expectedMaxConcurrency = expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
-//                expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-//        int expectedCircuitOpen = expectedCounts.get(RejectionReason.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get
-//                (RejectionReason.CIRCUIT_OPEN);
-//
-//        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(Metric.ERROR, milliseconds, TimeUnit.SECONDS));
-//        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, milliseconds, TimeUnit.SECONDS));
-//        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, milliseconds, TimeUnit.SECONDS));
-//        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
-//        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
-//        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
-//
-//    }
+    private void assertNewMetrics(ActionMetrics metrics, Map<Object, Integer> expectedCounts) {
+        int milliseconds = 5;
+        int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
+        int expectedSuccesses = expectedCounts.get(Status.SUCCESS) == null ? 0 : expectedCounts.get(Status.SUCCESS);
+        int expectedTimeouts = expectedCounts.get(Status.TIMEOUT) == null ? 0 : expectedCounts.get(Status.TIMEOUT);
+        int expectedMaxConcurrency = expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
+                expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        int expectedCircuitOpen = expectedCounts.get(RejectionReason.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get
+                (RejectionReason.CIRCUIT_OPEN);
+
+        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(Metric.ERROR, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
+
+    }
 }
