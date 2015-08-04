@@ -20,7 +20,10 @@ package net.uncontended.precipice.core.concurrent;
 import net.uncontended.precipice.core.PrecipiceFunction;
 import net.uncontended.precipice.core.Status;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
@@ -87,7 +90,11 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     @Override
     public T get() throws InterruptedException, ExecutionException {
         latch.await();
-        return result;
+        if (result != null) {
+            return result;
+        } else {
+            throw new ExecutionException(exception);
+        }
     }
 
     @Override

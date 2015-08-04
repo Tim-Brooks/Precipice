@@ -17,17 +17,20 @@
 
 package net.uncontended.precipice.core;
 
+import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.test_utils.TestActions;
+import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class DefaultServiceTest {
 
@@ -106,88 +109,88 @@ public class DefaultServiceTest {
         }
     }
 
-//    @Test
-//    public void actionIsSubmittedAndRan() throws Exception {
-//        ResilientFuture<String> f = service.complete(TestActions.successAction(1), 500);
-//
-//        assertEquals("Success", f.get());
-//        assertEquals(Status.SUCCESS, f.getStatus());
-//    }
-//
-//    @Test
-//    public void futureIsPendingUntilSubmittedActionFinished() throws Exception {
-//        CountDownLatch latch = new CountDownLatch(1);
-//        ResilientFuture<String> f = service.complete(TestActions.blockedAction(latch), Long.MAX_VALUE);
-//        assertEquals(Status.PENDING, f.getStatus());
-//        latch.countDown();
-//        f.get();
-//        assertEquals(Status.SUCCESS, f.getStatus());
-//    }
-//
-//    @Test
-//    public void runCompletesAction() throws Exception {
-//        String result = service.run(TestActions.successAction(1));
-//        assertEquals("Success", result);
-//    }
-//
-//    @Test
-//    public void promisePassedToExecutorWillBeCompleted() throws Exception {
-//        DefaultResilientPromise<String> promise = new DefaultResilientPromise<>();
-//        service.submitAndComplete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
-//
-//        assertEquals("Same Promise", promise.awaitResult());
-//
-//    }
-//
-//    @Test
-//    public void promiseWillNotBeCompletedTwice() throws Exception {
-//        CountDownLatch latch = new CountDownLatch(1);
-//        DefaultResilientPromise<String> promise = new DefaultResilientPromise<>();
-//
-//        service.submitAndComplete(TestActions.blockedAction(latch), promise, Long.MAX_VALUE);
-//
-//        promise.deliverResult("CompleteOnThisThread");
-//        latch.countDown();
-//
-//        for (int i = 0; i < 10; ++i) {
-//            Thread.sleep(5);
-//            assertEquals("CompleteOnThisThread", promise.awaitResult());
-//        }
-//    }
-//
-//    @Test
-//    public void submittedActionWillTimeout() throws Exception {
-//        ResilientFuture<String> future = service.complete(TestActions.blockedAction(new CountDownLatch
-//                (1)), 1);
-//
-//        assertNull(future.get());
-//        assertEquals(Status.TIMEOUT, future.getStatus());
-//    }
-//
-//    @Test
-//    public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
-//        ActionTimeoutException exception = new ActionTimeoutException();
-//        ResilientFuture<String> future = service.complete(TestActions.erredAction(exception), 100);
-//
-//        assertNull(future.get());
-//        assertEquals(Status.TIMEOUT, future.getStatus());
-//    }
-//
-//    @Test
-//    public void erredActionWillReturnException() {
-//        RuntimeException exception = new RuntimeException();
-//        ResilientFuture<String> future = service.complete(TestActions.erredAction(exception), 100);
-//
-//        try {
-//            future.get();
-//            fail();
-//        } catch (InterruptedException e) {
-//            fail();
-//        } catch (ExecutionException e) {
-//            assertEquals(exception, e.getCause());
-//        }
-//        assertEquals(Status.ERROR, future.getStatus());
-//    }
+    @Test
+    public void actionIsSubmittedAndRan() throws Exception {
+        PrecipiceFuture<String> f = service.submit(TestActions.successAction(1), 500);
+
+        assertEquals("Success", f.get());
+        assertEquals(Status.SUCCESS, f.getStatus());
+    }
+
+    @Test
+    public void futureIsPendingUntilSubmittedActionFinished() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        PrecipiceFuture<String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        assertEquals(Status.PENDING, f.getStatus());
+        latch.countDown();
+        f.get();
+        assertEquals(Status.SUCCESS, f.getStatus());
+    }
+
+    @Test
+    public void runCompletesAction() throws Exception {
+        String result = service.run(TestActions.successAction(1));
+        assertEquals("Success", result);
+    }
+
+    @Test
+    public void promisePassedToExecutorWillBeCompleted() throws Exception {
+        Promise<String> promise = new Eventual<>();
+        service.complete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
+
+        assertEquals("Same Promise", promise.future().get());
+
+    }
+
+    @Test
+    public void promiseWillNotBeCompletedTwice() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        Promise<String> promise = new Eventual<>();
+
+        service.complete(TestActions.blockedAction(latch), promise, Long.MAX_VALUE);
+
+        promise.complete("CompleteOnThisThread");
+        latch.countDown();
+
+        for (int i = 0; i < 10; ++i) {
+            Thread.sleep(5);
+            assertEquals("CompleteOnThisThread", promise.future().get());
+        }
+    }
+
+    @Test
+    public void submittedActionWillTimeout() throws Exception {
+        PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(new CountDownLatch
+                (1)), 1);
+
+        assertNull(future.get());
+        assertEquals(Status.TIMEOUT, future.getStatus());
+    }
+
+    @Test
+    public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
+        ActionTimeoutException exception = new ActionTimeoutException();
+        PrecipiceFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
+
+        assertNull(future.get());
+        assertEquals(Status.TIMEOUT, future.getStatus());
+    }
+
+    @Test
+    public void erredActionWillReturnException() {
+        RuntimeException exception = new RuntimeException();
+        PrecipiceFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
+
+        try {
+            future.get();
+            fail();
+        } catch (InterruptedException e) {
+            fail();
+        } catch (ExecutionException e) {
+            assertEquals(exception, e.getCause());
+        }
+        assertEquals(Status.ERROR, future.getStatus());
+    }
 //
 //    @Test
 //    public void attachedCallbacksWillBeExecutedOnCompletion() throws Exception {
