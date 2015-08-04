@@ -31,9 +31,9 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     private volatile Throwable exception;
     private final CountDownLatch latch = new CountDownLatch(1);
     private final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
-    private final AtomicReference<PrecipiceFunction<T, ?>> successCallback = new AtomicReference<>();
-    private final AtomicReference<PrecipiceFunction<Throwable, ?>> errorCallback = new AtomicReference<>();
-    private final AtomicReference<PrecipiceFunction<Void, ?>> timeoutCallback = new AtomicReference<>();
+    private final AtomicReference<PrecipiceFunction<T>> successCallback = new AtomicReference<>();
+    private final AtomicReference<PrecipiceFunction<Throwable>> errorCallback = new AtomicReference<>();
+    private final AtomicReference<PrecipiceFunction<Void>> timeoutCallback = new AtomicReference<>();
 
     @Override
     public boolean complete(T result) {
@@ -41,7 +41,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
             if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
                 this.result = result;
                 latch.countDown();
-                PrecipiceFunction<T, ?> cb = successCallback.get();
+                PrecipiceFunction<T> cb = successCallback.get();
                 if (cb != null && successCallback.compareAndSet(cb, null)) {
                     cb.apply(result);
                 }
@@ -57,7 +57,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
                 this.exception = ex;
                 latch.countDown();
-                PrecipiceFunction<Throwable, ?> cb = errorCallback.get();
+                PrecipiceFunction<Throwable> cb = errorCallback.get();
                 if (cb != null && errorCallback.compareAndSet(cb, null)) {
                     cb.apply(ex);
                 }
@@ -72,7 +72,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
                 latch.countDown();
-                PrecipiceFunction<Void, ?> cb = timeoutCallback.get();
+                PrecipiceFunction<Void> cb = timeoutCallback.get();
                 if (cb != null && timeoutCallback.compareAndSet(cb, null)) {
                     cb.apply(null);
                 }
@@ -92,8 +92,10 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
         latch.await();
         if (result != null) {
             return result;
-        } else {
+        } else if (exception != null) {
             throw new ExecutionException(exception);
+        } else {
+            return null;
         }
     }
 
@@ -108,6 +110,11 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
         } else {
             throw new TimeoutException();
         }
+    }
+
+    @Override
+    public void await() throws InterruptedException {
+        latch.await();
     }
 
     @Override
@@ -126,7 +133,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     }
 
     @Override
-    public <R> void onSuccess(PrecipiceFunction<T, R> fn) {
+    public void onSuccess(PrecipiceFunction<T> fn) {
         if (status.get() == Status.SUCCESS) {
             fn.apply(result);
         } else {
@@ -139,7 +146,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     }
 
     @Override
-    public <R> void onError(PrecipiceFunction<Throwable, R> fn) {
+    public void onError(PrecipiceFunction<Throwable> fn) {
         if (status.get() == Status.ERROR) {
             fn.apply(exception);
         } else {
@@ -152,7 +159,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     }
 
     @Override
-    public <R> void onTimeout(PrecipiceFunction<Void, R> fn) {
+    public void onTimeout(PrecipiceFunction<Void> fn) {
         if (status.get() == Status.TIMEOUT) {
             fn.apply(null);
         } else {

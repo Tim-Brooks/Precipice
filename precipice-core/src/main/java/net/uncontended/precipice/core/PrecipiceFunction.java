@@ -18,7 +18,7 @@
 package net.uncontended.precipice.core;
 
 @FunctionalInterface
-public interface PrecipiceFunction<T, V> {
+public interface PrecipiceFunction<T> {
 
-    V apply(T argument);
+    void apply(T argument);
 }

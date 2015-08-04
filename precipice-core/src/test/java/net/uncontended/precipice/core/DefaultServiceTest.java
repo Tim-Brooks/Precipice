@@ -26,9 +26,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
 
@@ -162,8 +165,9 @@ public class DefaultServiceTest {
     public void submittedActionWillTimeout() throws Exception {
         PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(new CountDownLatch
                 (1)), 1);
-
+        
         assertNull(future.get());
+
         assertEquals(Status.TIMEOUT, future.getStatus());
     }
 
@@ -191,32 +195,54 @@ public class DefaultServiceTest {
         }
         assertEquals(Status.ERROR, future.getStatus());
     }
-//
-//    @Test
-//    public void attachedCallbacksWillBeExecutedOnCompletion() throws Exception {
-//        ResilientPromise<ResilientPromise<String>> errorPromise = new DefaultResilientPromise<>();
-//        ResilientPromise<ResilientPromise<String>> successPromise = new DefaultResilientPromise<>();
-//        ResilientPromise<ResilientPromise<String>> timeOutPromise = new DefaultResilientPromise<>();
-//
-//
-//        CountDownLatch blockingLatch = new CountDownLatch(1);
-//
-//        ResilientFuture<String> errorF = service.complete(TestActions.erredAction(new IOException()),
-//                TestCallbacks.completePromiseCallback(errorPromise), 100);
-//        ResilientFuture<String> timeOutF = service.complete(TestActions.blockedAction(blockingLatch),
-//                TestCallbacks.completePromiseCallback(timeOutPromise), 1);
-//        ResilientFuture<String> successF = service.complete(TestActions.successAction(50, "Success"),
-//                TestCallbacks.completePromiseCallback(successPromise), Long.MAX_VALUE);
-//
-//        errorPromise.await();
-//        successPromise.await();
-//        timeOutPromise.await();
-//        blockingLatch.countDown();
-//
-//        assertEquals(errorF.promise, errorPromise.getResult());
-//        assertEquals(successF.promise, successPromise.getResult());
-//        assertEquals(timeOutF.promise, timeOutPromise.getResult());
-//    }
+
+    @Test
+    public void attachedCallbacksWillBeExecutedOnCompletion() throws Exception {
+        // Replace with Futures test
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+        final AtomicReference<String> result = new AtomicReference<>();
+        final AtomicBoolean isTimedOut = new AtomicBoolean(false);
+
+
+        CountDownLatch blockingLatch = new CountDownLatch(1);
+        final CountDownLatch callbackLatch = new CountDownLatch(3);
+
+        IOException exception = new IOException();
+        PrecipiceFuture<String> errorF = service.submit(TestActions.erredAction(exception), 100);
+        errorF.onError(new PrecipiceFunction<Throwable>() {
+            @Override
+            public void apply(Throwable argument) {
+                error.set(argument);
+                callbackLatch.countDown();
+            }
+        });
+
+        PrecipiceFuture<String> timeOutF = service.submit(TestActions.blockedAction(blockingLatch), 1);
+        timeOutF.onTimeout(new PrecipiceFunction<Void>() {
+            @Override
+            public void apply(Void argument) {
+                isTimedOut.set(true);
+                callbackLatch.countDown();
+            }
+        });
+
+        String resultString = "Success";
+        final PrecipiceFuture<String> successF = service.submit(TestActions.successAction(50, resultString), Long.MAX_VALUE);
+        successF.onSuccess(new PrecipiceFunction<String>() {
+            @Override
+            public void apply(String argument) {
+                result.set(argument);
+                callbackLatch.countDown();
+            }
+        });
+
+        callbackLatch.await();
+        blockingLatch.countDown();
+
+        assertSame(exception, error.get());
+        assertSame(resultString, successF.get());
+        assertTrue(isTimedOut.get());
+    }
 //
 //    @Test
 //    public void resultMetricsUpdated() throws Exception {

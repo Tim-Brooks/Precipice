@@ -23,6 +23,7 @@ public class BreakerConfigBuilder {
     public int failurePercentageThreshold = 50;
     public long healthRefreshMillis = 500;
     public long backOffTimeMillis = 1000;
+    public long sampleSizeThreshold = 10;
 
     public BreakerConfigBuilder trailingPeriodMillis(long trailingPeriodMillis) {
         this.trailingPeriodMillis = trailingPeriodMillis;
@@ -49,9 +50,14 @@ public class BreakerConfigBuilder {
         return this;
     }
 
+    public BreakerConfigBuilder sampleSizeThreshold(long sampleSizeThreshold) {
+        this.sampleSizeThreshold = sampleSizeThreshold;
+        return this;
+    }
+
     public BreakerConfig build() {
         return new BreakerConfig(failureThreshold, failurePercentageThreshold, trailingPeriodMillis,
-                healthRefreshMillis, backOffTimeMillis);
+                healthRefreshMillis, backOffTimeMillis, sampleSizeThreshold);
     }
 
 }

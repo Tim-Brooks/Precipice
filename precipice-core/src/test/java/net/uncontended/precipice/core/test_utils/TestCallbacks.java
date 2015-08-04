@@ -17,36 +17,35 @@
 
 package net.uncontended.precipice.core.test_utils;
 
-import net.uncontended.precipice.core.ResilientCallback;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
+import net.uncontended.precipice.core.PrecipiceFunction;
+import net.uncontended.precipice.core.concurrent.Promise;
 
 import java.util.concurrent.CountDownLatch;
 
 public class TestCallbacks {
 
-    public static <T> ResilientCallback<T> completePromiseCallback(final ResilientPromise<ResilientPromise<T>>
-                                                                           promiseToComplete) {
-        return new ResilientCallback<T>() {
+    public static <T> PrecipiceFunction<T> completePromiseCallback(final Promise<T> promiseToComplete) {
+        return new PrecipiceFunction<T>() {
             @Override
-            public void run(ResilientPromise<T> promise) {
-                promiseToComplete.deliverResult(promise);
+            public void apply(T result) {
+                promiseToComplete.complete(result);
             }
         };
     }
 
-    public static <T> ResilientCallback<T> latchedCallback(final CountDownLatch latch) {
-        return new ResilientCallback<T>() {
+    public static <T> PrecipiceFunction<T> latchedCallback(final CountDownLatch latch) {
+        return new PrecipiceFunction<T>() {
             @Override
-            public void run(ResilientPromise<T> resultPromise) {
+            public void apply(T resultPromise) {
                 latch.countDown();
             }
         };
     }
 
-    public static <T> ResilientCallback<T> exceptionCallback(T type) {
-        return new ResilientCallback<T>() {
+    public static <T> PrecipiceFunction<Throwable> exceptionCallback(T type) {
+        return new PrecipiceFunction<Throwable>() {
             @Override
-            public void run(ResilientPromise<T> resultPromise) {
+            public void apply(Throwable exception) {
                 throw new RuntimeException("Boom");
             }
         };

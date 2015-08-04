@@ -24,11 +24,13 @@ import java.util.concurrent.Future;
 
 public interface PrecipiceFuture<T> extends Future<T> {
 
-    <R> void onSuccess(PrecipiceFunction<T, R> fn);
+    void onSuccess(PrecipiceFunction<T> fn);
 
-    <R> void onError(PrecipiceFunction<Throwable, R> fn);
+    void onError(PrecipiceFunction<Throwable> fn);
 
-    <R> void onTimeout(PrecipiceFunction<Void, R> fn);
+    void onTimeout(PrecipiceFunction<Void> fn);
+
+    void await() throws InterruptedException;
 
     Status getStatus();
 }

@@ -24,14 +24,16 @@ public class BreakerConfig {
     public final long trailingPeriodMillis;
     public final long healthRefreshMillis;
     public final long backOffTimeMillis;
+    public final long sampleSizeThreshold;
 
     public BreakerConfig(long failureThreshold, int failurePercentageThreshold, long trailingPeriodMillis,
-                         long healthRefreshMillis, long backOffTimeMillis) {
+                         long healthRefreshMillis, long backOffTimeMillis, long sampleSizeThreshold) {
         this.failureThreshold = failureThreshold;
         this.failurePercentageThreshold = failurePercentageThreshold;
         this.trailingPeriodMillis = trailingPeriodMillis;
         this.healthRefreshMillis = healthRefreshMillis;
         this.backOffTimeMillis = backOffTimeMillis;
+        this.sampleSizeThreshold = sampleSizeThreshold;
     }
 
 }
