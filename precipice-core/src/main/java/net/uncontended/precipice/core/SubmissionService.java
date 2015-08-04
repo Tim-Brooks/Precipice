@@ -19,7 +19,6 @@ package net.uncontended.precipice.core;
 
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.Promise;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 /**
  * A service that actions can be submitted to or performed on. A service
@@ -38,7 +37,7 @@ public interface SubmissionService extends Service {
      * @param action        the action to complete
      * @param millisTimeout milliseconds before the action times out
      * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
+     * @return a {@link PrecipiceFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
     <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout);

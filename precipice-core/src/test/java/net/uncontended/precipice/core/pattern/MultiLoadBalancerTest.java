@@ -148,13 +148,13 @@ public class MultiLoadBalancerTest {
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
         long timeout = 100L;
-        ResilientPromise<String> promise = mock(ResilientPromise.class);
+        Promise<String> promise = mock(Promise.class);
 
         balancer.complete(action, timeout);
 
         verify(executor1).submit(any(ResilientAction.class), eq(timeout));
 
-        when(promise.getStatus()).thenReturn(Status.ERROR);
+//        when(promise.getStatus()).thenReturn(Status.ERROR);
 
         verify(metrics).incrementMetricCount(Metric.ERROR);
     }

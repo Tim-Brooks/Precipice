@@ -18,10 +18,8 @@
 package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.RejectedActionException;
-import net.uncontended.precipice.core.ResilientCallback;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.Promise;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 public interface SubmissionPattern<C> extends Pattern<C> {
     /**
@@ -33,7 +31,7 @@ public interface SubmissionPattern<C> extends Pattern<C> {
      * @param action        the action to complete
      * @param millisTimeout milliseconds before the action times out
      * @param <T>           the type of the result of the action
-     * @return a {@link ResilientFuture} representing pending completion of the action
+     * @return a {@link PrecipiceFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
     <T> PrecipiceFuture<T> complete(ResilientPatternAction<T, C> action, long millisTimeout);

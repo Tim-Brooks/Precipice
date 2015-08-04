@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A class wrapping the result of an action that will be completed at some point in
- * the future. It is similar to {@link ResilientFuture}. However, unlike a future, a
+ * the future. It is similar to {@link PrecipiceFuture}. However, unlike a future, a
  * promise can be written to. A promise can only completed once. Once it is completed,
  * all further attempts to update the status should fail.
  *

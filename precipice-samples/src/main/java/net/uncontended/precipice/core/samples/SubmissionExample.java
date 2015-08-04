@@ -21,7 +21,6 @@ import net.uncontended.precipice.core.Services;
 import net.uncontended.precipice.core.Status;
 import net.uncontended.precipice.core.SubmissionService;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;

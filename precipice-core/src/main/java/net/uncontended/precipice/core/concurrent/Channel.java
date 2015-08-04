@@ -22,22 +22,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Channel<T> {
 
-    private final ResilientPromise<T>[] promises;
+    private final Promise<T>[] promises;
     private int tail = 0;
     private AtomicInteger head = new AtomicInteger(0);
 
     @SuppressWarnings("unchecked")
     public Channel(int size) {
-        promises = (ResilientPromise<T>[]) new ResilientPromise[size];
+        promises = (Promise<T>[]) new Promise[size];
     }
 
-    public ResilientPromise<T> select() {
+    public Promise<T> select() {
         return select(-1, null);
     }
 
-    public ResilientPromise<T> select(long duration, TimeUnit unit) {
+    public Promise<T> select(long duration, TimeUnit unit) {
         for (; ; ) {
-            ResilientPromise<T> promise = promises[tail];
+            Promise<T> promise = promises[tail];
             if (promise != null) {
                 ++tail;
                 return promise;
@@ -47,7 +47,7 @@ public class Channel<T> {
         }
     }
 
-    public void put(ResilientPromise<T> promise) {
+    public void put(Promise<T> promise) {
         int currentHead = head.getAndIncrement();
         promises[currentHead] = promise;
     }

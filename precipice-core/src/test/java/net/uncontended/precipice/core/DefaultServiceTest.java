@@ -17,30 +17,17 @@
 
 package net.uncontended.precipice.core;
 
-import net.uncontended.precipice.core.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.core.circuit.CircuitBreaker;
-import net.uncontended.precipice.core.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.core.concurrent.DefaultResilientPromise;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
-import net.uncontended.precipice.core.metrics.ActionMetrics;
-import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.test_utils.TestActions;
-import net.uncontended.precipice.core.test_utils.TestCallbacks;
-import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class DefaultServiceTest {
 

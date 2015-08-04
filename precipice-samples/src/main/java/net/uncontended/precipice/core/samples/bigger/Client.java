@@ -21,10 +21,10 @@ import com.squareup.okhttp.*;
 import net.uncontended.precipice.core.*;
 import net.uncontended.precipice.core.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.core.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.core.concurrent.ResilientFuture;
-import net.uncontended.precipice.core.pattern.ResilientPatternAction;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.pattern.LoadBalancers;
+import net.uncontended.precipice.core.pattern.ResilientPatternAction;
 import net.uncontended.precipice.core.pattern.SubmissionPattern;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class Client {
             Thread.sleep(20);
 
             try {
-                ResilientFuture<String> f = loadBalancer.complete(new Action(), 20L);
+                PrecipiceFuture<String> f = loadBalancer.complete(new Action(), 20L);
                 String result = f.get();
                 Status status = f.getStatus();
 
