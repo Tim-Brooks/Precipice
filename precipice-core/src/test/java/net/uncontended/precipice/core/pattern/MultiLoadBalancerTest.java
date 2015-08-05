@@ -153,7 +153,7 @@ public class MultiLoadBalancerTest {
 
         verify(executor1).submit(any(ResilientAction.class), eq(timeout));
 
-//        when(promise.getStatus()).thenReturn(Status.ERROR);
+        when(promise.future().getStatus()).thenReturn(Status.ERROR);
 
         verify(metrics).incrementMetricCount(Metric.ERROR);
     }
@@ -187,8 +187,8 @@ public class MultiLoadBalancerTest {
         RejectedActionException rejected = new RejectedActionException(RejectionReason.CIRCUIT_OPEN);
 
         when(strategy.nextExecutorIndex()).thenReturn(0).thenReturn(1);
-        when(executor1.submit(any(ResilientAction.class), eq(timeout))).thenThrow(rejected);
-        when(executor2.submit(any(ResilientAction.class), eq(timeout))).thenThrow(rejected);
+        doThrow(rejected).when(executor1).complete(any(ResilientAction.class), any(Promise.class), eq(timeout));
+        doThrow(rejected).when(executor2).complete(any(ResilientAction.class), any(Promise.class), eq(timeout));
 
         try {
             balancer.submit(action, timeout);

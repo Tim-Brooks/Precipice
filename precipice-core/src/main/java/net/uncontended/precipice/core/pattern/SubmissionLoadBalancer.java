@@ -17,10 +17,8 @@
 
 package net.uncontended.precipice.core.pattern;
 
-import net.uncontended.precipice.core.MultiService;
-import net.uncontended.precipice.core.RejectedActionException;
-import net.uncontended.precipice.core.RejectionReason;
-import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.*;
+import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
@@ -68,24 +66,27 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
 
     @Override
     public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        int firstServiceToTry = strategy.nextExecutorIndex();
-        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-
-        int j = 0;
-        int serviceCount = services.length;
-        while (true) {
-            try {
-                int serviceIndex = (firstServiceToTry + j) % serviceCount;
-                actionWithContext.context = contexts[serviceIndex];
-                return services[serviceIndex].submit(actionWithContext, millisTimeout);
-            } catch (RejectedActionException e) {
-                ++j;
-                if (j == serviceCount) {
-                    metrics.incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
-                }
+        Eventual<T> promise = new Eventual<>();
+        promise.onSuccess(new PrecipiceFunction<T>() {
+            @Override
+            public void apply(T argument) {
+                metrics.incrementMetricCount(Metric.SUCCESS);
             }
-        }
+        });
+        promise.onError(new PrecipiceFunction<Throwable>() {
+            @Override
+            public void apply(Throwable argument) {
+                metrics.incrementMetricCount(Metric.ERROR);
+            }
+        });
+        promise.onTimeout(new PrecipiceFunction<Void>() {
+            @Override
+            public void apply(Void argument) {
+                metrics.incrementMetricCount(Metric.TIMEOUT);
+            }
+        });
+        complete(action, promise, millisTimeout);
+        return promise;
     }
 
     @Override
