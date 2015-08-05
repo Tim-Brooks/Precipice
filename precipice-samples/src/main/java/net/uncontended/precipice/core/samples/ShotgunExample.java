@@ -58,7 +58,7 @@ public class ShotgunExample {
 
         // Will complete the action to two of the services. If all of the services reject the action,
         // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
-        PrecipiceFuture<String> f = shotgun.complete(new ResilientPatternAction<String, Map<String, String>>() {
+        PrecipiceFuture<String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {
                 return context.get("port");

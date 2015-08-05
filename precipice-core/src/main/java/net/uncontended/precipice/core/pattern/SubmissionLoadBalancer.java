@@ -67,24 +67,6 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     @Override
     public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         Eventual<T> promise = new Eventual<>();
-        promise.onSuccess(new PrecipiceFunction<T>() {
-            @Override
-            public void apply(T argument) {
-                metrics.incrementMetricCount(Metric.SUCCESS);
-            }
-        });
-        promise.onError(new PrecipiceFunction<Throwable>() {
-            @Override
-            public void apply(Throwable argument) {
-                metrics.incrementMetricCount(Metric.ERROR);
-            }
-        });
-        promise.onTimeout(new PrecipiceFunction<Void>() {
-            @Override
-            public void apply(Void argument) {
-                metrics.incrementMetricCount(Metric.TIMEOUT);
-            }
-        });
         complete(action, promise, millisTimeout);
         return promise;
     }
@@ -93,6 +75,25 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
+        PrecipiceFuture<T> future = promise.future();
+        future.onSuccess(new PrecipiceFunction<T>() {
+            @Override
+            public void apply(T argument) {
+                metrics.incrementMetricCount(Metric.SUCCESS);
+            }
+        });
+        future.onError(new PrecipiceFunction<Throwable>() {
+            @Override
+            public void apply(Throwable argument) {
+                metrics.incrementMetricCount(Metric.ERROR);
+            }
+        });
+        future.onTimeout(new PrecipiceFunction<Void>() {
+            @Override
+            public void apply(Void argument) {
+                metrics.incrementMetricCount(Metric.TIMEOUT);
+            }
+        });
 
         int j = 0;
         int serviceCount = services.length;

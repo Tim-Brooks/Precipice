@@ -18,6 +18,8 @@
 package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.*;
+import net.uncontended.precipice.core.concurrent.Eventual;
+import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
@@ -26,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -90,6 +93,7 @@ public class MultiLoadBalancerTest {
     public void submitActionCalledWithCorrectArguments() throws Exception {
         long timeout = 100L;
         Promise<String> promise = mock(Promise.class);
+        when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         balancer.complete(action, promise, timeout);
@@ -108,6 +112,7 @@ public class MultiLoadBalancerTest {
     public void submitTriedOnSecondServiceIfRejectedOnFirst() throws Exception {
         long timeout = 100L;
         Promise<String> promise = mock(Promise.class);
+        when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
@@ -130,30 +135,16 @@ public class MultiLoadBalancerTest {
     }
 
     @Test
-    public void callbackUpdatesMetricsAndCallsUserCallbackForSubmitAndComplete() throws Exception {
+    public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
         long timeout = 100L;
-        Promise<String> promise = mock(Promise.class);
-        ArgumentCaptor<ResilientCallback> callbackCaptor = ArgumentCaptor.forClass(ResilientCallback.class);
+        Promise<String> promise = new Eventual<>();
+
 
         balancer.complete(action, promise, timeout);
 
         verify(executor1).complete(any(ResilientAction.class), eq(promise), eq(timeout));
 
-        when(promise.future().getStatus()).thenReturn(Status.SUCCESS);
-
-        verify(metrics).incrementMetricCount(Metric.SUCCESS);
-    }
-
-    @Test
-    public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
-        long timeout = 100L;
-        Promise<String> promise = mock(Promise.class);
-
-        balancer.submit(action, timeout);
-
-        verify(executor1).submit(any(ResilientAction.class), eq(timeout));
-
-        when(promise.future().getStatus()).thenReturn(Status.ERROR);
+        promise.completeExceptionally(new IOException());
 
         verify(metrics).incrementMetricCount(Metric.ERROR);
     }
