@@ -38,10 +38,12 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 public class DefaultSubmissionServiceTest {
 
@@ -268,6 +270,53 @@ public class DefaultSubmissionServiceTest {
         expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
 
         assertNewMetrics(service.getActionMetrics(), expectedCounts);
+    }
+
+    @Test
+    public void attachedCallbacksWillBeExecutedOnCompletion() throws Exception {
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+        final AtomicReference<String> result = new AtomicReference<>();
+        final AtomicBoolean isTimedOut = new AtomicBoolean(false);
+
+
+        CountDownLatch blockingLatch = new CountDownLatch(1);
+        final CountDownLatch callbackLatch = new CountDownLatch(3);
+
+        IOException exception = new IOException();
+        PrecipiceFuture<String> errorF = service.submit(TestActions.erredAction(exception), 100);
+        errorF.onError(new PrecipiceFunction<Throwable>() {
+            @Override
+            public void apply(Throwable argument) {
+                error.set(argument);
+                callbackLatch.countDown();
+            }
+        });
+
+        PrecipiceFuture<String> timeOutF = service.submit(TestActions.blockedAction(blockingLatch), 1);
+        timeOutF.onTimeout(new PrecipiceFunction<Void>() {
+            @Override
+            public void apply(Void argument) {
+                isTimedOut.set(true);
+                callbackLatch.countDown();
+            }
+        });
+
+        String resultString = "Success";
+        final PrecipiceFuture<String> successF = service.submit(TestActions.successAction(50, resultString), Long.MAX_VALUE);
+        successF.onSuccess(new PrecipiceFunction<String>() {
+            @Override
+            public void apply(String argument) {
+                result.set(argument);
+                callbackLatch.countDown();
+            }
+        });
+
+        callbackLatch.await();
+        blockingLatch.countDown();
+
+        assertSame(exception, error.get());
+        assertSame(resultString, successF.get());
+        assertTrue(isTimedOut.get());
     }
 
     @Test

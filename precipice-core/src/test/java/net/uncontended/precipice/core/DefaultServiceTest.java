@@ -205,7 +205,6 @@ public class DefaultServiceTest {
 
     @Test
     public void attachedCallbacksWillBeExecutedOnCompletion() throws Exception {
-        // Replace with Futures test
         final AtomicReference<Throwable> error = new AtomicReference<>();
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
