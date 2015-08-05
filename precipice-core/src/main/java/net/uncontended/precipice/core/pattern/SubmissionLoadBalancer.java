@@ -76,6 +76,8 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
         PrecipiceFuture<T> future = promise.future();
+
+        // TODO: Do not create a new one each time. Also handle the overwriting of promises.
         future.onSuccess(new PrecipiceFunction<T>() {
             @Override
             public void apply(T argument) {
