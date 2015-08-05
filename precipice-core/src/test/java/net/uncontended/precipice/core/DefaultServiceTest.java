@@ -17,10 +17,14 @@
 
 package net.uncontended.precipice.core;
 
+import net.uncontended.precipice.core.circuit.BreakerConfigBuilder;
+import net.uncontended.precipice.core.circuit.CircuitBreaker;
+import net.uncontended.precipice.core.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
+import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.test_utils.TestActions;
 import net.uncontended.precipice.core.test_utils.TestCallbacks;
@@ -30,10 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -287,91 +288,88 @@ public class DefaultServiceTest {
         assertNewMetrics(metrics, expectedCounts);
     }
 
-    //
-//    @Test
-//    public void rejectedMetricsUpdated() throws Exception {
-//        ServiceProperties properties = new ServiceProperties();
-//        properties.concurrencyLevel(1);
-//        service = Services.defaultService("Test", 1, properties);
-//        CountDownLatch latch = new CountDownLatch(1);
-//        CountDownLatch blockingLatch = new CountDownLatch(1);
-//        ResilientCallback<String> callback = TestCallbacks.latchedCallback(blockingLatch);
-//
-//        ResilientFuture<String> f = service.complete(TestActions.blockedAction(latch), callback,
-//                Long.MAX_VALUE);
-//
-//        try {
-//            service.complete(TestActions.successAction(1), callback, Long.MAX_VALUE);
-//        } catch (RejectedActionException e) {
-//            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
-//        }
-//
-//        latch.countDown();
-//        f.get();
-//        blockingLatch.await();
-//        service.getCircuitBreaker().forceOpen();
-//
-//        int maxConcurrencyErrors = 1;
-//        for (int i = 0; i < 5; ++i) {
-//            try {
-//                service.complete(TestActions.successAction(1), Long.MAX_VALUE);
-//            } catch (RejectedActionException e) {
-//                if (e.reason == RejectionReason.CIRCUIT_OPEN) {
-//                    break;
-//                } else {
-//                    maxConcurrencyErrors++;
-//                }
-//            }
-//        }
-//
-//        Map<Object, Integer> expectedCounts = new HashMap<>();
-//        expectedCounts.put(Status.SUCCESS, 1);
-//        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
-//        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
-//
-//        assertNewMetrics(service.getActionMetrics(), expectedCounts);
-//    }
-//
-//    @Test
-//    public void metricsUpdatedEvenIfPromiseAlreadyCompleted() throws Exception {
-//        CountDownLatch timeoutLatch = new CountDownLatch(1);
-//        CountDownLatch blockingLatch = new CountDownLatch(3);
-//        ResilientPromise<String> errP = new DefaultResilientPromise<>();
-//        ResilientPromise<String> timeoutP = new DefaultResilientPromise<>();
-//        ResilientPromise<String> successP = new DefaultResilientPromise<>();
-//        ResilientCallback<String> callback = TestCallbacks.latchedCallback(blockingLatch);
-//        errP.deliverResult("Done");
-//        timeoutP.deliverResult("Done");
-//        successP.deliverResult("Done");
-//
-//        service.submitAndComplete(TestActions.erredAction(new IOException()), errP, callback, 100);
-//        service.submitAndComplete(TestActions.blockedAction(timeoutLatch), timeoutP, callback, 1);
-//        service.submitAndComplete(TestActions.successAction(50, "Success"), successP, callback, Long.MAX_VALUE);
-//
-//        ActionMetrics metrics = service.getActionMetrics();
-//        for (int i = 0; i < 9; ++i) {
-//            if (metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
-//                break;
-//            } else {
-//                if (i == 10) {
-//                    fail("Never encountered a timeout.");
-//                } else {
-//                    Thread.sleep(5);
-//                }
-//            }
-//        }
-//
-//        timeoutLatch.countDown();
-//
-//        Map<Object, Integer> expectedCounts = new HashMap<>();
-//        expectedCounts.put(Status.SUCCESS, 1);
-//        expectedCounts.put(Status.ERROR, 1);
-//        expectedCounts.put(Status.TIMEOUT, 1);
-//
-//        blockingLatch.await();
-//        assertNewMetrics(metrics, expectedCounts);
-//    }
-//
+    @Test
+    public void rejectedMetricsUpdated() throws Exception {
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(1);
+        service = Services.defaultService("Test", 1, properties);
+        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch blockingLatch = new CountDownLatch(1);
+        PrecipiceFunction<String> callback = TestCallbacks.latchedCallback(blockingLatch);
+
+        PrecipiceFuture<String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        f.onSuccess(callback);
+
+        try {
+            service.submit(TestActions.successAction(1), Long.MAX_VALUE);
+            f.onSuccess(callback);
+        } catch (RejectedActionException e) {
+            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+        }
+
+        latch.countDown();
+        f.get();
+        blockingLatch.await();
+        service.getCircuitBreaker().forceOpen();
+
+        int maxConcurrencyErrors = 1;
+        for (int i = 0; i < 5; ++i) {
+            try {
+                service.submit(TestActions.successAction(1), Long.MAX_VALUE);
+            } catch (RejectedActionException e) {
+                if (e.reason == RejectionReason.CIRCUIT_OPEN) {
+                    break;
+                } else {
+                    maxConcurrencyErrors++;
+                }
+            }
+        }
+
+        Map<Object, Integer> expectedCounts = new HashMap<>();
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
+        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
+
+        assertNewMetrics(service.getActionMetrics(), expectedCounts);
+    }
+
+    @Test
+    public void metricsUpdatedEvenIfPromiseAlreadyCompleted() throws Exception {
+        CountDownLatch timeoutLatch = new CountDownLatch(1);
+        Promise<String> errP = new Eventual<>();
+        Promise<String> timeoutP = new Eventual<>();
+        Promise<String> successP = new Eventual<>();
+        errP.complete("Done");
+        timeoutP.complete("Done");
+        successP.complete("Done");
+
+        service.complete(TestActions.erredAction(new IOException()), errP, 100);
+        service.complete(TestActions.successAction(50, "Success"), successP, Long.MAX_VALUE);
+        service.complete(TestActions.blockedAction(timeoutLatch), timeoutP, 1);
+
+        ActionMetrics metrics = service.getActionMetrics();
+        for (int i = 0; i <= 20; ++i) {
+            if (metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
+                break;
+            } else {
+                if (i == 20) {
+                    fail("Never encountered a timeout.");
+                } else {
+                    Thread.sleep(10);
+                }
+            }
+        }
+
+        timeoutLatch.countDown();
+
+        Map<Object, Integer> expectedCounts = new HashMap<>();
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.ERROR, 1);
+        expectedCounts.put(Status.TIMEOUT, 1);
+
+        assertNewMetrics(metrics, expectedCounts);
+    }
+
     @Test
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
         ServiceProperties properties = new ServiceProperties();
@@ -398,66 +396,66 @@ public class DefaultServiceTest {
         }
 
     }
-//
-//    @Test
-//    public void circuitBreaker() throws Exception {
-//        BreakerConfigBuilder builder = new BreakerConfigBuilder();
-//        builder.trailingPeriodMillis = 10000;
-//        builder.failureThreshold = 5;
-//        builder.backOffTimeMillis = 50;
-//        // A hack to ensure that health is always refreshed.
-//        builder.healthRefreshMillis = -1;
-//
-//        ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
-//        CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
-//        ServiceProperties properties = new ServiceProperties();
-//        properties.actionMetrics(metrics);
-//        properties.circuitBreaker(breaker);
-//        properties.concurrencyLevel(100);
-//        service = Services.defaultService("Test", 1, properties);
-//
-//        List<ResilientFuture<String>> fs = new ArrayList<>();
-//        for (int i = 0; i < 6; ++i) {
-//            fs.add(service.complete(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
-//        }
-//
-//        for (ResilientFuture<String> f : fs) {
-//            try {
-//                f.get();
-//            } catch (ExecutionException e) {
-//            }
-//        }
-//
-//        Thread.sleep(10);
-//
-//        try {
-//            service.complete(TestActions.successAction(0), 100);
-//            fail("Should have been rejected due to open circuit.");
-//        } catch (RejectedActionException e) {
-//            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
-//        }
-//
-//        Thread.sleep(150);
-//
-//        ResilientFuture<String> f = service.complete(TestActions.successAction(0, "Result"), 100);
-//        assertEquals("Result", f.get());
-//
-//        ResilientFuture<String> fe = service.complete(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
-//        try {
-//            fe.get();
-//        } catch (ExecutionException e) {
-//        }
-//
-//        Thread.sleep(10);
-//
-//        try {
-//            service.complete(TestActions.successAction(0), 100);
-//            fail("Should have been rejected due to open circuit.");
-//        } catch (RejectedActionException e) {
-//            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
-//        }
-//    }
-//
+
+    @Test
+    public void circuitBreaker() throws Exception {
+        BreakerConfigBuilder builder = new BreakerConfigBuilder();
+        builder.trailingPeriodMillis = 10000;
+        builder.failureThreshold = 5;
+        builder.backOffTimeMillis = 50;
+        // A hack to ensure that health is always refreshed.
+        builder.healthRefreshMillis = -1;
+
+        ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
+        CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
+        ServiceProperties properties = new ServiceProperties();
+        properties.actionMetrics(metrics);
+        properties.circuitBreaker(breaker);
+        properties.concurrencyLevel(100);
+        service = Services.defaultService("Test", 1, properties);
+
+        List<PrecipiceFuture<String>> fs = new ArrayList<>();
+        for (int i = 0; i < 6; ++i) {
+            fs.add(service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
+        }
+
+        for (PrecipiceFuture<String> f : fs) {
+            try {
+                f.get();
+            } catch (ExecutionException e) {
+            }
+        }
+
+        Thread.sleep(10);
+
+        try {
+            service.submit(TestActions.successAction(0), 100);
+            fail("Should have been rejected due to open circuit.");
+        } catch (RejectedActionException e) {
+            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
+        }
+
+        Thread.sleep(150);
+
+        PrecipiceFuture<String> f = service.submit(TestActions.successAction(0, "Result"), 100);
+        assertEquals("Result", f.get());
+
+        PrecipiceFuture<String> fe = service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
+        try {
+            fe.get();
+        } catch (ExecutionException e) {
+        }
+
+        Thread.sleep(10);
+
+        try {
+            service.submit(TestActions.successAction(0), 100);
+            fail("Should have been rejected due to open circuit.");
+        } catch (RejectedActionException e) {
+            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
+        }
+    }
+
     private void assertNewMetrics(ActionMetrics metrics, Map<Object, Integer> expectedCounts) {
         int milliseconds = 5;
         int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
