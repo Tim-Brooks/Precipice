@@ -57,13 +57,13 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
     }
 
     @Override
-    public <T> PrecipiceFuture<T> complete(ResilientPatternAction<T, C> action, long millisTimeout) {
-        return submissionBalancer.complete(action, millisTimeout);
+    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+        return submissionBalancer.submit(action, millisTimeout);
     }
 
     @Override
     public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
-
+        submissionBalancer.complete(action, promise, millisTimeout);
     }
 
     @Override

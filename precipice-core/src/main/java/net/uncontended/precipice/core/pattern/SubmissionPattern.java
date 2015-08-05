@@ -34,7 +34,7 @@ public interface SubmissionPattern<C> extends Pattern<C> {
      * @return a {@link PrecipiceFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> PrecipiceFuture<T> complete(ResilientPatternAction<T, C> action, long millisTimeout);
+    <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
 
     <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout);
 

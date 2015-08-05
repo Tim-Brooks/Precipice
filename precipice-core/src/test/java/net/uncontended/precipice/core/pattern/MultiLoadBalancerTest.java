@@ -19,7 +19,6 @@ package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.*;
 import net.uncontended.precipice.core.concurrent.Promise;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
@@ -150,7 +149,7 @@ public class MultiLoadBalancerTest {
         long timeout = 100L;
         Promise<String> promise = mock(Promise.class);
 
-        balancer.complete(action, timeout);
+        balancer.submit(action, timeout);
 
         verify(executor1).submit(any(ResilientAction.class), eq(timeout));
 
@@ -192,7 +191,7 @@ public class MultiLoadBalancerTest {
         when(executor2.submit(any(ResilientAction.class), eq(timeout))).thenThrow(rejected);
 
         try {
-            balancer.complete(action, timeout);
+            balancer.submit(action, timeout);
             fail("Should have been rejected");
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);

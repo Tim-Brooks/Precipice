@@ -67,7 +67,7 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     }
 
     @Override
-    public <T> PrecipiceFuture<T> complete(ResilientPatternAction<T, C> action, long millisTimeout) {
+    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -90,7 +90,25 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
 
     @Override
     public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
+        int firstServiceToTry = strategy.nextExecutorIndex();
+        ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
+        int j = 0;
+        int serviceCount = services.length;
+        while (true) {
+            try {
+                int serviceIndex = (firstServiceToTry + j) % serviceCount;
+                actionWithContext.context = contexts[serviceIndex];
+                services[serviceIndex].complete(actionWithContext, promise, millisTimeout);
+                break;
+            } catch (RejectedActionException e) {
+                ++j;
+                if (j == serviceCount) {
+                    metrics.incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
+                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
+                }
+            }
+        }
     }
 
     @Override

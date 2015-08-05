@@ -62,7 +62,7 @@ public class LoadBalancerExample {
 
         // Will complete the action to one of the services. If all of the services reject the action,
         // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
-        PrecipiceFuture<String> f = balancer.complete(new ResilientPatternAction<String, Map<String, String>>() {
+        PrecipiceFuture<String> f = balancer.submit(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {
                 return context.get("port");
@@ -79,7 +79,7 @@ public class LoadBalancerExample {
 
     public void specializedExample() {
         SubmissionPattern<Map<String, String>> submission = LoadBalancers.submittingRoundRobin(serviceToContext);
-        PrecipiceFuture<String> f = submission.complete(new ImplementedPatternAction(), 100L);
+        PrecipiceFuture<String> f = submission.submit(new ImplementedPatternAction(), 100L);
 
         RunPattern<Map<String, String>> run = LoadBalancers.runRoundRobin(serviceToContext);
         try {
