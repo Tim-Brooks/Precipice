@@ -63,18 +63,18 @@ public class ResilientTask<T> implements Runnable, Delayed {
                 runner = Thread.currentThread();
                 T result = action.run();
                 if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
-                    promise.complete(result);
+                    safeSetSuccess(result);
                 }
             }
         } catch (InterruptedException e) {
             Thread.interrupted();
         } catch (ActionTimeoutException e) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                promise.completeWithTimeout();
+                safeSetTimedOut();
             }
         } catch (Throwable e) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
-                promise.completeExceptionally(e);
+                safeSetErred(e);
             }
         } finally {
             done();
@@ -97,7 +97,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public void setTimedOut() {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                promise.completeWithTimeout();
+                safeSetTimedOut();
                 if (runner != null) {
                     runner.interrupt();
                 }
@@ -105,16 +105,28 @@ public class ResilientTask<T> implements Runnable, Delayed {
         }
     }
 
+    private void safeSetSuccess(T result) {
+        try {
+            promise.complete(result);
+        } catch (Throwable t) {}
+    }
+
+    private void safeSetErred(Throwable e) {
+        try {
+            promise.completeExceptionally(e);
+        } catch (Throwable t) {}
+    }
+
+    private void safeSetTimedOut() {
+        try {
+            promise.completeWithTimeout();
+        } catch (Throwable t) {}
+    }
+
     private void done() {
         metrics.incrementMetricCount(Metric.statusToMetric(status.get()));
         breaker.informBreakerOfResult(status.get() == Status.SUCCESS);
-        try {
-            // Where we used to call the callbacks.
-        } catch (Exception e) {
-            // TODO: strategy for handling callback exception.
-        } finally {
-            semaphore.releasePermit();
-        }
+        semaphore.releasePermit();
     }
 
 }

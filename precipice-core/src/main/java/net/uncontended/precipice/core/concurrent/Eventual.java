@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     private volatile T result;
-    private volatile Throwable exception;
+    private volatile Throwable throwable;
     private final CountDownLatch latch = new CountDownLatch(1);
     private final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     private final AtomicReference<PrecipiceFunction<T>> successCallback = new AtomicReference<>();
@@ -55,7 +55,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     public boolean completeExceptionally(Throwable ex) {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
-                this.exception = ex;
+                this.throwable = ex;
                 latch.countDown();
                 PrecipiceFunction<Throwable> cb = errorCallback.get();
                 if (cb != null && errorCallback.compareAndSet(cb, null)) {
@@ -92,8 +92,8 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
         latch.await();
         if (result != null) {
             return result;
-        } else if (exception != null) {
-            throw new ExecutionException(exception);
+        } else if (throwable != null) {
+            throw new ExecutionException(throwable);
         } else {
             return null;
         }
@@ -105,16 +105,11 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
             if (result != null) {
                 return result;
             } else {
-                throw new ExecutionException(exception);
+                throw new ExecutionException(throwable);
             }
         } else {
             throw new TimeoutException();
         }
-    }
-
-    @Override
-    public void await() throws InterruptedException {
-        latch.await();
     }
 
     @Override
@@ -133,6 +128,21 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     }
 
     @Override
+    public void await() throws InterruptedException {
+        latch.await();
+    }
+
+    @Override
+    public T result() {
+        return result;
+    }
+
+    @Override
+    public Throwable error() {
+        return throwable;
+    }
+
+    @Override
     public void onSuccess(PrecipiceFunction<T> fn) {
         if (status.get() == Status.SUCCESS) {
             fn.apply(result);
@@ -148,12 +158,12 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     @Override
     public void onError(PrecipiceFunction<Throwable> fn) {
         if (status.get() == Status.ERROR) {
-            fn.apply(exception);
+            fn.apply(throwable);
         } else {
             if (errorCallback.compareAndSet(null, fn)
                     && status.get() == Status.ERROR
                     && errorCallback.compareAndSet(fn, null)) {
-                fn.apply(exception);
+                fn.apply(throwable);
             }
         }
     }

@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.core;
 
+
 import net.uncontended.precipice.core.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.core.circuit.CircuitBreaker;
 import net.uncontended.precipice.core.circuit.DefaultCircuitBreaker;
@@ -28,7 +29,6 @@ import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.test_utils.TestActions;
 import net.uncontended.precipice.core.test_utils.TestCallbacks;
-import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,20 +38,20 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
-public class DefaultServiceTest {
+public class DefaultSubmissionServiceTest {
 
-    private MultiService service;
+    private SubmissionService service;
 
     @Before
     public void setUp() {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(100);
-        service = Services.defaultService("Test", 1, properties);
+        service = Services.submissionService("Test", 1, properties);
     }
 
     @After
@@ -87,7 +87,7 @@ public class DefaultServiceTest {
             assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
-            service.run(TestActions.successAction(1));
+            service.submit(TestActions.successAction(1), 100L);
             fail();
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
@@ -99,15 +99,14 @@ public class DefaultServiceTest {
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        service = Services.defaultService("Test", 1, properties);
+        service = Services.submissionService("Test", 1, properties);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
-            PrecipiceFuture<String> future = service.submit(TestActions.successAction(1), 500);
-            future.get();
             int j = 0;
             while (true) {
                 try {
-                    service.run(TestActions.successAction(1));
+                    PrecipiceFuture<String> future = service.submit(TestActions.successAction(1), 100L);
+                    future.get();
                     break;
                 } catch (RejectedActionException e) {
                     Thread.sleep(5);
@@ -136,12 +135,6 @@ public class DefaultServiceTest {
         latch.countDown();
         f.get();
         assertEquals(Status.SUCCESS, f.getStatus());
-    }
-
-    @Test
-    public void runCompletesAction() throws Exception {
-        String result = service.run(TestActions.successAction(1));
-        assertEquals("Success", result);
     }
 
     @Test
@@ -179,15 +172,6 @@ public class DefaultServiceTest {
     }
 
     @Test
-    public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
-        ActionTimeoutException exception = new ActionTimeoutException();
-        PrecipiceFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
-
-        assertNull(future.get());
-        assertEquals(Status.TIMEOUT, future.getStatus());
-    }
-
-    @Test
     public void erredActionWillReturnException() {
         RuntimeException exception = new RuntimeException();
         PrecipiceFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
@@ -200,55 +184,9 @@ public class DefaultServiceTest {
         } catch (ExecutionException e) {
             assertEquals(exception, e.getCause());
         }
+        assertEquals(exception, future.error());
+        assertNull(future.result());
         assertEquals(Status.ERROR, future.getStatus());
-    }
-
-    @Test
-    public void attachedCallbacksWillBeExecutedOnCompletion() throws Exception {
-        // Replace with Futures test
-        final AtomicReference<Throwable> error = new AtomicReference<>();
-        final AtomicReference<String> result = new AtomicReference<>();
-        final AtomicBoolean isTimedOut = new AtomicBoolean(false);
-
-
-        CountDownLatch blockingLatch = new CountDownLatch(1);
-        final CountDownLatch callbackLatch = new CountDownLatch(3);
-
-        IOException exception = new IOException();
-        PrecipiceFuture<String> errorF = service.submit(TestActions.erredAction(exception), 100);
-        errorF.onError(new PrecipiceFunction<Throwable>() {
-            @Override
-            public void apply(Throwable argument) {
-                error.set(argument);
-                callbackLatch.countDown();
-            }
-        });
-
-        PrecipiceFuture<String> timeOutF = service.submit(TestActions.blockedAction(blockingLatch), 1);
-        timeOutF.onTimeout(new PrecipiceFunction<Void>() {
-            @Override
-            public void apply(Void argument) {
-                isTimedOut.set(true);
-                callbackLatch.countDown();
-            }
-        });
-
-        String resultString = "Success";
-        final PrecipiceFuture<String> successF = service.submit(TestActions.successAction(50, resultString), Long.MAX_VALUE);
-        successF.onSuccess(new PrecipiceFunction<String>() {
-            @Override
-            public void apply(String argument) {
-                result.set(argument);
-                callbackLatch.countDown();
-            }
-        });
-
-        callbackLatch.await();
-        blockingLatch.countDown();
-
-        assertSame(exception, error.get());
-        assertSame(resultString, successF.get());
-        assertTrue(isTimedOut.get());
     }
 
     @Test
@@ -291,7 +229,7 @@ public class DefaultServiceTest {
     public void rejectedMetricsUpdated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        service = Services.defaultService("Test", 1, properties);
+        service = Services.submissionService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
         CountDownLatch blockingLatch = new CountDownLatch(1);
         PrecipiceFunction<String> callback = TestCallbacks.latchedCallback(blockingLatch);
@@ -373,7 +311,7 @@ public class DefaultServiceTest {
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        service = Services.defaultService("Test", 1, properties);
+        service = Services.submissionService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
 
         PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
@@ -383,7 +321,7 @@ public class DefaultServiceTest {
         int i = 0;
         while (true) {
             try {
-                service.run(TestActions.successAction(0));
+                service.submit(TestActions.successAction(0), 100L);
                 break;
             } catch (RejectedActionException e) {
                 Thread.sleep(5);
@@ -471,4 +409,6 @@ public class DefaultServiceTest {
         assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
         assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
     }
+
+
 }

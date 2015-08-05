@@ -32,5 +32,9 @@ public interface PrecipiceFuture<T> extends Future<T> {
 
     void await() throws InterruptedException;
 
+    T result();
+
+    Throwable error();
+
     Status getStatus();
 }
