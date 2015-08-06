@@ -38,12 +38,15 @@ public class DefaultRunService extends AbstractService implements RunService {
         try {
             T result = action.run();
             actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.SUCCESS));
+            circuitBreaker.informBreakerOfResult(true);
             return result;
         } catch (ActionTimeoutException e) {
             actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.TIMEOUT));
+            circuitBreaker.informBreakerOfResult(false);
             throw e;
         } catch (Exception e) {
             actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.ERROR));
+            circuitBreaker.informBreakerOfResult(false);
             throw e;
         } finally {
             semaphore.releasePermit();
