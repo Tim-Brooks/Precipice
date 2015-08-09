@@ -17,10 +17,7 @@
 
 package net.uncontended.precipice.core.pattern;
 
-import net.uncontended.precipice.core.ResilientCallback;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
-import net.uncontended.precipice.core.metrics.Metric;
 
 public abstract class AbstractPattern<C> implements Pattern<C> {
 
@@ -33,24 +30,5 @@ public abstract class AbstractPattern<C> implements Pattern<C> {
     @Override
     public ActionMetrics getActionMetrics() {
         return metrics;
-    }
-
-    protected static class MetricsCallback<T> implements ResilientCallback<T> {
-
-        private final ActionMetrics metrics;
-        private final ResilientCallback<T> callback;
-
-        public MetricsCallback(ActionMetrics metrics, ResilientCallback<T> callback) {
-            this.metrics = metrics;
-            this.callback = callback;
-        }
-
-        @Override
-        public void run(ResilientPromise<T> resultPromise) {
-            metrics.incrementMetricCount(Metric.statusToMetric(resultPromise.getStatus()));
-            if (callback != null) {
-                callback.run(resultPromise);
-            }
-        }
     }
 }

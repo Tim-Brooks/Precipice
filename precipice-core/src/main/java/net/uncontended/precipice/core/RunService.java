@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.core;
 
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 
 public interface RunService extends Service {
@@ -26,12 +25,12 @@ public interface RunService extends Service {
      * thread. The result of the action will be returned.
      * <p/>
      * If the ResilientAction throws a {@link ActionTimeoutException}, the result of
-     * the action will be recored as a timeout in the service's metrics. Any other exception
+     * the action will be recorded as a timeout in the service's metrics. Any other exception
      * and the result of the action will be recorded as an error.
      *
      * @param action the action to run
      * @param <T>    the type of the result of the action
-     * @return a {@link ResilientPromise} representing result of the action
+     * @return result of the action
      * @throws RejectedActionException if the action is rejected
      */
     <T> T run(ResilientAction<T> action) throws Exception;

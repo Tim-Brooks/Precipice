@@ -18,7 +18,6 @@
 package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.RejectedActionException;
-import net.uncontended.precipice.core.concurrent.ResilientPromise;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 
 public interface RunPattern<C> extends Pattern<C> {
@@ -33,7 +32,7 @@ public interface RunPattern<C> extends Pattern<C> {
      *
      * @param action the action to run
      * @param <T>    the type of the result of the action
-     * @return a {@link ResilientPromise} representing result of the action
+     * @return result of the action
      * @throws RejectedActionException if the action is rejected
      */
     <T> T run(ResilientPatternAction<T, C> action) throws Exception;
