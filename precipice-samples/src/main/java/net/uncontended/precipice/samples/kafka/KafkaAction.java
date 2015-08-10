@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core.samples.kafka;
+package net.uncontended.precipice.samples.kafka;
 
 import net.uncontended.precipice.core.ResilientAction;
 import org.apache.kafka.clients.producer.ProducerRecord;

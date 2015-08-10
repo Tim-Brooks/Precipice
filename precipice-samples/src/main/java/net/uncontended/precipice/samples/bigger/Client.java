@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core.samples.bigger;
+package net.uncontended.precipice.samples.bigger;
 
 import com.squareup.okhttp.*;
 import net.uncontended.precipice.core.*;

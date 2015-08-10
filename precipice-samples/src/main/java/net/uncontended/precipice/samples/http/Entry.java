@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core.samples.http;
+package net.uncontended.precipice.samples.http;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;

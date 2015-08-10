@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core.samples;
+package net.uncontended.precipice.samples;
 
 import net.uncontended.precipice.core.MultiService;
 import net.uncontended.precipice.core.ServiceProperties;

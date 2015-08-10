@@ -15,12 +15,10 @@
  *
  */
 
-package net.uncontended.precipice.core.samples.bigger;
+package net.uncontended.precipice.samples.bigger;
 
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.util.Headers;
 
 import java.util.ArrayList;
 import java.util.List;

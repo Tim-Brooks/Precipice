@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core.samples.bigger;
+package net.uncontended.precipice.samples.bigger;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;

@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core.samples.bigger;
+package net.uncontended.precipice.samples.bigger;
 
 import net.uncontended.precipice.core.circuit.CircuitBreaker;
 import net.uncontended.precipice.core.metrics.Snapshot;
