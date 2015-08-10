@@ -20,7 +20,7 @@ package net.uncontended.precipice.core.pattern;
 import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.RejectionReason;
 import net.uncontended.precipice.core.ResilientAction;
-import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.AsyncService;
 import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,11 +38,11 @@ public class ShotgunTest {
     private Object context2 = new Object();
     private Object context3 = new Object();
     @Mock
-    private SubmissionService service1;
+    private AsyncService service1;
     @Mock
-    private SubmissionService service2;
+    private AsyncService service2;
     @Mock
-    private SubmissionService service3;
+    private AsyncService service3;
     @Mock
     private ResilientPatternAction<String, Object> patternAction;
     @Mock
@@ -58,7 +58,7 @@ public class ShotgunTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        Map<SubmissionService, Object> services = new LinkedHashMap<>();
+        Map<AsyncService, Object> services = new LinkedHashMap<>();
         services.put(service1, context1);
         services.put(service2, context2);
         services.put(service3, context3);
@@ -164,11 +164,11 @@ public class ShotgunTest {
         for (int i = 0; i < 25; ++i) {
             ArgumentCaptor<Object> contextCaptor = ArgumentCaptor.forClass(Object.class);
             ArgumentCaptor<ResilientAction> actionCaptor = ArgumentCaptor.forClass(ResilientAction.class);
-            SubmissionService service1 = mock(SubmissionService.class);
-            SubmissionService service2 = mock(SubmissionService.class);
-            SubmissionService service3 = mock(SubmissionService.class);
+            AsyncService service1 = mock(AsyncService.class);
+            AsyncService service2 = mock(AsyncService.class);
+            AsyncService service3 = mock(AsyncService.class);
             ResilientPatternAction<String, Object> patternAction = mock(ResilientPatternAction.class);
-            Map<SubmissionService, Object> services = new HashMap<>();
+            Map<AsyncService, Object> services = new HashMap<>();
             services.put(service1, context1);
             services.put(service2, context2);
             services.put(service3, context3);

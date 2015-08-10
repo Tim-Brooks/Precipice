@@ -41,7 +41,7 @@ public class Client {
     private final List<ClientMBeans> clientMBeans = new ArrayList<>();
 
     public Client() {
-        Map<SubmissionService, Map<String, Object>> services = new HashMap<>();
+        Map<AsyncService, Map<String, Object>> services = new HashMap<>();
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
 
@@ -75,7 +75,7 @@ public class Client {
     }
 
 
-    private void addServiceToMap(Map<SubmissionService, Map<String, Object>> services, String name, int port) {
+    private void addServiceToMap(Map<AsyncService, Map<String, Object>> services, String name, int port) {
         BreakerConfigBuilder builder = new BreakerConfigBuilder()
                 .backOffTimeMillis(2000)
                 .trailingPeriodMillis(3000);
@@ -85,7 +85,7 @@ public class Client {
         properties.actionMetrics(actionMetrics);
         properties.circuitBreaker(breaker);
         properties.concurrencyLevel(20);
-        final SubmissionService service = Services.defaultService(name, 5, properties);
+        final AsyncService service = Services.defaultService(name, 5, properties);
         Map<String, Object> context = new HashMap<>();
         context.put("host", "127.0.0.1");
         context.put("port", port);

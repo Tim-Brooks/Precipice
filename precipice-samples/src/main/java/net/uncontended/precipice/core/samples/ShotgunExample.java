@@ -18,7 +18,7 @@
 package net.uncontended.precipice.core.samples;
 
 import net.uncontended.precipice.core.Services;
-import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.AsyncService;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.pattern.ResilientPatternAction;
 import net.uncontended.precipice.core.pattern.Shotgun;
@@ -29,24 +29,24 @@ import java.util.concurrent.ExecutionException;
 
 public class ShotgunExample {
 
-    private final Map<SubmissionService, Map<String, String>> serviceToContext;
+    private final Map<AsyncService, Map<String, String>> serviceToContext;
 
     public ShotgunExample() {
         serviceToContext = new HashMap<>();
 
         int concurrencyLevel = 100;
 
-        SubmissionService service1 = Services.submissionService("Service1", 10, concurrencyLevel);
+        AsyncService service1 = Services.submissionService("Service1", 10, concurrencyLevel);
         Map<String, String> context1 = new HashMap<>();
         context1.put("port", "6001");
         serviceToContext.put(service1, context1);
 
-        SubmissionService service2 = Services.submissionService("Service2", 10, concurrencyLevel);
+        AsyncService service2 = Services.submissionService("Service2", 10, concurrencyLevel);
         Map<String, String> context2 = new HashMap<>();
         context2.put("port", "6002");
         serviceToContext.put(service2, context2);
 
-        SubmissionService service3 = Services.submissionService("Service1", 10, concurrencyLevel);
+        AsyncService service3 = Services.submissionService("Service1", 10, concurrencyLevel);
         Map<String, String> context3 = new HashMap<>();
         context3.put("port", "6003");
         serviceToContext.put(service3, context3);

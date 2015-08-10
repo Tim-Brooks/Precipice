@@ -18,7 +18,7 @@ package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.RejectionReason;
-import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.AsyncService;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.PrecipicePromise;
@@ -28,16 +28,16 @@ import java.util.Map;
 
 public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<C> {
 
-    private final SubmissionService[] services;
+    private final AsyncService[] services;
     private final ShotgunStrategy strategy;
     private final C[] contexts;
 
-    public Shotgun(Map<SubmissionService, C> executorToContext, int submissionCount) {
+    public Shotgun(Map<AsyncService, C> executorToContext, int submissionCount) {
         this(executorToContext, submissionCount, new ShotgunStrategy(executorToContext.size(), submissionCount));
     }
 
     @SuppressWarnings("unchecked")
-    public Shotgun(Map<SubmissionService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
+    public Shotgun(Map<AsyncService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
         super(new DefaultActionMetrics());
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
@@ -46,10 +46,10 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
                     "provided.");
         }
 
-        services = new SubmissionService[executorToContext.size()];
+        services = new AsyncService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<SubmissionService, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<AsyncService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
@@ -68,7 +68,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
             try {
                 ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
                 actionWithContext.context = contexts[serviceIndex];
-                SubmissionService service = services[serviceIndex];
+                AsyncService service = services[serviceIndex];
                 service.complete(actionWithContext, promise, millisTimeout);
                 ++submittedCount;
             } catch (RejectedActionException e) {
@@ -90,7 +90,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<
 
     @Override
     public void shutdown() {
-        for (SubmissionService service : services) {
+        for (AsyncService service : services) {
             service.shutdown();
         }
 

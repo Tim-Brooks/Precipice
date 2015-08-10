@@ -28,7 +28,7 @@ import static org.junit.Assert.fail;
 
 public class Compliancy {
 
-    public void submitedActionRejectedIfShutdown(SubmissionService service) {
+    public void submitedActionRejectedIfShutdown(AsyncService service) {
         service.shutdown();
 
         try {
@@ -39,7 +39,7 @@ public class Compliancy {
         }
     }
 
-    public void submittedActionNotScheduledIfMaxConcurrencyLevelViolated(SubmissionService service) throws Exception {
+    public void submittedActionNotScheduledIfMaxConcurrencyLevelViolated(AsyncService service) throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(2);
         service = Services.defaultService("Test", 1, properties);
@@ -62,7 +62,7 @@ public class Compliancy {
         latch.countDown();
     }
 
-    public void actionsReleaseSemaphorePermitWhenComplete(SubmissionService service) throws Exception {
+    public void actionsReleaseSemaphorePermitWhenComplete(AsyncService service) throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
         service = Services.defaultService("Test", 1, properties);

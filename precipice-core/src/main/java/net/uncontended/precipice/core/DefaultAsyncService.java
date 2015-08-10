@@ -28,18 +28,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultSubmissionService extends AbstractService implements SubmissionService {
+public class DefaultAsyncService extends AbstractService implements AsyncService {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
 
-    public DefaultSubmissionService(String name, ExecutorService service, ServiceProperties properties) {
+    public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
         this.timeoutService = properties.timeoutService();
         this.service = service;
     }
 
-    public DefaultSubmissionService(String name, ExecutorService service, ServiceProperties properties,
-                                    AtomicBoolean isShutdown) {
+    public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties,
+                               AtomicBoolean isShutdown) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
         this.timeoutService = properties.timeoutService();
         this.service = service;

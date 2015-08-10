@@ -20,7 +20,7 @@ package net.uncontended.precipice.core.samples.kafka;
 import net.uncontended.precipice.core.AbstractService;
 import net.uncontended.precipice.core.ResilientAction;
 import net.uncontended.precipice.core.ServiceProperties;
-import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.AsyncService;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.PrecipicePromise;
@@ -31,7 +31,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.TimeoutException;
 
-public class KafkaService<K, V> extends AbstractService implements SubmissionService {
+public class KafkaService<K, V> extends AbstractService implements AsyncService {
 
     private final KafkaProducer<K, V> producer;
 

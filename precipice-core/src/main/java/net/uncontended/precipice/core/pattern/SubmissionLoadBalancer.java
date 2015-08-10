@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements SubmissionPattern<C> {
 
-    private final SubmissionService[] services;
+    private final AsyncService[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
     private final PrecipiceFunction<Void> successCallback = new MetricCallback(metrics, Metric.SUCCESS);
@@ -38,12 +38,12 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     private final PrecipiceFunction<Void> timeoutCallback = new MetricCallback(metrics, Metric.TIMEOUT);
 
 
-    public SubmissionLoadBalancer(Map<? extends SubmissionService, C> executorToContext, LoadBalancerStrategy strategy) {
+    public SubmissionLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy) {
         this(executorToContext, strategy, new DefaultActionMetrics());
     }
 
     @SuppressWarnings("unchecked")
-    public SubmissionLoadBalancer(Map<? extends SubmissionService, C> executorToContext, LoadBalancerStrategy strategy,
+    public SubmissionLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy,
                                   ActionMetrics metrics) {
         super(metrics);
         if (executorToContext.size() == 0) {
@@ -54,14 +54,14 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
         services = new MultiService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<? extends SubmissionService, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<? extends AsyncService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
         }
     }
 
-    public SubmissionLoadBalancer(SubmissionService[] services, C[] contexts, LoadBalancerStrategy strategy,
+    public SubmissionLoadBalancer(AsyncService[] services, C[] contexts, LoadBalancerStrategy strategy,
                                   ActionMetrics metrics) {
         super(metrics);
         this.strategy = strategy;
@@ -84,7 +84,7 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
 
     @Override
     public void shutdown() {
-        for (SubmissionService e : services) {
+        for (AsyncService e : services) {
             e.shutdown();
         }
     }

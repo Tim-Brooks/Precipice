@@ -19,7 +19,7 @@ package net.uncontended.precipice.core.samples;
 
 import net.uncontended.precipice.core.Services;
 import net.uncontended.precipice.core.Status;
-import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.AsyncService;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 
 import java.util.concurrent.CountDownLatch;
@@ -31,7 +31,7 @@ public class SubmissionExample {
         String serviceName = "Identity Service";
         int poolSize = 5;
         int concurrencyLevel = 100;
-        SubmissionService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
+        AsyncService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
         PrecipiceFuture<Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);

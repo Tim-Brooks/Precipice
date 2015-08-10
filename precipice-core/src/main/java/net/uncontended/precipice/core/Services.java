@@ -23,16 +23,16 @@ import java.util.concurrent.ExecutorService;
 
 public class Services {
 
-    public static SubmissionService submissionService(String name, int poolSize, int concurrencyLevel) {
+    public static AsyncService submissionService(String name, int poolSize, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultSubmissionService(name, executor, properties);
+        return new DefaultAsyncService(name, executor, properties);
     }
 
-    public static SubmissionService submissionService(String name, int poolSize, ServiceProperties properties) {
+    public static AsyncService submissionService(String name, int poolSize, ServiceProperties properties) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultSubmissionService(name, executor, properties);
+        return new DefaultAsyncService(name, executor, properties);
     }
 
     public static RunService runService(String name, int concurrencyLevel) {

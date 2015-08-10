@@ -29,7 +29,7 @@ import net.uncontended.precipice.core.metrics.Metric;
 import java.util.concurrent.TimeoutException;
 
 
-public class HttpAsyncService extends AbstractService implements SubmissionService {
+public class HttpAsyncService extends AbstractService implements AsyncService {
 
     private final AsyncHttpClient client;
 
