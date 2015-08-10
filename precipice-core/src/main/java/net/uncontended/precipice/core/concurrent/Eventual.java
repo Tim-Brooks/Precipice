@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
-    private final Promise<T> wrappedPromise;
+public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
+    private final PrecipicePromise<T> wrappedPromise;
     private volatile T result;
     private volatile Throwable throwable;
     private final CountDownLatch latch = new CountDownLatch(1);
@@ -43,7 +43,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
         this(null);
     }
 
-    public Eventual(Promise<T> promise) {
+    public Eventual(PrecipicePromise<T> promise) {
         wrappedPromise = promise;
     }
 

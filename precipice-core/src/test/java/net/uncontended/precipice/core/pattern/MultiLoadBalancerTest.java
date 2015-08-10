@@ -18,9 +18,8 @@
 package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.*;
-import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
@@ -92,18 +91,18 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitActionCalledWithCorrectArguments() throws Exception {
         long timeout = 100L;
-        Promise<String> promise = mock(Promise.class);
+        PrecipicePromise<String> promise = mock(PrecipicePromise.class);
         when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         balancer.complete(action, promise, timeout);
-        verify(executor1).complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
+        verify(executor1).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context1);
 
         when(strategy.nextExecutorIndex()).thenReturn(1);
         balancer.complete(action, promise, timeout);
-        verify(executor2).complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
+        verify(executor2).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -111,14 +110,14 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitTriedOnSecondServiceIfRejectedOnFirst() throws Exception {
         long timeout = 100L;
-        Promise<String> promise = mock(Promise.class);
+        PrecipicePromise<String> promise = mock(PrecipicePromise.class);
         when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
-                .complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
+                .complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(timeout));
         balancer.complete(action, promise, timeout);
-        verify(executor2).complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
+        verify(executor2).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -137,8 +136,8 @@ public class MultiLoadBalancerTest {
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
         long timeout = 100L;
-        Promise<String> promise = mock(Promise.class);
-        ArgumentCaptor<Promise> promiseCaptor = ArgumentCaptor.forClass(Promise.class);
+        PrecipicePromise<String> promise = mock(PrecipicePromise.class);
+        ArgumentCaptor<PrecipicePromise> promiseCaptor = ArgumentCaptor.forClass(PrecipicePromise.class);
 
 
         balancer.complete(action, promise, timeout);
@@ -179,8 +178,8 @@ public class MultiLoadBalancerTest {
         RejectedActionException rejected = new RejectedActionException(RejectionReason.CIRCUIT_OPEN);
 
         when(strategy.nextExecutorIndex()).thenReturn(0).thenReturn(1);
-        doThrow(rejected).when(executor1).complete(any(ResilientAction.class), any(Promise.class), eq(timeout));
-        doThrow(rejected).when(executor2).complete(any(ResilientAction.class), any(Promise.class), eq(timeout));
+        doThrow(rejected).when(executor1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(timeout));
+        doThrow(rejected).when(executor2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(timeout));
 
         try {
             balancer.submit(action, timeout);

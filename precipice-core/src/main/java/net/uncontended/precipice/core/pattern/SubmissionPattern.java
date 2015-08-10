@@ -19,7 +19,7 @@ package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 
 public interface SubmissionPattern<C> extends Pattern<C> {
     /**
@@ -36,6 +36,6 @@ public interface SubmissionPattern<C> extends Pattern<C> {
      */
     <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
 
-    <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout);
+    <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<T> promise, long millisTimeout);
 
 }

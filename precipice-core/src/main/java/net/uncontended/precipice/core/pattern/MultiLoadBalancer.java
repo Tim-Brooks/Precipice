@@ -20,7 +20,7 @@ package net.uncontended.precipice.core.pattern;
 
 import net.uncontended.precipice.core.MultiService;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 
@@ -62,7 +62,7 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
     }
 
     @Override
-    public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
+    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<T> promise, long millisTimeout) {
         submissionBalancer.complete(action, promise, millisTimeout);
     }
 

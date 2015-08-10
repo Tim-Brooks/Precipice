@@ -34,7 +34,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     public final long millisAbsoluteTimeout;
     public final long millisRelativeTimeout;
-    private final Promise<T> promise;
+    private final PrecipicePromise<T> promise;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
     private final CircuitBreaker breaker;
@@ -42,7 +42,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     private volatile Thread runner;
 
     public ResilientTask(ActionMetrics metrics, PrecipiceSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
-            action, Promise<T> promise, long millisRelativeTimeout) {
+            action, PrecipicePromise<T> promise, long millisRelativeTimeout) {
         this.metrics = metrics;
         this.semaphore = semaphore;
         this.breaker = breaker;

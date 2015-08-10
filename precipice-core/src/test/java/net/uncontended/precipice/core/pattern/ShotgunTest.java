@@ -21,7 +21,7 @@ import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.RejectionReason;
 import net.uncontended.precipice.core.ResilientAction;
 import net.uncontended.precipice.core.SubmissionService;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -74,8 +74,8 @@ public class ShotgunTest {
         shotgun.submit(patternAction, 100L);
 
         InOrder inOrder = inOrder(service3, service1);
-        inOrder.verify(service3).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
-        inOrder.verify(service1).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
+        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+        inOrder.verify(service1).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
 
         List<ResilientAction<String>> actions = actionCaptor.getAllValues();
 
@@ -95,12 +95,12 @@ public class ShotgunTest {
         when(strategy.executorIndices()).thenReturn(indices);
 
         Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
-                (any(ResilientAction.class), any(Promise.class), eq(100L));
+                (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
         shotgun.submit(patternAction, 100L);
         InOrder inOrder = inOrder(service3, service1, service2);
-        inOrder.verify(service3).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
-        inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
-        inOrder.verify(service2).complete(actionCaptor.capture(), any(Promise.class), eq(100L));
+        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+        inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+        inOrder.verify(service2).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
 
         List<ResilientAction<String>> actions = actionCaptor.getAllValues();
 
@@ -121,14 +121,14 @@ public class ShotgunTest {
 
         try {
             doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).complete
-                    (any(ResilientAction.class), any(Promise.class), eq(100L));
+                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
-                    (any(ResilientAction.class), any(Promise.class), eq(100L));
+                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             shotgun.submit(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
-            inOrder.verify(service3).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
-            inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
-            inOrder.verify(service2).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
+            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
         } catch (RejectedActionException e) {
             fail("Action should have been accepted by one service.");
         }
@@ -141,16 +141,16 @@ public class ShotgunTest {
 
         try {
             doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service3).complete
-                    (actionCaptor.capture(), any(Promise.class), eq(100L));
+                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
             doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service1).complete
-                    (actionCaptor.capture(), any(Promise.class), eq(100L));
+                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
             doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(service2).complete
-                    (actionCaptor.capture(), any(Promise.class), eq(100L));
+                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
             shotgun.submit(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
-            inOrder.verify(service3).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
-            inOrder.verify(service1).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
-            inOrder.verify(service2).complete(any(ResilientAction.class), any(Promise.class), eq(100L));
+            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             fail();
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);
@@ -176,9 +176,9 @@ public class ShotgunTest {
 
             shotgun.submit(patternAction, 10);
 
-            verify(service1, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));
-            verify(service2, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));
-            verify(service3, atMost(1)).complete(actionCaptor.capture(), any(Promise.class), eq(10L));
+            verify(service1, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
+            verify(service2, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
+            verify(service3, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
 
             List<ResilientAction> actions = actionCaptor.getAllValues();
 

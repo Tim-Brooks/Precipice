@@ -18,13 +18,13 @@
 package net.uncontended.precipice.core.test_utils;
 
 import net.uncontended.precipice.core.PrecipiceFunction;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 
 import java.util.concurrent.CountDownLatch;
 
 public class TestCallbacks {
 
-    public static <T> PrecipiceFunction<T> completePromiseCallback(final Promise<T> promiseToComplete) {
+    public static <T> PrecipiceFunction<T> completePromiseCallback(final PrecipicePromise<T> promiseToComplete) {
         return new PrecipiceFunction<T>() {
             @Override
             public void apply(T result) {

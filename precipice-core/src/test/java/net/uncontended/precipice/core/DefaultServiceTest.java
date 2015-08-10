@@ -22,7 +22,7 @@ import net.uncontended.precipice.core.circuit.CircuitBreaker;
 import net.uncontended.precipice.core.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
@@ -146,7 +146,7 @@ public class DefaultServiceTest {
 
     @Test
     public void promisePassedToExecutorWillBeCompleted() throws Exception {
-        Promise<String> promise = new Eventual<>();
+        PrecipicePromise<String> promise = new Eventual<>();
         service.complete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
 
         assertEquals("Same Promise", promise.future().get());
@@ -155,7 +155,7 @@ public class DefaultServiceTest {
     @Test
     public void promiseWillNotBeCompletedTwice() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new Eventual<>();
+        PrecipicePromise<String> promise = new Eventual<>();
 
         service.complete(TestActions.blockedAction(latch), promise, Long.MAX_VALUE);
 
@@ -334,9 +334,9 @@ public class DefaultServiceTest {
     @Test
     public void metricsUpdatedEvenIfPromiseAlreadyCompleted() throws Exception {
         CountDownLatch timeoutLatch = new CountDownLatch(1);
-        Promise<String> errP = new Eventual<>();
-        Promise<String> timeoutP = new Eventual<>();
-        Promise<String> successP = new Eventual<>();
+        PrecipicePromise<String> errP = new Eventual<>();
+        PrecipicePromise<String> timeoutP = new Eventual<>();
+        PrecipicePromise<String> successP = new Eventual<>();
         errP.complete("Done");
         timeoutP.complete("Done");
         successP.complete("Done");

@@ -23,7 +23,7 @@ import com.ning.http.client.Response;
 import net.uncontended.precipice.core.*;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import net.uncontended.precipice.core.metrics.Metric;
 
 import java.util.concurrent.TimeoutException;
@@ -86,7 +86,7 @@ public class HttpAsyncService extends AbstractService implements SubmissionServi
 
 
     @Override
-    public void complete(ResilientAction action, Promise promise, long millisTimeout) {
+    public void complete(ResilientAction action, PrecipicePromise promise, long millisTimeout) {
 
     }
 

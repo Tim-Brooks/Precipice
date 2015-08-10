@@ -18,7 +18,7 @@
 package net.uncontended.precipice.core;
 
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 
 /**
  * A service that actions can be submitted to or performed on. A service
@@ -42,5 +42,5 @@ public interface SubmissionService extends Service {
      */
     <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout);
 
-    <T> void complete(ResilientAction<T> action, Promise<T> promise, long millisTimeout);
+    <T> void complete(ResilientAction<T> action, PrecipicePromise<T> promise, long millisTimeout);
 }

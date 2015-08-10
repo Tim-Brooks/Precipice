@@ -18,7 +18,7 @@
 package net.uncontended.precipice.core;
 
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,7 +47,7 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
-    public <T> void complete(ResilientAction<T> action, Promise<T> promise, long millisTimeout) {
+    public <T> void complete(ResilientAction<T> action, PrecipicePromise<T> promise, long millisTimeout) {
         submissionService.complete(action, promise, millisTimeout);
     }
 

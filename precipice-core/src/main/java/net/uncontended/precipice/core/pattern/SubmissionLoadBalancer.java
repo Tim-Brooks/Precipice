@@ -20,7 +20,7 @@ package net.uncontended.precipice.core.pattern;
 import net.uncontended.precipice.core.*;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
@@ -77,7 +77,7 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     }
 
     @Override
-    public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
+    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<T> promise, long millisTimeout) {
         Eventual<T> internalEventual = new Eventual<>(promise);
         internalComplete(action, internalEventual, millisTimeout);
     }

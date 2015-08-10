@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.core.concurrent;
 
-public interface Promise<T> {
+public interface PrecipicePromise<T> {
 
     boolean complete(T result);
 
