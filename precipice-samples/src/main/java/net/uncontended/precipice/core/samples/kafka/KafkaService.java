@@ -18,9 +18,9 @@
 package net.uncontended.precipice.core.samples.kafka;
 
 import net.uncontended.precipice.core.AbstractService;
+import net.uncontended.precipice.core.AsyncService;
 import net.uncontended.precipice.core.ResilientAction;
 import net.uncontended.precipice.core.ServiceProperties;
-import net.uncontended.precipice.core.AsyncService;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.PrecipicePromise;
@@ -28,6 +28,7 @@ import net.uncontended.precipice.core.metrics.Metric;
 import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.TimeoutException;
 
@@ -40,7 +41,8 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
         this.producer = producer;
     }
 
-    public <T> PrecipiceFuture<T> sendRecordAction(KafkaAction<T, K, V> action) {
+    public PrecipiceFuture<RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
+        KafkaAction<RecordMetadata, K, V> action = new RecordMetadataAction<>(record);
         return submit(action, -1);
     }
 
@@ -71,6 +73,7 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
     @Override
     public void shutdown() {
         isShutdown.set(true);
+        producer.close();
     }
 
     private <T> void handleResult(PrecipicePromise<T> promise, KafkaAction<T, K, V> kafkaAction, RecordMetadata
@@ -97,6 +100,17 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
                 actionMetrics.incrementMetricCount(Metric.ERROR);
                 promise.completeExceptionally(exception);
             }
+        }
+    }
+
+    private static class RecordMetadataAction<K, V> extends KafkaAction<RecordMetadata, K, V> {
+        public RecordMetadataAction(ProducerRecord<K, V> record) {
+            super(record);
+        }
+
+        @Override
+        public RecordMetadata run() throws Exception {
+            return recordMetadata;
         }
     }
 }

@@ -25,6 +25,7 @@ import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 import net.uncontended.precipice.core.metrics.Metric;
+import net.uncontended.precipice.core.timeout.ActionTimeoutException;
 
 import java.util.concurrent.TimeoutException;
 
@@ -42,31 +43,23 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
     public <T> PrecipiceFuture<T> submit(final ResilientAction<T> action, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
         final Eventual<T> eventual = new Eventual<>();
-        eventual.onSuccess(new PrecipiceFunction<T>() {
-            @Override
-            public void apply(T argument) {
-                actionMetrics.incrementMetricCount(Metric.SUCCESS);
-            }
-        });
-        eventual.onError(new PrecipiceFunction<Throwable>() {
-            @Override
-            public void apply(Throwable argument) {
-                actionMetrics.incrementMetricCount(Metric.ERROR);
-            }
-        });
-        eventual.onTimeout(new PrecipiceFunction<Void>() {
-            @Override
-            public void apply(Void argument) {
-                actionMetrics.incrementMetricCount(Metric.TIMEOUT);
-            }
-        });
+
         final ServiceRequest<T> asyncRequest = (ServiceRequest<T>) action;
         client.executeRequest(asyncRequest.getRequest(), new AsyncCompletionHandler<Void>() {
             @Override
             public Void onCompleted(Response response) throws Exception {
                 asyncRequest.setResponse(response);
-                T result = asyncRequest.run();
-                eventual.complete(result);
+                try {
+                    T result = asyncRequest.run();
+                    actionMetrics.incrementMetricCount(Metric.SUCCESS);
+                    eventual.complete(result);
+                } catch (ActionTimeoutException e) {
+                    actionMetrics.incrementMetricCount(Metric.TIMEOUT);
+                    eventual.completeWithTimeout();
+                } catch (Exception e) {
+                    actionMetrics.incrementMetricCount(Metric.ERROR);
+                    eventual.completeExceptionally(e);
+                }
                 semaphore.releasePermit();
                 return null;
             }
@@ -74,8 +67,10 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
             @Override
             public void onThrowable(Throwable t) {
                 if (t instanceof TimeoutException) {
+                    actionMetrics.incrementMetricCount(Metric.TIMEOUT);
                     eventual.completeWithTimeout();
                 } else {
+                    actionMetrics.incrementMetricCount(Metric.ERROR);
                     eventual.completeExceptionally(t);
                 }
                 semaphore.releasePermit();

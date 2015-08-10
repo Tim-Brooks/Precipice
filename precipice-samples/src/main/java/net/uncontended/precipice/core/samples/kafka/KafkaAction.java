@@ -21,18 +21,13 @@ import net.uncontended.precipice.core.ResilientAction;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
-public class KafkaAction<T, K, V> implements ResilientAction<T> {
+abstract class KafkaAction<T, K, V> implements ResilientAction<T> {
 
-    private final ProducerRecord<K, V> record;
-    private RecordMetadata recordMetadata;
+    protected final ProducerRecord<K, V> record;
+    protected RecordMetadata recordMetadata;
 
     public KafkaAction(ProducerRecord<K, V> record) {
         this.record = record;
-    }
-
-    @Override
-    public T run() throws Exception {
-        return null;
     }
 
     public ProducerRecord<K, V> getRecord() {
