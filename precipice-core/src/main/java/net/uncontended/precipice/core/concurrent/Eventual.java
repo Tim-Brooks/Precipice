@@ -163,6 +163,11 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
     }
 
     @Override
+    public void await(long duration, TimeUnit unit) throws InterruptedException {
+        latch.await(duration, unit);
+    }
+
+    @Override
     public T result() {
         return result;
     }

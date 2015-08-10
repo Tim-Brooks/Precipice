@@ -21,6 +21,7 @@ import net.uncontended.precipice.core.PrecipiceFunction;
 import net.uncontended.precipice.core.Status;
 
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public interface PrecipiceFuture<T> extends Future<T> {
 
@@ -31,6 +32,8 @@ public interface PrecipiceFuture<T> extends Future<T> {
     void onTimeout(PrecipiceFunction<Void> fn);
 
     void await() throws InterruptedException;
+
+    void await(long duration, TimeUnit unit) throws InterruptedException;
 
     T result();
 
