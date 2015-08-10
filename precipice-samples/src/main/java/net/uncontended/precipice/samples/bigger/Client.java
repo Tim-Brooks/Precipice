@@ -25,7 +25,7 @@ import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.pattern.LoadBalancers;
 import net.uncontended.precipice.core.pattern.ResilientPatternAction;
-import net.uncontended.precipice.core.pattern.SubmissionPattern;
+import net.uncontended.precipice.core.pattern.AsyncPattern;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Client {
 
-    private final SubmissionPattern<Map<String, Object>> loadBalancer;
+    private final AsyncPattern<Map<String, Object>> loadBalancer;
     private final OkHttpClient client = new OkHttpClient();
     private final List<ClientMBeans> clientMBeans = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class Client {
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
 
-        loadBalancer = LoadBalancers.submittingRoundRobin(services, new DefaultActionMetrics(20, 500, TimeUnit.MILLISECONDS));
+        loadBalancer = LoadBalancers.asyncRoundRobin(services, new DefaultActionMetrics(20, 500, TimeUnit.MILLISECONDS));
 
         clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.getActionMetrics()));
     }

@@ -28,7 +28,7 @@ import net.uncontended.precipice.core.utils.MetricCallback;
 
 import java.util.Map;
 
-public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements SubmissionPattern<C> {
+public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPattern<C> {
 
     private final AsyncService[] services;
     private final C[] contexts;
@@ -38,13 +38,13 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     private final PrecipiceFunction<Void> timeoutCallback = new MetricCallback(metrics, Metric.TIMEOUT);
 
 
-    public SubmissionLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy) {
+    public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy) {
         this(executorToContext, strategy, new DefaultActionMetrics());
     }
 
     @SuppressWarnings("unchecked")
-    public SubmissionLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy,
-                                  ActionMetrics metrics) {
+    public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy,
+                             ActionMetrics metrics) {
         super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
@@ -61,8 +61,8 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
         }
     }
 
-    public SubmissionLoadBalancer(AsyncService[] services, C[] contexts, LoadBalancerStrategy strategy,
-                                  ActionMetrics metrics) {
+    public AsyncLoadBalancer(AsyncService[] services, C[] contexts, LoadBalancerStrategy strategy,
+                             ActionMetrics metrics) {
         super(metrics);
         this.strategy = strategy;
         this.services = services;

@@ -78,7 +78,7 @@ public class LoadBalancerExample {
     }
 
     public void specializedExample() {
-        SubmissionPattern<Map<String, String>> submission = LoadBalancers.submittingRoundRobin(serviceToContext);
+        AsyncPattern<Map<String, String>> submission = LoadBalancers.asyncRoundRobin(serviceToContext);
         PrecipiceFuture<String> f = submission.submit(new ImplementedPatternAction(), 100L);
 
         RunPattern<Map<String, String>> run = LoadBalancers.runRoundRobin(serviceToContext);

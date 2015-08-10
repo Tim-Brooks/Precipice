@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPattern<C> {
 
-    private final SubmissionPattern<C> submissionBalancer;
+    private final AsyncPattern<C> submissionBalancer;
     private final RunPattern<C> runBalancer;
     private final MultiService[] services;
 
@@ -52,7 +52,7 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
             contexts[i] = entry.getValue();
             ++i;
         }
-        this.submissionBalancer = new SubmissionLoadBalancer<>(services, contexts, strategy, metrics);
+        this.submissionBalancer = new AsyncLoadBalancer<>(services, contexts, strategy, metrics);
         this.runBalancer = new RunLoadBalancer<>(services, contexts, strategy, metrics);
     }
 

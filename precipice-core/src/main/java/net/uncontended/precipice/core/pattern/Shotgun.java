@@ -26,7 +26,7 @@ import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 
 import java.util.Map;
 
-public class Shotgun<C> extends AbstractPattern<C> implements SubmissionPattern<C> {
+public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
 
     private final AsyncService[] services;
     private final ShotgunStrategy strategy;

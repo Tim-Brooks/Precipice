@@ -21,7 +21,7 @@ import net.uncontended.precipice.core.RejectedActionException;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.PrecipicePromise;
 
-public interface SubmissionPattern<C> extends Pattern<C> {
+public interface AsyncPattern<C> extends Pattern<C> {
     /**
      * Submits a {@link ResilientPatternAction} that will be run asynchronously.
      * The result of the action will be delivered to the future returned
