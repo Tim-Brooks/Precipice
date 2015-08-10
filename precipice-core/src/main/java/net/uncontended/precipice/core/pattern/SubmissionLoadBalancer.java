@@ -72,7 +72,7 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     @Override
     public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         Eventual<T> eventual = new Eventual<>();
-        complete(action, eventual, millisTimeout);
+        internalComplete(action, eventual, millisTimeout);
         return eventual;
     }
 
