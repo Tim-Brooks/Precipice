@@ -59,28 +59,10 @@ public class KafkaService<K, V> extends AbstractService implements SubmissionSer
         producer.send(kafkaAction.getRecord(), new Callback() {
             @Override
             public void onCompletion(RecordMetadata metadata, Exception exception) {
-                if (exception == null) {
-                    kafkaAction.setRecordMetadata(metadata);
-
-                    try {
-                        T result = kafkaAction.run();
-                        actionMetrics.incrementMetricCount(Metric.SUCCESS);
-                        promise.complete(result);
-                    } catch (ActionTimeoutException e) {
-                        actionMetrics.incrementMetricCount(Metric.TIMEOUT);
-                        promise.completeWithTimeout();
-                    } catch (Exception e) {
-                        actionMetrics.incrementMetricCount(Metric.ERROR);
-                        promise.completeExceptionally(e);
-                    }
-                } else {
-                    if (exception instanceof TimeoutException) {
-                        actionMetrics.incrementMetricCount(Metric.TIMEOUT);
-                        promise.completeWithTimeout();
-                    } else {
-                        actionMetrics.incrementMetricCount(Metric.ERROR);
-                        promise.completeExceptionally(exception);
-                    }
+                try {
+                    handleResult(promise, kafkaAction, metadata, exception);
+                } finally {
+                    semaphore.releasePermit();
                 }
             }
         });
@@ -89,5 +71,32 @@ public class KafkaService<K, V> extends AbstractService implements SubmissionSer
     @Override
     public void shutdown() {
         isShutdown.set(true);
+    }
+
+    private <T> void handleResult(PrecipicePromise<T> promise, KafkaAction<T, K, V> kafkaAction, RecordMetadata
+            metadata, Exception exception) {
+        if (exception == null) {
+            kafkaAction.setRecordMetadata(metadata);
+
+            try {
+                T result = kafkaAction.run();
+                actionMetrics.incrementMetricCount(Metric.SUCCESS);
+                promise.complete(result);
+            } catch (ActionTimeoutException e) {
+                actionMetrics.incrementMetricCount(Metric.TIMEOUT);
+                promise.completeWithTimeout();
+            } catch (Exception e) {
+                actionMetrics.incrementMetricCount(Metric.ERROR);
+                promise.completeExceptionally(e);
+            }
+        } else {
+            if (exception instanceof TimeoutException) {
+                actionMetrics.incrementMetricCount(Metric.TIMEOUT);
+                promise.completeWithTimeout();
+            } else {
+                actionMetrics.incrementMetricCount(Metric.ERROR);
+                promise.completeExceptionally(exception);
+            }
+        }
     }
 }
