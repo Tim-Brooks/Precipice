@@ -24,6 +24,7 @@ import net.uncontended.precipice.core.concurrent.Promise;
 import net.uncontended.precipice.core.metrics.ActionMetrics;
 import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.core.metrics.Metric;
+import net.uncontended.precipice.core.utils.MetricCallback;
 
 import java.util.Map;
 
@@ -32,6 +33,10 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
     private final SubmissionService[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
+    private final PrecipiceFunction<Void> successCallback = new MetricCallback(metrics, Metric.SUCCESS);
+    private final PrecipiceFunction<Void> errorCallback = new MetricCallback(metrics, Metric.ERROR);
+    private final PrecipiceFunction<Void> timeoutCallback = new MetricCallback(metrics, Metric.TIMEOUT);
+
 
     public SubmissionLoadBalancer(Map<? extends SubmissionService, C> executorToContext, LoadBalancerStrategy strategy) {
         this(executorToContext, strategy, new DefaultActionMetrics());
@@ -66,36 +71,31 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
 
     @Override
     public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        Eventual<T> promise = new Eventual<>();
-        complete(action, promise, millisTimeout);
-        return promise;
+        Eventual<T> eventual = new Eventual<>();
+        complete(action, eventual, millisTimeout);
+        return eventual;
     }
 
     @Override
     public <T> void complete(ResilientPatternAction<T, C> action, Promise<T> promise, long millisTimeout) {
+        Eventual<T> internalEventual = new Eventual<>(promise);
+        internalComplete(action, internalEventual, millisTimeout);
+    }
+
+    @Override
+    public void shutdown() {
+        for (SubmissionService e : services) {
+            e.shutdown();
+        }
+    }
+
+    private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<T> eventual, long millisTimeout) {
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-        PrecipiceFuture<T> future = promise.future();
 
-        // TODO: Do not create a new one each time. Also handle the overwriting of promises.
-        future.onSuccess(new PrecipiceFunction<T>() {
-            @Override
-            public void apply(T argument) {
-                metrics.incrementMetricCount(Metric.SUCCESS);
-            }
-        });
-        future.onError(new PrecipiceFunction<Throwable>() {
-            @Override
-            public void apply(Throwable argument) {
-                metrics.incrementMetricCount(Metric.ERROR);
-            }
-        });
-        future.onTimeout(new PrecipiceFunction<Void>() {
-            @Override
-            public void apply(Void argument) {
-                metrics.incrementMetricCount(Metric.TIMEOUT);
-            }
-        });
+        eventual.internalOnSuccess(successCallback);
+        eventual.internalOnError(errorCallback);
+        eventual.internalOnTimeout(timeoutCallback);
 
         int j = 0;
         int serviceCount = services.length;
@@ -103,7 +103,7 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                services[serviceIndex].complete(actionWithContext, promise, millisTimeout);
+                services[serviceIndex].complete(actionWithContext, eventual, millisTimeout);
                 break;
             } catch (RejectedActionException e) {
                 ++j;
@@ -112,13 +112,6 @@ public class SubmissionLoadBalancer<C> extends AbstractPattern<C> implements Sub
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
             }
-        }
-    }
-
-    @Override
-    public void shutdown() {
-        for (SubmissionService e : services) {
-            e.shutdown();
         }
     }
 

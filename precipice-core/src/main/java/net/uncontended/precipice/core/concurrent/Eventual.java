@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
+    private final Promise<T> wrappedPromise;
     private volatile T result;
     private volatile Throwable throwable;
     private final CountDownLatch latch = new CountDownLatch(1);
@@ -34,16 +35,33 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     private final AtomicReference<PrecipiceFunction<T>> successCallback = new AtomicReference<>();
     private final AtomicReference<PrecipiceFunction<Throwable>> errorCallback = new AtomicReference<>();
     private final AtomicReference<PrecipiceFunction<Void>> timeoutCallback = new AtomicReference<>();
+    private PrecipiceFunction<Void> internalSuccessCallback;
+    private PrecipiceFunction<Void> internalErrorCallback;
+    private PrecipiceFunction<Void> internalTimeoutCallback;
+
+    public Eventual() {
+        this(null);
+    }
+
+    public Eventual(Promise<T> promise) {
+        wrappedPromise = promise;
+    }
 
     @Override
     public boolean complete(T result) {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
                 this.result = result;
+                if (internalSuccessCallback != null) {
+                    internalSuccessCallback.apply(null);
+                }
                 latch.countDown();
                 PrecipiceFunction<T> cb = successCallback.get();
                 if (cb != null && successCallback.compareAndSet(cb, null)) {
                     cb.apply(result);
+                }
+                if (wrappedPromise != null) {
+                    wrappedPromise.complete(result);
                 }
                 return true;
             }
@@ -56,10 +74,16 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
                 this.throwable = ex;
+                if (internalErrorCallback != null) {
+                    internalErrorCallback.apply(null);
+                }
                 latch.countDown();
                 PrecipiceFunction<Throwable> cb = errorCallback.get();
                 if (cb != null && errorCallback.compareAndSet(cb, null)) {
                     cb.apply(ex);
+                }
+                if (wrappedPromise != null) {
+                    wrappedPromise.completeExceptionally(ex);
                 }
                 return true;
             }
@@ -71,10 +95,16 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     public boolean completeWithTimeout() {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+                if (internalTimeoutCallback != null) {
+                    internalTimeoutCallback.apply(null);
+                }
                 latch.countDown();
                 PrecipiceFunction<Void> cb = timeoutCallback.get();
                 if (cb != null && timeoutCallback.compareAndSet(cb, null)) {
                     cb.apply(null);
+                }
+                if (wrappedPromise != null) {
+                    wrappedPromise.completeWithTimeout();
                 }
                 return true;
             }
@@ -184,5 +214,17 @@ public class Eventual<T> implements PrecipiceFuture<T>, Promise<T> {
     @Override
     public Status getStatus() {
         return status.get();
+    }
+
+    public void internalOnSuccess(PrecipiceFunction<Void> fn) {
+        internalSuccessCallback = fn;
+    }
+
+    public void internalOnError(PrecipiceFunction<Void> fn) {
+        internalErrorCallback = fn;
+    }
+
+    public void internalOnTimeout(PrecipiceFunction<Void> fn) {
+        internalTimeoutCallback = fn;
     }
 }

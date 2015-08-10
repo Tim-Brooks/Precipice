@@ -97,13 +97,13 @@ public class MultiLoadBalancerTest {
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         balancer.complete(action, promise, timeout);
-        verify(executor1).complete(actionCaptor.capture(), eq(promise), eq(timeout));
+        verify(executor1).complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context1);
 
         when(strategy.nextExecutorIndex()).thenReturn(1);
         balancer.complete(action, promise, timeout);
-        verify(executor2).complete(actionCaptor.capture(), eq(promise), eq(timeout));
+        verify(executor2).complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -116,9 +116,9 @@ public class MultiLoadBalancerTest {
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
         Mockito.doThrow(new RejectedActionException(RejectionReason.CIRCUIT_OPEN)).when(executor1)
-                .complete(actionCaptor.capture(), eq(promise), eq(timeout));
+                .complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
         balancer.complete(action, promise, timeout);
-        verify(executor2).complete(actionCaptor.capture(), eq(promise), eq(timeout));
+        verify(executor2).complete(actionCaptor.capture(), any(Promise.class), eq(timeout));
         actionCaptor.getValue().run();
         verify(action).run(context2);
     }
@@ -137,14 +137,15 @@ public class MultiLoadBalancerTest {
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
         long timeout = 100L;
-        Promise<String> promise = new Eventual<>();
+        Promise<String> promise = mock(Promise.class);
+        ArgumentCaptor<Promise> promiseCaptor = ArgumentCaptor.forClass(Promise.class);
 
 
         balancer.complete(action, promise, timeout);
 
-        verify(executor1).complete(any(ResilientAction.class), eq(promise), eq(timeout));
+        verify(executor1).complete(any(ResilientAction.class), promiseCaptor.capture(), eq(timeout));
 
-        promise.completeExceptionally(new IOException());
+        promiseCaptor.getValue().completeExceptionally(new IOException());
 
         verify(metrics).incrementMetricCount(Metric.ERROR);
     }
