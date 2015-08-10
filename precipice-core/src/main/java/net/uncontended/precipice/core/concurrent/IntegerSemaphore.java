@@ -22,9 +22,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IntegerSemaphore implements PrecipiceSemaphore {
 
     private final AtomicInteger permitsRemaining;
+    private final int maxConcurrencyLevel;
 
-    public IntegerSemaphore(int concurrencyLevel) {
-        permitsRemaining = new AtomicInteger(concurrencyLevel);
+    public IntegerSemaphore(int maxConcurrencyLevel) {
+        this.maxConcurrencyLevel = maxConcurrencyLevel;
+        this.permitsRemaining = new AtomicInteger(maxConcurrencyLevel);
     }
 
     @Override
@@ -44,5 +46,15 @@ public class IntegerSemaphore implements PrecipiceSemaphore {
     @Override
     public void releasePermit() {
         this.permitsRemaining.getAndIncrement();
+    }
+
+    @Override
+    public int maxConcurrencyLevel() {
+        return maxConcurrencyLevel;
+    }
+
+    @Override
+    public int currentConcurrencyLevel() {
+        return permitsRemaining.get();
     }
 }

@@ -63,13 +63,13 @@ public abstract class AbstractService implements Service {
 
     @Override
     public int remainingCapacity() {
-        throw new UnsupportedOperationException("Unimplemented");
+        return semaphore.maxConcurrencyLevel() - semaphore.currentConcurrencyLevel();
 
     }
 
     @Override
     public int currentlyPending() {
-        throw new UnsupportedOperationException("Unimplemented");
+        return semaphore.currentConcurrencyLevel();
     }
 
     protected void acquirePermitOrRejectIfActionNotAllowed() {

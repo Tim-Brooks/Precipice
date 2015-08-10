@@ -22,4 +22,8 @@ public interface PrecipiceSemaphore {
     boolean acquirePermit();
 
     void releasePermit();
+
+    int maxConcurrencyLevel();
+
+    int currentConcurrencyLevel();
 }
