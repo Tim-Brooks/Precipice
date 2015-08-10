@@ -20,13 +20,11 @@ package net.uncontended.precipice.core.samples.http;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import net.uncontended.precipice.core.AbstractService;
-import net.uncontended.precipice.core.ResilientAction;
-import net.uncontended.precipice.core.ServiceProperties;
-import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.*;
 import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.Promise;
+import net.uncontended.precipice.core.metrics.Metric;
 
 import java.util.concurrent.TimeoutException;
 
@@ -42,8 +40,26 @@ public class HttpAsyncService extends AbstractService implements SubmissionServi
 
     @Override
     public <T> PrecipiceFuture<T> submit(final ResilientAction<T> action, long millisTimeout) {
+        acquirePermitOrRejectIfActionNotAllowed();
         final Eventual<T> eventual = new Eventual<>();
-        // Update Metrics
+        eventual.onSuccess(new PrecipiceFunction<T>() {
+            @Override
+            public void apply(T argument) {
+                actionMetrics.incrementMetricCount(Metric.SUCCESS);
+            }
+        });
+        eventual.onError(new PrecipiceFunction<Throwable>() {
+            @Override
+            public void apply(Throwable argument) {
+                actionMetrics.incrementMetricCount(Metric.ERROR);
+            }
+        });
+        eventual.onTimeout(new PrecipiceFunction<Void>() {
+            @Override
+            public void apply(Void argument) {
+                actionMetrics.incrementMetricCount(Metric.TIMEOUT);
+            }
+        });
         final ServiceRequest<T> asyncRequest = (ServiceRequest<T>) action;
         client.executeRequest(asyncRequest.getRequest(), new AsyncCompletionHandler<Void>() {
             @Override
@@ -51,6 +67,7 @@ public class HttpAsyncService extends AbstractService implements SubmissionServi
                 asyncRequest.setResponse(response);
                 T result = asyncRequest.run();
                 eventual.complete(result);
+                semaphore.releasePermit();
                 return null;
             }
 
@@ -61,6 +78,7 @@ public class HttpAsyncService extends AbstractService implements SubmissionServi
                 } else {
                     eventual.completeExceptionally(t);
                 }
+                semaphore.releasePermit();
             }
         });
         return eventual;

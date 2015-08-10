@@ -22,8 +22,10 @@ import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilder;
 import net.uncontended.precipice.core.ServiceProperties;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.core.metrics.Metric;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class Entry {
     public static void main(String[] args) {
@@ -41,9 +43,12 @@ public class Entry {
         try {
             System.out.println(f.get());
             System.out.println(f.getStatus());
+            System.out.println(service.getActionMetrics().getMetricCountForTimePeriod(Metric.SUCCESS, 100, TimeUnit
+                    .SECONDS));
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         service.shutdown();
+        asyncHttpClient.close();
     }
 }
