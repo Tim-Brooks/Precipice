@@ -21,9 +21,15 @@ import net.uncontended.precipice.core.AbstractService;
 import net.uncontended.precipice.core.ResilientAction;
 import net.uncontended.precipice.core.ServiceProperties;
 import net.uncontended.precipice.core.SubmissionService;
+import net.uncontended.precipice.core.concurrent.Eventual;
 import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.core.concurrent.PrecipicePromise;
+import net.uncontended.precipice.core.metrics.Metric;
+import net.uncontended.precipice.core.timeout.ActionTimeoutException;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.errors.TimeoutException;
 
 public class KafkaService<K, V> extends AbstractService implements SubmissionService {
 
@@ -34,14 +40,50 @@ public class KafkaService<K, V> extends AbstractService implements SubmissionSer
         this.producer = producer;
     }
 
-    @Override
-    public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        return null;
+    public <T> PrecipiceFuture<T> sendRecordAction(KafkaAction<T, K, V> action) {
+        return submit(action, -1);
     }
 
     @Override
-    public <T> void complete(ResilientAction<T> action, PrecipicePromise<T> promise, long millisTimeout) {
+    public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
+        final Eventual<T> eventual = new Eventual<>();
+        complete(action, eventual, millisTimeout);
+        return eventual;
+    }
 
+    @Override
+    public <T> void complete(ResilientAction<T> action, final PrecipicePromise<T> promise, long millisTimeout) {
+        acquirePermitOrRejectIfActionNotAllowed();
+
+        final KafkaAction<T, K, V> kafkaAction = (KafkaAction<T, K, V>) action;
+        producer.send(kafkaAction.getRecord(), new Callback() {
+            @Override
+            public void onCompletion(RecordMetadata metadata, Exception exception) {
+                if (exception == null) {
+                    kafkaAction.setRecordMetadata(metadata);
+
+                    try {
+                        T result = kafkaAction.run();
+                        actionMetrics.incrementMetricCount(Metric.SUCCESS);
+                        promise.complete(result);
+                    } catch (ActionTimeoutException e) {
+                        actionMetrics.incrementMetricCount(Metric.TIMEOUT);
+                        promise.completeWithTimeout();
+                    } catch (Exception e) {
+                        actionMetrics.incrementMetricCount(Metric.ERROR);
+                        promise.completeExceptionally(e);
+                    }
+                } else {
+                    if (exception instanceof TimeoutException) {
+                        actionMetrics.incrementMetricCount(Metric.TIMEOUT);
+                        promise.completeWithTimeout();
+                    } else {
+                        actionMetrics.incrementMetricCount(Metric.ERROR);
+                        promise.completeExceptionally(exception);
+                    }
+                }
+            }
+        });
     }
 
     @Override
