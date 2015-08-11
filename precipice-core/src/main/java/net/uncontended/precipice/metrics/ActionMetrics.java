@@ -21,11 +21,18 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public interface ActionMetrics {
+
     void incrementMetricCount(Metric metric);
+
+    void incrementMetricCount(Metric metric, long nanoTime);
 
     long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit);
 
+    long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
+
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit);
+
+    HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime);
 
     Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit);
 }

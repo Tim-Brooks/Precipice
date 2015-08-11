@@ -53,7 +53,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
 
         this.millisecondsPerSlot = (int) millisecondsPerSlot;
-        this.startTime = currentMillisTime();
+        this.startTime = currentMillisTime(systemTime.nanoTime());
         this.totalSlots = slotsToTrack;
 
         int arraySlot = nextPositivePowerOfTwo(slotsToTrack);
@@ -67,7 +67,12 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public void incrementMetricCount(Metric metric) {
-        long currentTime = currentMillisTime();
+        incrementMetricCount(metric, systemTime.nanoTime());
+    }
+
+    @Override
+    public void incrementMetricCount(Metric metric, long nanoTime) {
+        long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int relativeSlot = absoluteSlot & mask;
         Slot slot = metrics.get(relativeSlot);
@@ -89,13 +94,17 @@ public class DefaultActionMetrics implements ActionMetrics {
                 }
             }
         }
-
     }
 
     @Override
     public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
+        return getMetricCountForTimePeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
+    }
+
+    @Override
+    public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         int slots = convertToSlots(timePeriod, timeUnit);
-        long currentTime = currentMillisTime();
+        long currentTime = currentMillisTime(nanoTime);
 
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int startSlot = 1 + absoluteSlot - slots;
@@ -115,8 +124,13 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit) {
+        return healthSnapshot(timePeriod, timeUnit, systemTime.nanoTime());
+    }
+
+    @Override
+    public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         int slots = convertToSlots(timePeriod, timeUnit);
-        Slot[] slotArray = collectActiveSlots(slots);
+        Slot[] slotArray = collectActiveSlots(slots, nanoTime);
 
         long total = 0;
         long failures = 0;
@@ -136,19 +150,18 @@ public class DefaultActionMetrics implements ActionMetrics {
                 rejections = rejections + circuitOpen + queueFull + maxConcurrency;
             }
         }
-
         return new HealthSnapshot(total, failures, rejections);
     }
 
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
         int slots = convertToSlots(timePeriod, timeUnit);
-        return Snapshot.generate(collectActiveSlots(slots));
+        return Snapshot.generate(collectActiveSlots(slots, systemTime.nanoTime()));
 
     }
 
-    private Slot[] collectActiveSlots(int slots) {
-        long currentTime = currentMillisTime();
+    private Slot[] collectActiveSlots(int slots, long nanoTime) {
+        long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int startSlot = 1 + absoluteSlot - slots;
         int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
@@ -166,8 +179,8 @@ public class DefaultActionMetrics implements ActionMetrics {
         return slotArray;
     }
 
-    private long currentMillisTime() {
-        return TimeUnit.MILLISECONDS.convert(systemTime.nanoTime(), TimeUnit.NANOSECONDS);
+    private long currentMillisTime(long nanoTime) {
+        return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
     }
 
     private int currentAbsoluteSlot(long currentTime) {
