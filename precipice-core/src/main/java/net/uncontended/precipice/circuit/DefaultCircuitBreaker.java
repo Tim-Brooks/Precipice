@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.circuit;
 
-import net.uncontended.precipice.utils.SystemTime;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
+import net.uncontended.precipice.utils.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,10 +56,15 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
 
     @Override
     public boolean allowAction() {
+        return allowAction(systemTime.nanoTime());
+    }
+
+    @Override
+    public boolean allowAction(long nanoTime) {
         int state = this.state.get();
         if (state == OPEN) {
             long backOffTimeMillis = breakerConfig.get().backOffTimeMillis;
-            long currentTime = systemTime.currentTimeMillis();
+            long currentTime = currentMillisTime(nanoTime);
             // This potentially allows a couple of tests through. Should think about this decision
             if (currentTime < backOffTimeMillis + lastTestedTime.get()) {
                 return false;
@@ -71,6 +76,11 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
 
     @Override
     public void informBreakerOfResult(boolean successful) {
+        informBreakerOfResult(successful, systemTime.nanoTime());
+    }
+
+    @Override
+    public void informBreakerOfResult(boolean successful, long nanoTime) {
         if (successful) {
             if (state.get() == OPEN) {
                 // This can get stuck in a loop with open and closing
@@ -78,7 +88,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
             }
         } else {
             if (state.get() == CLOSED) {
-                long currentTime = systemTime.currentTimeMillis();
+                long currentTime = currentMillisTime(nanoTime);
                 BreakerConfig config = this.breakerConfig.get();
                 HealthSnapshot health = getHealthSnapshot(config, currentTime);
                 long failures = health.failures;
@@ -128,5 +138,9 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         }
 
         return health.get();
+    }
+
+    private long currentMillisTime(long nanoTime) {
+        return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
     }
 }

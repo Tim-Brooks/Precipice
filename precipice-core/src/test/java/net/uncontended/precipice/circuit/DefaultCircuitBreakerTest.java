@@ -68,12 +68,12 @@ public class DefaultCircuitBreakerTest {
         assertFalse(circuitBreaker.isOpen());
 
         when(actionMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(healthySnapshot);
-        when(systemTime.currentTimeMillis()).thenReturn(501L);
+        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(false);
         assertFalse(circuitBreaker.isOpen());
 
         when(actionMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failingSnapshot);
-        when(systemTime.currentTimeMillis()).thenReturn(1002L);
+        when(systemTime.nanoTime()).thenReturn(1002L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(false);
         assertTrue(circuitBreaker.isOpen());
     }
@@ -91,12 +91,12 @@ public class DefaultCircuitBreakerTest {
         assertFalse(circuitBreaker.isOpen());
 
         when(actionMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failureSnapshot);
-        when(systemTime.currentTimeMillis()).thenReturn(501L);
+        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(false);
 
         assertTrue(circuitBreaker.isOpen());
 
-        when(systemTime.currentTimeMillis()).thenReturn(501L);
+        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(true);
 
         assertFalse(circuitBreaker.isOpen());
@@ -112,7 +112,7 @@ public class DefaultCircuitBreakerTest {
         circuitBreaker.setActionMetrics(actionMetrics);
 
         when(actionMetrics.healthSnapshot(1000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
-        when(systemTime.currentTimeMillis()).thenReturn(501L);
+        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(false);
         assertFalse(circuitBreaker.isOpen());
 
@@ -120,7 +120,7 @@ public class DefaultCircuitBreakerTest {
                 .trailingPeriodMillis(2000).build();
         circuitBreaker.setBreakerConfig(newBreakerConfig);
 
-        when(systemTime.currentTimeMillis()).thenReturn(501L);
+        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(false);
 
         assertTrue(circuitBreaker.isOpen());
@@ -151,14 +151,14 @@ public class DefaultCircuitBreakerTest {
         assertTrue(circuitBreaker.allowAction());
 
         when(actionMetrics.healthSnapshot(5000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
-        when(systemTime.currentTimeMillis()).thenReturn(1000L);
+        when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(false);
 
-        when(systemTime.currentTimeMillis()).thenReturn(1999L);
+        when(systemTime.nanoTime()).thenReturn(1999L * 1000L * 1000L);
         assertFalse(circuitBreaker.allowAction());
         assertTrue(circuitBreaker.isOpen());
 
-        when(systemTime.currentTimeMillis()).thenReturn(2001L);
+        when(systemTime.nanoTime()).thenReturn(2001L * 1000L * 1000L);
         assertTrue(circuitBreaker.allowAction());
         assertTrue(circuitBreaker.isOpen());
 
@@ -179,7 +179,7 @@ public class DefaultCircuitBreakerTest {
 
         circuitBreaker.forceOpen();
 
-        when(systemTime.currentTimeMillis()).thenReturn(1001L);
+        when(systemTime.nanoTime()).thenReturn(1001L * 1000L * 1000L);
         assertFalse(circuitBreaker.allowAction());
         assertTrue(circuitBreaker.isOpen());
 

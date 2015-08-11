@@ -25,7 +25,11 @@ public interface CircuitBreaker {
 
     boolean allowAction();
 
+    boolean allowAction(long nanoTime);
+
     void informBreakerOfResult(boolean successful);
+    
+    void informBreakerOfResult(boolean successful, long nanoTime);
 
     void setActionMetrics(ActionMetrics metrics);
 

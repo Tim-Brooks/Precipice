@@ -36,7 +36,17 @@ public class NoOpCircuitBreaker implements CircuitBreaker {
     }
 
     @Override
+    public boolean allowAction(long nanoTime) {
+        return !isOpen();
+    }
+
+    @Override
     public void informBreakerOfResult(boolean successful) {
+    }
+
+    @Override
+    public void informBreakerOfResult(boolean successful, long nanoTime) {
+
     }
 
     @Override
