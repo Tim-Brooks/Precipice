@@ -124,6 +124,10 @@ subprojects {
 
 project(':precipice-core') {
 
+    dependencies {
+        compile 'org.hdrhistogram:HdrHistogram:2.1.6'
+    }
+
     task sourcesJar(type: Jar) {
         classifier = 'sources'
         from sourceSets.main.allSource

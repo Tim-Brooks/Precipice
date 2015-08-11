@@ -18,12 +18,16 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.concurrent.LongAdder;
+import org.HdrHistogram.Recorder;
+import org.HdrHistogram.SynchronizedHistogram;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 public class Slot {
 
     private final LongAdder[] metrics;
+    private final Recorder recorder = new Recorder(1, TimeUnit.NANOSECONDS.convert(5, TimeUnit.MINUTES), 2);
     private final long absoluteSlot;
 
     public Slot(long absoluteSlot) {
