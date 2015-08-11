@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.timeout.ActionTimeoutException;
 import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,16 +37,13 @@ public class DefaultRunService extends AbstractService implements RunService {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
             T result = action.run();
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.SUCCESS), System.nanoTime());
-            circuitBreaker.informBreakerOfResult(true);
+            metricsAndBreakerFeedback(Status.SUCCESS);
             return result;
         } catch (ActionTimeoutException e) {
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.TIMEOUT), System.nanoTime());
-            circuitBreaker.informBreakerOfResult(false);
+            metricsAndBreakerFeedback(Status.TIMEOUT);
             throw e;
         } catch (Exception e) {
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.ERROR), System.nanoTime());
-            circuitBreaker.informBreakerOfResult(false);
+            metricsAndBreakerFeedback(Status.ERROR);
             throw e;
         } finally {
             semaphore.releasePermit();
@@ -57,5 +54,11 @@ public class DefaultRunService extends AbstractService implements RunService {
     public void shutdown() {
         isShutdown.compareAndSet(false, true);
 
+    }
+
+    private void metricsAndBreakerFeedback(Status status) {
+        long nanoTime = System.nanoTime();
+        actionMetrics.incrementMetricCount(Metric.statusToMetric(status), nanoTime);
+        circuitBreaker.informBreakerOfResult(status == Status.SUCCESS, nanoTime);
     }
 }
