@@ -53,11 +53,7 @@ public class DefaultService extends AbstractService implements MultiService {
 
     @Override
     public <T> T run(ResilientAction<T> action) throws Exception {
-        try {
-            return runService.run(action);
-        } finally {
-            semaphore.releasePermit();
-        }
+        return runService.run(action);
     }
 
     @Override
