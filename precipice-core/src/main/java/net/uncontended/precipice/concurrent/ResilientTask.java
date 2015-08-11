@@ -33,6 +33,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     public final long nanosAbsoluteTimeout;
+    public final long nanosAbsoluteStart;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<T> promise;
     private final ActionMetrics metrics;
@@ -49,11 +50,12 @@ public class ResilientTask<T> implements Runnable, Delayed {
         this.action = action;
         this.promise = promise;
         this.millisRelativeTimeout = millisRelativeTimeout;
+        this.nanosAbsoluteStart = System.nanoTime();
         if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
             this.nanosAbsoluteTimeout = 0;
         } else {
             this.nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS)
-                    + System.nanoTime();
+                    + nanosAbsoluteStart;
         }
     }
 
@@ -109,23 +111,26 @@ public class ResilientTask<T> implements Runnable, Delayed {
     private void safeSetSuccess(T result) {
         try {
             promise.complete(result);
-        } catch (Throwable t) {}
+        } catch (Throwable t) {
+        }
     }
 
     private void safeSetErred(Throwable e) {
         try {
             promise.completeExceptionally(e);
-        } catch (Throwable t) {}
+        } catch (Throwable t) {
+        }
     }
 
     private void safeSetTimedOut() {
         try {
             promise.completeWithTimeout();
-        } catch (Throwable t) {}
+        } catch (Throwable t) {
+        }
     }
 
     private void done() {
-        metrics.incrementMetricCount(Metric.statusToMetric(status.get()));
+        metrics.incrementMetricCount(Metric.statusToMetric(status.get()), System.nanoTime());
         breaker.informBreakerOfResult(status.get() == Status.SUCCESS);
         semaphore.releasePermit();
     }

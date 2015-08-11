@@ -37,15 +37,15 @@ public class DefaultRunService extends AbstractService implements RunService {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
             T result = action.run();
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.SUCCESS));
+            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.SUCCESS), System.nanoTime());
             circuitBreaker.informBreakerOfResult(true);
             return result;
         } catch (ActionTimeoutException e) {
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.TIMEOUT));
+            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.TIMEOUT), System.nanoTime());
             circuitBreaker.informBreakerOfResult(false);
             throw e;
         } catch (Exception e) {
-            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.ERROR));
+            actionMetrics.incrementMetricCount(Metric.statusToMetric(Status.ERROR), System.nanoTime());
             circuitBreaker.informBreakerOfResult(false);
             throw e;
         } finally {
