@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.core.RunService;
-import net.uncontended.precipice.core.Services;
-import net.uncontended.precipice.core.timeout.ActionTimeoutException;
+import net.uncontended.precipice.RunService;
+import net.uncontended.precipice.Services;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 public class RunExample {
 

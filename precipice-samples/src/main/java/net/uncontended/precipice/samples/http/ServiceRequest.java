@@ -19,7 +19,7 @@ package net.uncontended.precipice.samples.http;
 
 import com.ning.http.client.Request;
 import com.ning.http.client.Response;
-import net.uncontended.precipice.core.ResilientAction;
+import net.uncontended.precipice.ResilientAction;
 
 abstract class ServiceRequest<T> implements ResilientAction<T> {
 

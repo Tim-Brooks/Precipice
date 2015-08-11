@@ -18,15 +18,16 @@
 package net.uncontended.precipice.core;
 
 
-import net.uncontended.precipice.core.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.core.circuit.CircuitBreaker;
-import net.uncontended.precipice.core.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.core.concurrent.Eventual;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.PrecipicePromise;
-import net.uncontended.precipice.core.metrics.ActionMetrics;
-import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.core.metrics.Metric;
+import net.uncontended.precipice.*;
+import net.uncontended.precipice.circuit.BreakerConfigBuilder;
+import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
+import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.core.test_utils.TestActions;
 import net.uncontended.precipice.core.test_utils.TestCallbacks;
 import org.junit.After;

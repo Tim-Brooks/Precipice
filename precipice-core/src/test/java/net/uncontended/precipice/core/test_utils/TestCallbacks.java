@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice.core.test_utils;
 
-import net.uncontended.precipice.core.PrecipiceFunction;
-import net.uncontended.precipice.core.concurrent.PrecipicePromise;
+import net.uncontended.precipice.PrecipiceFunction;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
 
 import java.util.concurrent.CountDownLatch;
 

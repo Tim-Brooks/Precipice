@@ -17,11 +17,11 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.core.MultiService;
-import net.uncontended.precipice.core.ServiceProperties;
-import net.uncontended.precipice.core.Services;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.pattern.*;
+import net.uncontended.precipice.MultiService;
+import net.uncontended.precipice.ServiceProperties;
+import net.uncontended.precipice.Services;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.pattern.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

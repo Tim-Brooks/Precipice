@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice.core.test_utils;
 
-import net.uncontended.precipice.core.*;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.*;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;

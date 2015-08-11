@@ -20,9 +20,9 @@ package net.uncontended.precipice.samples.http;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilder;
-import net.uncontended.precipice.core.ServiceProperties;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.metrics.Metric;
+import net.uncontended.precipice.ServiceProperties;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.metrics.Metric;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;

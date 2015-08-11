@@ -17,11 +17,11 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.core.Services;
-import net.uncontended.precipice.core.AsyncService;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.pattern.ResilientPatternAction;
-import net.uncontended.precipice.core.pattern.Shotgun;
+import net.uncontended.precipice.Services;
+import net.uncontended.precipice.AsyncService;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.pattern.ResilientPatternAction;
+import net.uncontended.precipice.pattern.Shotgun;
 
 import java.util.HashMap;
 import java.util.Map;

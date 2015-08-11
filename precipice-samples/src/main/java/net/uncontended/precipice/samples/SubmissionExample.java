@@ -17,10 +17,10 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.core.Services;
-import net.uncontended.precipice.core.Status;
-import net.uncontended.precipice.core.AsyncService;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.Services;
+import net.uncontended.precipice.Status;
+import net.uncontended.precipice.AsyncService;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;

@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.core.timeout.ActionTimeoutException;
-import net.uncontended.precipice.core.ResilientAction;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.ResilientAction;
 
 import java.util.concurrent.CountDownLatch;
 

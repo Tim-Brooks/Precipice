@@ -18,14 +18,14 @@
 package net.uncontended.precipice.samples.bigger;
 
 import com.squareup.okhttp.*;
-import net.uncontended.precipice.core.*;
-import net.uncontended.precipice.core.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.core.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.core.pattern.LoadBalancers;
-import net.uncontended.precipice.core.pattern.ResilientPatternAction;
-import net.uncontended.precipice.core.pattern.AsyncPattern;
+import net.uncontended.precipice.*;
+import net.uncontended.precipice.circuit.BreakerConfigBuilder;
+import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.pattern.LoadBalancers;
+import net.uncontended.precipice.pattern.ResilientPatternAction;
+import net.uncontended.precipice.pattern.AsyncPattern;
 
 import java.util.ArrayList;
 import java.util.HashMap;

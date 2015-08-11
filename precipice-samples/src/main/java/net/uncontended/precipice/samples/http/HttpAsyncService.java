@@ -20,12 +20,15 @@ package net.uncontended.precipice.samples.http;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import net.uncontended.precipice.core.*;
-import net.uncontended.precipice.core.concurrent.Eventual;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.PrecipicePromise;
-import net.uncontended.precipice.core.metrics.Metric;
-import net.uncontended.precipice.core.timeout.ActionTimeoutException;
+import net.uncontended.precipice.AbstractService;
+import net.uncontended.precipice.AsyncService;
+import net.uncontended.precipice.ResilientAction;
+import net.uncontended.precipice.ServiceProperties;
+import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.concurrent.TimeoutException;
 

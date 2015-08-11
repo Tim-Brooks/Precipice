@@ -17,15 +17,15 @@
 
 package net.uncontended.precipice.samples.kafka;
 
-import net.uncontended.precipice.core.AbstractService;
-import net.uncontended.precipice.core.AsyncService;
-import net.uncontended.precipice.core.ResilientAction;
-import net.uncontended.precipice.core.ServiceProperties;
-import net.uncontended.precipice.core.concurrent.Eventual;
-import net.uncontended.precipice.core.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.core.concurrent.PrecipicePromise;
-import net.uncontended.precipice.core.metrics.Metric;
-import net.uncontended.precipice.core.timeout.ActionTimeoutException;
+import net.uncontended.precipice.AbstractService;
+import net.uncontended.precipice.AsyncService;
+import net.uncontended.precipice.ResilientAction;
+import net.uncontended.precipice.ServiceProperties;
+import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;

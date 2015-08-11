@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.core.test_utils;
 
-import net.uncontended.precipice.core.ResilientAction;
+import net.uncontended.precipice.ResilientAction;
 
 import java.util.concurrent.CountDownLatch;
 

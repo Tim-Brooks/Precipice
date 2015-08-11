@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.samples.bigger;
 
-import net.uncontended.precipice.core.circuit.CircuitBreaker;
-import net.uncontended.precipice.core.metrics.Snapshot;
-import net.uncontended.precipice.core.metrics.ActionMetrics;
+import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.metrics.Snapshot;
+import net.uncontended.precipice.metrics.ActionMetrics;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;
