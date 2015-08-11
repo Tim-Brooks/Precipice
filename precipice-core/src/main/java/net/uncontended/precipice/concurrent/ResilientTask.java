@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ResilientTask<T> implements Runnable, Delayed {
 
     public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
-    public final long millisAbsoluteTimeout;
+    public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<T> promise;
     private final ActionMetrics metrics;
@@ -50,9 +50,10 @@ public class ResilientTask<T> implements Runnable, Delayed {
         this.promise = promise;
         this.millisRelativeTimeout = millisRelativeTimeout;
         if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
-            this.millisAbsoluteTimeout = 0;
+            this.nanosAbsoluteTimeout = 0;
         } else {
-            this.millisAbsoluteTimeout = millisRelativeTimeout + System.currentTimeMillis();
+            this.nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS)
+                    + System.nanoTime();
         }
     }
 
@@ -83,15 +84,15 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     @Override
     public long getDelay(TimeUnit unit) {
-        return unit.convert(millisAbsoluteTimeout - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        return unit.convert(nanosAbsoluteTimeout - System.nanoTime(), TimeUnit.NANOSECONDS);
     }
 
     @Override
     public int compareTo(Delayed o) {
         if (o instanceof ResilientTask) {
-            return Long.compare(millisAbsoluteTimeout, ((ResilientTask) o).millisAbsoluteTimeout);
+            return Long.compare(nanosAbsoluteTimeout, ((ResilientTask) o).nanosAbsoluteTimeout);
         }
-        return Long.compare(getDelay(TimeUnit.MILLISECONDS), o.getDelay(TimeUnit.MILLISECONDS));
+        return Long.compare(getDelay(TimeUnit.NANOSECONDS), o.getDelay(TimeUnit.NANOSECONDS));
     }
 
     public void setTimedOut() {
