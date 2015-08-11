@@ -43,14 +43,14 @@ public class ResilientTask<T> implements Runnable, Delayed {
     private volatile Thread runner;
 
     public ResilientTask(ActionMetrics metrics, PrecipiceSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
-            action, PrecipicePromise<T> promise, long millisRelativeTimeout) {
+            action, PrecipicePromise<T> promise, long millisRelativeTimeout, long nanosAbsoluteStart) {
         this.metrics = metrics;
         this.semaphore = semaphore;
         this.breaker = breaker;
         this.action = action;
         this.promise = promise;
         this.millisRelativeTimeout = millisRelativeTimeout;
-        this.nanosAbsoluteStart = System.nanoTime();
+        this.nanosAbsoluteStart = nanosAbsoluteStart;
         if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
             this.nanosAbsoluteTimeout = 0;
         } else {
