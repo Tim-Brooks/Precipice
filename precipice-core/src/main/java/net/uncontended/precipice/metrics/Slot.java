@@ -19,7 +19,6 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.concurrent.LongAdder;
 import org.HdrHistogram.Recorder;
-import org.HdrHistogram.SynchronizedHistogram;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +45,10 @@ public class Slot {
 
     public LongAdder getMetric(Metric metric) {
         return metrics[metric.ordinal()];
+    }
+
+    public void recordLatency(long duration) {
+        recorder.recordValue(duration);
     }
 
     public long getAbsoluteSlot() {
