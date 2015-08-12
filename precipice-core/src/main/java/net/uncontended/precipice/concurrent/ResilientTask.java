@@ -131,7 +131,8 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     private void done() {
         long nanoTime = System.nanoTime();
-        metrics.incrementMetricCount(Metric.statusToMetric(status.get()), nanoTime);
+        long latency = nanoTime - nanosAbsoluteStart;
+        metrics.incrementMetricAndRecordLatency(Metric.statusToMetric(status.get()), latency, nanoTime);
         breaker.informBreakerOfResult(status.get() == Status.SUCCESS, nanoTime);
         semaphore.releasePermit();
     }

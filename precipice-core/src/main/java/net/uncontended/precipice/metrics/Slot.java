@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class Slot {
 
     private final LongAdder[] metrics;
-    private final Recorder recorder = new Recorder(1, TimeUnit.NANOSECONDS.convert(5, TimeUnit.MINUTES), 2);
+    private final Recorder recorder = new Recorder(TimeUnit.MINUTES.toNanos(1), 1);
     private final long absoluteSlot;
 
     public Slot(long absoluteSlot) {
@@ -47,8 +47,8 @@ public class Slot {
         return metrics[metric.ordinal()];
     }
 
-    public void recordLatency(long duration) {
-        recorder.recordValue(duration);
+    public void recordLatency(long nanoLatency) {
+        recorder.recordValue(nanoLatency);
     }
 
     public long getAbsoluteSlot() {

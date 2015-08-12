@@ -35,15 +35,16 @@ public class DefaultRunService extends AbstractService implements RunService {
     @Override
     public <T> T run(final ResilientAction<T> action) throws Exception {
         acquirePermitOrRejectIfActionNotAllowed();
+        long nanoStart = System.nanoTime();
         try {
             T result = action.run();
-            metricsAndBreakerFeedback(Status.SUCCESS);
+            metricsAndBreakerFeedback(nanoStart, Status.SUCCESS);
             return result;
         } catch (ActionTimeoutException e) {
-            metricsAndBreakerFeedback(Status.TIMEOUT);
+            metricsAndBreakerFeedback(nanoStart, Status.TIMEOUT);
             throw e;
         } catch (Exception e) {
-            metricsAndBreakerFeedback(Status.ERROR);
+            metricsAndBreakerFeedback(nanoStart, Status.ERROR);
             throw e;
         } finally {
             semaphore.releasePermit();
@@ -56,9 +57,10 @@ public class DefaultRunService extends AbstractService implements RunService {
 
     }
 
-    private void metricsAndBreakerFeedback(Status status) {
+    private void metricsAndBreakerFeedback(long nanoStart, Status status) {
         long nanoTime = System.nanoTime();
-        actionMetrics.incrementMetricCount(Metric.statusToMetric(status), nanoTime);
+        long latency = nanoTime - nanoStart;
+        actionMetrics.incrementMetricAndRecordLatency(Metric.statusToMetric(status), latency, nanoTime);
         circuitBreaker.informBreakerOfResult(status == Status.SUCCESS, nanoTime);
     }
 }

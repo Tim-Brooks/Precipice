@@ -42,7 +42,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, SystemTime systemTime) {
         this.systemTime = systemTime;
-        long millisecondsPerSlot = TimeUnit.MILLISECONDS.convert(resolution, slotUnit);
+        long millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
             throw new IllegalArgumentException(String.format("Too low of resolution. %s milliseconds per slot is the " +
                     "lowest valid resolution", Integer.MAX_VALUE));
@@ -72,6 +72,11 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public void incrementMetricCount(Metric metric, long nanoTime) {
+        incrementMetricAndRecordLatency(metric, -1L, nanoTime);
+    }
+
+    @Override
+    public void incrementMetricAndRecordLatency(Metric metric, long nanoLatency, long nanoTime) {
         long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int relativeSlot = absoluteSlot & mask;
@@ -79,20 +84,29 @@ public class DefaultActionMetrics implements ActionMetrics {
 
         if (slot.getAbsoluteSlot() == absoluteSlot) {
             slot.incrementMetric(metric);
+            recordLatency(nanoLatency, slot);
         } else {
             for (; ; ) {
                 slot = metrics.get(relativeSlot);
                 if (slot.getAbsoluteSlot() == absoluteSlot) {
                     slot.incrementMetric(metric);
+                    recordLatency(nanoLatency, slot);
                     break;
                 } else {
                     Slot newSlot = new Slot(absoluteSlot);
                     if (metrics.compareAndSet(relativeSlot, slot, newSlot)) {
                         newSlot.incrementMetric(metric);
+                        recordLatency(nanoLatency, slot);
                         break;
                     }
                 }
             }
+        }
+    }
+
+    private void recordLatency(long nanoDuration, Slot slot) {
+        if (nanoDuration != -1) {
+            slot.recordLatency(nanoDuration);
         }
     }
 
@@ -180,7 +194,7 @@ public class DefaultActionMetrics implements ActionMetrics {
     }
 
     private long currentMillisTime(long nanoTime) {
-        return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
+        return TimeUnit.NANOSECONDS.toMillis(nanoTime);
     }
 
     private int currentAbsoluteSlot(long currentTime) {
@@ -188,7 +202,7 @@ public class DefaultActionMetrics implements ActionMetrics {
     }
 
     private int convertToSlots(long timePeriod, TimeUnit timeUnit) {
-        long longSlots = TimeUnit.MILLISECONDS.convert(timePeriod, timeUnit) / millisecondsPerSlot;
+        long longSlots = timeUnit.toMillis(timePeriod) / millisecondsPerSlot;
 
         if (longSlots > totalSlots) {
             String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]",
