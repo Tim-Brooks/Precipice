@@ -19,18 +19,14 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.utils.SystemTime;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class DefaultActionMetrics implements ActionMetrics {
 
-    private final AtomicReferenceArray<Slot> metrics;
+    private final CircularBuffer<Object> buffer;
     private final SystemTime systemTime;
-    private final int mask;
-    private final int totalSlots;
-    private final int millisecondsPerSlot;
-    private final long startTime;
 
     public DefaultActionMetrics() {
         this(3600, 1, TimeUnit.SECONDS);
@@ -51,18 +47,7 @@ public class DefaultActionMetrics implements ActionMetrics {
                     "milliseconds is the minimum resolution.", millisecondsPerSlot));
         }
 
-
-        this.millisecondsPerSlot = (int) millisecondsPerSlot;
-        this.startTime = currentMillisTime(systemTime.nanoTime());
-        this.totalSlots = slotsToTrack;
-
-        int arraySlot = nextPositivePowerOfTwo(slotsToTrack);
-        this.mask = arraySlot - 1;
-        this.metrics = new AtomicReferenceArray<>(arraySlot);
-
-        for (int i = 0; i < arraySlot; ++i) {
-            metrics.set(i, new Slot(i));
-        }
+        this.buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, systemTime.nanoTime());
     }
 
     @Override
@@ -77,37 +62,9 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public void incrementMetricAndRecordLatency(Metric metric, long nanoLatency, long nanoTime) {
-        long currentTime = currentMillisTime(nanoTime);
-        int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int relativeSlot = absoluteSlot & mask;
-        Slot slot = metrics.get(relativeSlot);
-
-        if (slot.getAbsoluteSlot() == absoluteSlot) {
-            slot.incrementMetric(metric);
-            recordLatency(nanoLatency, slot);
-        } else {
-            for (; ; ) {
-                slot = metrics.get(relativeSlot);
-                if (slot.getAbsoluteSlot() == absoluteSlot) {
-                    slot.incrementMetric(metric);
-                    recordLatency(nanoLatency, slot);
-                    break;
-                } else {
-                    Slot newSlot = new Slot(absoluteSlot);
-                    if (metrics.compareAndSet(relativeSlot, slot, newSlot)) {
-                        newSlot.incrementMetric(metric);
-                        recordLatency(nanoLatency, slot);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    private void recordLatency(long nanoDuration, Slot slot) {
-        if (nanoDuration != -1) {
-            slot.recordLatency(nanoDuration);
-        }
+        Slot currentSlot = buffer.getCurrentSlot(nanoTime);
+        currentSlot.incrementMetric(metric);
+        recordLatency(nanoLatency, currentSlot);
     }
 
     @Override
@@ -117,22 +74,14 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        int slots = convertToSlots(timePeriod, timeUnit);
-        long currentTime = currentMillisTime(nanoTime);
-
-        int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int startSlot = 1 + absoluteSlot - slots;
-        int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
+        Slot[] slotArray = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
 
         long count = 0;
-        for (int i = adjustedStartSlot; i <= absoluteSlot; ++i) {
-            int relativeSlot = i & mask;
-            Slot slot = metrics.get(relativeSlot);
-            if (slot.getAbsoluteSlot() == i) {
+        for (Slot slot : slotArray) {
+            if (slot != null) {
                 count = count + slot.getMetric(metric).longValue();
             }
         }
-
         return count;
     }
 
@@ -143,8 +92,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        int slots = convertToSlots(timePeriod, timeUnit);
-        Slot[] slotArray = collectActiveSlots(slots, nanoTime);
+        Slot[] slotArray = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
 
         long total = 0;
         long failures = 0;
@@ -169,54 +117,13 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
-        int slots = convertToSlots(timePeriod, timeUnit);
-        return Snapshot.generate(collectActiveSlots(slots, systemTime.nanoTime()));
+        return Snapshot.generate(buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime()));
 
     }
 
-    private Slot[] collectActiveSlots(int slots, long nanoTime) {
-        long currentTime = currentMillisTime(nanoTime);
-        int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int startSlot = 1 + absoluteSlot - slots;
-        int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-
-        Slot[] slotArray = new Slot[slots];
-        int j = 0;
-        for (int i = adjustedStartSlot; i <= absoluteSlot; ++i) {
-            int relativeSlot = i & mask;
-            Slot slot = metrics.get(relativeSlot);
-            if (slot.getAbsoluteSlot() == i) {
-                slotArray[j] = slot;
-            }
-            ++j;
+    private static void recordLatency(long nanoDuration, Slot slot) {
+        if (nanoDuration != -1) {
+            slot.recordLatency(nanoDuration);
         }
-        return slotArray;
     }
-
-    private long currentMillisTime(long nanoTime) {
-        return TimeUnit.NANOSECONDS.toMillis(nanoTime);
-    }
-
-    private int currentAbsoluteSlot(long currentTime) {
-        return ((int) (currentTime - startTime)) / millisecondsPerSlot;
-    }
-
-    private int convertToSlots(long timePeriod, TimeUnit timeUnit) {
-        long longSlots = timeUnit.toMillis(timePeriod) / millisecondsPerSlot;
-
-        if (longSlots > totalSlots) {
-            String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]",
-                    totalSlots, longSlots);
-            throw new IllegalArgumentException(message);
-        } else if (longSlots <= 0) {
-            String message = String.format("Slots must be greater than 0. [Argument: %s]", longSlots);
-            throw new IllegalArgumentException(message);
-        }
-        return (int) longSlots;
-    }
-
-    private int nextPositivePowerOfTwo(int slotsToTrack) {
-        return 1 << (32 - Integer.numberOfLeadingZeros(slotsToTrack - 1));
-    }
-
 }
