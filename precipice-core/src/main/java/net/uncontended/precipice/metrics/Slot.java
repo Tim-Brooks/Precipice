@@ -20,17 +20,14 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.concurrent.LongAdder;
 import org.HdrHistogram.Recorder;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class Slot {
 
     private final LongAdder[] metrics;
     private final Recorder recorder = new Recorder(TimeUnit.MINUTES.toNanos(1), 1);
-    private final long absoluteSlot;
 
-    public Slot(long absoluteSlot) {
-        this.absoluteSlot = absoluteSlot;
+    public Slot() {
         Metric[] metricValues = Metric.values();
 
         metrics = new LongAdder[metricValues.length];
@@ -49,17 +46,5 @@ public class Slot {
 
     public void recordLatency(long nanoLatency) {
         recorder.recordValue(nanoLatency);
-    }
-
-    public long getAbsoluteSlot() {
-        return absoluteSlot;
-    }
-
-    @Override
-    public String toString() {
-        return "Slot{" +
-                "metrics=" + Arrays.toString(metrics) +
-                ", absoluteSlot=" + absoluteSlot +
-                '}';
     }
 }

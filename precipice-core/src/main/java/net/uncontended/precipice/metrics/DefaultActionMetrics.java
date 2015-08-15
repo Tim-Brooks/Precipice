@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultActionMetrics implements ActionMetrics {
 
-    private final CircularBuffer<Object> buffer;
+    private final CircularBuffer<Slot> buffer;
     private final SystemTime systemTime;
 
     public DefaultActionMetrics() {
@@ -62,7 +62,10 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public void incrementMetricAndRecordLatency(Metric metric, long nanoLatency, long nanoTime) {
-        Slot currentSlot = buffer.getCurrentSlot(nanoTime);
+        Slot currentSlot = buffer.getSlot(nanoTime);
+        if (currentSlot == null) {
+            currentSlot = buffer.putOrGet(nanoTime, new Slot());
+        }
         currentSlot.incrementMetric(metric);
         recordLatency(nanoLatency, currentSlot);
     }
@@ -74,10 +77,10 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Slot[] slotArray = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+        Iterable<Slot> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
 
         long count = 0;
-        for (Slot slot : slotArray) {
+        for (Slot slot : slots) {
             if (slot != null) {
                 count = count + slot.getMetric(metric).longValue();
             }
@@ -92,12 +95,12 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Slot[] slotArray = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+        Iterable<Slot> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
 
         long total = 0;
         long failures = 0;
         long rejections = 0;
-        for (Slot slot : slotArray) {
+        for (Slot slot : slots) {
             if (slot != null) {
                 long successes = slot.getMetric(Metric.SUCCESS).longValue();
                 long errors = slot.getMetric(Metric.ERROR).longValue();

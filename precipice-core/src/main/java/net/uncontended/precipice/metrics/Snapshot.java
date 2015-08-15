@@ -47,7 +47,7 @@ public class Snapshot {
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
     public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
-    public static Map<Object, Object> generate(Slot[] slots) {
+    public static Map<Object, Object> generate(Iterable<Slot> slots) {
         long total = 0;
         long successes = 0;
         long timeouts = 0;

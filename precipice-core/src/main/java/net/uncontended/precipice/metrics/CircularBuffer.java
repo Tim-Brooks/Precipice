@@ -17,12 +17,13 @@
 
 package net.uncontended.precipice.metrics;
 
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class CircularBuffer<T> {
 
-    private final AtomicReferenceArray<Slot> buffer;
+    private final AtomicReferenceArray<Slot<T>> buffer;
     private final int mask;
     private final int totalSlots;
     private final int millisecondsPerSlot;
@@ -42,53 +43,47 @@ public class CircularBuffer<T> {
         int arraySlot = nextPositivePowerOfTwo(slotsToTrack);
         this.mask = arraySlot - 1;
         this.buffer = new AtomicReferenceArray<>(arraySlot);
-
-        for (int i = 0; i < arraySlot; ++i) {
-            buffer.set(i, new Slot(i));
-        }
     }
 
-    public Slot getCurrentSlot(long nanoTime) {
+    public T getSlot(long nanoTime) {
         long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int relativeSlot = absoluteSlot & mask;
-        Slot slot = buffer.get(relativeSlot);
+        Slot<T> slot = buffer.get(relativeSlot);
 
-        if (slot.getAbsoluteSlot() == absoluteSlot) {
-            return slot;
+        if (slot != null && slot.absoluteSlot == absoluteSlot) {
+            return slot.object;
         } else {
-            for (; ; ) {
-                slot = buffer.get(relativeSlot);
-                if (slot.getAbsoluteSlot() == absoluteSlot) {
-                    return slot;
-                } else {
-                    Slot newSlot = new Slot(absoluteSlot);
-                    if (buffer.compareAndSet(relativeSlot, slot, newSlot)) {
-                        return newSlot;
-                    }
-                }
-            }
+            return null;
         }
     }
 
-    public Slot[] collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public T putOrGet(long nanoTime, T object) {
+        long currentTime = currentMillisTime(nanoTime);
+        int absoluteSlot = currentAbsoluteSlot(currentTime);
+        int relativeSlot = absoluteSlot & mask;
+
+        for (; ; ) {
+            Slot<T> slot = buffer.get(relativeSlot);
+            if (slot != null && slot.absoluteSlot == absoluteSlot) {
+                return slot.object;
+            } else {
+                Slot<T> newSlot = new Slot<>(absoluteSlot, object);
+                if (buffer.compareAndSet(relativeSlot, slot, newSlot)) {
+                    return newSlot.object;
+                }
+            }
+        }
+
+    }
+
+    public Iterable<T> collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         int slots = convertToSlots(timePeriod, timeUnit);
         long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int startSlot = 1 + absoluteSlot - slots;
         int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-
-        Slot[] slotArray = new Slot[slots];
-        int j = 0;
-        for (int i = adjustedStartSlot; i <= absoluteSlot; ++i) {
-            int relativeSlot = i & mask;
-            Slot slot = buffer.get(relativeSlot);
-            if (slot.getAbsoluteSlot() == i) {
-                slotArray[j] = slot;
-            }
-            ++j;
-        }
-        return slotArray;
+        return new SlotView(adjustedStartSlot, absoluteSlot);
     }
 
     private int convertToSlots(long timePeriod, TimeUnit timeUnit) {
@@ -115,5 +110,48 @@ public class CircularBuffer<T> {
 
     private static int nextPositivePowerOfTwo(int slotsToTrack) {
         return 1 << (32 - Integer.numberOfLeadingZeros(slotsToTrack - 1));
+    }
+
+    private static class Slot<T> {
+        public final T object;
+        public final long absoluteSlot;
+
+        public Slot(long absoluteSlot, T object) {
+            this.absoluteSlot = absoluteSlot;
+            this.object = object;
+        }
+    }
+
+    private class SlotView implements Iterable<T> {
+
+        private final int maxIndex;
+        private int index;
+
+        public SlotView(int index, int maxIndex) {
+            this.index = index;
+            this.maxIndex = maxIndex;
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            return new Iterator<T>() {
+                @Override
+                public boolean hasNext() {
+                    return index <= maxIndex;
+                }
+
+                @Override
+                public T next() {
+                    int currentIndex = index++;
+                    int relativeSlot = currentIndex & mask;
+                    Slot<T> slot = buffer.get(relativeSlot);
+                    if (slot != null && slot.absoluteSlot == currentIndex) {
+                        return slot.object;
+                    } else {
+                        return null;
+                    }
+                }
+            };
+        }
     }
 }
