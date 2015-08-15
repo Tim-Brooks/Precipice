@@ -19,13 +19,12 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.utils.SystemTime;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultActionMetrics implements ActionMetrics {
 
-    private final CircularBuffer<Slot> buffer;
+    private final CircularBuffer<MetricCounter> buffer;
     private final SystemTime systemTime;
 
     public DefaultActionMetrics() {
@@ -62,12 +61,12 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public void incrementMetricAndRecordLatency(Metric metric, long nanoLatency, long nanoTime) {
-        Slot currentSlot = buffer.getSlot(nanoTime);
-        if (currentSlot == null) {
-            currentSlot = buffer.putOrGet(nanoTime, new Slot());
+        MetricCounter currentMetricCounter = buffer.getSlot(nanoTime);
+        if (currentMetricCounter == null) {
+            currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter());
         }
-        currentSlot.incrementMetric(metric);
-        recordLatency(nanoLatency, currentSlot);
+        currentMetricCounter.incrementMetric(metric);
+        recordLatency(nanoLatency, currentMetricCounter);
     }
 
     @Override
@@ -77,12 +76,12 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<Slot> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+        Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
 
         long count = 0;
-        for (Slot slot : slots) {
-            if (slot != null) {
-                count = count + slot.getMetric(metric).longValue();
+        for (MetricCounter metricCounter : slots) {
+            if (metricCounter != null) {
+                count = count + metricCounter.getMetric(metric).longValue();
             }
         }
         return count;
@@ -95,19 +94,19 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<Slot> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+        Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
 
         long total = 0;
         long failures = 0;
         long rejections = 0;
-        for (Slot slot : slots) {
-            if (slot != null) {
-                long successes = slot.getMetric(Metric.SUCCESS).longValue();
-                long errors = slot.getMetric(Metric.ERROR).longValue();
-                long timeouts = slot.getMetric(Metric.TIMEOUT).longValue();
-                long maxConcurrency = slot.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
-                long circuitOpen = slot.getMetric(Metric.CIRCUIT_OPEN).longValue();
-                long queueFull = slot.getMetric(Metric.QUEUE_FULL).longValue();
+        for (MetricCounter metricCounter : slots) {
+            if (metricCounter != null) {
+                long successes = metricCounter.getMetric(Metric.SUCCESS).longValue();
+                long errors = metricCounter.getMetric(Metric.ERROR).longValue();
+                long timeouts = metricCounter.getMetric(Metric.TIMEOUT).longValue();
+                long maxConcurrency = metricCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
+                long circuitOpen = metricCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
+                long queueFull = metricCounter.getMetric(Metric.QUEUE_FULL).longValue();
                 long slotTotal = successes + errors + timeouts + maxConcurrency + circuitOpen + queueFull;
 
                 total = total + slotTotal;
@@ -124,9 +123,9 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     }
 
-    private static void recordLatency(long nanoDuration, Slot slot) {
+    private static void recordLatency(long nanoDuration, MetricCounter metricCounter) {
         if (nanoDuration != -1) {
-            slot.recordLatency(nanoDuration);
+            metricCounter.recordLatency(nanoDuration);
         }
     }
 }

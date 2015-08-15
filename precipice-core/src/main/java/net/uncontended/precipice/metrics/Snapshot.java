@@ -47,7 +47,7 @@ public class Snapshot {
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
     public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
-    public static Map<Object, Object> generate(Iterable<Slot> slots) {
+    public static Map<Object, Object> generate(Iterable<MetricCounter> slots) {
         long total = 0;
         long successes = 0;
         long timeouts = 0;
@@ -83,15 +83,15 @@ public class Snapshot {
         long previousQueueFull = 0;
         long previousCircuitOpen = 0;
         long previousAllRejected = 0;
-        for (Slot slot : slots) {
-            if (slot != null) {
-                long slotSuccesses = slot.getMetric(Metric.SUCCESS).longValue();
-                long slotErrors = slot.getMetric(Metric.ERROR).longValue();
-                long slotTimeouts = slot.getMetric(Metric.TIMEOUT).longValue();
-                long slotMaxConcurrency = slot.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
-                long slotCircuitOpen = slot.getMetric(Metric.CIRCUIT_OPEN).longValue();
-                long slotQueueFull = slot.getMetric(Metric.QUEUE_FULL).longValue();
-                long slotAllRejected = slot.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
+        for (MetricCounter metricCounter : slots) {
+            if (metricCounter != null) {
+                long slotSuccesses = metricCounter.getMetric(Metric.SUCCESS).longValue();
+                long slotErrors = metricCounter.getMetric(Metric.ERROR).longValue();
+                long slotTimeouts = metricCounter.getMetric(Metric.TIMEOUT).longValue();
+                long slotMaxConcurrency = metricCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
+                long slotCircuitOpen = metricCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
+                long slotQueueFull = metricCounter.getMetric(Metric.QUEUE_FULL).longValue();
+                long slotAllRejected = metricCounter.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
                 long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
                         slotQueueFull + slotAllRejected;
                 total = total + slotTotal;

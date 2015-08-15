@@ -22,12 +22,12 @@ import org.HdrHistogram.Recorder;
 
 import java.util.concurrent.TimeUnit;
 
-public class Slot {
+public class MetricCounter {
 
     private final LongAdder[] metrics;
     private final Recorder recorder = new Recorder(TimeUnit.MINUTES.toNanos(1), 1);
 
-    public Slot() {
+    public MetricCounter() {
         Metric[] metricValues = Metric.values();
 
         metrics = new LongAdder[metricValues.length];
