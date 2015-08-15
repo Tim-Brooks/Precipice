@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.utils.SystemTime;
+import org.HdrHistogram.Recorder;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultActionMetrics implements ActionMetrics {
 
     private final CircularBuffer<MetricCounter> buffer;
+    private final CircularBuffer<Recorder> latencyBuffer;
     private final SystemTime systemTime;
 
     public DefaultActionMetrics() {
@@ -46,7 +48,9 @@ public class DefaultActionMetrics implements ActionMetrics {
                     "milliseconds is the minimum resolution.", millisecondsPerSlot));
         }
 
-        this.buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, systemTime.nanoTime());
+        long startTime = systemTime.nanoTime();
+        this.buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
+        this.latencyBuffer = new CircularBuffer<>(4, 15, TimeUnit.MINUTES, startTime);
     }
 
     @Override
@@ -66,7 +70,12 @@ public class DefaultActionMetrics implements ActionMetrics {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter());
         }
         currentMetricCounter.incrementMetric(metric);
-        recordLatency(nanoLatency, currentMetricCounter);
+
+//        Recorder recorder = latencyBuffer.getSlot(nanoTime);
+//        if (recorder == null) {
+//            recorder = new Recorder(TimeUnit.MINUTES.toNanos(5), 2);
+//        }
+//        recordLatency(recorder, nanoLatency);
     }
 
     @Override
@@ -123,9 +132,9 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     }
 
-    private static void recordLatency(long nanoDuration, MetricCounter metricCounter) {
+    private static void recordLatency(Recorder recorder, long nanoDuration) {
         if (nanoDuration != -1) {
-            metricCounter.recordLatency(nanoDuration);
+            recorder.recordValue(nanoDuration);
         }
     }
 }

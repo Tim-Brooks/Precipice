@@ -43,8 +43,4 @@ public class MetricCounter {
     public LongAdder getMetric(Metric metric) {
         return metrics[metric.ordinal()];
     }
-
-    public void recordLatency(long nanoLatency) {
-        recorder.recordValue(nanoLatency);
-    }
 }
