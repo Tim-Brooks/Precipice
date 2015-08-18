@@ -18,6 +18,6 @@
 package net.uncontended.precipice;
 
 public enum Status {
-    SUCCESS, ERROR, PENDING, TIMEOUT, CANCELED
+    SUCCESS, ERROR, PENDING, TIMEOUT, CANCELLED
 }
 
