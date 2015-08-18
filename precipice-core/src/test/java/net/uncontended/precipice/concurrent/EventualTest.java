@@ -21,6 +21,7 @@ import net.uncontended.precipice.PrecipiceFunction;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -60,15 +61,17 @@ public class EventualTest {
             }
         });
 
-        eventual.completeExceptionally(exception);
-        eventual.complete("NOO");
-        eventual.completeWithTimeout();
+        assertTrue(eventual.completeExceptionally(exception));
+        assertFalse(eventual.complete("NOO"));
+        assertFalse(eventual.completeWithTimeout());
+        assertFalse(eventual.cancel(true));
 
         assertSame(exception, error.get());
         assertSame(exception, eventual.error());
         assertNull(result.get());
         assertNull(eventual.result());
         assertFalse(isTimedOut.get());
+        assertFalse(eventual.isCancelled());
 
         try {
             eventual.get();
@@ -109,9 +112,10 @@ public class EventualTest {
         });
 
         String stringResult = "YESS";
-        eventual.complete(stringResult);
-        eventual.completeExceptionally(exception);
-        eventual.completeWithTimeout();
+        assertTrue(eventual.complete(stringResult));
+        assertFalse(eventual.completeExceptionally(exception));
+        assertFalse(eventual.completeWithTimeout());
+        assertFalse(eventual.cancel(true));
 
         assertSame(stringResult, result.get());
         assertSame(stringResult, eventual.result());
@@ -119,6 +123,7 @@ public class EventualTest {
         assertNull(error.get());
         assertNull(eventual.error());
         assertFalse(isTimedOut.get());
+        assertFalse(eventual.isCancelled());
     }
 
     @Test
@@ -152,9 +157,10 @@ public class EventualTest {
             }
         });
 
-        eventual.completeWithTimeout();
-        eventual.completeExceptionally(exception);
-        eventual.complete("NOO");
+        assertTrue(eventual.completeWithTimeout());
+        assertFalse(eventual.completeExceptionally(exception));
+        assertFalse(eventual.complete("NOO"));
+        assertFalse(eventual.cancel(true));
 
         assertNull(result.get());
         assertNull(eventual.result());
@@ -162,5 +168,55 @@ public class EventualTest {
         assertNull(eventual.error());
         assertNull(eventual.get());
         assertTrue(isTimedOut.get());
+        assertFalse(eventual.isCancelled());
+    }
+
+    @Test
+    public void testCancellation() throws InterruptedException, ExecutionException {
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+        final AtomicReference<String> result = new AtomicReference<>();
+        final AtomicBoolean isTimedOut = new AtomicBoolean(false);
+
+        Eventual<String> eventual = new Eventual<>();
+
+
+        IOException exception = new IOException();
+        eventual.onError(new PrecipiceFunction<Throwable>() {
+            @Override
+            public void apply(Throwable argument) {
+                error.set(argument);
+            }
+        });
+
+        eventual.onTimeout(new PrecipiceFunction<Void>() {
+            @Override
+            public void apply(Void argument) {
+                isTimedOut.set(true);
+            }
+        });
+
+        eventual.onSuccess(new PrecipiceFunction<String>() {
+            @Override
+            public void apply(String argument) {
+                result.set(argument);
+            }
+        });
+
+        assertTrue(eventual.cancel(true));
+        assertFalse(eventual.complete("NOO"));
+        assertFalse(eventual.completeExceptionally(exception));
+        assertFalse(eventual.completeWithTimeout());
+
+        assertNull(result.get());
+        assertNull(eventual.result());
+        assertNull(error.get());
+        assertNull(eventual.error());
+        assertFalse(isTimedOut.get());
+        assertTrue(eventual.isCancelled());
+
+        try {
+            eventual.get();
+            fail();
+        } catch (CancellationException e) {}
     }
 }
