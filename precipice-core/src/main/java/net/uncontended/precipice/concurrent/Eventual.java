@@ -20,10 +20,7 @@ package net.uncontended.precipice.concurrent;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Status;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
@@ -122,6 +119,8 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
         latch.await();
         if (result != null) {
             return result;
+        } else if (isCancelled()) {
+            throw new CancellationException();
         } else if (throwable != null) {
             throw new ExecutionException(throwable);
         } else {
@@ -134,6 +133,8 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
         if (latch.await(timeout, unit)) {
             if (result != null) {
                 return result;
+            } else if (isCancelled()) {
+                throw new CancellationException();
             } else {
                 throw new ExecutionException(throwable);
             }
@@ -149,12 +150,16 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
 
     @Override
     public boolean isCancelled() {
-        return false;
+        return status.get() == Status.CANCELLED;
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException("Cancelling is not supported at this time");
+        boolean isCancelled = status.compareAndSet(Status.PENDING, Status.CANCELLED);
+        if (isCancelled) {
+            latch.countDown();
+        }
+        return isCancelled;
     }
 
     @Override
