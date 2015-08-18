@@ -149,12 +149,12 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
 
     @Override
     public boolean isCancelled() {
-        return false;
+        return status.get() == Status.CANCELED;
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException("Cancelling is not supported at this time");
+        return status.compareAndSet(Status.PENDING, Status.CANCELED);
     }
 
     @Override
