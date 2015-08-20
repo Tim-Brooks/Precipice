@@ -27,6 +27,8 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     private final CircularBuffer<MetricCounter> buffer;
     private final CircularBuffer<Recorder> latencyBuffer;
+    private final int slotsToTrack;
+    private final long millisecondsPerSlot;
     private final SystemTime systemTime;
 
     public DefaultActionMetrics() {
@@ -39,7 +41,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, SystemTime systemTime) {
         this.systemTime = systemTime;
-        long millisecondsPerSlot = slotUnit.toMillis(resolution);
+        this.millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
             throw new IllegalArgumentException(String.format("Too low of resolution. %s milliseconds per slot is the " +
                     "lowest valid resolution", Integer.MAX_VALUE));
@@ -49,6 +51,7 @@ public class DefaultActionMetrics implements ActionMetrics {
         }
 
         long startTime = systemTime.nanoTime();
+        this.slotsToTrack = slotsToTrack;
         this.buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
         this.latencyBuffer = new CircularBuffer<>(4, 15, TimeUnit.MINUTES, startTime);
     }
@@ -76,6 +79,12 @@ public class DefaultActionMetrics implements ActionMetrics {
 //            recorder = new Recorder(TimeUnit.MINUTES.toNanos(5), 2);
 //        }
 //        recordLatency(recorder, nanoLatency);
+    }
+
+    @Override
+    public long getMetricCount(Metric metric) {
+        long milliseconds = slotsToTrack * millisecondsPerSlot;
+        return getMetricCountForTimePeriod(metric, milliseconds, TimeUnit.MILLISECONDS, systemTime.nanoTime());
     }
 
     @Override

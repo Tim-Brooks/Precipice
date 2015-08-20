@@ -28,6 +28,8 @@ public interface ActionMetrics {
 
     void incrementMetricAndRecordLatency(Metric metric, long nanoLatency, long nanoTime);
 
+    long getMetricCount(Metric metric);
+
     long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit);
 
     long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
