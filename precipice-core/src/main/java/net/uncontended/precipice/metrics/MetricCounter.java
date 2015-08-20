@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 public class MetricCounter {
 
     private final LongAdder[] metrics;
-    private final Recorder recorder = new Recorder(TimeUnit.MINUTES.toNanos(1), 1);
 
     public MetricCounter() {
         Metric[] metricValues = Metric.values();

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultActionMetrics implements ActionMetrics {
 
     private final CircularBuffer<MetricCounter> buffer;
-    private final CircularBuffer<Recorder> latencyBuffer;
+    private final Recorder recorder = new Recorder(TimeUnit.HOURS.toNanos(1), 2);
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
     private final SystemTime systemTime;
@@ -53,7 +53,6 @@ public class DefaultActionMetrics implements ActionMetrics {
         long startTime = systemTime.nanoTime();
         this.slotsToTrack = slotsToTrack;
         this.buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
-        this.latencyBuffer = new CircularBuffer<>(4, 15, TimeUnit.MINUTES, startTime);
     }
 
     @Override
@@ -73,12 +72,7 @@ public class DefaultActionMetrics implements ActionMetrics {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter());
         }
         currentMetricCounter.incrementMetric(metric);
-
-//        Recorder recorder = latencyBuffer.getSlot(nanoTime);
-//        if (recorder == null) {
-//            recorder = new Recorder(TimeUnit.MINUTES.toNanos(5), 2);
-//        }
-//        recordLatency(recorder, nanoLatency);
+        recordLatency(nanoLatency);
     }
 
     @Override
@@ -141,7 +135,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     }
 
-    private static void recordLatency(Recorder recorder, long nanoDuration) {
+    private void recordLatency(long nanoDuration) {
         if (nanoDuration != -1) {
             recorder.recordValue(nanoDuration);
         }
