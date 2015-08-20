@@ -97,6 +97,12 @@ public class DefaultActionMetrics implements ActionMetrics {
     }
 
     @Override
+    public long getMetricCount(Metric metric) {
+        int milliseconds = totalSlots * millisecondsPerSlot;
+        return getMetricCountForTimePeriod(metric, milliseconds, TimeUnit.MILLISECONDS, systemTime.nanoTime());
+    }
+
+    @Override
     public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
         return getMetricCountForTimePeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
     }
