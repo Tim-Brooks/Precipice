@@ -20,28 +20,51 @@ package net.uncontended.precipice.reporting;
 import io.undertow.Undertow;
 import io.undertow.server.handlers.PathHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
+import org.HdrHistogram.Histogram;
+
+import java.util.concurrent.TimeUnit;
 
 import static io.undertow.Handlers.resource;
 
 public class Entry {
 
     public static void main(String[] args) {
-        PathHandler path = new PathHandler()
-                .addPrefixPath("/", resource(new ClassPathResourceManager(Dashboard.class.getClassLoader(),
-                        Dashboard.class.getPackage())).addWelcomeFiles("chart.html"))
-                .addExactPath("/api", new Dashboard());
+//        PathHandler path = new PathHandler()
+//                .addPrefixPath("/", resource(new ClassPathResourceManager(Dashboard.class.getClassLoader(),
+//                        Dashboard.class.getPackage())).addWelcomeFiles("chart.html"))
+//                .addExactPath("/api", new Dashboard());
+//
+//        Undertow server = Undertow.builder()
+//                .addHttpListener(6001, "127.0.0.1")
+//                .setHandler(path)
+//                .build();
+//        server.start();
+//
+//        try {
+//            Thread.sleep(1000000000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        server.stop();
 
-        Undertow server = Undertow.builder()
-                .addHttpListener(6001, "127.0.0.1")
-                .setHandler(path)
-                .build();
-        server.start();
+        Histogram histogram = new Histogram(1000, TimeUnit.HOURS.toNanos(1), 2);
+        histogram.recordValue(2);
+        histogram.recordValue(2);
+        histogram.recordValue(2);
+        histogram.recordValue(2);
+        histogram.recordValue(2000);
+        histogram.recordValue(3000);
+        histogram.recordValue(5000);
+        histogram.recordValue(TimeUnit.HOURS.toNanos(1));
 
-        try {
-            Thread.sleep(1000000000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        server.stop();
+        System.out.println(histogram.getValueAtPercentile(50.0));
+        System.out.println(histogram.getValueAtPercentile(90.0));
+        System.out.println(histogram.getValueAtPercentile(99.0));
+        System.out.println(histogram.getValueAtPercentile(99.9));
+        System.out.println(histogram.getValueAtPercentile(99.99));
+        System.out.println(histogram.getValueAtPercentile(99.999));
+        System.out.println(histogram.getMaxValue());
+
+        histogram.outputPercentileDistribution(System.out, 1000.0);
     }
 }
