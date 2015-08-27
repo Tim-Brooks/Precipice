@@ -144,7 +144,8 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
-        return Snapshot.generate(buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime()));
+        return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
+                systemTime.nanoTime()));
 
     }
 

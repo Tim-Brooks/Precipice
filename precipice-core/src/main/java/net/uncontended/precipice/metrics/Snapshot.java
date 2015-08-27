@@ -22,6 +22,14 @@ import java.util.Map;
 
 public class Snapshot {
 
+    public static final String TOTAL_TOTAL = "total-total";
+    public static final String TOTAL_SUCCESSES = "total-successes";
+    public static final String TOTAL_TIMEOUTS = "total-timeouts";
+    public static final String TOTAL_ERRORS = "total-errors";
+    public static final String TOTAL_MAX_CONCURRENCY = "total-max-concurrency";
+    public static final String TOTAL_QUEUE_FULL = "total-queue-full";
+    public static final String TOTAL_CIRCUIT_OPEN = "total-circuit-open";
+    public static final String TOTAL_ALL_REJECTED = "total-all-rejected";
     public static final String TOTAL = "total";
     public static final String SUCCESSES = "successes";
     public static final String TIMEOUTS = "timeouts";
@@ -47,7 +55,8 @@ public class Snapshot {
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
     public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
-    public static Map<Object, Object> generate(Iterable<MetricCounter> slots) {
+    public static Map<Object, Object> generate(MetricCounter totalCounter, Iterable<MetricCounter> slots) {
+
         long total = 0;
         long successes = 0;
         long timeouts = 0;
@@ -94,6 +103,7 @@ public class Snapshot {
                 long slotAllRejected = metricCounter.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
                 long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
                         slotQueueFull + slotAllRejected;
+
                 total = total + slotTotal;
                 maxTotal = Math.max(maxTotal, slotTotal);
                 max2Total = Math.max(max2Total, slotTotal + previousTotal);
@@ -137,6 +147,8 @@ public class Snapshot {
         }
 
         Map<Object, Object> metricsMap = new HashMap<>();
+        putTotalCounts(totalCounter, metricsMap);
+
         metricsMap.put(TOTAL, total);
         metricsMap.put(SUCCESSES, successes);
         metricsMap.put(TIMEOUTS, timeouts);
@@ -165,5 +177,24 @@ public class Snapshot {
         metricsMap.put(MAX_2_ALL_REJECTED, max2AllRejected);
 
         return metricsMap;
+    }
+
+    private static void putTotalCounts(MetricCounter totalCounter, Map<Object, Object> metricsMap) {
+        long totalSuccesses = totalCounter.getMetric(Metric.SUCCESS).longValue();
+        long totalTimeouts = totalCounter.getMetric(Metric.TIMEOUT).longValue();
+        long totalErrors = totalCounter.getMetric(Metric.ERROR).longValue();
+        long totalMaxConcurrency = totalCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
+        long totalQueueFull = totalCounter.getMetric(Metric.QUEUE_FULL).longValue();
+        long totalCircuitOpen = totalCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
+        long totalAllRejected = totalCounter.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
+        metricsMap.put(TOTAL_TOTAL, totalSuccesses + totalTimeouts + totalErrors + totalMaxConcurrency +
+                totalQueueFull + totalCircuitOpen + totalAllRejected);
+        metricsMap.put(TOTAL_SUCCESSES, totalSuccesses);
+        metricsMap.put(TOTAL_TIMEOUTS, totalTimeouts);
+        metricsMap.put(TOTAL_ERRORS, totalErrors);
+        metricsMap.put(TOTAL_MAX_CONCURRENCY, totalMaxConcurrency);
+        metricsMap.put(TOTAL_QUEUE_FULL, totalQueueFull);
+        metricsMap.put(TOTAL_CIRCUIT_OPEN, totalCircuitOpen);
+        metricsMap.put(TOTAL_ALL_REJECTED, totalAllRejected);
     }
 }
