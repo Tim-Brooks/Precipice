@@ -154,10 +154,10 @@ public class DefaultActionMetricsTest {
         assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution, unit));
         assertEquals(1, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution * 2, unit));
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * (slotsTracked - 1))  * 1000L * 1000L);
+        when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * (slotsTracked - 1)) * 1000L * 1000L);
         assertEquals(1, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, slotsTracked * resolution, unit));
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * slotsTracked)  * 1000L * 1000L);
+        when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * slotsTracked) * 1000L * 1000L);
         assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, slotsTracked * resolution, unit));
     }
 
@@ -170,49 +170,50 @@ public class DefaultActionMetricsTest {
         long offsetTime = 50L;
         int slotsTracked = 10;
 
-        when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
+        long currentTime = startTime * 1000L * 1000L;
+        when(systemTime.nanoTime()).thenReturn(currentTime);
         metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, systemTime);
 
-        when(systemTime.nanoTime()).thenReturn(offsetTime * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
-        metrics.incrementMetricCount(Metric.ERROR);
-        metrics.incrementMetricCount(Metric.TIMEOUT);
-        metrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        metrics.incrementMetricCount(Metric.QUEUE_FULL);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
-        metrics.incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
+        currentTime = offsetTime * 1000L * 1000L;
+        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.ERROR, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.TIMEOUT, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.QUEUE_FULL, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.ALL_SERVICES_REJECTED, 1000L, currentTime);
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution) * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
-        metrics.incrementMetricCount(Metric.SUCCESS);
-        metrics.incrementMetricCount(Metric.ERROR);
+        currentTime = (offsetTime + millisResolution) * 1000L * 1000L;
+        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.ERROR, 1000L, currentTime);
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 2) * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
-        metrics.incrementMetricCount(Metric.ERROR);
-        metrics.incrementMetricCount(Metric.TIMEOUT);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
+        currentTime = (offsetTime + millisResolution * 2) * 1000L * 1000L;
+        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.ERROR, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.TIMEOUT, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 3) * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
-        metrics.incrementMetricCount(Metric.ERROR);
-        metrics.incrementMetricCount(Metric.ERROR);
-        metrics.incrementMetricCount(Metric.ERROR);
+        currentTime = (offsetTime + millisResolution * 3) * 1000L * 1000L;
+        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.ERROR, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.ERROR, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.ERROR, 1000L, currentTime);
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 4) * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
-        metrics.incrementMetricCount(Metric.TIMEOUT);
-        metrics.incrementMetricCount(Metric.QUEUE_FULL);
-        metrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        currentTime = (offsetTime + millisResolution * 4) * 1000L * 1000L;
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.TIMEOUT, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.QUEUE_FULL, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1000L, currentTime);
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 5) * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
-        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
-        metrics.incrementMetricCount(Metric.TIMEOUT);
-        metrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        currentTime = (offsetTime + millisResolution * 5) * 1000L * 1000L;
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.TIMEOUT, 1000L, currentTime);
+        metrics.incrementMetricAndRecordLatency(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1000L, currentTime);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 5) * 1000L * 1000L);
 
@@ -250,6 +251,15 @@ public class DefaultActionMetricsTest {
         assertEquals(2L, snapshot.get(Snapshot.MAX_2_MAX_CONCURRENCY));
         assertEquals(0L, snapshot.get(Snapshot.MAX_2_ALL_REJECTED));
 
+        assertEquals(1003L, snapshot.get(Snapshot.LATENCY_MAX));
+        assertEquals(1002D, snapshot.get(Snapshot.LATENCY_MEAN));
+        assertEquals(1003L, snapshot.get(Snapshot.LATENCY_50));
+        assertEquals(1003L, snapshot.get(Snapshot.LATENCY_90));
+        assertEquals(1003L, snapshot.get(Snapshot.LATENCY_99));
+        assertEquals(1003L, snapshot.get(Snapshot.LATENCY_99_9));
+        assertEquals(1003L, snapshot.get(Snapshot.LATENCY_99_99));
+        assertEquals(1003L, snapshot.get(Snapshot.LATENCY_99_999));
+
         Map<Object, Object> snapshot2 = metrics.snapshot(4, TimeUnit.SECONDS);
         assertEquals(19L, snapshot2.get(Snapshot.TOTAL));
     }
@@ -259,20 +269,20 @@ public class DefaultActionMetricsTest {
         when(systemTime.nanoTime()).thenReturn(1500L * 1000L * 1000L);
         metrics = new DefaultActionMetrics(5, 1, TimeUnit.SECONDS, systemTime);
 
-        when(systemTime.nanoTime()).thenReturn(1980L * 1000L * 1000L);
-        fireThreads(metrics, 10);
+        long currentTime = 1980L * 1000L * 1000L;
+        fireThreads(metrics, currentTime, 10);
 
-        when(systemTime.nanoTime()).thenReturn(2620L * 1000L * 1000L);
-        fireThreads(metrics, 10);
+        currentTime = 2620L * 1000L * 1000L;
+        fireThreads(metrics, currentTime, 10);
 
-        when(systemTime.nanoTime()).thenReturn(3500L * 1000L * 1000L);
-        fireThreads(metrics, 10);
+        currentTime = 3500L * 1000L * 1000L;
+        fireThreads(metrics, currentTime, 10);
 
-        when(systemTime.nanoTime()).thenReturn(4820L * 1000L * 1000L);
-        fireThreads(metrics, 10);
+        currentTime = 4820L * 1000L * 1000L;
+        fireThreads(metrics, currentTime, 10);
 
-        when(systemTime.nanoTime()).thenReturn(5600L * 1000L * 1000L);
-        fireThreads(metrics, 10);
+        currentTime = 5600L * 1000L * 1000L;
+        fireThreads(metrics, currentTime, 10);
 
         when(systemTime.nanoTime()).thenReturn(6000L * 1000L * 1000L);
         assertEquals(5000, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
@@ -298,7 +308,7 @@ public class DefaultActionMetricsTest {
         assertEquals(4000, metrics.getMetricCountForTimePeriod(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
     }
 
-    private void fireThreads(final ActionMetrics metrics, int num) throws InterruptedException {
+    private void fireThreads(final ActionMetrics metrics, final long nanoTime, int num) throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(num);
 
         for (int i = 0; i < num; ++i) {
@@ -306,12 +316,12 @@ public class DefaultActionMetricsTest {
                 @Override
                 public void run() {
                     for (int j = 0; j < 100; ++j) {
-                        metrics.incrementMetricCount(Metric.SUCCESS);
-                        metrics.incrementMetricCount(Metric.ERROR);
-                        metrics.incrementMetricCount(Metric.TIMEOUT);
-                        metrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-                        metrics.incrementMetricCount(Metric.QUEUE_FULL);
-                        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
+                        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, 1000L, nanoTime);
+                        metrics.incrementMetricAndRecordLatency(Metric.ERROR,  2000L, nanoTime);
+                        metrics.incrementMetricAndRecordLatency(Metric.TIMEOUT,  3000L, nanoTime);
+                        metrics.incrementMetricAndRecordLatency(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED,  4000L, nanoTime);
+                        metrics.incrementMetricAndRecordLatency(Metric.QUEUE_FULL,  5000L, nanoTime);
+                        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN,  6000L, nanoTime);
                     }
                     latch.countDown();
                 }
