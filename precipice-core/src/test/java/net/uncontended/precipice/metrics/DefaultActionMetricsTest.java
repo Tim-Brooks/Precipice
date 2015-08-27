@@ -167,9 +167,13 @@ public class DefaultActionMetricsTest {
         TimeUnit unit = TimeUnit.MILLISECONDS;
         long resolution = 100;
         int slotsTracked = 1000;
+
         long trackableValue = TimeUnit.HOURS.toNanos(1);
         metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
+        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
 
+        trackableValue = TimeUnit.MINUTES.toNanos(1);
+        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
         metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
 
     }
