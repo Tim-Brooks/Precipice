@@ -85,7 +85,6 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCountForTotalPeriod(Metric metric) {
-        long milliseconds = slotsToTrack * millisecondsPerSlot;
         return getMetricCountForTotalPeriod(metric, systemTime.nanoTime());
     }
 
