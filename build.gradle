@@ -42,7 +42,7 @@ subprojects {
     apply plugin: 'signing'
 
     group = 'net.uncontended'
-    version = '0.4.0'
+    version = '0.5.0-SNAPSHOT'
 
     compileJava {
         sourceCompatibility = 1.7
