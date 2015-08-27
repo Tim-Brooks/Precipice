@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice.metrics;
 
+import org.HdrHistogram.Histogram;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +57,8 @@ public class Snapshot {
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
     public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
-    public static Map<Object, Object> generate(MetricCounter totalCounter, Iterable<MetricCounter> slots) {
+    public static Map<Object, Object> generate(MetricCounter totalCounter, Iterable<MetricCounter> slots, Histogram
+            histogram) {
 
         long total = 0;
         long successes = 0;

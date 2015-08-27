@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultActionMetrics implements ActionMetrics {
 
     private final CircularBuffer<MetricCounter> buffer;
-    private final Histogram latency = new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2);
+    private final Histogram histogram;
     private final MetricCounter totalCounter = new MetricCounter();
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
@@ -38,10 +38,20 @@ public class DefaultActionMetrics implements ActionMetrics {
     }
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit) {
-        this(slotsToTrack, resolution, slotUnit, new SystemTime());
+        this(slotsToTrack, resolution, slotUnit, new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2));
+    }
+
+    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, AtomicHistogram histogram) {
+        this(slotsToTrack, resolution, slotUnit, histogram, new SystemTime());
     }
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, SystemTime systemTime) {
+        this(slotsToTrack, resolution, slotUnit, new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2), systemTime);
+    }
+
+    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, AtomicHistogram histogram,
+                                SystemTime systemTime) {
+        this.histogram = histogram;
         this.systemTime = systemTime;
         this.millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
@@ -145,16 +155,16 @@ public class DefaultActionMetrics implements ActionMetrics {
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
         return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
-                systemTime.nanoTime()));
+                systemTime.nanoTime()), histogram);
 
     }
 
     private void recordLatency(long nanoDuration) {
         if (nanoDuration != -1) {
             if (nanoDuration < TimeUnit.HOURS.toNanos(1)) {
-                latency.recordValue(nanoDuration);
+                histogram.recordValue(nanoDuration);
             } else {
-                latency.recordValue(TimeUnit.HOURS.toNanos(1));
+                histogram.recordValue(TimeUnit.HOURS.toNanos(1));
             }
         }
     }
