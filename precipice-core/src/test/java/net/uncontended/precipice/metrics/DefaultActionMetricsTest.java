@@ -101,19 +101,39 @@ public class DefaultActionMetricsTest {
         int slotsTracked = 10;
         long millisResolution = resolution * 1000;
 
-        when(systemTime.nanoTime()).thenReturn(startTime  * 1000L * 1000L);
+        when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
         metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 8) * 1000L * 1000L);
         metrics.incrementMetricCount(Metric.ERROR);
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 20)  * 1000L * 1000L);
+        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 20) * 1000L * 1000L);
         metrics.incrementMetricCount(Metric.SUCCESS);
 
-        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 21)  * 1000L * 1000L);
+        when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 21) * 1000L * 1000L);
         assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.ERROR, resolution, unit));
         assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution, unit));
         assertEquals(1, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution * 2, unit));
+        assertEquals(1, metrics.getMetricCount(Metric.ERROR));
+    }
+
+    @Test
+    public void testTotalCount() {
+        TimeUnit unit = TimeUnit.SECONDS;
+        long startTime = 0L;
+        long resolution = 1;
+        int slotsTracked = 10;
+        when(systemTime.nanoTime()).thenReturn(startTime);
+        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, systemTime);
+
+        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(0));
+        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(10));
+        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(20));
+        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(30));
+
+        assertEquals(1, metrics.getMetricCountForTotalPeriod(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(30)));
+        assertEquals(4, metrics.getMetricCount(Metric.SUCCESS));
+
     }
 
     @Test
