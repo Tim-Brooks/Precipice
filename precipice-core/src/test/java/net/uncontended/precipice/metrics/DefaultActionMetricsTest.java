@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.utils.SystemTime;
+import org.HdrHistogram.AtomicHistogram;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -159,6 +160,18 @@ public class DefaultActionMetricsTest {
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * slotsTracked) * 1000L * 1000L);
         assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, slotsTracked * resolution, unit));
+    }
+
+    @Test
+    public void testDoesNotThrowExceptionFromTooHighLatency() {
+        TimeUnit unit = TimeUnit.MILLISECONDS;
+        long resolution = 100;
+        int slotsTracked = 1000;
+        long trackableValue = TimeUnit.HOURS.toNanos(1);
+        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
+
+        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
+
     }
 
     @Test
