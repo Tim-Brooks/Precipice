@@ -18,7 +18,8 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.utils.SystemTime;
-import org.HdrHistogram.Recorder;
+import org.HdrHistogram.AtomicHistogram;
+import org.HdrHistogram.Histogram;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +27,8 @@ import java.util.concurrent.TimeUnit;
 public class DefaultActionMetrics implements ActionMetrics {
 
     private final CircularBuffer<MetricCounter> buffer;
-    private final Recorder recorder = new Recorder(TimeUnit.HOURS.toNanos(1), 2);
+    private final Histogram latency = new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2);
+    private final MetricCounter totalCounter = new MetricCounter();
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
     private final SystemTime systemTime;
@@ -67,6 +69,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public void incrementMetricAndRecordLatency(Metric metric, long nanoLatency, long nanoTime) {
+        totalCounter.incrementMetric(metric);
         MetricCounter currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter());
@@ -77,6 +80,11 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCount(Metric metric) {
+        return totalCounter.getMetric(metric).longValue();
+    }
+
+    @Override
+    public long getMetricCountForTotalPeriod(Metric metric) {
         long milliseconds = slotsToTrack * millisecondsPerSlot;
         return getMetricCountForTimePeriod(metric, milliseconds, TimeUnit.MILLISECONDS, systemTime.nanoTime());
     }
@@ -137,7 +145,11 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     private void recordLatency(long nanoDuration) {
         if (nanoDuration != -1) {
-            recorder.recordValue(nanoDuration);
+            if (nanoDuration < TimeUnit.HOURS.toNanos(1)) {
+                latency.recordValue(nanoDuration);
+            } else {
+                latency.recordValue(TimeUnit.HOURS.toNanos(1));
+            }
         }
     }
 }

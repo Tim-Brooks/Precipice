@@ -30,6 +30,8 @@ public interface ActionMetrics {
 
     long getMetricCount(Metric metric);
 
+    long getMetricCountForTotalPeriod(Metric metric);
+
     long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit);
 
     long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
