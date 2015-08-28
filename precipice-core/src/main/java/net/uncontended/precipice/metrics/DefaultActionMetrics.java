@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultActionMetrics implements ActionMetrics {
 
+    private final MetricCounter totalCounter = new MetricCounter();
     private final CircularBuffer<MetricCounter> buffer;
     private final Histogram histogram;
-    private final MetricCounter totalCounter = new MetricCounter();
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
     private final SystemTime systemTime;
@@ -156,7 +156,18 @@ public class DefaultActionMetrics implements ActionMetrics {
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
         return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
                 systemTime.nanoTime()), histogram);
+    }
 
+    public Iterable<MetricCounter> metricCounterIterator(long timePeriod, TimeUnit timeUnit) {
+        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime());
+    }
+
+    public MetricCounter totalMetricCounter() {
+        return totalCounter;
+    }
+
+    public Histogram latencyHistogram() {
+        return histogram;
     }
 
     private void recordLatency(long nanoDuration) {

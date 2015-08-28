@@ -10,3 +10,5 @@
 rolling latency measure.
 - Added total metric counts to default action metrics.
 - The snapshot function returns both these new features.
+
+## 0.5.0
