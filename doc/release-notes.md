@@ -12,3 +12,6 @@ rolling latency measure.
 - The snapshot function returns both these new features.
 
 ## 0.5.0
+
+### ActionMetrics updates
+- Add methods on DefaultActionMetrics to access metric counters and historgram.
