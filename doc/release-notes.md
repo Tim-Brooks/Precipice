@@ -14,4 +14,4 @@ rolling latency measure.
 ## 0.5.0
 
 ### ActionMetrics updates
-- Add methods on DefaultActionMetrics to access metric counters and historgram.
+- Add methods on DefaultActionMetrics to access metric counters and histogram.
