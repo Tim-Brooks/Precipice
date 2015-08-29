@@ -172,11 +172,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     private void recordLatency(long nanoDuration) {
         if (nanoDuration != -1) {
-            if (nanoDuration < histogram.getHighestTrackableValue()) {
-                histogram.recordValue(nanoDuration);
-            } else {
-                histogram.recordValue(histogram.getHighestTrackableValue());
-            }
+            histogram.recordValue(Math.min(nanoDuration, histogram.getHighestTrackableValue()));
         }
     }
 }
