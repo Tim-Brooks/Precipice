@@ -25,7 +25,7 @@ public interface ActionMetrics {
     void incrementMetricCount(Metric metric);
 
     void incrementMetricCount(Metric metric, long nanoTime);
-    
+
     long getMetricCount(Metric metric);
 
     long getMetricCountForTotalPeriod(Metric metric);
