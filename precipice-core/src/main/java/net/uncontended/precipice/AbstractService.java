@@ -20,6 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.Metric;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,6 +29,7 @@ public abstract class AbstractService implements Service {
     protected final PrecipiceSemaphore semaphore;
     protected final AtomicBoolean isShutdown;
     protected final ActionMetrics actionMetrics;
+    protected final LatencyMetrics latencyMetrics = new LatencyMetrics();
     protected final CircuitBreaker circuitBreaker;
     protected final String name;
 

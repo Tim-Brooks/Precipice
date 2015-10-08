@@ -21,6 +21,7 @@ import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
@@ -36,15 +37,18 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public final long nanosAbsoluteStart;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<T> promise;
+    private final LatencyMetrics latencyMetrics;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
     private final CircuitBreaker breaker;
     private final ResilientAction<T> action;
     private volatile Thread runner;
 
-    public ResilientTask(ActionMetrics metrics, PrecipiceSemaphore semaphore, CircuitBreaker breaker, ResilientAction<T>
-            action, PrecipicePromise<T> promise, long millisRelativeTimeout, long nanosAbsoluteStart) {
+    public ResilientTask(ActionMetrics metrics, LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore,
+                         CircuitBreaker breaker, ResilientAction<T> action, PrecipicePromise<T> promise,
+                         long millisRelativeTimeout, long nanosAbsoluteStart) {
         this.metrics = metrics;
+        this.latencyMetrics = latencyMetrics;
         this.semaphore = semaphore;
         this.breaker = breaker;
         this.action = action;
@@ -132,7 +136,8 @@ public class ResilientTask<T> implements Runnable, Delayed {
     private void done() {
         long nanoTime = System.nanoTime();
         long latency = nanoTime - nanosAbsoluteStart;
-        metrics.incrementMetricAndRecordLatency(Metric.statusToMetric(status.get()), latency, nanoTime);
+        latencyMetrics.recordLatency(latency, nanoTime);
+        metrics.incrementMetricCount(Metric.statusToMetric(status.get()), nanoTime);
         breaker.informBreakerOfResult(status.get() == Status.SUCCESS, nanoTime);
         semaphore.releasePermit();
     }

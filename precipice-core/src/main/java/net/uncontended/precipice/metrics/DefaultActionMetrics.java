@@ -74,18 +74,12 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public void incrementMetricCount(Metric metric, long nanoTime) {
-        incrementMetricAndRecordLatency(metric, -1L, nanoTime);
-    }
-
-    @Override
-    public void incrementMetricAndRecordLatency(Metric metric, long nanoLatency, long nanoTime) {
         totalCounter.incrementMetric(metric);
         MetricCounter currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter());
         }
         currentMetricCounter.incrementMetric(metric);
-        recordLatency(nanoLatency);
     }
 
     @Override
@@ -168,11 +162,5 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     public Histogram latencyHistogram() {
         return histogram;
-    }
-
-    private void recordLatency(long nanoDuration) {
-        if (nanoDuration != -1) {
-            histogram.recordValue(Math.min(nanoDuration, histogram.getHighestTrackableValue()));
-        }
     }
 }

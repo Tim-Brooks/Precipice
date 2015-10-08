@@ -56,8 +56,9 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
     public <T> void complete(ResilientAction<T> action, PrecipicePromise<T> promise, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
-            ResilientTask<T> task = new ResilientTask<>(actionMetrics, semaphore, circuitBreaker, action, promise,
-                    millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout, System.nanoTime());
+            ResilientTask<T> task = new ResilientTask<>(actionMetrics, latencyMetrics, semaphore, circuitBreaker,
+                    action, promise, millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout,
+                    System.nanoTime());
             service.execute(task);
             timeoutService.scheduleTimeout(task);
 

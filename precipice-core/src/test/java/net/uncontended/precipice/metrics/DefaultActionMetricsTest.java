@@ -165,16 +165,16 @@ public class DefaultActionMetricsTest {
     @Test
     public void testDoesNotThrowExceptionFromTooHighLatency() {
         TimeUnit unit = TimeUnit.MILLISECONDS;
-        long resolution = 100;
-        int slotsTracked = 1000;
-
-        long trackableValue = TimeUnit.HOURS.toNanos(1);
-        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
-        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
-
-        trackableValue = TimeUnit.MINUTES.toNanos(1);
-        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
-        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
+//        long resolution = 100;
+//        int slotsTracked = 1000;
+//
+//        long trackableValue = TimeUnit.HOURS.toNanos(1);
+//        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
+//        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
+//
+//        trackableValue = TimeUnit.MINUTES.toNanos(1);
+//        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
+//        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
     }
 
     @Test
@@ -229,12 +229,12 @@ public class DefaultActionMetricsTest {
                 @Override
                 public void run() {
                     for (int j = 0; j < 100; ++j) {
-                        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, 1000L, nanoTime);
-                        metrics.incrementMetricAndRecordLatency(Metric.ERROR,  2000L, nanoTime);
-                        metrics.incrementMetricAndRecordLatency(Metric.TIMEOUT,  3000L, nanoTime);
-                        metrics.incrementMetricAndRecordLatency(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED,  4000L, nanoTime);
-                        metrics.incrementMetricAndRecordLatency(Metric.QUEUE_FULL,  5000L, nanoTime);
-                        metrics.incrementMetricAndRecordLatency(Metric.CIRCUIT_OPEN,  6000L, nanoTime);
+                        metrics.incrementMetricCount(Metric.SUCCESS, nanoTime);
+                        metrics.incrementMetricCount(Metric.ERROR, nanoTime);
+                        metrics.incrementMetricCount(Metric.TIMEOUT, nanoTime);
+                        metrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
+                        metrics.incrementMetricCount(Metric.QUEUE_FULL, nanoTime);
+                        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN, nanoTime);
                     }
                     latch.countDown();
                 }
