@@ -20,6 +20,8 @@ package net.uncontended.precipice.metrics;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultLatencyMetrics implements LatencyMetrics {
@@ -44,5 +46,19 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         if (nanoLatency != -1) {
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
         }
+    }
+
+    public Map<Object, Object> getLatencySnapshot() {
+        // Getting values from histogram is not threadsafe. Need to evaluate the best way to do snapshot.
+
+        Map<Object, Object> metricsMap = new HashMap<>();
+        metricsMap.put(Snapshot.LATENCY_MAX, histogram.getMaxValue());
+        metricsMap.put(Snapshot.LATENCY_50, histogram.getValueAtPercentile(50.0));
+        metricsMap.put(Snapshot.LATENCY_90, histogram.getValueAtPercentile(90.0));
+        metricsMap.put(Snapshot.LATENCY_99, histogram.getValueAtPercentile(99.0));
+        metricsMap.put(Snapshot.LATENCY_99_9, histogram.getValueAtPercentile(99.9));
+        metricsMap.put(Snapshot.LATENCY_99_99, histogram.getValueAtPercentile(99.99));
+        metricsMap.put(Snapshot.LATENCY_99_999, histogram.getValueAtPercentile(99.999));
+        return metricsMap;
     }
 }
