@@ -22,6 +22,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultLatencyMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
@@ -37,14 +38,14 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public final long nanosAbsoluteStart;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<T> promise;
-    private final DefaultLatencyMetrics latencyMetrics;
+    private final LatencyMetrics latencyMetrics;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
     private final CircuitBreaker breaker;
     private final ResilientAction<T> action;
     private volatile Thread runner;
 
-    public ResilientTask(ActionMetrics metrics, DefaultLatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore,
+    public ResilientTask(ActionMetrics metrics, LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore,
                          CircuitBreaker breaker, ResilientAction<T> action, PrecipicePromise<T> promise,
                          long millisRelativeTimeout, long nanosAbsoluteStart) {
         this.metrics = metrics;
