@@ -20,8 +20,6 @@ package net.uncontended.precipice.metrics;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultLatencyMetrics implements LatencyMetrics {
@@ -48,17 +46,17 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         }
     }
 
-    public Map<Object, Object> getLatencySnapshot() {
+    public LatencyBucket getLatencySnapshot() {
         // Getting values from histogram is not threadsafe. Need to evaluate the best way to do snapshot.
+        LatencyBucket latencyBucket = new LatencyBucket();
 
-        Map<Object, Object> metricsMap = new HashMap<>();
-        metricsMap.put(Snapshot.LATENCY_MAX, histogram.getMaxValue());
-        metricsMap.put(Snapshot.LATENCY_50, histogram.getValueAtPercentile(50.0));
-        metricsMap.put(Snapshot.LATENCY_90, histogram.getValueAtPercentile(90.0));
-        metricsMap.put(Snapshot.LATENCY_99, histogram.getValueAtPercentile(99.0));
-        metricsMap.put(Snapshot.LATENCY_99_9, histogram.getValueAtPercentile(99.9));
-        metricsMap.put(Snapshot.LATENCY_99_99, histogram.getValueAtPercentile(99.99));
-        metricsMap.put(Snapshot.LATENCY_99_999, histogram.getValueAtPercentile(99.999));
-        return metricsMap;
+        latencyBucket.latency50 = histogram.getValueAtPercentile(50.0);
+        latencyBucket.latency90 = histogram.getValueAtPercentile(90.0);
+        latencyBucket.latency99 = histogram.getValueAtPercentile(99.0);
+        latencyBucket.latency999 = histogram.getValueAtPercentile(99.9);
+        latencyBucket.latency9999 = histogram.getValueAtPercentile(99.99);
+        latencyBucket.latency99999 = histogram.getValueAtPercentile(99.999);
+        latencyBucket.latencyMax = histogram.getMaxValue();
+        return latencyBucket;
     }
 }
