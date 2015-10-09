@@ -18,8 +18,6 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.utils.SystemTime;
-import org.HdrHistogram.AtomicHistogram;
-import org.HdrHistogram.Histogram;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +26,6 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     private final MetricCounter totalCounter = new MetricCounter();
     private final CircularBuffer<MetricCounter> buffer;
-    private final Histogram histogram;
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
     private final SystemTime systemTime;
@@ -38,20 +35,10 @@ public class DefaultActionMetrics implements ActionMetrics {
     }
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit) {
-        this(slotsToTrack, resolution, slotUnit, new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2));
-    }
-
-    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, AtomicHistogram histogram) {
-        this(slotsToTrack, resolution, slotUnit, histogram, new SystemTime());
+        this(slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, SystemTime systemTime) {
-        this(slotsToTrack, resolution, slotUnit, new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2), systemTime);
-    }
-
-    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, AtomicHistogram histogram,
-                                SystemTime systemTime) {
-        this.histogram = histogram;
         this.systemTime = systemTime;
         this.millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
@@ -149,7 +136,7 @@ public class DefaultActionMetrics implements ActionMetrics {
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
         return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
-                systemTime.nanoTime()), histogram);
+                systemTime.nanoTime()));
     }
 
     public Iterable<MetricCounter> metricCounterIterator(long timePeriod, TimeUnit timeUnit) {
@@ -158,9 +145,5 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     public MetricCounter totalMetricCounter() {
         return totalCounter;
-    }
-
-    public Histogram latencyHistogram() {
-        return histogram;
     }
 }

@@ -66,8 +66,7 @@ public class Snapshot {
     public static final String LATENCY_99_99 = "latency-99.99";
     public static final String LATENCY_99_999 = "latency-99.999";
 
-    public static Map<Object, Object> generate(MetricCounter totalCounter, Iterable<MetricCounter> slots, Histogram
-            histogram) {
+    public static Map<Object, Object> generate(MetricCounter totalCounter, Iterable<MetricCounter> slots) {
 
         long total = 0;
         long successes = 0;
@@ -160,7 +159,6 @@ public class Snapshot {
 
         Map<Object, Object> metricsMap = new HashMap<>();
         putTotalCounts(totalCounter, metricsMap);
-        putLatency(histogram, metricsMap);
 
         metricsMap.put(TOTAL, total);
         metricsMap.put(SUCCESSES, successes);
@@ -209,16 +207,5 @@ public class Snapshot {
         metricsMap.put(TOTAL_QUEUE_FULL, totalQueueFull);
         metricsMap.put(TOTAL_CIRCUIT_OPEN, totalCircuitOpen);
         metricsMap.put(TOTAL_ALL_REJECTED, totalAllRejected);
-    }
-
-    private static void putLatency(Histogram histogram, Map<Object, Object> metricsMap) {
-        metricsMap.put(LATENCY_MAX, histogram.getMaxValue());
-        metricsMap.put(LATENCY_MEAN, histogram.getMean());
-        metricsMap.put(LATENCY_50, histogram.getValueAtPercentile(50.0));
-        metricsMap.put(LATENCY_90, histogram.getValueAtPercentile(90.0));
-        metricsMap.put(LATENCY_99, histogram.getValueAtPercentile(99.0));
-        metricsMap.put(LATENCY_99_9, histogram.getValueAtPercentile(99.9));
-        metricsMap.put(LATENCY_99_99, histogram.getValueAtPercentile(99.99));
-        metricsMap.put(LATENCY_99_999, histogram.getValueAtPercentile(99.999));
     }
 }

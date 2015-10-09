@@ -34,8 +34,6 @@ public class SnapshotTest {
 
     @Mock
     private SystemTime systemTime;
-    @Mock
-    private AtomicHistogram histogram;
 
     private DefaultActionMetrics metrics;
     private final long offsetTime = 50L;
@@ -51,24 +49,16 @@ public class SnapshotTest {
         int slotsTracked = 10;
 
         when(systemTime.nanoTime()).thenReturn(startTime);
-        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, histogram, systemTime);
+        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, systemTime);
         setupMetrics();
     }
 
     @Test
     public void testSnapshot() {
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 5) * 1000L * 1000L);
-        when(histogram.getMaxValue()).thenReturn(10L);
-        when(histogram.getMean()).thenReturn(5D);
-        when(histogram.getValueAtPercentile(50.0)).thenReturn(2L);
-        when(histogram.getValueAtPercentile(90.0)).thenReturn(7L);
-        when(histogram.getValueAtPercentile(99.0)).thenReturn(8L);
-        when(histogram.getValueAtPercentile(99.9)).thenReturn(9L);
-        when(histogram.getValueAtPercentile(99.99)).thenReturn(9L);
-        when(histogram.getValueAtPercentile(99.999)).thenReturn(10L);
 
         Map<Object, Object> snapshot = Snapshot.generate(metrics.totalMetricCounter(),
-                metrics.metricCounterIterator(5, TimeUnit.SECONDS), metrics.latencyHistogram());
+                metrics.metricCounterIterator(5, TimeUnit.SECONDS));
         assertEquals(29L, snapshot.get(Snapshot.TOTAL_TOTAL));
         assertEquals(5L, snapshot.get(Snapshot.TOTAL_SUCCESSES));
         assertEquals(4L, snapshot.get(Snapshot.TOTAL_TIMEOUTS));
