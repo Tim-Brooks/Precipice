@@ -171,9 +171,10 @@ public class DefaultRunServiceTest {
         properties.concurrencyLevel(1);
         service = Services.runService("Test", properties);
         final CountDownLatch latch = new CountDownLatch(1);
-        final CountDownLatch startedLatch = new CountDownLatch(2);
+        final CountDownLatch startedLatch = new CountDownLatch(1);
         asyncRunAction(TestActions.blockedAction(latch), startedLatch);
 
+        startedLatch.await();
 
         try {
             service.run(TestActions.successAction(1));
@@ -184,6 +185,17 @@ public class DefaultRunServiceTest {
         latch.countDown();
 
         service.getCircuitBreaker().forceOpen();
+
+        int i = 0;
+        while (true) {
+            if (service.currentlyPending() == 0) {
+                break;
+            } else if (i == 10) {
+                fail("Unexpected number of pending actions on service.");
+            }
+            Thread.sleep(50);
+            ++i;
+        }
 
         try {
             service.run(TestActions.successAction(1));
