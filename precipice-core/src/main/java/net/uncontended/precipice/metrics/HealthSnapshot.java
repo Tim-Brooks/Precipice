@@ -19,18 +19,20 @@ package net.uncontended.precipice.metrics;
 
 public class HealthSnapshot {
     public final long total;
+    public final long totalNotRejected;
     public final long failures;
     public final long rejections;
 
-    public HealthSnapshot(long total, long failures, long rejections) {
+    public HealthSnapshot(long total, long totalNotRejected, long failures, long rejections) {
         this.total = total;
+        this.totalNotRejected = totalNotRejected;
         this.failures = failures;
         this.rejections = rejections;
     }
 
     public int failurePercentage() {
-        if (total != 0) {
-            return (int) ((100 * failures) / total);
+        if (totalNotRejected != 0) {
+            return (int) ((100 * failures) / totalNotRejected);
         } else {
             return 0;
         }

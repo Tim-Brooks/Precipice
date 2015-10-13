@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.circuit;
 
+import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.utils.SystemTime;
-import net.uncontended.precipice.metrics.ActionMetrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -56,9 +56,9 @@ public class DefaultCircuitBreakerTest {
 
     @Test
     public void testCircuitOpensOnlyWhenFailuresGreaterThanThreshold() {
-        long trailingPeriodInMillis = 1000;
-        HealthSnapshot failingSnapshot = new HealthSnapshot(10000, 6, 0);
-        HealthSnapshot healthySnapshot = new HealthSnapshot(10000, 5, 0);
+        long trailingPeriodInMillis = 5000;
+        HealthSnapshot failingSnapshot = new HealthSnapshot(10000, 10000, 6, 0);
+        HealthSnapshot healthySnapshot = new HealthSnapshot(10000, 10000, 5, 0);
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(5).backOffTimeMillis
                 (trailingPeriodInMillis).build();
@@ -81,7 +81,7 @@ public class DefaultCircuitBreakerTest {
     @Test
     public void testOpenCircuitClosesAfterSuccess() {
         long trailingPeriodInMillis = 1000;
-        HealthSnapshot failureSnapshot = new HealthSnapshot(1000, 6, 0);
+        HealthSnapshot failureSnapshot = new HealthSnapshot(1000, 1000, 6, 0);
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(5).trailingPeriodMillis
                 (trailingPeriodInMillis).build();
@@ -104,7 +104,7 @@ public class DefaultCircuitBreakerTest {
 
     @Test
     public void testSettingBreakerConfigChangesConfig() {
-        HealthSnapshot snapshot = new HealthSnapshot(1000, 6, 0);
+        HealthSnapshot snapshot = new HealthSnapshot(1000, 1000, 6, 0);
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(10).trailingPeriodMillis
                 (1000).build();
@@ -140,7 +140,7 @@ public class DefaultCircuitBreakerTest {
     public void testActionAllowedIfPauseTimeHasPassed() {
         int failureThreshold = 10;
         int timePeriodInMillis = 5000;
-        HealthSnapshot snapshot = new HealthSnapshot(10000, 11, 0);
+        HealthSnapshot snapshot = new HealthSnapshot(10000, 10000, 11, 0);
 
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).build();

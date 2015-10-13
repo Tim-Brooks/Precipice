@@ -36,7 +36,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastTestedTime = new AtomicLong(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
-    private final AtomicReference<HealthSnapshot> health = new AtomicReference<>(new HealthSnapshot(0, 0, 0));
+    private final AtomicReference<HealthSnapshot> health = new AtomicReference<>(new HealthSnapshot(0, 0, 0, 0));
     private final AtomicReference<BreakerConfig> breakerConfig;
     private ActionMetrics actionMetrics;
 

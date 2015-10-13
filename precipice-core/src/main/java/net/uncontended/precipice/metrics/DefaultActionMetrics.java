@@ -113,6 +113,7 @@ public class DefaultActionMetrics implements ActionMetrics {
         Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
 
         long total = 0;
+        long notRejectedTotal = 0;
         long failures = 0;
         long rejections = 0;
         for (MetricCounter metricCounter : slots) {
@@ -123,14 +124,16 @@ public class DefaultActionMetrics implements ActionMetrics {
                 long maxConcurrency = metricCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
                 long circuitOpen = metricCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
                 long queueFull = metricCounter.getMetric(Metric.QUEUE_FULL).longValue();
-                long slotTotal = successes + errors + timeouts + maxConcurrency + circuitOpen + queueFull;
+                long slotNotRejectedTotal = successes + errors + timeouts;
+                long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
 
                 total = total + slotTotal;
+                notRejectedTotal = notRejectedTotal + slotNotRejectedTotal;
                 failures = failures + errors + timeouts;
                 rejections = rejections + circuitOpen + queueFull + maxConcurrency;
             }
         }
-        return new HealthSnapshot(total, failures, rejections);
+        return new HealthSnapshot(total, notRejectedTotal, failures, rejections);
     }
 
     @Override
