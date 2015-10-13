@@ -19,6 +19,8 @@ package net.uncontended.precipice.metrics;
 
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
+import org.HdrHistogram.HistogramIterationValue;
+import org.HdrHistogram.RecordedValuesIterator;
 
 import java.util.concurrent.TimeUnit;
 
@@ -57,7 +59,21 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         latencyBucket.latency9999 = histogram.getValueAtPercentile(99.99);
         latencyBucket.latency99999 = histogram.getValueAtPercentile(99.999);
         latencyBucket.latencyMax = histogram.getMaxValue();
-        latencyBucket.latencyMean = histogram.getMean();
+        latencyBucket.latencyMean = calculateMean();
         return latencyBucket;
+    }
+
+    private double calculateMean() {
+        if (histogram.getTotalCount() == 0) {
+            return 0.0;
+        }
+        RecordedValuesIterator iter = new RecordedValuesIterator(histogram);
+        double totalValue = 0;
+        while (iter.hasNext()) {
+            HistogramIterationValue iterationValue = iter.next();
+            totalValue += histogram.medianEquivalentValue(iterationValue.getValueIteratedTo())
+                    * iterationValue.getCountAtValueIteratedTo();
+        }
+        return (totalValue * 1.0) / histogram.getTotalCount();
     }
 }
