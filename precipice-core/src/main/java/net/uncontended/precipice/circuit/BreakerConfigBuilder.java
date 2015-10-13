@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 public class BreakerConfigBuilder {
-    public long trailingPeriodMillis = 1000;
+    public long trailingPeriodMillis = 5000;
     public long failureThreshold = Long.MAX_VALUE;
     public int failurePercentageThreshold = 50;
     public long healthRefreshMillis = 500;
