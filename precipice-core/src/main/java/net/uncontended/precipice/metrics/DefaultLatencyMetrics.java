@@ -57,6 +57,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         latencyBucket.latency9999 = histogram.getValueAtPercentile(99.99);
         latencyBucket.latency99999 = histogram.getValueAtPercentile(99.999);
         latencyBucket.latencyMax = histogram.getMaxValue();
+        latencyBucket.latencyMean = histogram.getMean();
         return latencyBucket;
     }
 }

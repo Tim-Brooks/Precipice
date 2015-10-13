@@ -20,12 +20,12 @@ package net.uncontended.precipice.metrics;
 public class LatencyBucket {
 
     public long latencyMax = 0;
-    public long latencyMean = -1;
     public long latency50 = 0;
     public long latency90 = 0;
     public long latency99 = 0;
     public long latency999 = 0;
     public long latency9999 = 0;
     public long latency99999 = 0;
+    public double latencyMean = 0;
 
 }
