@@ -146,7 +146,7 @@ public class DefaultServiceTest {
     }
 
     @Test
-    public void promisePassedToExecutorWillBeCompleted() throws Exception {
+    public void promisePassedToServiceWillBeCompleted() throws Exception {
         PrecipicePromise<String> promise = new Eventual<>();
         service.complete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
 
