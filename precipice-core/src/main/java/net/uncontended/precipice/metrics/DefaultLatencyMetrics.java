@@ -31,13 +31,13 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     private final Histogram timeoutHistogram;
 
     public DefaultLatencyMetrics() {
-        this(new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2));
+        this(TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public DefaultLatencyMetrics(Histogram histogram) {
-        this.successHistogram = histogram;
-        this.errorHistogram = new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2);
-        this.timeoutHistogram = new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2);
+    public DefaultLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
+        this.successHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+        this.errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+        this.timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
     }
 
     @Override
@@ -66,33 +66,58 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         }
     }
 
-    public LatencyBucket getLatencySnapshot() {
-        // Getting values from histogram is not threadsafe. Need to evaluate the best way to do snapshot.
-        LatencyBucket latencyBucket = new LatencyBucket();
-
-        // Need to accumulate histograms.
-        latencyBucket.latency50 = successHistogram.getValueAtPercentile(50.0);
-        latencyBucket.latency90 = successHistogram.getValueAtPercentile(90.0);
-        latencyBucket.latency99 = successHistogram.getValueAtPercentile(99.0);
-        latencyBucket.latency999 = successHistogram.getValueAtPercentile(99.9);
-        latencyBucket.latency9999 = successHistogram.getValueAtPercentile(99.99);
-        latencyBucket.latency99999 = successHistogram.getValueAtPercentile(99.999);
-        latencyBucket.latencyMax = successHistogram.getMaxValue();
-        latencyBucket.latencyMean = calculateMean();
-        return latencyBucket;
+    @Override
+    public LatencySnapshot latencySnapshot(Metric metric) {
+        Histogram histogram;
+        switch (metric) {
+            case SUCCESS:
+                histogram = this.successHistogram;
+                break;
+            case ERROR:
+                histogram = this.errorHistogram;
+                break;
+            case TIMEOUT:
+                histogram = this.timeoutHistogram;
+                break;
+            default:
+                throw new IllegalArgumentException("No latency capture for: " + metric);
+        }
+        return createSnapshot(histogram);
     }
 
-    private double calculateMean() {
-        if (successHistogram.getTotalCount() == 0) {
+    public LatencySnapshot getLatencySnapshot() {
+        Histogram accumulated = new Histogram(successHistogram);
+        accumulated.add(successHistogram);
+        accumulated.add(errorHistogram);
+        accumulated.add(timeoutHistogram);
+
+        return createSnapshot(accumulated);
+    }
+
+    private LatencySnapshot createSnapshot(Histogram histogram) {
+        LatencySnapshot latencySnapshot = new LatencySnapshot();
+        latencySnapshot.latency50 = histogram.getValueAtPercentile(50.0);
+        latencySnapshot.latency90 = histogram.getValueAtPercentile(90.0);
+        latencySnapshot.latency99 = histogram.getValueAtPercentile(99.0);
+        latencySnapshot.latency999 = histogram.getValueAtPercentile(99.9);
+        latencySnapshot.latency9999 = histogram.getValueAtPercentile(99.99);
+        latencySnapshot.latency99999 = histogram.getValueAtPercentile(99.999);
+        latencySnapshot.latencyMax = histogram.getMaxValue();
+        latencySnapshot.latencyMean = calculateMean(histogram);
+        return latencySnapshot;
+    }
+
+    private double calculateMean(Histogram histogram) {
+        if (histogram.getTotalCount() == 0) {
             return 0.0;
         }
-        RecordedValuesIterator iter = new RecordedValuesIterator(successHistogram);
+        RecordedValuesIterator iter = new RecordedValuesIterator(histogram);
         double totalValue = 0;
         while (iter.hasNext()) {
             HistogramIterationValue iterationValue = iter.next();
-            totalValue += successHistogram.medianEquivalentValue(iterationValue.getValueIteratedTo())
+            totalValue += histogram.medianEquivalentValue(iterationValue.getValueIteratedTo())
                     * iterationValue.getCountAtValueIteratedTo();
         }
-        return (totalValue * 1.0) / successHistogram.getTotalCount();
+        return (totalValue * 1.0) / histogram.getTotalCount();
     }
 }

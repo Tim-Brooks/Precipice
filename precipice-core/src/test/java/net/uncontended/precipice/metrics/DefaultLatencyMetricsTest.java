@@ -17,19 +17,15 @@
 
 package net.uncontended.precipice.metrics;
 
-import org.HdrHistogram.AtomicHistogram;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 public class DefaultLatencyMetricsTest {
-
-    @Mock
-    private AtomicHistogram histogram;
 
     private DefaultLatencyMetrics metrics;
 
@@ -37,28 +33,32 @@ public class DefaultLatencyMetricsTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        metrics = new DefaultLatencyMetrics(histogram);
+        metrics = new DefaultLatencyMetrics();
     }
 
     @Test
     public void latencyIsStoredInHistogram() {
-        when(histogram.getMaxValue()).thenReturn(10L);
-        when(histogram.getValueAtPercentile(50.0)).thenReturn(2L);
-        when(histogram.getValueAtPercentile(90.0)).thenReturn(7L);
-        when(histogram.getValueAtPercentile(99.0)).thenReturn(8L);
-        when(histogram.getValueAtPercentile(99.9)).thenReturn(9L);
-        when(histogram.getValueAtPercentile(99.99)).thenReturn(9L);
-        when(histogram.getValueAtPercentile(99.999)).thenReturn(10L);
+        Metric[] metricArray = new Metric[3];
+        metricArray[0] = Metric.SUCCESS;
+        metricArray[1] = Metric.ERROR;
+        metricArray[2] = Metric.TIMEOUT;
 
-        LatencyBucket snapshot = metrics.getLatencySnapshot();
+        ThreadLocalRandom current = ThreadLocalRandom.current();
+        for (int i = 1; i <= 100000; ++i) {
+            int n = current.nextInt(3);
+            metrics.recordLatency(metricArray[n], i);
+        }
 
-        assertEquals(10L, snapshot.latencyMax);
-        assertEquals(2L, snapshot.latency50);
-        assertEquals(7L, snapshot.latency90);
-        assertEquals(8L, snapshot.latency99);
-        assertEquals(9L, snapshot.latency999);
-        assertEquals(9L, snapshot.latency9999);
-        assertEquals(10L, snapshot.latency99999);
+        LatencySnapshot snapshot = metrics.getLatencySnapshot();
+
+        assertEquals(100, snapshot.latencyMax / 1000);
+        assertEquals(50, snapshot.latency50 / 1000);
+        assertEquals(90, snapshot.latency90 / 1000);
+        assertEquals(99, snapshot.latency99 / 1000);
+        assertEquals(100, snapshot.latency999 / 1000);
+        assertEquals(100, snapshot.latency9999 / 1000);
+        assertEquals(100, snapshot.latency99999 / 1000);
+        assertEquals(50, (long) snapshot.latencyMean / 1000);
 
     }
 }

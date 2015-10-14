@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-public class LatencyBucket {
+public class LatencySnapshot {
 
     public long latencyMax = 0;
     public long latency50 = 0;

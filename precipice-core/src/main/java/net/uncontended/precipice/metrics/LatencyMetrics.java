@@ -21,4 +21,7 @@ public interface LatencyMetrics {
     void recordLatency(Metric metric, long nanoLatency);
 
     void recordLatency(Metric metric, long nanoLatency, long nanoTime);
+
+    LatencySnapshot latencySnapshot(Metric metric);
+
 }
