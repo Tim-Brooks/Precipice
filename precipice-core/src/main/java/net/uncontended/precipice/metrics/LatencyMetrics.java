@@ -18,7 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 public interface LatencyMetrics {
-    void recordLatency(long nanoLatency);
+    void recordLatency(Metric metric, long nanoLatency);
 
-    void recordLatency(long nanoLatency, long nanoTime);
+    void recordLatency(Metric metric, long nanoLatency, long nanoTime);
 }

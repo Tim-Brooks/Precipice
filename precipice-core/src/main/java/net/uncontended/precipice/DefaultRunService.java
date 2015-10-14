@@ -59,9 +59,12 @@ public class DefaultRunService extends AbstractService implements RunService {
 
     private void metricsAndBreakerFeedback(long nanoStart, Status status) {
         long nanoTime = System.nanoTime();
-        long latency = nanoTime - nanoStart;
-        latencyMetrics.recordLatency(latency, nanoTime);
-        actionMetrics.incrementMetricCount(Metric.statusToMetric(status), nanoTime);
+        Metric metric = Metric.statusToMetric(status);
+        actionMetrics.incrementMetricCount(metric, nanoTime);
         circuitBreaker.informBreakerOfResult(status == Status.SUCCESS, nanoTime);
+        if (metric == Metric.SUCCESS || metric == Metric.TIMEOUT || metric == Metric.ERROR) {
+            long latency = nanoTime - nanoStart;
+            latencyMetrics.recordLatency(metric, latency, nanoTime);
+        }
     }
 }

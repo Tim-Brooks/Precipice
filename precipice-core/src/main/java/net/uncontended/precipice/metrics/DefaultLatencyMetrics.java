@@ -26,24 +26,42 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultLatencyMetrics implements LatencyMetrics {
 
-    private final Histogram histogram;
+    private final Histogram successHistogram;
+    private final Histogram errorHistogram;
+    private final Histogram timeoutHistogram;
 
     public DefaultLatencyMetrics() {
         this(new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2));
     }
 
     public DefaultLatencyMetrics(Histogram histogram) {
-        this.histogram = histogram;
+        this.successHistogram = histogram;
+        this.errorHistogram = new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2);
+        this.timeoutHistogram = new AtomicHistogram(TimeUnit.HOURS.toNanos(1), 2);
     }
 
     @Override
-    public void recordLatency(long nanoLatency) {
-        recordLatency(nanoLatency, System.nanoTime());
+    public void recordLatency(Metric metric, long nanoLatency) {
+        recordLatency(metric, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(long nanoLatency, long nanoTime) {
+    public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
         if (nanoLatency != -1) {
+            Histogram histogram;
+            switch (metric) {
+                case SUCCESS:
+                    histogram = this.successHistogram;
+                    break;
+                case ERROR:
+                    histogram = this.errorHistogram;
+                    break;
+                case TIMEOUT:
+                    histogram = this.timeoutHistogram;
+                    break;
+                default:
+                    throw new IllegalArgumentException("No latency capture for: " + metric);
+            }
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
         }
     }
@@ -52,28 +70,29 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         // Getting values from histogram is not threadsafe. Need to evaluate the best way to do snapshot.
         LatencyBucket latencyBucket = new LatencyBucket();
 
-        latencyBucket.latency50 = histogram.getValueAtPercentile(50.0);
-        latencyBucket.latency90 = histogram.getValueAtPercentile(90.0);
-        latencyBucket.latency99 = histogram.getValueAtPercentile(99.0);
-        latencyBucket.latency999 = histogram.getValueAtPercentile(99.9);
-        latencyBucket.latency9999 = histogram.getValueAtPercentile(99.99);
-        latencyBucket.latency99999 = histogram.getValueAtPercentile(99.999);
-        latencyBucket.latencyMax = histogram.getMaxValue();
+        // Need to accumulate histograms.
+        latencyBucket.latency50 = successHistogram.getValueAtPercentile(50.0);
+        latencyBucket.latency90 = successHistogram.getValueAtPercentile(90.0);
+        latencyBucket.latency99 = successHistogram.getValueAtPercentile(99.0);
+        latencyBucket.latency999 = successHistogram.getValueAtPercentile(99.9);
+        latencyBucket.latency9999 = successHistogram.getValueAtPercentile(99.99);
+        latencyBucket.latency99999 = successHistogram.getValueAtPercentile(99.999);
+        latencyBucket.latencyMax = successHistogram.getMaxValue();
         latencyBucket.latencyMean = calculateMean();
         return latencyBucket;
     }
 
     private double calculateMean() {
-        if (histogram.getTotalCount() == 0) {
+        if (successHistogram.getTotalCount() == 0) {
             return 0.0;
         }
-        RecordedValuesIterator iter = new RecordedValuesIterator(histogram);
+        RecordedValuesIterator iter = new RecordedValuesIterator(successHistogram);
         double totalValue = 0;
         while (iter.hasNext()) {
             HistogramIterationValue iterationValue = iter.next();
-            totalValue += histogram.medianEquivalentValue(iterationValue.getValueIteratedTo())
+            totalValue += successHistogram.medianEquivalentValue(iterationValue.getValueIteratedTo())
                     * iterationValue.getCountAtValueIteratedTo();
         }
-        return (totalValue * 1.0) / histogram.getTotalCount();
+        return (totalValue * 1.0) / successHistogram.getTotalCount();
     }
 }
