@@ -59,6 +59,7 @@ public class DefaultLatencyMetricsTest {
         assertEquals(100, snapshot.latency9999 / 1000);
         assertEquals(100, snapshot.latency99999 / 1000);
         assertEquals(50, (long) snapshot.latencyMean / 1000);
-
     }
+
+    // TODO: Add tests for different results. Explore using status opposed to metric
 }
