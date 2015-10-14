@@ -39,6 +39,8 @@ public enum Metric {
     }
 
     public static Metric statusToMetric(Status status) {
+        // TODO: Need to handle converting cancellation to Metric (and maybe pending)
+
         switch (status) {
             case SUCCESS:
                 return Metric.SUCCESS;
