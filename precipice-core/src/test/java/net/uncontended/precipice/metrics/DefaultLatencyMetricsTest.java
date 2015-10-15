@@ -19,7 +19,6 @@ package net.uncontended.precipice.metrics;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -31,8 +30,6 @@ public class DefaultLatencyMetricsTest {
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
-
         metrics = new DefaultLatencyMetrics();
     }
 
@@ -61,5 +58,58 @@ public class DefaultLatencyMetricsTest {
         assertEquals(50, (long) snapshot.latencyMean / 1000);
     }
 
-    // TODO: Add tests for different results. Explore using status opposed to metric
+    @Test
+    public void latencyIsPartitionedByMetric() {
+        for (int i = 1; i <= 100000; ++i) {
+            metrics.recordLatency(Metric.SUCCESS, i);
+        }
+        for (int i = 100001; i <= 200000; ++i) {
+            metrics.recordLatency(Metric.ERROR, i);
+        }
+        for (int i = 200001; i <= 300000; ++i) {
+            metrics.recordLatency(Metric.TIMEOUT, i);
+        }
+
+        LatencySnapshot successSnapshot = metrics.latencySnapshot(Metric.SUCCESS);
+        assertEquals(100, successSnapshot.latencyMax / 1000);
+        assertEquals(50, successSnapshot.latency50 / 1000);
+        assertEquals(90, successSnapshot.latency90 / 1000);
+        assertEquals(99, successSnapshot.latency99 / 1000);
+        assertEquals(100, successSnapshot.latency999 / 1000);
+        assertEquals(100, successSnapshot.latency9999 / 1000);
+        assertEquals(100, successSnapshot.latency99999 / 1000);
+        assertEquals(50, (long) successSnapshot.latencyMean / 1000);
+
+        LatencySnapshot errorSnapshot = metrics.latencySnapshot(Metric.ERROR);
+        assertEquals(200, errorSnapshot.latencyMax / 1000);
+        assertEquals(150, errorSnapshot.latency50 / 1000);
+        assertEquals(190, errorSnapshot.latency90 / 1000);
+        assertEquals(199, errorSnapshot.latency99 / 1000);
+        assertEquals(200, errorSnapshot.latency999 / 1000);
+        assertEquals(200, errorSnapshot.latency9999 / 1000);
+        assertEquals(200, errorSnapshot.latency99999 / 1000);
+        assertEquals(150, (long) errorSnapshot.latencyMean / 1000);
+
+        LatencySnapshot timeoutSnapshot = metrics.latencySnapshot(Metric.TIMEOUT);
+        assertEquals(301, timeoutSnapshot.latencyMax / 1000);
+        assertEquals(250, timeoutSnapshot.latency50 / 1000);
+        assertEquals(290, timeoutSnapshot.latency90 / 1000);
+        assertEquals(299, timeoutSnapshot.latency99 / 1000);
+        assertEquals(301, timeoutSnapshot.latency999 / 1000);
+        assertEquals(301, timeoutSnapshot.latency9999 / 1000);
+        assertEquals(301, timeoutSnapshot.latency99999 / 1000);
+        assertEquals(250, (long) timeoutSnapshot.latencyMean / 1000);
+
+        LatencySnapshot snapshot = metrics.getLatencySnapshot();
+        assertEquals(301, snapshot.latencyMax / 1000);
+        assertEquals(150, snapshot.latency50 / 1000);
+        assertEquals(270, snapshot.latency90 / 1000);
+        assertEquals(299, snapshot.latency99 / 1000);
+        assertEquals(301, snapshot.latency999 / 1000);
+        assertEquals(301, snapshot.latency9999 / 1000);
+        assertEquals(301, snapshot.latency99999 / 1000);
+        assertEquals(150, (long) snapshot.latencyMean / 1000);
+    }
+
+    // TODO: Explore using status opposed to metric
 }
