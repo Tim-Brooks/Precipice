@@ -18,6 +18,7 @@ rolling latency measure.
 
 ### Latency Metrics Improvements
 - Latency metrics are now captured in a specialized class.
+- Latency is now partitioned by result - success, error, or timeout.
 
 ### Service -> Actions Refactoring
 - WIP
