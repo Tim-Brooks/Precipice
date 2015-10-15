@@ -19,6 +19,7 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 
 public interface Service {
     long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
@@ -37,6 +38,13 @@ public interface Service {
      * @return the metrics backing this service
      */
     ActionMetrics getActionMetrics();
+
+    /**
+     * Returns the {@link LatencyMetrics} for this service.
+     *
+     * @return the latency metrics backing this service
+     */
+    LatencyMetrics getLatencyMetrics();
 
     /**
      * Returns the {@link CircuitBreaker} for this service.

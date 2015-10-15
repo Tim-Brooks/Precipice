@@ -60,6 +60,11 @@ public abstract class AbstractService implements Service {
     }
 
     @Override
+    public LatencyMetrics getLatencyMetrics() {
+        return latencyMetrics;
+    }
+
+    @Override
     public CircuitBreaker getCircuitBreaker() {
         return circuitBreaker;
     }
