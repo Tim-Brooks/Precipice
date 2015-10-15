@@ -85,7 +85,8 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         return createSnapshot(histogram);
     }
 
-    public LatencySnapshot getLatencySnapshot() {
+    @Override
+    public LatencySnapshot latencySnapshot() {
         Histogram accumulated = new Histogram(successHistogram);
         accumulated.add(successHistogram);
         accumulated.add(errorHistogram);

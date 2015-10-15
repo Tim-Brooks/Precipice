@@ -46,7 +46,7 @@ public class DefaultLatencyMetricsTest {
             metrics.recordLatency(metricArray[n], i);
         }
 
-        LatencySnapshot snapshot = metrics.getLatencySnapshot();
+        LatencySnapshot snapshot = metrics.latencySnapshot();
 
         assertEquals(100, snapshot.latencyMax / 1000);
         assertEquals(50, snapshot.latency50 / 1000);
@@ -100,7 +100,7 @@ public class DefaultLatencyMetricsTest {
         assertEquals(301, timeoutSnapshot.latency99999 / 1000);
         assertEquals(250, (long) timeoutSnapshot.latencyMean / 1000);
 
-        LatencySnapshot snapshot = metrics.getLatencySnapshot();
+        LatencySnapshot snapshot = metrics.latencySnapshot();
         assertEquals(301, snapshot.latencyMax / 1000);
         assertEquals(150, snapshot.latency50 / 1000);
         assertEquals(270, snapshot.latency90 / 1000);
