@@ -57,9 +57,9 @@ public class ResilientTask<T> implements Runnable, Delayed {
         this.millisRelativeTimeout = millisRelativeTimeout;
         this.nanosAbsoluteStart = nanosAbsoluteStart;
         if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
-            this.nanosAbsoluteTimeout = 0;
+            nanosAbsoluteTimeout = 0;
         } else {
-            this.nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS)
+            nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS)
                     + nanosAbsoluteStart;
         }
     }
