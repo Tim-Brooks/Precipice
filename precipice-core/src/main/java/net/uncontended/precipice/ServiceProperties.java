@@ -23,15 +23,18 @@ import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.IntegerSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.DefaultLatencyMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.timeout.TimeoutService;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
 public class ServiceProperties {
 
     private ActionMetrics metrics = new DefaultActionMetrics();
+    private LatencyMetrics latencyMetrics = new DefaultLatencyMetrics();
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
-    private PrecipiceSemaphore semaphore = null;
+    private PrecipiceSemaphore semaphore;
     private int concurrencyLevel = Service.MAX_CONCURRENCY_LEVEL;
 
     public ServiceProperties actionMetrics(ActionMetrics metrics) {
@@ -79,9 +82,18 @@ public class ServiceProperties {
         // TODO: Consider whether this makes sense. It may not be clear.
 
         if (semaphore == null) {
-            this.semaphore = new IntegerSemaphore(concurrencyLevel);
-            return this.semaphore;
+            semaphore = new IntegerSemaphore(concurrencyLevel);
+            return semaphore;
         }
         return semaphore;
+    }
+
+    public ServiceProperties latencyMetrics(LatencyMetrics latencyMetrics) {
+        this.latencyMetrics = latencyMetrics;
+        return this;
+    }
+
+    public LatencyMetrics latencyMetrics() {
+        return latencyMetrics;
     }
 }

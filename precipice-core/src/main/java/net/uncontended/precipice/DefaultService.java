@@ -35,10 +35,11 @@ public class DefaultService extends AbstractService implements MultiService {
 
     private DefaultService(String name, ExecutorService service, ServiceProperties properties,
                            AtomicBoolean isShutdown) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.semaphore(), isShutdown);
         this.service = service;
-        this.runService = new DefaultRunService(name, properties, isShutdown);
-        this.asyncService = new DefaultAsyncService(name, service, properties, isShutdown);
+        runService = new DefaultRunService(name, properties, isShutdown);
+        asyncService = new DefaultAsyncService(name, service, properties, isShutdown);
     }
 
     @Override

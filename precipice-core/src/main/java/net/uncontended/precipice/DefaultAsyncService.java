@@ -33,15 +33,17 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
     private final TimeoutService timeoutService;
 
     public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
-        this.timeoutService = properties.timeoutService();
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.semaphore());
+        timeoutService = properties.timeoutService();
         this.service = service;
     }
 
     public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties,
                                AtomicBoolean isShutdown) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
-        this.timeoutService = properties.timeoutService();
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.semaphore(), isShutdown);
+        timeoutService = properties.timeoutService();
         this.service = service;
     }
 

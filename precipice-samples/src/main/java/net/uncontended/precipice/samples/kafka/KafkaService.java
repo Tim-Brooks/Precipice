@@ -37,7 +37,8 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
     private final KafkaProducer<K, V> producer;
 
     public KafkaService(String name, ServiceProperties properties, KafkaProducer<K, V> producer) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.semaphore());
         this.producer = producer;
     }
 

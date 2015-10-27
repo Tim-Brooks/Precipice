@@ -25,11 +25,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DefaultRunService extends AbstractService implements RunService {
 
     public DefaultRunService(String name, ServiceProperties properties) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.semaphore());
     }
 
     public DefaultRunService(String name, ServiceProperties properties, AtomicBoolean isShutdown) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore(), isShutdown);
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.semaphore(), isShutdown);
     }
 
     @Override

@@ -20,7 +20,6 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultLatencyMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.Metric;
 
@@ -30,20 +29,21 @@ public abstract class AbstractService implements Service {
     protected final PrecipiceSemaphore semaphore;
     protected final AtomicBoolean isShutdown;
     protected final ActionMetrics actionMetrics;
-    protected final LatencyMetrics latencyMetrics = new DefaultLatencyMetrics();
+    protected final LatencyMetrics latencyMetrics;
     protected final CircuitBreaker circuitBreaker;
     protected final String name;
 
-    public AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore
-            semaphore) {
-        this(name, circuitBreaker, actionMetrics, semaphore, new AtomicBoolean(false));
+    protected AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics,
+                              LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore) {
+        this(name, circuitBreaker, actionMetrics, latencyMetrics, semaphore, new AtomicBoolean(false));
     }
 
-    public AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics, PrecipiceSemaphore
-            semaphore, AtomicBoolean isShutdown) {
+    protected AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics,
+                              LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore, AtomicBoolean isShutdown) {
         this.name = name;
         this.circuitBreaker = circuitBreaker;
         this.actionMetrics = actionMetrics;
+        this.latencyMetrics = latencyMetrics;
         this.semaphore = semaphore;
         this.isShutdown = isShutdown;
         this.circuitBreaker.setActionMetrics(actionMetrics);

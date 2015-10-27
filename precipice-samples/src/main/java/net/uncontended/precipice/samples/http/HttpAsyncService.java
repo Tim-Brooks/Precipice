@@ -38,7 +38,8 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
     private final AsyncHttpClient client;
 
     public HttpAsyncService(String name, ServiceProperties properties, AsyncHttpClient client) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.semaphore());
+        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.semaphore());
         this.client = client;
     }
 
