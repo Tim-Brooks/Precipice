@@ -19,3 +19,10 @@ rolling latency measure.
 ### Latency Metrics Improvements
 - Latency metrics are now captured in a specialized class.
 - Latency is now partitioned by result - success, error, or timeout.
+
+## 0.5.1
+
+### Latency Metrics
+- Add latency metrics to ServiceProperties
+- Remove the implicit initialization of LatencyMetrics in AbstractService. The metrics now must be passed in the
+constructor.
