@@ -35,9 +35,9 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     }
 
     public DefaultLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
-        this.successHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
-        this.errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
-        this.timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+        successHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+        errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+        timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
     }
 
     @Override
@@ -51,13 +51,13 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             Histogram histogram;
             switch (metric) {
                 case SUCCESS:
-                    histogram = this.successHistogram;
+                    histogram = successHistogram;
                     break;
                 case ERROR:
-                    histogram = this.errorHistogram;
+                    histogram = errorHistogram;
                     break;
                 case TIMEOUT:
-                    histogram = this.timeoutHistogram;
+                    histogram = timeoutHistogram;
                     break;
                 default:
                     throw new IllegalArgumentException("No latency capture for: " + metric);
@@ -71,13 +71,13 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         Histogram histogram;
         switch (metric) {
             case SUCCESS:
-                histogram = this.successHistogram;
+                histogram = successHistogram;
                 break;
             case ERROR:
-                histogram = this.errorHistogram;
+                histogram = errorHistogram;
                 break;
             case TIMEOUT:
-                histogram = this.timeoutHistogram;
+                histogram = timeoutHistogram;
                 break;
             default:
                 throw new IllegalArgumentException("No latency capture for: " + metric);
@@ -119,6 +119,6 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             totalValue += histogram.medianEquivalentValue(iterationValue.getValueIteratedTo())
                     * iterationValue.getCountAtValueIteratedTo();
         }
-        return (totalValue * 1.0) / histogram.getTotalCount();
+        return totalValue * 1.0 / histogram.getTotalCount();
     }
 }
