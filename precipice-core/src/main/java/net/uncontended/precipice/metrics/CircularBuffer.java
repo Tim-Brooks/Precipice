@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -150,7 +151,9 @@ public class CircularBuffer<T> {
 
                 @Override
                 public T next() {
-                    // TODO: Throw NoSuchElementException
+                    if (!hasNext()) {
+                        throw new NoSuchElementException();
+                    }
                     int currentIndex = index++;
                     int relativeSlot = currentIndex & mask;
                     Slot<T> slot = buffer.get(relativeSlot);
