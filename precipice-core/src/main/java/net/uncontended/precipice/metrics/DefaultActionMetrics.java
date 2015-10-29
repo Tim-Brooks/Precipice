@@ -40,18 +40,19 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, SystemTime systemTime) {
         this.systemTime = systemTime;
-        this.millisecondsPerSlot = slotUnit.toMillis(resolution);
+        millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
             throw new IllegalArgumentException(String.format("Too low of resolution. %s milliseconds per slot is the " +
                     "lowest valid resolution", Integer.MAX_VALUE));
-        } else if (100 > millisecondsPerSlot) {
+        }
+        if (100 > millisecondsPerSlot) {
             throw new IllegalArgumentException(String.format("Too low of resolution: [%s milliseconds]. 100 " +
                     "milliseconds is the minimum resolution.", millisecondsPerSlot));
         }
 
         long startTime = systemTime.nanoTime();
         this.slotsToTrack = slotsToTrack;
-        this.buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
+        buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
     }
 
     @Override
@@ -97,7 +98,7 @@ public class DefaultActionMetrics implements ActionMetrics {
         long count = 0;
         for (MetricCounter metricCounter : slots) {
             if (metricCounter != null) {
-                count = count + metricCounter.getMetric(metric).longValue();
+                count += metricCounter.getMetric(metric).longValue();
             }
         }
         return count;
@@ -127,10 +128,10 @@ public class DefaultActionMetrics implements ActionMetrics {
                 long slotNotRejectedTotal = successes + errors + timeouts;
                 long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
 
-                total = total + slotTotal;
-                notRejectedTotal = notRejectedTotal + slotNotRejectedTotal;
-                failures = failures + errors + timeouts;
-                rejections = rejections + circuitOpen + queueFull + maxConcurrency;
+                total += slotTotal;
+                notRejectedTotal += slotNotRejectedTotal;
+                failures += errors + timeouts;
+                rejections += circuitOpen + queueFull + maxConcurrency;
             }
         }
         return new HealthSnapshot(total, notRejectedTotal, failures, rejections);

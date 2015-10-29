@@ -29,6 +29,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     private final Histogram successHistogram;
     private final Histogram errorHistogram;
     private final Histogram timeoutHistogram;
+    private final CircularBuffer<Histogram> buffer = new CircularBuffer<>(7, 10, TimeUnit.MINUTES);
 
     public DefaultLatencyMetrics() {
         this(TimeUnit.HOURS.toNanos(1), 2);
