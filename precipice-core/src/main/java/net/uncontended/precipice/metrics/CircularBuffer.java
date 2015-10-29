@@ -58,6 +58,13 @@ public class CircularBuffer<T> {
         }
     }
 
+    public Slot<T> getRawSlot(long nanoTime) {
+        long currentTime = currentMillisTime(nanoTime);
+        int absoluteSlot = currentAbsoluteSlot(currentTime);
+        int relativeSlot = absoluteSlot & mask;
+        return buffer.get(relativeSlot);
+    }
+
     public T putOrGet(long nanoTime, T object) {
         long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
@@ -93,7 +100,8 @@ public class CircularBuffer<T> {
             String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]",
                     totalSlots, longSlots);
             throw new IllegalArgumentException(message);
-        } else if (longSlots <= 0) {
+        }
+        if (longSlots <= 0) {
             String message = String.format("Slots must be greater than 0. [Argument: %s]", longSlots);
             throw new IllegalArgumentException(message);
         }
@@ -101,7 +109,7 @@ public class CircularBuffer<T> {
     }
 
     private int currentAbsoluteSlot(long currentTime) {
-        return ((int) (currentTime - startTime)) / millisecondsPerSlot;
+        return (int) (currentTime - startTime) / millisecondsPerSlot;
     }
 
     private static long currentMillisTime(long nanoTime) {
@@ -109,14 +117,14 @@ public class CircularBuffer<T> {
     }
 
     private static int nextPositivePowerOfTwo(int slotsToTrack) {
-        return 1 << (32 - Integer.numberOfLeadingZeros(slotsToTrack - 1));
+        return 1 << 32 - Integer.numberOfLeadingZeros(slotsToTrack - 1);
     }
 
-    private static class Slot<T> {
+    public static class Slot<T> {
         public final T object;
         public final long absoluteSlot;
 
-        public Slot(long absoluteSlot, T object) {
+        private Slot(long absoluteSlot, T object) {
             this.absoluteSlot = absoluteSlot;
             this.object = object;
         }
@@ -127,7 +135,7 @@ public class CircularBuffer<T> {
         private final int maxIndex;
         private int index;
 
-        public SlotView(int index, int maxIndex) {
+        private SlotView(int index, int maxIndex) {
             this.index = index;
             this.maxIndex = maxIndex;
         }
@@ -142,6 +150,7 @@ public class CircularBuffer<T> {
 
                 @Override
                 public T next() {
+                    // TODO: Throw NoSuchElementException
                     int currentIndex = index++;
                     int relativeSlot = currentIndex & mask;
                     Slot<T> slot = buffer.get(relativeSlot);

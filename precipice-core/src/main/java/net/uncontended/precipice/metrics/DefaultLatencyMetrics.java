@@ -17,10 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import org.HdrHistogram.AtomicHistogram;
-import org.HdrHistogram.Histogram;
-import org.HdrHistogram.HistogramIterationValue;
-import org.HdrHistogram.RecordedValuesIterator;
+import org.HdrHistogram.*;
 
 import java.util.concurrent.TimeUnit;
 
