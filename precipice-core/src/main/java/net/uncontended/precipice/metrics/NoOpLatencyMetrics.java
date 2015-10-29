@@ -17,13 +17,25 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface LatencyMetrics {
+public class NoOpLatencyMetrics implements LatencyMetrics {
 
-    void recordLatency(Metric metric, long nanoLatency);
+    private static final LatencySnapshot noOpSnapshot = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0);
 
-    void recordLatency(Metric metric, long nanoLatency, long nanoTime);
+    @Override
+    public void recordLatency(Metric metric, long nanoLatency) {
+    }
 
-    LatencySnapshot latencySnapshot();
+    @Override
+    public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
+    }
 
-    LatencySnapshot latencySnapshot(Metric metric);
+    @Override
+    public LatencySnapshot latencySnapshot() {
+        return noOpSnapshot;
+    }
+
+    @Override
+    public LatencySnapshot latencySnapshot(Metric metric) {
+        return noOpSnapshot;
+    }
 }

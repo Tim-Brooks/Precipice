@@ -96,16 +96,16 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     }
 
     private LatencySnapshot createSnapshot(Histogram histogram) {
-        LatencySnapshot latencySnapshot = new LatencySnapshot();
-        latencySnapshot.latency50 = histogram.getValueAtPercentile(50.0);
-        latencySnapshot.latency90 = histogram.getValueAtPercentile(90.0);
-        latencySnapshot.latency99 = histogram.getValueAtPercentile(99.0);
-        latencySnapshot.latency999 = histogram.getValueAtPercentile(99.9);
-        latencySnapshot.latency9999 = histogram.getValueAtPercentile(99.99);
-        latencySnapshot.latency99999 = histogram.getValueAtPercentile(99.999);
-        latencySnapshot.latencyMax = histogram.getMaxValue();
-        latencySnapshot.latencyMean = calculateMean(histogram);
-        return latencySnapshot;
+        long latency50 = histogram.getValueAtPercentile(50.0);
+        long latency90 = histogram.getValueAtPercentile(90.0);
+        long latency99 = histogram.getValueAtPercentile(99.0);
+        long latency999 = histogram.getValueAtPercentile(99.9);
+        long latency9999 = histogram.getValueAtPercentile(99.99);
+        long latency99999 = histogram.getValueAtPercentile(99.999);
+        long latencyMax = histogram.getMaxValue();
+        double latencyMean = calculateMean(histogram);
+        return new LatencySnapshot(latency50, latency90, latency99, latency999, latency9999, latency99999, latencyMax,
+                latencyMean);
     }
 
     private double calculateMean(Histogram histogram) {
