@@ -91,6 +91,6 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
 
     @Override
     public void shutdown() {
-        isShutdown.set(true);
+        isShutdown = true;
     }
 }

@@ -27,25 +27,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractService implements Service {
     protected final PrecipiceSemaphore semaphore;
-    protected final AtomicBoolean isShutdown;
     protected final ActionMetrics actionMetrics;
     protected final LatencyMetrics latencyMetrics;
     protected final CircuitBreaker circuitBreaker;
     protected final String name;
+    protected volatile boolean isShutdown = false;
 
     protected AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics,
                               LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore) {
-        this(name, circuitBreaker, actionMetrics, latencyMetrics, semaphore, new AtomicBoolean(false));
-    }
-
-    protected AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics,
-                              LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore, AtomicBoolean isShutdown) {
         this.name = name;
         this.circuitBreaker = circuitBreaker;
         this.actionMetrics = actionMetrics;
         this.latencyMetrics = latencyMetrics;
         this.semaphore = semaphore;
-        this.isShutdown = isShutdown;
         this.circuitBreaker.setActionMetrics(actionMetrics);
     }
 
@@ -81,7 +75,7 @@ public abstract class AbstractService implements Service {
     }
 
     protected void acquirePermitOrRejectIfActionNotAllowed() {
-        if (isShutdown.get()) {
+        if (isShutdown) {
             throw new RejectedActionException(RejectionReason.SERVICE_SHUTDOWN);
         }
 

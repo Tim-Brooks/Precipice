@@ -26,7 +26,6 @@ import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultAsyncService extends AbstractService implements AsyncService {
     private final ExecutorService service;
@@ -35,14 +34,6 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
     public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
-        timeoutService = properties.timeoutService();
-        this.service = service;
-    }
-
-    public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties,
-                               AtomicBoolean isShutdown) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
-                properties.semaphore(), isShutdown);
         timeoutService = properties.timeoutService();
         this.service = service;
     }
@@ -73,7 +64,7 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
 
     @Override
     public void shutdown() {
-        isShutdown.compareAndSet(false, true);
+        isShutdown = true;
         service.shutdown();
     }
 }

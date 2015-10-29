@@ -21,7 +21,6 @@ import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultService extends AbstractService implements MultiService {
 
@@ -30,16 +29,11 @@ public class DefaultService extends AbstractService implements MultiService {
     private final DefaultAsyncService asyncService;
 
     public DefaultService(String name, ExecutorService service, ServiceProperties properties) {
-        this(name, service, properties, new AtomicBoolean(false));
-    }
-
-    private DefaultService(String name, ExecutorService service, ServiceProperties properties,
-                           AtomicBoolean isShutdown) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
-                properties.semaphore(), isShutdown);
+                properties.semaphore());
         this.service = service;
-        runService = new DefaultRunService(name, properties, isShutdown);
-        asyncService = new DefaultAsyncService(name, service, properties, isShutdown);
+        runService = new DefaultRunService(name, properties);
+        asyncService = new DefaultAsyncService(name, service, properties);
     }
 
     @Override
@@ -59,7 +53,9 @@ public class DefaultService extends AbstractService implements MultiService {
 
     @Override
     public void shutdown() {
-        isShutdown.compareAndSet(false, true);
+        isShutdown = true;
+        runService.shutdown();
+        asyncService.shutdown();
         service.shutdown();
     }
 }

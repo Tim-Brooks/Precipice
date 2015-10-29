@@ -29,11 +29,6 @@ public class DefaultRunService extends AbstractService implements RunService {
                 properties.semaphore());
     }
 
-    public DefaultRunService(String name, ServiceProperties properties, AtomicBoolean isShutdown) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
-                properties.semaphore(), isShutdown);
-    }
-
     @Override
     public <T> T run(final ResilientAction<T> action) throws Exception {
         acquirePermitOrRejectIfActionNotAllowed();
@@ -55,7 +50,7 @@ public class DefaultRunService extends AbstractService implements RunService {
 
     @Override
     public void shutdown() {
-        isShutdown.compareAndSet(false, true);
+        isShutdown = true;
 
     }
 

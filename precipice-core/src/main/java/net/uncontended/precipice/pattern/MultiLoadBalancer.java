@@ -40,7 +40,7 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
     public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy,
                              ActionMetrics metrics) {
         super(metrics);
-        if (executorToContext.size() == 0) {
+        if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
 
