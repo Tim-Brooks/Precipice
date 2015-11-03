@@ -95,7 +95,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         return createSnapshot(accumulated);
     }
 
-    private LatencySnapshot createSnapshot(Histogram histogram) {
+    private static LatencySnapshot createSnapshot(Histogram histogram) {
         LatencySnapshot latencySnapshot = new LatencySnapshot();
         latencySnapshot.latency50 = histogram.getValueAtPercentile(50.0);
         latencySnapshot.latency90 = histogram.getValueAtPercentile(90.0);
@@ -108,7 +108,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         return latencySnapshot;
     }
 
-    private double calculateMean(Histogram histogram) {
+    private static double calculateMean(Histogram histogram) {
         if (histogram.getTotalCount() == 0) {
             return 0.0;
         }
