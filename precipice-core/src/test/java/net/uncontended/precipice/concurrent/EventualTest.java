@@ -81,7 +81,7 @@ public class EventualTest {
     }
 
     @Test
-    public void testSuccessCallback() throws InterruptedException, ExecutionException {
+    public void testSuccessCallback() throws Exception {
         final AtomicReference<Throwable> error = new AtomicReference<>();
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
@@ -127,7 +127,7 @@ public class EventualTest {
     }
 
     @Test
-    public void testTimeoutCallback() throws InterruptedException, ExecutionException {
+    public void testTimeoutCallback() throws Exception {
         final AtomicReference<Throwable> error = new AtomicReference<>();
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
@@ -172,7 +172,7 @@ public class EventualTest {
     }
 
     @Test
-    public void testCancellation() throws InterruptedException, ExecutionException {
+    public void testCancellation() throws Exception {
         final AtomicReference<Throwable> error = new AtomicReference<>();
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);

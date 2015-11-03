@@ -17,7 +17,10 @@
 
 package net.uncontended.precipice.metrics;
 
-import org.HdrHistogram.*;
+import org.HdrHistogram.AtomicHistogram;
+import org.HdrHistogram.Histogram;
+import org.HdrHistogram.HistogramIterationValue;
+import org.HdrHistogram.RecordedValuesIterator;
 
 import java.util.concurrent.TimeUnit;
 
@@ -93,7 +96,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         return createSnapshot(accumulated);
     }
 
-    private LatencySnapshot createSnapshot(Histogram histogram) {
+    private static LatencySnapshot createSnapshot(Histogram histogram) {
         long latency50 = histogram.getValueAtPercentile(50.0);
         long latency90 = histogram.getValueAtPercentile(90.0);
         long latency99 = histogram.getValueAtPercentile(99.0);
@@ -106,7 +109,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
                 latencyMean);
     }
 
-    private double calculateMean(Histogram histogram) {
+    private static double calculateMean(Histogram histogram) {
         if (histogram.getTotalCount() == 0) {
             return 0.0;
         }
