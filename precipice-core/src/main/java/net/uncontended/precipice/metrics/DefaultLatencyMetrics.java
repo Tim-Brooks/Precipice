@@ -33,9 +33,8 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     private final Recorder successRecorder = new Recorder(1);
     private final Recorder errorRecorder = new Recorder(1);
     private final Recorder timeoutRecorder = new Recorder(1);
-    private final AtomicReferenceArray<Histogram> successArray = new AtomicReferenceArray<>(6);
-    private final AtomicReferenceArray<Histogram> errorArray = new AtomicReferenceArray<>(6);
-    private final AtomicReferenceArray<Histogram> timeoutArray = new AtomicReferenceArray<>(6);
+
+    private volatile Histogram inactive;
     private final AtomicLong timeToSwitch;
 
     public DefaultLatencyMetrics() {
@@ -47,6 +46,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         timeToSwitch = new AtomicLong(System.nanoTime() + tenMinues);
+        inactive = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
     }
 
     @Override
@@ -76,9 +76,14 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
                     throw new IllegalArgumentException("No latency capture for: " + metric);
             }
             long timeToSwitch = this.timeToSwitch.get();
-            if (nanoTime - timeToSwitch < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + tenMinues)) {
-                // TODO: Implement
-                Histogram intervalHistogram = recorder.getIntervalHistogram();
+
+            // TODO: Handle advance to correct bucket
+            if (timeToSwitch - nanoTime < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + tenMinues)) {
+                // TODO: Reset?
+                Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
+                inactive = intervalHistogram;
+
+                // TODO: Populate Array
             }
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
