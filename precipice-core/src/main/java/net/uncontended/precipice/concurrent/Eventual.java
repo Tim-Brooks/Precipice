@@ -184,6 +184,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
 
     @Override
     public void onSuccess(PrecipiceFunction<T> fn) {
+        // TODO: Decide whether it is okay to execute multiple callbacks.
         if (status.get() == Status.SUCCESS) {
             fn.apply(result);
         } else {
