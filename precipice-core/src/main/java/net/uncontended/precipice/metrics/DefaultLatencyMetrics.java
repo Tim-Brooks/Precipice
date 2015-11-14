@@ -21,7 +21,6 @@ import org.HdrHistogram.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class DefaultLatencyMetrics implements LatencyMetrics {
 
@@ -29,10 +28,11 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     private final Histogram errorHistogram;
     private final Histogram timeoutHistogram;
 
-    private final long tenMinues = TimeUnit.MINUTES.toNanos(10);
+    private final long tenMinutes = TimeUnit.MINUTES.toNanos(10);
     private final Recorder successRecorder = new Recorder(1);
     private final Recorder errorRecorder = new Recorder(1);
     private final Recorder timeoutRecorder = new Recorder(1);
+    private final CircularBuffer<LatencySnapshot> buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES);
 
     private volatile Histogram inactive;
     private final AtomicLong timeToSwitch;
@@ -45,7 +45,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         successHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
-        timeToSwitch = new AtomicLong(System.nanoTime() + tenMinues);
+        timeToSwitch = new AtomicLong(System.nanoTime() + tenMinutes);
         inactive = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
     }
 
@@ -77,8 +77,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             }
             long timeToSwitch = this.timeToSwitch.get();
 
-            // TODO: Handle advance to correct bucket
-            if (timeToSwitch - nanoTime < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + tenMinues)) {
+            if (timeToSwitch - nanoTime < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + tenMinutes)) {
                 // TODO: Reset?
                 Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
                 inactive = intervalHistogram;

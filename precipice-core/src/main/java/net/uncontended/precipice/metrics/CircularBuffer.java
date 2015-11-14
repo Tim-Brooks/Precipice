@@ -59,12 +59,12 @@ public class CircularBuffer<T> {
         }
     }
 
-    public Slot<T> getRawSlot(long nanoTime) {
-        long currentTime = currentMillisTime(nanoTime);
-        int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int relativeSlot = absoluteSlot & mask;
-        return buffer.get(relativeSlot);
-    }
+//    public Slot<T> getRawSlot(long nanoTime) {
+//        long currentTime = currentMillisTime(nanoTime);
+//        int absoluteSlot = currentAbsoluteSlot(currentTime);
+//        int relativeSlot = absoluteSlot & mask;
+//        return buffer.get(relativeSlot);
+//    }
 
     public T putOrGet(long nanoTime, T object) {
         long currentTime = currentMillisTime(nanoTime);
