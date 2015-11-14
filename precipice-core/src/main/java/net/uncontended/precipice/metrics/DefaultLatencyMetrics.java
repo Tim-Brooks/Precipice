@@ -32,9 +32,12 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     private final Recorder successRecorder = new Recorder(1);
     private final Recorder errorRecorder = new Recorder(1);
     private final Recorder timeoutRecorder = new Recorder(1);
-    private final CircularBuffer<LatencySnapshot> buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES);
+    private final CircularBuffer<LatencySnapshot> buffer;
 
-    private volatile Histogram inactive;
+    private volatile Histogram successInactive = successRecorder.getIntervalHistogram();
+    private volatile Histogram errorInactive = errorRecorder.getIntervalHistogram();
+    private volatile Histogram timeoutInactive = timeoutRecorder.getIntervalHistogram();
+
     private final AtomicLong timeToSwitch;
 
     public DefaultLatencyMetrics() {
@@ -46,7 +49,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         timeToSwitch = new AtomicLong(System.nanoTime() + tenMinutes);
-        inactive = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+        buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, 0);
     }
 
     @Override
@@ -59,30 +62,32 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         if (nanoLatency != -1) {
             Histogram histogram;
             Recorder recorder;
+            Histogram inactive;
             switch (metric) {
                 case SUCCESS:
                     histogram = successHistogram;
                     recorder = successRecorder;
+                    inactive = successInactive;
                     break;
                 case ERROR:
                     histogram = errorHistogram;
                     recorder = errorRecorder;
+                    inactive = errorInactive;
                     break;
                 case TIMEOUT:
                     histogram = timeoutHistogram;
                     recorder = timeoutRecorder;
+                    inactive = timeoutInactive;
                     break;
                 default:
                     throw new IllegalArgumentException("No latency capture for: " + metric);
             }
             long timeToSwitch = this.timeToSwitch.get();
 
-            if (timeToSwitch - nanoTime < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + tenMinutes)) {
-                // TODO: Reset?
+            if (nanoTime - timeToSwitch < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + tenMinutes)) {
                 Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
-                inactive = intervalHistogram;
-
-                LatencySnapshot snapshot = null;
+                LatencySnapshot snapshot = createSnapshot(intervalHistogram);
+                // TODO: Need to reassign inactive
                 // TODO: Do not need the or get part.
                 buffer.putOrGet(nanoTime, snapshot);
             }

@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
@@ -109,6 +110,11 @@ public class DefaultLatencyMetricsTest {
         assertEquals(301, snapshot.latency9999 / 1000);
         assertEquals(301, snapshot.latency99999 / 1000);
         assertEquals(150, (long) snapshot.latencyMean / 1000);
+    }
+
+    @Test
+    public void testThing() {
+        metrics.recordLatency(Metric.SUCCESS, 100L, TimeUnit.MINUTES.toNanos(12));
     }
 
     // TODO: Explore using status opposed to metric
