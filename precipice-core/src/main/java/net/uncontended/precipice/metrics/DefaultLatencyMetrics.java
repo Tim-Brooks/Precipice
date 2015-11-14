@@ -88,8 +88,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
                 Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
                 LatencySnapshot snapshot = createSnapshot(intervalHistogram);
                 // TODO: Need to reassign inactive
-                // TODO: Do not need the or get part.
-                buffer.putOrGet(nanoTime, snapshot);
+                buffer.put(nanoTime, snapshot);
             }
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
