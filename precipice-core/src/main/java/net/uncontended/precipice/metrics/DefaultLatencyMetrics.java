@@ -150,4 +150,17 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         }
         return totalValue * 1.0 / histogram.getTotalCount();
     }
+
+    private static class LatencyBucket {
+        private final Recorder recorder;
+        private final Histogram histogram;
+        private Histogram inactive;
+
+        private LatencyBucket(long highestTrackableValue, int numberOfSignificantValueDigits) {
+            histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+            recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
+            inactive = recorder.getIntervalHistogram();
+        }
+
+    }
 }
