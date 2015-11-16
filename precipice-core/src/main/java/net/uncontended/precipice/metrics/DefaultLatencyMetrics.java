@@ -24,32 +24,21 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultLatencyMetrics implements LatencyMetrics {
 
-    private final Histogram successHistogram;
-    private final Histogram errorHistogram;
-    private final Histogram timeoutHistogram;
+    private static final long TEN_MINUTES = TimeUnit.MINUTES.toNanos(10);
 
-    private final long tenMinutes = TimeUnit.MINUTES.toNanos(10);
-    private final Recorder successRecorder = new Recorder(1);
-    private final Recorder errorRecorder = new Recorder(1);
-    private final Recorder timeoutRecorder = new Recorder(1);
-    private final CircularBuffer<LatencySnapshot> buffer;
-
-    private volatile Histogram successInactive = successRecorder.getIntervalHistogram();
-    private volatile Histogram errorInactive = errorRecorder.getIntervalHistogram();
-    private volatile Histogram timeoutInactive = timeoutRecorder.getIntervalHistogram();
-
-    private final AtomicLong timeToSwitch;
+    private final LatencyBucket successBucket;
+    private final LatencyBucket errorBucket;
+    private final LatencyBucket timeoutBucket;
 
     public DefaultLatencyMetrics() {
         this(TimeUnit.HOURS.toNanos(1), 2);
     }
 
     public DefaultLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
-        successHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
-        errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
-        timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
-        timeToSwitch = new AtomicLong(System.nanoTime() + tenMinutes);
-        buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, 0);
+        successBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+        errorBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+        timeoutBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+
     }
 
     @Override
@@ -60,66 +49,50 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     @Override
     public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
         if (nanoLatency != -1) {
-            Histogram histogram;
-            Recorder recorder;
-            Histogram inactive;
+            LatencyBucket bucket;
             switch (metric) {
                 case SUCCESS:
-                    histogram = successHistogram;
-                    recorder = successRecorder;
-                    inactive = successInactive;
+                    bucket = successBucket;
                     break;
                 case ERROR:
-                    histogram = errorHistogram;
-                    recorder = errorRecorder;
-                    inactive = errorInactive;
+                    bucket = errorBucket;
                     break;
                 case TIMEOUT:
-                    histogram = timeoutHistogram;
-                    recorder = timeoutRecorder;
-                    inactive = timeoutInactive;
+                    bucket = timeoutBucket;
                     break;
                 default:
                     throw new IllegalArgumentException("No latency capture for: " + metric);
             }
-            long timeToSwitch = this.timeToSwitch.get();
+            bucket.record(nanoLatency, nanoTime);
 
-            if (nanoTime - timeToSwitch < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + tenMinutes)) {
-                Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
-                LatencySnapshot snapshot = createSnapshot(intervalHistogram);
-                // TODO: Need to reassign inactive
-                buffer.put(nanoTime, snapshot);
-            }
-            recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
-            histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
         }
     }
 
     @Override
     public LatencySnapshot latencySnapshot(Metric metric) {
-        Histogram histogram;
+        LatencyBucket bucket;
         switch (metric) {
             case SUCCESS:
-                histogram = successHistogram;
+                bucket = successBucket;
                 break;
             case ERROR:
-                histogram = errorHistogram;
+                bucket = errorBucket;
                 break;
             case TIMEOUT:
-                histogram = timeoutHistogram;
+                bucket = timeoutBucket;
                 break;
             default:
                 throw new IllegalArgumentException("No latency capture for: " + metric);
         }
-        return createSnapshot(histogram);
+        return createSnapshot(bucket.histogram);
     }
 
     @Override
     public LatencySnapshot latencySnapshot() {
-        Histogram accumulated = new Histogram(successHistogram);
-        accumulated.add(successHistogram);
-        accumulated.add(errorHistogram);
-        accumulated.add(timeoutHistogram);
+        Histogram accumulated = new Histogram(successBucket.histogram);
+        accumulated.add(successBucket.histogram);
+        accumulated.add(errorBucket.histogram);
+        accumulated.add(timeoutBucket.histogram);
 
         return createSnapshot(accumulated);
     }
@@ -152,14 +125,34 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     }
 
     private static class LatencyBucket {
+        final Histogram histogram;
+
         private final Recorder recorder;
-        private final Histogram histogram;
+        private final CircularBuffer<LatencySnapshot> buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, 0);
+        private final AtomicLong timeToSwitch = new AtomicLong(System.nanoTime() + TEN_MINUTES);
+
         private Histogram inactive;
 
         private LatencyBucket(long highestTrackableValue, int numberOfSignificantValueDigits) {
             histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
             recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
             inactive = recorder.getIntervalHistogram();
+        }
+
+        public void record(long nanoLatency, long nanoTime) {
+            long timeToSwitch = this.timeToSwitch.get();
+
+            if (nanoTime - timeToSwitch < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + TEN_MINUTES)) {
+                buffer.put(nanoTime, swap());
+            }
+            recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
+            histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
+        }
+
+        public LatencySnapshot swap() {
+            Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
+            inactive = intervalHistogram;
+            return createSnapshot(intervalHistogram);
         }
 
     }
