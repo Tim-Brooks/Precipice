@@ -114,7 +114,13 @@ public class DefaultLatencyMetricsTest {
 
     @Test
     public void testThing() {
-        metrics.recordLatency(Metric.SUCCESS, 100L, TimeUnit.MINUTES.toNanos(12));
+        long start = 0;
+        long flip = start + TimeUnit.MINUTES.toNanos(10);
+        long now = TimeUnit.MINUTES.toNanos(22);
+        long difference = now - flip;
+        System.out.println(difference);
+        System.out.println(TimeUnit.MINUTES.toNanos(30));
+        System.out.println((TimeUnit.MINUTES.toNanos(10) - difference % TimeUnit.MINUTES.toNanos(10)) + now);
     }
 
     // TODO: Explore using status opposed to metric

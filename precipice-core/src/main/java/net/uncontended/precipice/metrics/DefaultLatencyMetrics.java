@@ -97,6 +97,43 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         return createSnapshot(accumulated);
     }
 
+    public Histogram getHistogram(Metric metric) {
+        Histogram histogram;
+        switch (metric) {
+            case SUCCESS:
+                histogram = successBucket.histogram;
+                break;
+            case ERROR:
+                histogram = errorBucket.histogram;
+                break;
+            case TIMEOUT:
+                histogram = timeoutBucket.histogram;
+                break;
+            default:
+                throw new IllegalArgumentException("No latency capture for: " + metric);
+        }
+        return histogram;
+    }
+
+    public Histogram getInactiveHistogram(Metric metric) {
+        Histogram histogram;
+        // TODO: Threadsafe?
+        switch (metric) {
+            case SUCCESS:
+                histogram = successBucket.inactive;
+                break;
+            case ERROR:
+                histogram = errorBucket.inactive;
+                break;
+            case TIMEOUT:
+                histogram = timeoutBucket.inactive;
+                break;
+            default:
+                throw new IllegalArgumentException("No latency capture for: " + metric);
+        }
+        return histogram;
+    }
+
     private static LatencySnapshot createSnapshot(Histogram histogram) {
         long latency50 = histogram.getValueAtPercentile(50.0);
         long latency90 = histogram.getValueAtPercentile(90.0);
@@ -143,14 +180,15 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             long timeToSwitch = this.timeToSwitch.get();
 
             long difference = nanoTime - timeToSwitch;
-            if (difference < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, difference % TEN_MINUTES + nanoTime)) {
-                buffer.put(nanoTime, swap());
+            if (difference < 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
+                    TEN_MINUTES - difference % TEN_MINUTES + nanoTime)) {
+                buffer.put(nanoTime, swapHistograms());
             }
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
         }
 
-        public LatencySnapshot swap() {
+        public LatencySnapshot swapHistograms() {
             Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
             inactive = intervalHistogram;
             return createSnapshot(intervalHistogram);
