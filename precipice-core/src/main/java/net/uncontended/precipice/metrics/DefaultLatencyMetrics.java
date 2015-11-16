@@ -24,20 +24,19 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultLatencyMetrics implements LatencyMetrics {
 
-    private static final long TEN_MINUTES = TimeUnit.MINUTES.toNanos(10);
 
     private final LatencyBucket successBucket;
     private final LatencyBucket errorBucket;
     private final LatencyBucket timeoutBucket;
 
     public DefaultLatencyMetrics() {
-        this(TimeUnit.HOURS.toNanos(1), 2);
+        this(TimeUnit.MINUTES.toNanos(10), TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public DefaultLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
-        successBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-        errorBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-        timeoutBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+    public DefaultLatencyMetrics(long bucketResolution, long highestTrackableValue, int numberOfSignificantValueDigits) {
+        successBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
+        errorBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
+        timeoutBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
 
     }
 
@@ -136,11 +135,14 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
 
         private final Recorder recorder;
         private final CircularBuffer<LatencySnapshot> buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, 0);
-        private final AtomicLong timeToSwitch = new AtomicLong(System.nanoTime() + TEN_MINUTES);
+        private final long bucketResolution;
+        private final AtomicLong timeToSwitch;
 
         private Histogram inactive;
 
-        private LatencyBucket(long highestTrackableValue, int numberOfSignificantValueDigits) {
+        private LatencyBucket(long bucketResolution, long highestTrackableValue, int numberOfSignificantValueDigits) {
+            this.bucketResolution = bucketResolution;
+            timeToSwitch = new AtomicLong(System.nanoTime() + bucketResolution);
             histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
             recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
             inactive = recorder.getIntervalHistogram();
@@ -151,7 +153,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
 
             long difference = nanoTime - timeToSwitch;
             if (difference < 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
-                    TEN_MINUTES - difference % TEN_MINUTES + nanoTime)) {
+                    bucketResolution - difference % bucketResolution + nanoTime)) {
                 buffer.put(nanoTime, swapHistograms());
             }
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
