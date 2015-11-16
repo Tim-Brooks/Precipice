@@ -142,7 +142,8 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         public void record(long nanoLatency, long nanoTime) {
             long timeToSwitch = this.timeToSwitch.get();
 
-            if (nanoTime - timeToSwitch < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, timeToSwitch + TEN_MINUTES)) {
+            long difference = nanoTime - timeToSwitch;
+            if (difference < 1 && this.timeToSwitch.compareAndSet(timeToSwitch, difference % TEN_MINUTES + nanoTime)) {
                 buffer.put(nanoTime, swap());
             }
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
