@@ -49,27 +49,44 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     @Override
     public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
         if (nanoLatency != -1) {
-            LatencyBucket bucket;
-            switch (metric) {
-                case SUCCESS:
-                    bucket = successBucket;
-                    break;
-                case ERROR:
-                    bucket = errorBucket;
-                    break;
-                case TIMEOUT:
-                    bucket = timeoutBucket;
-                    break;
-                default:
-                    throw new IllegalArgumentException("No latency capture for: " + metric);
-            }
+            LatencyBucket bucket = getLatencyBucket(metric);
             bucket.record(nanoLatency, nanoTime);
-
         }
     }
 
     @Override
     public LatencySnapshot latencySnapshot(Metric metric) {
+        LatencyBucket bucket = getLatencyBucket(metric);
+        return createSnapshot(bucket.histogram);
+    }
+
+    @Override
+    public LatencySnapshot latencySnapshot() {
+        Histogram accumulated = new Histogram(successBucket.histogram);
+        accumulated.add(successBucket.histogram);
+        accumulated.add(errorBucket.histogram);
+        accumulated.add(timeoutBucket.histogram);
+
+        return createSnapshot(accumulated);
+    }
+
+    public Iterable<LatencySnapshot> getSnapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        LatencyBucket bucket = getLatencyBucket(metric);
+        return bucket.buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+    }
+
+    public Histogram getHistogram(Metric metric) {
+        LatencyBucket latencyBucket = getLatencyBucket(metric);
+        return latencyBucket.histogram;
+    }
+
+    public Histogram getInactiveHistogram(Metric metric) {
+        LatencyBucket latencyBucket = getLatencyBucket(metric);
+        // TODO: Threadsafe?
+        return latencyBucket.inactive;
+    }
+
+    private LatencyBucket getLatencyBucket(Metric metric) {
         LatencyBucket bucket;
         switch (metric) {
             case SUCCESS:
@@ -84,54 +101,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             default:
                 throw new IllegalArgumentException("No latency capture for: " + metric);
         }
-        return createSnapshot(bucket.histogram);
-    }
-
-    @Override
-    public LatencySnapshot latencySnapshot() {
-        Histogram accumulated = new Histogram(successBucket.histogram);
-        accumulated.add(successBucket.histogram);
-        accumulated.add(errorBucket.histogram);
-        accumulated.add(timeoutBucket.histogram);
-
-        return createSnapshot(accumulated);
-    }
-
-    public Histogram getHistogram(Metric metric) {
-        Histogram histogram;
-        switch (metric) {
-            case SUCCESS:
-                histogram = successBucket.histogram;
-                break;
-            case ERROR:
-                histogram = errorBucket.histogram;
-                break;
-            case TIMEOUT:
-                histogram = timeoutBucket.histogram;
-                break;
-            default:
-                throw new IllegalArgumentException("No latency capture for: " + metric);
-        }
-        return histogram;
-    }
-
-    public Histogram getInactiveHistogram(Metric metric) {
-        Histogram histogram;
-        // TODO: Threadsafe?
-        switch (metric) {
-            case SUCCESS:
-                histogram = successBucket.inactive;
-                break;
-            case ERROR:
-                histogram = errorBucket.inactive;
-                break;
-            case TIMEOUT:
-                histogram = timeoutBucket.inactive;
-                break;
-            default:
-                throw new IllegalArgumentException("No latency capture for: " + metric);
-        }
-        return histogram;
+        return bucket;
     }
 
     private static LatencySnapshot createSnapshot(Histogram histogram) {
