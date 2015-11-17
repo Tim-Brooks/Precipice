@@ -116,7 +116,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         long latencyMax = histogram.getMaxValue();
         double latencyMean = calculateMean(histogram);
         return new LatencySnapshot(latency50, latency90, latency99, latency999, latency9999, latency99999, latencyMax,
-                latencyMean);
+                latencyMean, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
     }
 
     private static double calculateMean(Histogram histogram) {

@@ -28,8 +28,11 @@ public class LatencySnapshot {
     public final long latency99999;
     public final double latencyMean;
 
+    public final long startTime;
+    public final long endTime;
+
     public LatencySnapshot(long latency50, long latency90, long latency99, long latency999, long latency9999,
-                           long latency99999, long latencyMax, double latencyMean) {
+                           long latency99999, long latencyMax, double latencyMean, long startTime, long endTime) {
         this.latency50 = latency50;
         this.latency90 = latency90;
         this.latency99 = latency99;
@@ -38,6 +41,8 @@ public class LatencySnapshot {
         this.latency99999 = latency99999;
         this.latencyMax = latencyMax;
         this.latencyMean = latencyMean;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     @Override
@@ -54,7 +59,10 @@ public class LatencySnapshot {
         if (latency999 != that.latency999) return false;
         if (latency9999 != that.latency9999) return false;
         if (latency99999 != that.latency99999) return false;
-        return Double.compare(that.latencyMean, latencyMean) == 0;
+        if (Double.compare(that.latencyMean, latencyMean) != 0) return false;
+        if (startTime != that.startTime) return false;
+        return endTime == that.endTime;
+
     }
 
     @Override
@@ -70,6 +78,8 @@ public class LatencySnapshot {
         result = 31 * result + (int) (latency99999 ^ (latency99999 >>> 32));
         temp = Double.doubleToLongBits(latencyMean);
         result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (int) (startTime ^ (startTime >>> 32));
+        result = 31 * result + (int) (endTime ^ (endTime >>> 32));
         return result;
     }
 
@@ -84,6 +94,8 @@ public class LatencySnapshot {
                 ", latency9999=" + latency9999 +
                 ", latency99999=" + latency99999 +
                 ", latencyMean=" + latencyMean +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
                 '}';
     }
 }
