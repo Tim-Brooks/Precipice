@@ -145,8 +145,9 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         private Histogram inactive;
 
         private LatencyBucket(long bucketResolution, long highestTrackableValue, int numberOfSignificantValueDigits) {
-            this.bucketResolution = bucketResolution;
             long currentTime = System.nanoTime();
+
+            this.bucketResolution = bucketResolution;
             this.previousTime = currentTime;
             this.buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, currentTime);
             timeToSwitch = new AtomicLong(currentTime + bucketResolution);
