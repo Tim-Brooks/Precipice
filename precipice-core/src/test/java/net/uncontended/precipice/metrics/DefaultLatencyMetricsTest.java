@@ -123,7 +123,7 @@ public class DefaultLatencyMetricsTest {
         metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (twoMinutes * 4));
         metrics.recordLatency(Metric.SUCCESS, 10L, approximateStart + (twoMinutes * 5));
 
-        for (LatencySnapshot s : metrics.getSnapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, approximateStart + (twoMinutes * 5))) {
+        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, approximateStart + (twoMinutes * 5))) {
             System.out.println(s);
         }
 

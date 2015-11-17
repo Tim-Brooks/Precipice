@@ -19,11 +19,13 @@ package net.uncontended.precipice.metrics;
 
 import org.HdrHistogram.*;
 
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultLatencyMetrics implements LatencyMetrics {
 
+    private static final LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 
     private final LatencyBucket successBucket;
     private final LatencyBucket errorBucket;
@@ -68,13 +70,14 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         return createSnapshot(accumulated);
     }
 
-    public Iterable<LatencySnapshot> getSnapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
-        return getSnapshotsForPeriod(metric, timePeriod, timeUnit, System.nanoTime());
+    public Iterable<LatencySnapshot> snapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
+        return snapshotsForPeriod(metric, timePeriod, timeUnit, System.nanoTime());
     }
 
-    public Iterable<LatencySnapshot> getSnapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public Iterable<LatencySnapshot> snapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         LatencyBucket bucket = getLatencyBucket(metric);
-        return bucket.buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+        CircularBuffer<LatencySnapshot> buffer = bucket.buffer;
+        return new WrappingIterable(buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime));
     }
 
     public Histogram getHistogram(Metric metric) {
@@ -175,6 +178,34 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             inactive = intervalHistogram;
             return createSnapshot(intervalHistogram);
         }
+    }
 
+    private class WrappingIterable implements Iterable<LatencySnapshot> {
+        private final Iterable<LatencySnapshot> iterable;
+
+        private WrappingIterable(Iterable<LatencySnapshot> iterable) {
+            this.iterable = iterable;
+        }
+
+        @Override
+        public Iterator<LatencySnapshot> iterator() {
+            final Iterator<LatencySnapshot> iterator = iterable.iterator();
+            return new Iterator<LatencySnapshot>() {
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+
+                @Override
+                public LatencySnapshot next() {
+                    LatencySnapshot next = iterator.next();
+                    if (next != null) {
+                        return next;
+                    } else {
+                        return DEFAULT_SNAPSHOT;
+                    }
+                }
+            };
+        }
     }
 }
