@@ -37,7 +37,6 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         successBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
         errorBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
         timeoutBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
-
     }
 
     @Override
@@ -67,6 +66,10 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         accumulated.add(timeoutBucket.histogram);
 
         return createSnapshot(accumulated);
+    }
+
+    public Iterable<LatencySnapshot> getSnapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
+        return getSnapshotsForPeriod(metric, timePeriod, timeUnit, System.nanoTime());
     }
 
     public Iterable<LatencySnapshot> getSnapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
@@ -134,7 +137,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         final Histogram histogram;
 
         private final Recorder recorder;
-        private final CircularBuffer<LatencySnapshot> buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, 0);
+        private final CircularBuffer<LatencySnapshot> buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES);
         private final long bucketResolution;
         private final AtomicLong timeToSwitch;
 
@@ -152,7 +155,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             long timeToSwitch = this.timeToSwitch.get();
 
             long difference = nanoTime - timeToSwitch;
-            if (difference < 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
+            if (difference > 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
                     bucketResolution - difference % bucketResolution + nanoTime)) {
                 buffer.put(nanoTime, swapHistograms());
             }

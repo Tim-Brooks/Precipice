@@ -114,13 +114,22 @@ public class DefaultLatencyMetricsTest {
 
     @Test
     public void testThing() {
-        long start = 0;
-        long flip = start + TimeUnit.MINUTES.toNanos(10);
-        long now = TimeUnit.MINUTES.toNanos(22);
-        long difference = now - flip;
-        System.out.println(difference);
-        System.out.println(TimeUnit.MINUTES.toNanos(30));
-        System.out.println((TimeUnit.MINUTES.toNanos(10) - difference % TimeUnit.MINUTES.toNanos(10)) + now);
+        long approximateStart = System.nanoTime();
+        long twoMinutes = TimeUnit.MINUTES.toNanos(2);
+
+        Iterable<LatencySnapshot> snapshots = metrics.getSnapshotsForPeriod(Metric.SUCCESS, 10, TimeUnit.MINUTES, approximateStart);
+        for (LatencySnapshot s : snapshots) {
+            System.out.println(s);
+        }
+
+
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + twoMinutes);
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (twoMinutes * 2));
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (twoMinutes * 3));
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (twoMinutes * 4));
+        metrics.recordLatency(Metric.SUCCESS, 10L, approximateStart + (twoMinutes * 5));
+
+        System.out.println(metrics.getInactiveHistogram(Metric.SUCCESS));
     }
 
     // TODO: Explore using status opposed to metric

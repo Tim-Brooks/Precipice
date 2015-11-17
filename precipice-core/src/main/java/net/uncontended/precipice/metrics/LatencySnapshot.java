@@ -40,4 +40,50 @@ public class LatencySnapshot {
         this.latencyMean = latencyMean;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        LatencySnapshot that = (LatencySnapshot) o;
+
+        if (latencyMax != that.latencyMax) return false;
+        if (latency50 != that.latency50) return false;
+        if (latency90 != that.latency90) return false;
+        if (latency99 != that.latency99) return false;
+        if (latency999 != that.latency999) return false;
+        if (latency9999 != that.latency9999) return false;
+        if (latency99999 != that.latency99999) return false;
+        return Double.compare(that.latencyMean, latencyMean) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = (int) (latencyMax ^ (latencyMax >>> 32));
+        result = 31 * result + (int) (latency50 ^ (latency50 >>> 32));
+        result = 31 * result + (int) (latency90 ^ (latency90 >>> 32));
+        result = 31 * result + (int) (latency99 ^ (latency99 >>> 32));
+        result = 31 * result + (int) (latency999 ^ (latency999 >>> 32));
+        result = 31 * result + (int) (latency9999 ^ (latency9999 >>> 32));
+        result = 31 * result + (int) (latency99999 ^ (latency99999 >>> 32));
+        temp = Double.doubleToLongBits(latencyMean);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "LatencySnapshot{" +
+                "latencyMax=" + latencyMax +
+                ", latency50=" + latency50 +
+                ", latency90=" + latency90 +
+                ", latency99=" + latency99 +
+                ", latency999=" + latency999 +
+                ", latency9999=" + latency9999 +
+                ", latency99999=" + latency99999 +
+                ", latencyMean=" + latencyMean +
+                '}';
+    }
 }
