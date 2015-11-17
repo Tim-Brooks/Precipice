@@ -20,6 +20,8 @@ package net.uncontended.precipice.metrics;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -27,11 +29,15 @@ import static org.junit.Assert.assertEquals;
 
 public class DefaultLatencyMetricsTest {
 
+    private static final long TWO_MINUTES = TimeUnit.MINUTES.toNanos(2);
+
     private DefaultLatencyMetrics metrics;
+    private long approximateStart;
 
     @Before
     public void setup() {
         metrics = new DefaultLatencyMetrics();
+        approximateStart = System.nanoTime();
     }
 
     @Test
@@ -113,17 +119,34 @@ public class DefaultLatencyMetricsTest {
     }
 
     @Test
+    public void testNoRecords() {
+        int count = 0;
+        long time = approximateStart + (TWO_MINUTES * 5);
+        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time)) {
+            ++count;
+            assertEquals(DefaultLatencyMetrics.DEFAULT_SNAPSHOT, s);
+        }
+        // TODO: Working?
+        assertEquals(2, count);
+
+        int count2 = 0;
+        long time2 = approximateStart + (TWO_MINUTES * 30);
+        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time2)) {
+            ++count2;
+            assertEquals(DefaultLatencyMetrics.DEFAULT_SNAPSHOT, s);
+        }
+        assertEquals(6, count2);
+    }
+
+    @Test
     public void testThing() {
-        long approximateStart = System.nanoTime();
-        long twoMinutes = TimeUnit.MINUTES.toNanos(2);
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + TWO_MINUTES);
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (TWO_MINUTES * 2));
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (TWO_MINUTES * 3));
+        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (TWO_MINUTES * 4));
+        metrics.recordLatency(Metric.SUCCESS, 10L, approximateStart + (TWO_MINUTES * 5));
 
-        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + twoMinutes);
-        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (twoMinutes * 2));
-        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (twoMinutes * 3));
-        metrics.recordLatency(Metric.SUCCESS, 5L, approximateStart + (twoMinutes * 4));
-        metrics.recordLatency(Metric.SUCCESS, 10L, approximateStart + (twoMinutes * 5));
-
-        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, approximateStart + (twoMinutes * 5))) {
+        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, approximateStart + (TWO_MINUTES * 5))) {
             System.out.println(s);
         }
 
