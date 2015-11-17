@@ -137,15 +137,19 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         final Histogram histogram;
 
         private final Recorder recorder;
-        private final CircularBuffer<LatencySnapshot> buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES);
+        private final CircularBuffer<LatencySnapshot> buffer;
         private final long bucketResolution;
         private final AtomicLong timeToSwitch;
 
+        private long previousTime;
         private Histogram inactive;
 
         private LatencyBucket(long bucketResolution, long highestTrackableValue, int numberOfSignificantValueDigits) {
             this.bucketResolution = bucketResolution;
-            timeToSwitch = new AtomicLong(System.nanoTime() + bucketResolution);
+            long currentTime = System.nanoTime();
+            this.previousTime = currentTime;
+            this.buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, currentTime);
+            timeToSwitch = new AtomicLong(currentTime + bucketResolution);
             histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
             recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
             inactive = recorder.getIntervalHistogram();
@@ -157,7 +161,9 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             long difference = nanoTime - timeToSwitch;
             if (difference > 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
                     bucketResolution - difference % bucketResolution + nanoTime)) {
-                buffer.put(nanoTime, swapHistograms());
+                buffer.put(previousTime, swapHistograms());
+                // TODO: Considering thread safety issues.
+                previousTime = nanoTime;
             }
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));

@@ -19,7 +19,7 @@ package net.uncontended.precipice.metrics;
 
 public class NoOpLatencyMetrics implements LatencyMetrics {
 
-    private static final LatencySnapshot NO_OP_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0);
+    private static final LatencySnapshot NO_OP_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 
     @Override
     public void recordLatency(Metric metric, long nanoLatency) {
