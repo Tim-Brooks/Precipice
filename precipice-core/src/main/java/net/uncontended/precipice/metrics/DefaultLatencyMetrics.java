@@ -76,8 +76,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
 
     public Iterable<LatencySnapshot> snapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         LatencyBucket bucket = getLatencyBucket(metric);
-        CircularBuffer<LatencySnapshot> buffer = bucket.buffer;
-        return new WrappingIterable(buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime));
+        return bucket.getIterable(timePeriod, timeUnit, nanoTime);
     }
 
     public Histogram getHistogram(Metric metric) {
@@ -160,15 +159,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         }
 
         public void record(long nanoLatency, long nanoTime) {
-            long timeToSwitch = this.timeToSwitch.get();
-
-            long difference = nanoTime - timeToSwitch;
-            if (difference > 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
-                    bucketResolution - difference % bucketResolution + nanoTime)) {
-                buffer.put(previousTime, swapHistograms());
-                // TODO: Considering thread safety issues.
-                previousTime = nanoTime;
-            }
+            advanceBucketsIfNecessary(nanoTime);
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
         }
@@ -178,9 +169,26 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             inactive = intervalHistogram;
             return createSnapshot(intervalHistogram);
         }
+
+        public Iterable<LatencySnapshot> getIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+            advanceBucketsIfNecessary(nanoTime);
+            return new WrappingIterable(buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime));
+        }
+
+        private void advanceBucketsIfNecessary(long nanoTime) {
+            long timeToSwitch = this.timeToSwitch.get();
+
+            long difference = nanoTime - timeToSwitch;
+            if (difference > 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
+                    bucketResolution - difference % bucketResolution + nanoTime)) {
+                buffer.put(previousTime, swapHistograms());
+                // TODO: Considering thread safety issues.
+                previousTime = nanoTime;
+            }
+        }
     }
 
-    private class WrappingIterable implements Iterable<LatencySnapshot> {
+    private static class WrappingIterable implements Iterable<LatencySnapshot> {
         private final Iterable<LatencySnapshot> iterable;
 
         private WrappingIterable(Iterable<LatencySnapshot> iterable) {
