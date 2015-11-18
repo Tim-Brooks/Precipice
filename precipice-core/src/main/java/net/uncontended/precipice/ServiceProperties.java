@@ -22,16 +22,16 @@ import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.IntegerSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.metrics.DefaultLatencyMetrics;
-import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.timeout.TimeoutService;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.OldLatencyMetrics;
+import net.uncontended.precipice.timeout.TimeoutService;
 
 public class ServiceProperties {
 
     private ActionMetrics metrics = new DefaultActionMetrics();
-    private LatencyMetrics latencyMetrics = new DefaultLatencyMetrics();
+    private LatencyMetrics latencyMetrics = new OldLatencyMetrics();
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;
