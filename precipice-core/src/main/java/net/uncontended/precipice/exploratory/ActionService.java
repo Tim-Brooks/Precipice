@@ -31,7 +31,7 @@ public class ActionService extends AbstractService implements Service {
                 properties.semaphore());
     }
 
-    public Object execute(final byte[] buffer) {
+    public Object execute(final byte[] buffer) throws Exception {
         acquirePermitOrRejectIfActionNotAllowed();
 
         Future<String> future = executor.submit(new Callable<String>() {
@@ -40,7 +40,7 @@ public class ActionService extends AbstractService implements Service {
                 return String.valueOf(buffer.clone());
             }
         });
-        return future;
+        return future.get();
     }
 
     @Override
