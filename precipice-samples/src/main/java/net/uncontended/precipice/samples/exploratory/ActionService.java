@@ -19,8 +19,9 @@ package net.uncontended.precipice.samples.exploratory;
 
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Request;
+import com.ning.http.client.RequestBuilder;
 import com.ning.http.client.Response;
+import com.ning.http.client.uri.Uri;
 import net.uncontended.precipice.AbstractService;
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.ServiceProperties;
@@ -34,19 +35,22 @@ import java.util.concurrent.TimeoutException;
 
 public class ActionService extends AbstractService implements Service {
     private final AsyncHttpClient client;
+    private final Uri uri;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    public ActionService(String name, AsyncHttpClient client, ServiceProperties properties) {
+    public ActionService(String name, Uri uri, AsyncHttpClient client, ServiceProperties properties) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
         this.client = client;
+        this.uri = uri;
     }
 
-    public PrecipiceFuture<Response> execute(Request request) throws Exception {
+    public PrecipiceFuture<Response> execute(RequestBuilder request) throws Exception {
         acquirePermitOrRejectIfActionNotAllowed();
         final Eventual<Response> promise = new Eventual<>();
+        request.setUri(uri);
 
-        client.executeRequest(request, new AsyncCompletionHandler<Void>() {
+        client.executeRequest(request.build(), new AsyncCompletionHandler<Void>() {
             @Override
             public Void onCompleted(Response response) throws Exception {
                 promise.complete(response);
