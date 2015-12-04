@@ -16,9 +16,19 @@
 
 package net.uncontended.precipice.timeout;
 
+import java.util.concurrent.TimeUnit;
+
 public class NewTimerService {
 
-    public void schedule(Object task, long timeMillis) {
+    private final long resolution;
+    private final long startTime;
+
+    public NewTimerService(long resolution, TimeUnit unit) {
+        this.resolution = unit.toMillis(resolution);
+        startTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+    }
+
+    public void schedule(Object task, long delay, TimeUnit unit) {
 
     }
 }
