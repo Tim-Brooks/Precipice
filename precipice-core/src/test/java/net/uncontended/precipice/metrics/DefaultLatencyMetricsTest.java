@@ -33,12 +33,12 @@ public class DefaultLatencyMetricsTest {
     private static final long TEN_MINUTES = TimeUnit.MINUTES.toNanos(10);
 
     private DefaultLatencyMetrics metrics;
-    private long approximateStart;
+    private long startTime;
 
     @Before
     public void setup() {
-        metrics = new DefaultLatencyMetrics();
-        approximateStart = System.nanoTime();
+        startTime = System.nanoTime();
+        metrics = new DefaultLatencyMetrics(startTime);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class DefaultLatencyMetricsTest {
     @Test
     public void testNoRecords() {
         int count = 0;
-        long time = approximateStart + (TWO_MINUTES * 4);
+        long time = startTime + (TWO_MINUTES * 4);
         for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time)) {
             ++count;
             assertEquals(DefaultLatencyMetrics.DEFAULT_SNAPSHOT, s);
@@ -131,15 +131,15 @@ public class DefaultLatencyMetricsTest {
         assertEquals(1, count);
 
         int count2 = 0;
-        long time2 = approximateStart + (TWO_MINUTES * 25);
+        long time2 = startTime + (TWO_MINUTES * 25);
         for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time2)) {
+            assertEquals(defaultSnapshot(startTime + count2 * TEN_MINUTES, startTime + (count2 + 1) * TEN_MINUTES), s);
             ++count2;
-            assertEquals(DefaultLatencyMetrics.DEFAULT_SNAPSHOT, s);
         }
         assertEquals(6, count2);
 
         int count3 = 0;
-        long time3 = approximateStart + (TWO_MINUTES * 50);
+        long time3 = startTime + (TWO_MINUTES * 50);
         for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time3)) {
             ++count3;
             assertEquals(DefaultLatencyMetrics.DEFAULT_SNAPSHOT, s);
@@ -149,9 +149,9 @@ public class DefaultLatencyMetricsTest {
 
     @Test
     public void testRollingSnapshots() {
-        populateLatency(Metric.SUCCESS, approximateStart);
+        populateLatency(Metric.SUCCESS, startTime);
 
-        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, approximateStart + TEN_MINUTES)) {
+        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, startTime + TEN_MINUTES)) {
             // TODO: bug if a record has not been made since window changed.
             System.out.println(s);
         }
@@ -164,5 +164,7 @@ public class DefaultLatencyMetricsTest {
         metrics.recordLatency(metric, 5L, windowStart + (TWO_MINUTES * 4));
     }
 
-    // TODO: Explore using status opposed to metric
+    private LatencySnapshot defaultSnapshot(long startTime, long endTime) {
+        return new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, startTime, endTime);
+    }
 }

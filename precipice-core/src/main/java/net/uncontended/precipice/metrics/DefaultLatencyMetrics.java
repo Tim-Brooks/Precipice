@@ -27,18 +27,22 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
 
     public static final LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 
+    private final long startTime;
+
     private final LatencyBucket successBucket;
     private final LatencyBucket errorBucket;
     private final LatencyBucket timeoutBucket;
 
-    public DefaultLatencyMetrics() {
-        this(TimeUnit.MINUTES.toNanos(10), TimeUnit.HOURS.toNanos(1), 2);
+    public DefaultLatencyMetrics(long startTime) {
+        this(startTime, TimeUnit.MINUTES.toNanos(10), TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public DefaultLatencyMetrics(long bucketResolution, long highestTrackableValue, int numberOfSignificantValueDigits) {
-        successBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
-        errorBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
-        timeoutBucket = new LatencyBucket(bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
+    public DefaultLatencyMetrics(long startTime, long bucketResolution, long highestTrackableValue, int
+            numberOfSignificantValueDigits) {
+        this.startTime = startTime;
+        successBucket = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
+        errorBucket = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
+        timeoutBucket = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
     }
 
     @Override
@@ -57,7 +61,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     @Override
     public LatencySnapshot latencySnapshot(Metric metric) {
         LatencyBucket bucket = getLatencyBucket(metric);
-        return createSnapshot(bucket.histogram);
+        return createSnapshot(startTime, -1, bucket.histogram);
     }
 
     @Override
@@ -67,7 +71,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         accumulated.add(errorBucket.histogram);
         accumulated.add(timeoutBucket.histogram);
 
-        return createSnapshot(accumulated);
+        return createSnapshot(startTime, -1, accumulated);
     }
 
     public Iterable<LatencySnapshot> snapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
@@ -108,17 +112,21 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         return bucket;
     }
 
-    private static LatencySnapshot createSnapshot(Histogram histogram) {
-        long latency50 = histogram.getValueAtPercentile(50.0);
-        long latency90 = histogram.getValueAtPercentile(90.0);
-        long latency99 = histogram.getValueAtPercentile(99.0);
-        long latency999 = histogram.getValueAtPercentile(99.9);
-        long latency9999 = histogram.getValueAtPercentile(99.99);
-        long latency99999 = histogram.getValueAtPercentile(99.999);
-        long latencyMax = histogram.getMaxValue();
-        double latencyMean = calculateMean(histogram);
-        return new LatencySnapshot(latency50, latency90, latency99, latency999, latency9999, latency99999, latencyMax,
-                latencyMean, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
+    private static LatencySnapshot createSnapshot(long startTime, long endTime, Histogram histogram) {
+        if (histogram.getTotalCount() != 0) {
+            long latency50 = histogram.getValueAtPercentile(50.0);
+            long latency90 = histogram.getValueAtPercentile(90.0);
+            long latency99 = histogram.getValueAtPercentile(99.0);
+            long latency999 = histogram.getValueAtPercentile(99.9);
+            long latency9999 = histogram.getValueAtPercentile(99.99);
+            long latency99999 = histogram.getValueAtPercentile(99.999);
+            long latencyMax = histogram.getMaxValue();
+            double latencyMean = calculateMean(histogram);
+            return new LatencySnapshot(latency50, latency90, latency99, latency999, latency9999, latency99999,
+                    latencyMax, latencyMean, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
+        } else {
+            return new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, startTime, endTime);
+        }
     }
 
     private static double calculateMean(Histogram histogram) {
@@ -146,31 +154,30 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         private long previousTime;
         private Histogram inactive;
 
-        private LatencyBucket(long bucketResolution, long highestTrackableValue, int numberOfSignificantValueDigits) {
-            long currentTime = System.nanoTime();
+        private LatencyBucket(long startTime, long bucketResolution, long highestTrackableValue, int numberOfSignificantValueDigits) {
 
             this.bucketResolution = bucketResolution;
-            this.previousTime = currentTime;
-            this.buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, currentTime);
-            timeToSwitch = new AtomicLong(currentTime + bucketResolution);
+            this.previousTime = startTime;
+            this.buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, startTime);
+            timeToSwitch = new AtomicLong(startTime + bucketResolution);
             histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
             recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
             inactive = recorder.getIntervalHistogram();
         }
 
-        public void record(long nanoLatency, long nanoTime) {
+        private void record(long nanoLatency, long nanoTime) {
             advanceBucketsIfNecessary(nanoTime);
             recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
             histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
         }
 
-        public LatencySnapshot swapHistograms() {
+        private LatencySnapshot swapHistograms(long startTime, long endTime) {
             Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
             inactive = intervalHistogram;
-            return createSnapshot(intervalHistogram);
+            return createSnapshot(startTime, endTime, intervalHistogram);
         }
 
-        public Iterable<LatencySnapshot> getIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        private Iterable<LatencySnapshot> getIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
             advanceBucketsIfNecessary(nanoTime);
             return new WrappingIterable(buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime));
         }
@@ -181,7 +188,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
             long difference = nanoTime - timeToSwitch;
             if (difference > 1 && this.timeToSwitch.compareAndSet(timeToSwitch,
                     bucketResolution - difference % bucketResolution + nanoTime)) {
-                buffer.put(previousTime, swapHistograms());
+                buffer.put(previousTime, swapHistograms(previousTime, timeToSwitch));
                 // TODO: Considering thread safety issues.
                 previousTime = nanoTime;
             }
