@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.metrics.util.RawCircularBuffer;
 import org.HdrHistogram.*;
 
 import java.util.Iterator;
@@ -147,7 +148,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
         final Histogram histogram;
 
         private final Recorder recorder;
-        private final CircularBuffer<LatencySnapshot> buffer;
+        private final RawCircularBuffer<LatencySnapshot> buffer;
         private final long bucketResolution;
         private final AtomicLong timeToSwitch;
 
@@ -158,7 +159,7 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
 
             this.bucketResolution = bucketResolution;
             this.previousTime = startTime;
-            this.buffer = new CircularBuffer<>(6, 10, TimeUnit.MINUTES, startTime);
+            this.buffer = new RawCircularBuffer<>(6, 10, TimeUnit.MINUTES, startTime);
             timeToSwitch = new AtomicLong(startTime + bucketResolution);
             histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
             recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
@@ -196,15 +197,15 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     }
 
     private static class WrappingIterable implements Iterable<LatencySnapshot> {
-        private final Iterable<LatencySnapshot> iterable;
+        private final Iterable<RawCircularBuffer.Slot<LatencySnapshot>> iterable;
 
-        private WrappingIterable(Iterable<LatencySnapshot> iterable) {
+        private WrappingIterable(Iterable<RawCircularBuffer.Slot<LatencySnapshot>> iterable) {
             this.iterable = iterable;
         }
 
         @Override
         public Iterator<LatencySnapshot> iterator() {
-            final Iterator<LatencySnapshot> iterator = iterable.iterator();
+            final Iterator<RawCircularBuffer.Slot<LatencySnapshot>> iterator = iterable.iterator();
             return new Iterator<LatencySnapshot>() {
                 @Override
                 public boolean hasNext() {
@@ -213,11 +214,13 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
 
                 @Override
                 public LatencySnapshot next() {
-                    LatencySnapshot next = iterator.next();
+                    RawCircularBuffer.Slot<LatencySnapshot> next = iterator.next();
                     if (next != null) {
-                        return next;
+                        return next.object;
                     } else {
-                        return DEFAULT_SNAPSHOT;
+                        long startTime = next.absoluteSlot;
+                        long endTime = startTime; // TODO + bucketResolution
+                        return new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, startTime, endTime);
                     }
                 }
             };
