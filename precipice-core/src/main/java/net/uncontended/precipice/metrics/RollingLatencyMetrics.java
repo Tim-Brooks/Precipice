@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Unstable and still in development. At this time, {@link OldLatencyMetrics} should be used.
  */
-public class DefaultLatencyMetrics implements LatencyMetrics {
+public class RollingLatencyMetrics implements LatencyMetrics {
 
     public static final LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 
@@ -37,11 +37,11 @@ public class DefaultLatencyMetrics implements LatencyMetrics {
     private final LatencyBucket errorBucket;
     private final LatencyBucket timeoutBucket;
 
-    public DefaultLatencyMetrics(long startTime) {
+    public RollingLatencyMetrics(long startTime) {
         this(startTime, TimeUnit.MINUTES.toNanos(10), TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public DefaultLatencyMetrics(long startTime, long bucketResolution, long highestTrackableValue, int
+    public RollingLatencyMetrics(long startTime, long bucketResolution, long highestTrackableValue, int
             numberOfSignificantValueDigits) {
         this.startTime = startTime;
         successBucket = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
