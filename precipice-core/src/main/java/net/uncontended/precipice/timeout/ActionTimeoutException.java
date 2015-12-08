@@ -21,11 +21,27 @@ import java.util.concurrent.TimeoutException;
 
 public class ActionTimeoutException extends TimeoutException {
 
+    private Throwable cause;
+
     public ActionTimeoutException() {
         super();
     }
 
+    public ActionTimeoutException(Throwable cause) {
+        super();
+        this.cause = cause;
+    }
+
     public ActionTimeoutException(String message) {
         super(message);
+    }
+
+    public ActionTimeoutException(String message, Throwable cause) {
+        super(message);
+        this.cause = cause;
+    }
+
+    public Throwable getCause() {
+        return cause;
     }
 }
