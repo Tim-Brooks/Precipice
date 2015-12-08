@@ -24,6 +24,9 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Unstable and still in development. At this time, {@link OldLatencyMetrics} should be used.
+ */
 public class DefaultLatencyMetrics implements LatencyMetrics {
 
     public static final LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
