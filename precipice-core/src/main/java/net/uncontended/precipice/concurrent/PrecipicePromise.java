@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.timeout.ActionTimeoutException;
+
 public interface PrecipicePromise<T> {
 
     boolean complete(T result);
@@ -24,6 +26,8 @@ public interface PrecipicePromise<T> {
     boolean completeExceptionally(Throwable ex);
 
     boolean completeWithTimeout();
+
+    boolean completeWithTimeout(ActionTimeoutException ex);
 
     PrecipiceFuture<T> future();
 }

@@ -28,6 +28,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
     private final PrecipicePromise<T> wrappedPromise;
     private volatile T result;
     private volatile Throwable throwable;
+    private ActionTimeoutException timeoutException;
     private final CountDownLatch latch = new CountDownLatch(1);
     private final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
     private final AtomicReference<PrecipiceFunction<T>> successCallback = new AtomicReference<>();
@@ -91,8 +92,14 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
 
     @Override
     public boolean completeWithTimeout() {
+        return completeWithTimeout(null);
+    }
+
+    @Override
+    public boolean completeWithTimeout(ActionTimeoutException ex) {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+                this.timeoutException = ex;
                 if (internalTimeoutCallback != null) {
                     internalTimeoutCallback.apply(null);
                 }
@@ -122,13 +129,10 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
             return result;
         } else if (isCancelled()) {
             throw new CancellationException();
-        } else if (throwable != null) {
-            throw new ExecutionException(throwable);
         } else if (status.get() == Status.TIMEOUT) {
-            // TODO: Pass along user ActionTimeoutException
-            throw new ExecutionException(new ActionTimeoutException());
+            throw new ExecutionException(timeoutException == null ? new ActionTimeoutException() : timeoutException);
         } else {
-            return null;
+            throw new ExecutionException(throwable);
         }
     }
 
@@ -140,7 +144,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
             } else if (isCancelled()) {
                 throw new CancellationException();
             } else if (status.get() == Status.TIMEOUT) {
-                throw new ExecutionException(new ActionTimeoutException());
+                throw new ExecutionException(timeoutException == null ? new ActionTimeoutException() : timeoutException);
             } else {
                 throw new ExecutionException(throwable);
             }
