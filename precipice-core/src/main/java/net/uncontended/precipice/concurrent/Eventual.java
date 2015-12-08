@@ -125,6 +125,7 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
         } else if (throwable != null) {
             throw new ExecutionException(throwable);
         } else if (status.get() == Status.TIMEOUT) {
+            // TODO: Pass along user ActionTimeoutException
             throw new ExecutionException(new ActionTimeoutException());
         } else {
             return null;
