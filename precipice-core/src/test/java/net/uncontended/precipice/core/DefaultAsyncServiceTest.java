@@ -30,6 +30,7 @@ import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.core.test_utils.TestActions;
 import net.uncontended.precipice.core.test_utils.TestCallbacks;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -169,7 +170,12 @@ public class DefaultAsyncServiceTest {
         PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(new CountDownLatch
                 (1)), 1);
 
-        assertNull(future.get());
+        try {
+            future.get();
+            fail("Should have thrown ExecutionException from ActionTimeoutException");
+        } catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof ActionTimeoutException);
+        }
 
         assertEquals(Status.TIMEOUT, future.getStatus());
     }

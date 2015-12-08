@@ -19,6 +19,7 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -123,6 +124,8 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
             throw new CancellationException();
         } else if (throwable != null) {
             throw new ExecutionException(throwable);
+        } else if (status.get() == Status.TIMEOUT) {
+            throw new ExecutionException(new ActionTimeoutException());
         } else {
             return null;
         }
@@ -135,6 +138,8 @@ public class Eventual<T> implements PrecipiceFuture<T>, PrecipicePromise<T> {
                 return result;
             } else if (isCancelled()) {
                 throw new CancellationException();
+            } else if (status.get() == Status.TIMEOUT) {
+                throw new ExecutionException(new ActionTimeoutException());
             } else {
                 throw new ExecutionException(throwable);
             }

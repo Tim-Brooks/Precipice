@@ -18,6 +18,7 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PrecipiceFunction;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -166,9 +167,15 @@ public class EventualTest {
         assertNull(eventual.result());
         assertNull(error.get());
         assertNull(eventual.error());
-        assertNull(eventual.get());
         assertTrue(isTimedOut.get());
         assertFalse(eventual.isCancelled());
+
+        try {
+            eventual.get();
+            fail("Should have thrown ExecutionException from ActionTimeoutException");
+        } catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof ActionTimeoutException);
+        }
     }
 
     @Test

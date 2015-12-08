@@ -174,7 +174,12 @@ public class DefaultServiceTest {
         PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(new CountDownLatch
                 (1)), 1);
 
-        assertNull(future.get());
+        try {
+            future.get();
+            fail("Should have thrown ExecutionException from ActionTimeoutException");
+        } catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof ActionTimeoutException);
+        }
 
         assertEquals(Status.TIMEOUT, future.getStatus());
     }
@@ -184,7 +189,12 @@ public class DefaultServiceTest {
         ActionTimeoutException exception = new ActionTimeoutException();
         PrecipiceFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
 
-        assertNull(future.get());
+        try {
+            future.get();
+            fail("Should have thrown ExecutionException from ActionTimeoutException");
+        } catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof ActionTimeoutException);
+        }
         assertEquals(Status.TIMEOUT, future.getStatus());
     }
 
