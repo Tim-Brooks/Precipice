@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Unstable and still in development. At this time, {@link OldLatencyMetrics} should be used.
+ * Unstable and still in development. At this time, {@link IntervalLatencyMetrics} should be used.
  */
 public class RollingLatencyMetrics implements LatencyMetrics {
 

@@ -25,17 +25,17 @@ import org.HdrHistogram.RecordedValuesIterator;
 
 import java.util.concurrent.TimeUnit;
 
-public class OldLatencyMetrics implements LatencyMetrics {
+public class IntervalLatencyMetrics implements LatencyMetrics {
 
     private final Histogram successHistogram;
     private final Histogram errorHistogram;
     private final Histogram timeoutHistogram;
 
-    public OldLatencyMetrics() {
+    public IntervalLatencyMetrics() {
         this(TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public OldLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
+    public IntervalLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
         successHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         errorHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         timeoutHistogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
