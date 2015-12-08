@@ -17,7 +17,9 @@
 
 package net.uncontended.precipice.timeout;
 
-public class ActionTimeoutException extends RuntimeException {
+import java.util.concurrent.TimeoutException;
+
+public class ActionTimeoutException extends TimeoutException {
 
     public ActionTimeoutException() {
         super();
@@ -25,9 +27,5 @@ public class ActionTimeoutException extends RuntimeException {
 
     public ActionTimeoutException(String message) {
         super(message);
-    }
-
-    public ActionTimeoutException(String message, Throwable throwable) {
-        super(message, throwable);
     }
 }
