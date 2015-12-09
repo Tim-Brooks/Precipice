@@ -54,17 +54,24 @@ public class IntervalLatencyMetrics implements LatencyMetrics {
     @Override
     public LatencySnapshot latencySnapshot(Metric metric) {
         LatencyBucket bucket = getLatencyBucket(metric);
-        return createSnapshot(bucket.histogram, -1, -1);
+        return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
     }
 
     @Override
     public LatencySnapshot latencySnapshot() {
-        Histogram accumulated = new Histogram(successBucket.histogram);
-        accumulated.add(successBucket.histogram);
-        accumulated.add(errorBucket.histogram);
-        accumulated.add(timeoutBucket.histogram);
+        Histogram successHistogram = successBucket.histogram;
+        Histogram errorHistogram = errorBucket.histogram;
+        Histogram timeoutHistogram = timeoutBucket.histogram;
 
-        return createSnapshot(accumulated, -1, -1);
+        Histogram accumulated = new Histogram(successHistogram);
+        accumulated.add(successHistogram);
+        accumulated.add(errorHistogram);
+        accumulated.add(timeoutHistogram);
+
+        long startTime = Math.min(Math.min(successHistogram.getStartTimeStamp(), errorHistogram.getStartTimeStamp()),
+                timeoutHistogram.getStartTimeStamp());
+
+        return createSnapshot(accumulated, startTime, System.currentTimeMillis());
     }
 
     public synchronized LatencySnapshot intervalSnapshot(Metric metric) {
@@ -124,8 +131,9 @@ public class IntervalLatencyMetrics implements LatencyMetrics {
         private Histogram inactive;
 
         private LatencyBucket(long highestTrackableValue, int numberOfSignificantValueDigits) {
-
             histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+            histogram.setStartTimeStamp(System.currentTimeMillis());
+
             recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
             inactive = recorder.getIntervalHistogram();
         }
