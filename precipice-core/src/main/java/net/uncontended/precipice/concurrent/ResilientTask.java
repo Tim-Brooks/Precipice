@@ -77,7 +77,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
             Thread.interrupted();
         } catch (ActionTimeoutException e) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                safeSetTimedOut();
+                safeSetTimedOut(e);
             }
         } catch (Throwable e) {
             if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
@@ -104,7 +104,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public void setTimedOut() {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                safeSetTimedOut();
+                safeSetTimedOut(null);
                 if (runner != null) {
                     runner.interrupt();
                 }
@@ -126,9 +126,9 @@ public class ResilientTask<T> implements Runnable, Delayed {
         }
     }
 
-    private void safeSetTimedOut() {
+    private void safeSetTimedOut(ActionTimeoutException e) {
         try {
-            promise.completeWithTimeout();
+            promise.completeWithTimeout(e);
         } catch (Throwable t) {
         }
     }
