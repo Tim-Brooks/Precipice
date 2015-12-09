@@ -18,6 +18,9 @@ package net.uncontended.precipice.timeout;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Unstable and still in development. At this time, {@link TimeoutService} should be used.
+ */
 public class NewTimerService {
 
     private final long resolution;
