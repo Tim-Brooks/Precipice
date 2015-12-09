@@ -155,45 +155,49 @@ public class IntervalLatencyMetricsTest {
 
     @Test
     public void latencyIsRecordedInIntervals() {
-        for (int i = 1; i <= 100000; ++i) {
-            metrics.recordLatency(Metric.SUCCESS, i);
+        Metric[] metricArray = {Metric.SUCCESS, Metric.ERROR, Metric.TIMEOUT};
+        for (Metric m : metricArray) {
+
+            for (int i = 1; i <= 100000; ++i) {
+                metrics.recordLatency(m, i);
+            }
+            LatencySnapshot successSnapshot = metrics.intervalSnapshot(m);
+            for (int i = 100001; i <= 200000; ++i) {
+                metrics.recordLatency(m, i);
+            }
+            LatencySnapshot successSnapshot2 = metrics.intervalSnapshot(m);
+
+            for (int i = 200001; i <= 300000; ++i) {
+                metrics.recordLatency(m, i);
+            }
+            LatencySnapshot successSnapshot3 = metrics.intervalSnapshot(m);
+
+            assertEquals(100, successSnapshot.latencyMax / 1000);
+            assertEquals(50, successSnapshot.latency50 / 1000);
+            assertEquals(90, successSnapshot.latency90 / 1000);
+            assertEquals(99, successSnapshot.latency99 / 1000);
+            assertEquals(100, successSnapshot.latency999 / 1000);
+            assertEquals(100, successSnapshot.latency9999 / 1000);
+            assertEquals(100, successSnapshot.latency99999 / 1000);
+            assertEquals(50, (long) successSnapshot.latencyMean / 1000);
+
+            assertEquals(200, successSnapshot2.latencyMax / 1000);
+            assertEquals(150, successSnapshot2.latency50 / 1000);
+            assertEquals(190, successSnapshot2.latency90 / 1000);
+            assertEquals(199, successSnapshot2.latency99 / 1000);
+            assertEquals(200, successSnapshot2.latency999 / 1000);
+            assertEquals(200, successSnapshot2.latency9999 / 1000);
+            assertEquals(200, successSnapshot2.latency99999 / 1000);
+            assertEquals(150, (long) successSnapshot2.latencyMean / 1000);
+
+            assertEquals(301, successSnapshot3.latencyMax / 1000);
+            assertEquals(250, successSnapshot3.latency50 / 1000);
+            assertEquals(290, successSnapshot3.latency90 / 1000);
+            assertEquals(299, successSnapshot3.latency99 / 1000);
+            assertEquals(301, successSnapshot3.latency999 / 1000);
+            assertEquals(301, successSnapshot3.latency9999 / 1000);
+            assertEquals(301, successSnapshot3.latency99999 / 1000);
+            assertEquals(250, (long) successSnapshot3.latencyMean / 1000);
         }
-        LatencySnapshot successSnapshot = metrics.intervalSnapshot(Metric.SUCCESS);
-        for (int i = 100001; i <= 200000; ++i) {
-            metrics.recordLatency(Metric.SUCCESS, i);
-        }
-        LatencySnapshot successSnapshot2 = metrics.intervalSnapshot(Metric.SUCCESS);
-
-        for (int i = 200001; i <= 300000; ++i) {
-            metrics.recordLatency(Metric.SUCCESS, i);
-        }
-        LatencySnapshot successSnapshot3 = metrics.intervalSnapshot(Metric.SUCCESS);
-
-        assertEquals(100, successSnapshot.latencyMax / 1000);
-        assertEquals(50, successSnapshot.latency50 / 1000);
-        assertEquals(90, successSnapshot.latency90 / 1000);
-        assertEquals(99, successSnapshot.latency99 / 1000);
-        assertEquals(100, successSnapshot.latency999 / 1000);
-        assertEquals(100, successSnapshot.latency9999 / 1000);
-        assertEquals(100, successSnapshot.latency99999 / 1000);
-        assertEquals(50, (long) successSnapshot.latencyMean / 1000);
-
-        assertEquals(200, successSnapshot2.latencyMax / 1000);
-        assertEquals(150, successSnapshot2.latency50 / 1000);
-        assertEquals(190, successSnapshot2.latency90 / 1000);
-        assertEquals(199, successSnapshot2.latency99 / 1000);
-        assertEquals(200, successSnapshot2.latency999 / 1000);
-        assertEquals(200, successSnapshot2.latency9999 / 1000);
-        assertEquals(200, successSnapshot2.latency99999 / 1000);
-        assertEquals(150, (long) successSnapshot2.latencyMean / 1000);
-
-        assertEquals(301, successSnapshot3.latencyMax / 1000);
-        assertEquals(250, successSnapshot3.latency50 / 1000);
-        assertEquals(290, successSnapshot3.latency90 / 1000);
-        assertEquals(299, successSnapshot3.latency99 / 1000);
-        assertEquals(301, successSnapshot3.latency999 / 1000);
-        assertEquals(301, successSnapshot3.latency9999 / 1000);
-        assertEquals(301, successSnapshot3.latency99999 / 1000);
-        assertEquals(250, (long) successSnapshot3.latencyMean / 1000);
     }
 }
