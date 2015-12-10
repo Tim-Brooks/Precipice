@@ -26,3 +26,8 @@ rolling latency measure.
 - Add latency metrics to ServiceProperties
 - Remove the implicit initialization of LatencyMetrics in AbstractService. The metrics now must be passed in the
 constructor.
+
+## 0.5.2
+
+### Latency Metrics
+- Make latency metrics capture intervals.
