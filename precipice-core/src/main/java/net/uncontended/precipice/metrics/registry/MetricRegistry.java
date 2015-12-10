@@ -18,6 +18,7 @@ package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
+import net.uncontended.precipice.metrics.ActionMetrics;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,13 +28,16 @@ import java.util.concurrent.TimeUnit;
 
 public class MetricRegistry {
 
+    private int bucketCount = 6;
+    private long period = 10;
+    private TimeUnit unit = TimeUnit.SECONDS;
     private Map<String, Summary> services = new HashMap<>();
     private volatile PrecipiceFunction<Map<String, Summary>> callback;
     // TODO: Name thread
     private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     public MetricRegistry() {
-        executorService.scheduleAtFixedRate(new Task(), 0, 10, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(new Task(), 0, period, unit);
     }
 
     public void register(Service service) {
@@ -57,15 +61,20 @@ public class MetricRegistry {
     }
 
 
-    private static class Summary {
+    private class Summary {
         private final Service service;
+        private int index = 0;
+        private Map[] buffer = new Map[bucketCount];
 
         private Summary(Service service) {
             this.service = service;
         }
 
         private void refresh() {
-
+            ActionMetrics actionMetrics = service.getActionMetrics();
+            Map<Object, Object> snapshot = actionMetrics.snapshot(period, unit);
+            buffer[index] = snapshot;
+            index = ++index % buffer.length;
         }
     }
 
