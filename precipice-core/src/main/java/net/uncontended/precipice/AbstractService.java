@@ -65,7 +65,7 @@ public abstract class AbstractService implements Service {
 
     @Override
     public int remainingCapacity() {
-        return semaphore.maxConcurrencyLevel() - semaphore.currentConcurrencyLevel();
+        return semaphore.remainingCapacity();
 
     }
 

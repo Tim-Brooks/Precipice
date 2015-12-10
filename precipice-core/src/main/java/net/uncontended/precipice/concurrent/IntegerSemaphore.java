@@ -54,6 +54,11 @@ public class IntegerSemaphore implements PrecipiceSemaphore {
     }
 
     @Override
+    public int remainingCapacity() {
+        return permitsRemaining.get();
+    }
+
+    @Override
     public int currentConcurrencyLevel() {
         return maxConcurrencyLevel - permitsRemaining.get();
     }

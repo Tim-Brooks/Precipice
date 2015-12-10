@@ -17,15 +17,21 @@
 
 package net.uncontended.precipice.concurrent;
 
-public class NoOpSemaphore implements PrecipiceSemaphore {
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class UnlimitedSemaphore implements PrecipiceSemaphore {
+
+    private final AtomicInteger concurrencyLevel = new AtomicInteger(0);
+
     @Override
     public boolean acquirePermit() {
+        concurrencyLevel.incrementAndGet();
         return true;
     }
 
     @Override
     public void releasePermit() {
-
+        concurrencyLevel.decrementAndGet();
     }
 
     @Override
@@ -34,7 +40,12 @@ public class NoOpSemaphore implements PrecipiceSemaphore {
     }
 
     @Override
-    public int currentConcurrencyLevel() {
+    public int remainingCapacity() {
         return -1;
+    }
+
+    @Override
+    public int currentConcurrencyLevel() {
+        return concurrencyLevel.get();
     }
 }

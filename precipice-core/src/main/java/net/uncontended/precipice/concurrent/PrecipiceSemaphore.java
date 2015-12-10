@@ -25,5 +25,7 @@ public interface PrecipiceSemaphore {
 
     int maxConcurrencyLevel();
 
+    int remainingCapacity();
+
     int currentConcurrencyLevel();
 }
