@@ -19,6 +19,8 @@ package net.uncontended.precipice.metrics;
 
 public interface LatencyMetrics {
 
+    LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
+
     void recordLatency(Metric metric, long nanoLatency);
 
     void recordLatency(Metric metric, long nanoLatency, long nanoTime);

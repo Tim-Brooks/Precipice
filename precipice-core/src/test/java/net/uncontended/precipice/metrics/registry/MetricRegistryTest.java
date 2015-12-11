@@ -112,12 +112,12 @@ public class MetricRegistryTest {
 
         registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
 
-        final AtomicReference<MetricRegistry.Summary> summaryReference = new AtomicReference<>();
+        final AtomicReference<Summary> summaryReference = new AtomicReference<>();
 
         registry.register(service);
-        registry.setUpdateCallback(new PrecipiceFunction<Map<String, MetricRegistry.Summary>>() {
+        registry.setUpdateCallback(new PrecipiceFunction<Map<String, Summary>>() {
             @Override
-            public void apply(Map<String, MetricRegistry.Summary> argument) {
+            public void apply(Map<String, Summary> argument) {
                 summaryReference.compareAndSet(null, argument.get(serviceName));
                 latch.countDown();
             }
@@ -126,7 +126,7 @@ public class MetricRegistryTest {
         latch.await();
         registry.shutdown();
 
-        MetricRegistry.Summary summary = summaryReference.get();
+        Summary summary = summaryReference.get();
         assertEquals(pendingN, summary.pendingCount);
         assertEquals(capacityN, summary.remainingCapacity);
         assertEquals(successN, summary.totalSuccesses);

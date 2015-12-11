@@ -29,8 +29,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class RollingLatencyMetrics implements LatencyMetrics {
 
-    public static final LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
-
     private final long startTime;
 
     private final LatencyBucket successBucket;
