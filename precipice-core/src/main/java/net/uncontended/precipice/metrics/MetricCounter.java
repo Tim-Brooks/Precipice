@@ -18,9 +18,6 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.concurrent.LongAdder;
-import org.HdrHistogram.Recorder;
-
-import java.util.concurrent.TimeUnit;
 
 public class MetricCounter {
 

@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.*;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;

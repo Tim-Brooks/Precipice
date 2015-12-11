@@ -18,7 +18,6 @@
 package net.uncontended.precipice;
 
 
-import net.uncontended.precipice.*;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
@@ -44,8 +43,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 public class DefaultAsyncServiceTest {
 
