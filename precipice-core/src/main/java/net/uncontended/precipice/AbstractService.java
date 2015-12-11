@@ -70,7 +70,7 @@ public abstract class AbstractService implements Service {
     }
 
     @Override
-    public int currentlyPending() {
+    public int pendingCount() {
         return semaphore.currentConcurrencyLevel();
     }
 

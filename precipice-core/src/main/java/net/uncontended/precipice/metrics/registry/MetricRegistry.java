@@ -18,7 +18,7 @@ package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,16 +63,53 @@ public class MetricRegistry {
 
     private class Summary {
         private final Service service;
-        private int index = 0;
-        private Map<Object, Object> snapshot;
+
+        public long pendingCount = 0;
+        public long remainingCapacity = 0;
+        public long successes = 0;
+        public long errors = 0;
+        public long timeouts = 0;
+        public long maxConcurrency = 0;
+        public long queueFull = 0;
+        public long circuitOpen = 0;
+        public long allRejected = 0;
+        public LatencySnapshot successLatency;
+        public LatencySnapshot errorLatency;
+        public LatencySnapshot timeoutLatency;
 
         private Summary(Service service) {
             this.service = service;
+            this.remainingCapacity = service.remainingCapacity();
         }
 
         private void refresh() {
+            pendingCount = service.pendingCount();
+            remainingCapacity = service.remainingCapacity();
+            successes = 0;
+            errors = 0;
+            timeouts = 0;
+            maxConcurrency = 0;
+            queueFull = 0;
+            circuitOpen = 0;
+            allRejected = 0;
+
             ActionMetrics actionMetrics = service.getActionMetrics();
-            snapshot = actionMetrics.snapshot(period, unit);
+            for (MetricCounter m : ((DefaultActionMetrics) actionMetrics).metricCounterIterator(period, unit)) {
+                if (m != null) {
+                    successes += m.getMetric(Metric.SUCCESS).longValue();
+                    errors += m.getMetric(Metric.ERROR).longValue();
+                    timeouts += m.getMetric(Metric.TIMEOUT).longValue();
+                    maxConcurrency += m.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
+                    queueFull += m.getMetric(Metric.QUEUE_FULL).longValue();
+                    circuitOpen += m.getMetric(Metric.CIRCUIT_OPEN).longValue();
+                    allRejected += m.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
+                }
+            }
+
+            IntervalLatencyMetrics latencyMetrics = (IntervalLatencyMetrics) service.getLatencyMetrics();
+            successLatency = latencyMetrics.intervalSnapshot(Metric.SUCCESS);
+            errorLatency = latencyMetrics.intervalSnapshot(Metric.ERROR);
+            timeoutLatency = latencyMetrics.intervalSnapshot(Metric.TIMEOUT);
         }
     }
 

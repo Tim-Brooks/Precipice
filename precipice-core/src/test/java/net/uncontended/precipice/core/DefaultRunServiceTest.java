@@ -188,7 +188,7 @@ public class DefaultRunServiceTest {
 
         int i = 0;
         while (true) {
-            if (service.currentlyPending() == 0) {
+            if (service.pendingCount() == 0) {
                 break;
             } else if (i == 10) {
                 fail("Unexpected number of pending actions on service.");

@@ -65,7 +65,7 @@ public interface Service {
      *
      * @return the currently pending actions count
      */
-    int currentlyPending();
+    int pendingCount();
 
     /**
      * Attempts to shutdown the service. Actions after this call will throw a
