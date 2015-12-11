@@ -77,6 +77,10 @@ public class MetricRegistry {
         public LatencySnapshot errorLatency;
         public LatencySnapshot timeoutLatency;
 
+        public LatencySnapshot totalSuccessLatency;
+        public LatencySnapshot totalErrorLatency;
+        public LatencySnapshot totalTimeoutLatency;
+
         private Summary(Service service) {
             this.service = service;
             this.remainingCapacity = service.remainingCapacity();
@@ -106,10 +110,17 @@ public class MetricRegistry {
                 }
             }
 
-            IntervalLatencyMetrics latencyMetrics = (IntervalLatencyMetrics) service.getLatencyMetrics();
-            successLatency = latencyMetrics.intervalSnapshot(Metric.SUCCESS);
-            errorLatency = latencyMetrics.intervalSnapshot(Metric.ERROR);
-            timeoutLatency = latencyMetrics.intervalSnapshot(Metric.TIMEOUT);
+            LatencyMetrics latencyMetrics = service.getLatencyMetrics();
+            if (latencyMetrics instanceof IntervalLatencyMetrics) {
+                IntervalLatencyMetrics intervalMetrics = (IntervalLatencyMetrics) latencyMetrics;
+                successLatency = intervalMetrics.intervalSnapshot(Metric.SUCCESS);
+                errorLatency = intervalMetrics.intervalSnapshot(Metric.ERROR);
+                timeoutLatency = intervalMetrics.intervalSnapshot(Metric.TIMEOUT);
+            }
+
+            totalSuccessLatency = latencyMetrics.latencySnapshot(Metric.SUCCESS);
+            totalErrorLatency = latencyMetrics.latencySnapshot(Metric.ERROR);
+            totalTimeoutLatency = latencyMetrics.latencySnapshot(Metric.TIMEOUT);
         }
     }
 
