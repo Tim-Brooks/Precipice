@@ -28,13 +28,12 @@ import java.util.concurrent.TimeUnit;
 
 public class MetricRegistry {
 
-    private int bucketCount = 6;
-    private long period = 10;
-    private TimeUnit unit = TimeUnit.SECONDS;
-    private Map<String, Summary> services = new ConcurrentHashMap<>();
+    private final long period = 1;
+    private final TimeUnit unit = TimeUnit.SECONDS;
+    private final Map<String, Summary> services = new ConcurrentHashMap<>();
     private volatile PrecipiceFunction<Map<String, Summary>> callback;
     // TODO: Name thread
-    private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     public MetricRegistry() {
         executorService.scheduleAtFixedRate(new Task(), 0, period, unit);
@@ -57,7 +56,7 @@ public class MetricRegistry {
     }
 
 
-    private class Summary {
+    public class Summary {
         private final Service service;
 
         public long totalPendingCount = 0;
@@ -98,13 +97,13 @@ public class MetricRegistry {
             ActionMetrics actionMetrics = service.getActionMetrics();
             MetricCounter metricCounter = actionMetrics.totalCountMetricCounter();
 
-            totalSuccesses = metricCounter.getMetric(Metric.SUCCESS).longValue();
-            totalErrors = metricCounter.getMetric(Metric.ERROR).longValue();
-            totalTimeouts = metricCounter.getMetric(Metric.TIMEOUT).longValue();
-            totalMaxConcurrency = metricCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
-            totalQueueFull = metricCounter.getMetric(Metric.QUEUE_FULL).longValue();
-            totalCircuitOpen = metricCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
-            totalAllRejected = metricCounter.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
+            totalSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
+            totalErrors = metricCounter.getMetricCount(Metric.ERROR);
+            totalTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+            totalMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            totalQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
+            totalCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+            totalAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
             successes = 0;
             errors = 0;
             timeouts = 0;
@@ -116,13 +115,13 @@ public class MetricRegistry {
             for (MetricCounter m : actionMetrics.metricCounterIterable(period, unit)) {
                 // TODO: Remove possibility of null
                 if (m != null) {
-                    successes += m.getMetric(Metric.SUCCESS).longValue();
-                    errors += m.getMetric(Metric.ERROR).longValue();
-                    timeouts += m.getMetric(Metric.TIMEOUT).longValue();
-                    maxConcurrency += m.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
-                    queueFull += m.getMetric(Metric.QUEUE_FULL).longValue();
-                    circuitOpen += m.getMetric(Metric.CIRCUIT_OPEN).longValue();
-                    allRejected += m.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
+                    successes += m.getMetricCount(Metric.SUCCESS);
+                    errors += m.getMetricCount(Metric.ERROR);
+                    timeouts += m.getMetricCount(Metric.TIMEOUT);
+                    maxConcurrency += m.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+                    queueFull += m.getMetricCount(Metric.QUEUE_FULL);
+                    circuitOpen += m.getMetricCount(Metric.CIRCUIT_OPEN);
+                    allRejected += m.getMetricCount(Metric.ALL_SERVICES_REJECTED);
                 }
             }
 
@@ -145,7 +144,11 @@ public class MetricRegistry {
         @Override
         public void run() {
             for (Summary summary : services.values()) {
-                summary.refresh();
+                try {
+                    summary.refresh();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             if (callback != null) {

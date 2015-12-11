@@ -72,7 +72,7 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCount(Metric metric) {
-        return totalCounter.getMetric(metric).longValue();
+        return totalCounter.getMetricCount(metric);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class DefaultActionMetrics implements ActionMetrics {
         long count = 0;
         for (MetricCounter metricCounter : slots) {
             if (metricCounter != null) {
-                count += metricCounter.getMetric(metric).longValue();
+                count += metricCounter.getMetricCount(metric);
             }
         }
         return count;
@@ -119,12 +119,12 @@ public class DefaultActionMetrics implements ActionMetrics {
         long rejections = 0;
         for (MetricCounter metricCounter : slots) {
             if (metricCounter != null) {
-                long successes = metricCounter.getMetric(Metric.SUCCESS).longValue();
-                long errors = metricCounter.getMetric(Metric.ERROR).longValue();
-                long timeouts = metricCounter.getMetric(Metric.TIMEOUT).longValue();
-                long maxConcurrency = metricCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
-                long circuitOpen = metricCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
-                long queueFull = metricCounter.getMetric(Metric.QUEUE_FULL).longValue();
+                long successes = metricCounter.getMetricCount(Metric.SUCCESS);
+                long errors = metricCounter.getMetricCount(Metric.ERROR);
+                long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+                long maxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+                long circuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+                long queueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
                 long slotNotRejectedTotal = successes + errors + timeouts;
                 long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
 

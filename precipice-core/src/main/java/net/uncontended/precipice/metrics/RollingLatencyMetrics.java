@@ -226,6 +226,11 @@ public class RollingLatencyMetrics implements LatencyMetrics {
                         return new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, startTime, endTime);
                     }
                 }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
             };
         }
     }

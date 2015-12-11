@@ -39,7 +39,7 @@ public class MetricCounter {
         metrics[metric.ordinal()].increment();
     }
 
-    public LongAdder getMetric(Metric metric) {
-        return metrics[metric.ordinal()];
+    public long getMetricCount(Metric metric) {
+        return metrics[metric.ordinal()].longValue();
     }
 }

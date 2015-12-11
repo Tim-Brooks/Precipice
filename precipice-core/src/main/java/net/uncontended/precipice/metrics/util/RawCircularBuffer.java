@@ -172,6 +172,11 @@ public class RawCircularBuffer<T> {
                         return null;
                     }
                 }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
             };
         }
     }

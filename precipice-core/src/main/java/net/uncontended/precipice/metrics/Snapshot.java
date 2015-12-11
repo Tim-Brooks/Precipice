@@ -94,13 +94,13 @@ public class Snapshot {
         long previousAllRejected = 0;
         for (MetricCounter metricCounter : slots) {
             if (metricCounter != null) {
-                long slotSuccesses = metricCounter.getMetric(Metric.SUCCESS).longValue();
-                long slotErrors = metricCounter.getMetric(Metric.ERROR).longValue();
-                long slotTimeouts = metricCounter.getMetric(Metric.TIMEOUT).longValue();
-                long slotMaxConcurrency = metricCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
-                long slotCircuitOpen = metricCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
-                long slotQueueFull = metricCounter.getMetric(Metric.QUEUE_FULL).longValue();
-                long slotAllRejected = metricCounter.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
+                long slotSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
+                long slotErrors = metricCounter.getMetricCount(Metric.ERROR);
+                long slotTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+                long slotMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+                long slotCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+                long slotQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
+                long slotAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
                 long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
                         slotQueueFull + slotAllRejected;
 
@@ -180,13 +180,13 @@ public class Snapshot {
     }
 
     private static void putTotalCounts(MetricCounter totalCounter, Map<Object, Object> metricsMap) {
-        long totalSuccesses = totalCounter.getMetric(Metric.SUCCESS).longValue();
-        long totalTimeouts = totalCounter.getMetric(Metric.TIMEOUT).longValue();
-        long totalErrors = totalCounter.getMetric(Metric.ERROR).longValue();
-        long totalMaxConcurrency = totalCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
-        long totalQueueFull = totalCounter.getMetric(Metric.QUEUE_FULL).longValue();
-        long totalCircuitOpen = totalCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
-        long totalAllRejected = totalCounter.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
+        long totalSuccesses = totalCounter.getMetricCount(Metric.SUCCESS);
+        long totalTimeouts = totalCounter.getMetricCount(Metric.TIMEOUT);
+        long totalErrors = totalCounter.getMetricCount(Metric.ERROR);
+        long totalMaxConcurrency = totalCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        long totalQueueFull = totalCounter.getMetricCount(Metric.QUEUE_FULL);
+        long totalCircuitOpen = totalCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+        long totalAllRejected = totalCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
         metricsMap.put(TOTAL_TOTAL, totalSuccesses + totalTimeouts + totalErrors + totalMaxConcurrency +
                 totalQueueFull + totalCircuitOpen + totalAllRejected);
         metricsMap.put(TOTAL_SUCCESSES, totalSuccesses);

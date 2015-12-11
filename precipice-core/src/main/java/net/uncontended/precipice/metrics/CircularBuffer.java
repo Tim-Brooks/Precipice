@@ -162,6 +162,11 @@ public class CircularBuffer<T> {
                         return null;
                     }
                 }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("remove");
+                }
             };
         }
     }
