@@ -42,7 +42,7 @@ public class MetricRegistryTest {
     @Mock
     private ActionMetrics actionMetrics;
     @Mock
-    private LatencyMetrics latencyMetrics;
+    private IntervalLatencyMetrics latencyMetrics;
 
     private String serviceName = "Service Name";
     private MetricRegistry registry;
@@ -92,11 +92,17 @@ public class MetricRegistryTest {
             incrementCounts(mc, Metric.ALL_SERVICES_REJECTED, allRejectedN);
             counters.add(mc);
         }
+        LatencySnapshot successLatencySnapshot = generateSnapshot(random);
+        LatencySnapshot errorLatencySnapshot = generateSnapshot(random);
+        LatencySnapshot timeLatencySnapshot = generateSnapshot(random);
 
         when(service.pendingCount()).thenReturn(pendingN);
         when(service.remainingCapacity()).thenReturn(capacityN);
         when(actionMetrics.totalCountMetricCounter()).thenReturn(counter);
         when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(counters);
+        when(latencyMetrics.intervalSnapshot(Metric.SUCCESS)).thenReturn(successLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(Metric.ERROR)).thenReturn(errorLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(Metric.TIMEOUT)).thenReturn(timeLatencySnapshot);
 
         registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
 
@@ -131,15 +137,22 @@ public class MetricRegistryTest {
         assertEquals(queueFullN * bucketCount, summary.queueFull);
         assertEquals(circuitOpenN * bucketCount, summary.circuitOpen);
         assertEquals(allRejectedN * bucketCount, summary.allRejected);
-        assertEquals(null, summary.successLatency);
-        assertEquals(null, summary.errorLatency);
-        assertEquals(null, summary.timeoutLatency);
+        assertEquals(successLatencySnapshot, summary.successLatency);
+        assertEquals(errorLatencySnapshot, summary.errorLatency);
+        assertEquals(timeLatencySnapshot, summary.timeoutLatency);
         assertEquals(null, summary.totalSuccessLatency);
         assertEquals(null, summary.totalErrorLatency);
         assertEquals(null, summary.totalTimeoutLatency);
     }
 
-    private void incrementCounts(MetricCounter counter, Metric metric, long n) {
+    private static LatencySnapshot generateSnapshot(Random random) {
+        long startTime = Math.abs(random.nextLong());
+        return new LatencySnapshot(random.nextInt(50), random.nextInt(90), random.nextInt(99), random.nextInt(999),
+                random.nextInt(9999), random.nextInt(99999), random.nextInt(100000), random.nextDouble(), startTime,
+                startTime + 10000L);
+    }
+
+    private static void incrementCounts(MetricCounter counter, Metric metric, long n) {
         for (long i = 0; i < n; ++i) {
             counter.incrementMetric(metric);
         }
