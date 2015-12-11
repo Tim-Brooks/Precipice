@@ -30,10 +30,9 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 public class MetricRegistryTest {
@@ -45,36 +44,41 @@ public class MetricRegistryTest {
     @Mock
     private LatencyMetrics latencyMetrics;
 
+    private String serviceName = "Service Name";
     private MetricRegistry registry;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        when(service.getName()).thenReturn("Service Name");
+        when(service.getName()).thenReturn(serviceName);
         when(service.getActionMetrics()).thenReturn(actionMetrics);
         when(service.getLatencyMetrics()).thenReturn(latencyMetrics);
     }
 
     @Test
-    public void testThing() throws InterruptedException {
+    public void testSummary() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        registry = new MetricRegistry();
+        registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
         when(actionMetrics.totalCountMetricCounter()).thenReturn(new MetricCounter());
-        when(actionMetrics.metricCounterIterable(anyLong(), any(TimeUnit.class))).thenReturn(new
-                ArrayList<MetricCounter>());
+        when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(new ArrayList<MetricCounter>());
 
+        final AtomicReference<MetricRegistry.Summary> summaryReference = new AtomicReference<>();
 
         registry.register(service);
         registry.setUpdateCallback(new PrecipiceFunction<Map<String, MetricRegistry.Summary>>() {
             @Override
             public void apply(Map<String, MetricRegistry.Summary> argument) {
+                summaryReference.compareAndSet(null, argument.get(serviceName));
                 latch.countDown();
             }
         });
 
         latch.await();
         registry.shutdown();
+
+        MetricRegistry.Summary summary = summaryReference.get();
+        assertEquals(0, summary.pendingCount);
     }
 }

@@ -28,14 +28,16 @@ import java.util.concurrent.TimeUnit;
 
 public class MetricRegistry {
 
-    private final long period = 1;
-    private final TimeUnit unit = TimeUnit.SECONDS;
+    private final long period;
+    private final TimeUnit unit;
     private final Map<String, Summary> services = new ConcurrentHashMap<>();
     private volatile PrecipiceFunction<Map<String, Summary>> callback;
     // TODO: Name thread
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
-    public MetricRegistry() {
+    public MetricRegistry(long period, TimeUnit unit) {
+        this.unit = unit;
+        this.period = period;
         executorService.scheduleAtFixedRate(new Task(), 0, period, unit);
     }
 
@@ -144,11 +146,7 @@ public class MetricRegistry {
         @Override
         public void run() {
             for (Summary summary : services.values()) {
-                try {
-                    summary.refresh();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                summary.refresh();
             }
 
             if (callback != null) {
