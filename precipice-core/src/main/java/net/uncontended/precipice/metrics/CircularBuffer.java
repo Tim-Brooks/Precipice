@@ -85,12 +85,16 @@ public class CircularBuffer<T> {
     }
 
     public Iterable<T> collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
+    }
+
+    public Iterable<T> collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
         int slots = convertToSlots(timePeriod, timeUnit);
         long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int startSlot = 1 + absoluteSlot - slots;
         int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-        return new SlotView(adjustedStartSlot, absoluteSlot);
+        return new SlotView(adjustedStartSlot, absoluteSlot, dead);
     }
 
     private int convertToSlots(long timePeriod, TimeUnit timeUnit) {
@@ -132,12 +136,14 @@ public class CircularBuffer<T> {
 
     private class SlotView implements Iterable<T> {
 
+        private final T dead;
         private final int maxIndex;
         private int index;
 
-        private SlotView(int index, int maxIndex) {
+        private SlotView(int index, int maxIndex, T dead) {
             this.index = index;
             this.maxIndex = maxIndex;
+            this.dead = dead;
         }
 
         @Override
@@ -159,7 +165,7 @@ public class CircularBuffer<T> {
                     if (slot != null && slot.absoluteSlot == currentIndex) {
                         return slot.object;
                     } else {
-                        return null;
+                        return dead;
                     }
                 }
 

@@ -21,6 +21,15 @@ import net.uncontended.precipice.concurrent.LongAdder;
 
 public class MetricCounter {
 
+    public static final MetricCounter NO_OP_COUNTER = new MetricCounter() {
+        public void incrementMetric(Metric metric) {
+        }
+
+        public long getMetricCount(Metric metric) {
+            return 0L;
+        }
+    };
+
     private final LongAdder[] metrics;
 
     public MetricCounter() {

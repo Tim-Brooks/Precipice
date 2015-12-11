@@ -93,13 +93,11 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+        Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, MetricCounter.NO_OP_COUNTER);
 
         long count = 0;
         for (MetricCounter metricCounter : slots) {
-            if (metricCounter != null) {
-                count += metricCounter.getMetricCount(metric);
-            }
+            count += metricCounter.getMetricCount(metric);
         }
         return count;
     }
@@ -111,28 +109,27 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime);
+        Iterable<MetricCounter> counters = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
+                MetricCounter.NO_OP_COUNTER);
 
         long total = 0;
         long notRejectedTotal = 0;
         long failures = 0;
         long rejections = 0;
-        for (MetricCounter metricCounter : slots) {
-            if (metricCounter != null) {
-                long successes = metricCounter.getMetricCount(Metric.SUCCESS);
-                long errors = metricCounter.getMetricCount(Metric.ERROR);
-                long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
-                long maxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-                long circuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
-                long queueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
-                long slotNotRejectedTotal = successes + errors + timeouts;
-                long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
+        for (MetricCounter metricCounter : counters) {
+            long successes = metricCounter.getMetricCount(Metric.SUCCESS);
+            long errors = metricCounter.getMetricCount(Metric.ERROR);
+            long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+            long maxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            long circuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+            long queueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
+            long slotNotRejectedTotal = successes + errors + timeouts;
+            long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
 
-                total += slotTotal;
-                notRejectedTotal += slotNotRejectedTotal;
-                failures += errors + timeouts;
-                rejections += circuitOpen + queueFull + maxConcurrency;
-            }
+            total += slotTotal;
+            notRejectedTotal += slotNotRejectedTotal;
+            failures += errors + timeouts;
+            rejections += circuitOpen + queueFull + maxConcurrency;
         }
         return new HealthSnapshot(total, notRejectedTotal, failures, rejections);
     }
@@ -140,12 +137,13 @@ public class DefaultActionMetrics implements ActionMetrics {
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
         return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
-                systemTime.nanoTime()));
+                systemTime.nanoTime(), MetricCounter.NO_OP_COUNTER));
     }
 
     @Override
     public Iterable<MetricCounter> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
-        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime());
+        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime(),
+                MetricCounter.NO_OP_COUNTER);
     }
 
     @Override

@@ -82,15 +82,13 @@ public class Summary {
 
         for (MetricCounter m : actionMetrics.metricCounterIterable(period, unit)) {
             // TODO: Remove possibility of null
-            if (m != null) {
-                successes += m.getMetricCount(Metric.SUCCESS);
-                errors += m.getMetricCount(Metric.ERROR);
-                timeouts += m.getMetricCount(Metric.TIMEOUT);
-                maxConcurrency += m.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-                queueFull += m.getMetricCount(Metric.QUEUE_FULL);
-                circuitOpen += m.getMetricCount(Metric.CIRCUIT_OPEN);
-                allRejected += m.getMetricCount(Metric.ALL_SERVICES_REJECTED);
-            }
+            successes += m.getMetricCount(Metric.SUCCESS);
+            errors += m.getMetricCount(Metric.ERROR);
+            timeouts += m.getMetricCount(Metric.TIMEOUT);
+            maxConcurrency += m.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            queueFull += m.getMetricCount(Metric.QUEUE_FULL);
+            circuitOpen += m.getMetricCount(Metric.CIRCUIT_OPEN);
+            allRejected += m.getMetricCount(Metric.ALL_SERVICES_REJECTED);
         }
 
         LatencyMetrics latencyMetrics = service.getLatencyMetrics();

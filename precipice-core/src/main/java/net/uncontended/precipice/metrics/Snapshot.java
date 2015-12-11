@@ -93,57 +93,55 @@ public class Snapshot {
         long previousCircuitOpen = 0;
         long previousAllRejected = 0;
         for (MetricCounter metricCounter : slots) {
-            if (metricCounter != null) {
-                long slotSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
-                long slotErrors = metricCounter.getMetricCount(Metric.ERROR);
-                long slotTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
-                long slotMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-                long slotCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
-                long slotQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
-                long slotAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
-                long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
-                        slotQueueFull + slotAllRejected;
+            long slotSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
+            long slotErrors = metricCounter.getMetricCount(Metric.ERROR);
+            long slotTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+            long slotMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            long slotCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+            long slotQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
+            long slotAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
+            long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
+                    slotQueueFull + slotAllRejected;
 
-                total = total + slotTotal;
-                maxTotal = Math.max(maxTotal, slotTotal);
-                max2Total = Math.max(max2Total, slotTotal + previousTotal);
+            total = total + slotTotal;
+            maxTotal = Math.max(maxTotal, slotTotal);
+            max2Total = Math.max(max2Total, slotTotal + previousTotal);
 
-                successes = successes + slotSuccesses;
-                maxSuccesses = Math.max(maxSuccesses, slotSuccesses);
-                max2Successes = Math.max(max2Successes, slotSuccesses + previousSuccesses);
+            successes = successes + slotSuccesses;
+            maxSuccesses = Math.max(maxSuccesses, slotSuccesses);
+            max2Successes = Math.max(max2Successes, slotSuccesses + previousSuccesses);
 
-                timeouts = timeouts + slotTimeouts;
-                maxTimeouts = Math.max(maxTimeouts, slotTimeouts);
-                max2Timeouts = Math.max(max2Timeouts, slotTimeouts + previousTimeouts);
+            timeouts = timeouts + slotTimeouts;
+            maxTimeouts = Math.max(maxTimeouts, slotTimeouts);
+            max2Timeouts = Math.max(max2Timeouts, slotTimeouts + previousTimeouts);
 
-                errors = errors + slotErrors;
-                maxErrors = Math.max(maxErrors, slotErrors);
-                max2Errors = Math.max(max2Errors, slotErrors + previousErrors);
+            errors = errors + slotErrors;
+            maxErrors = Math.max(maxErrors, slotErrors);
+            max2Errors = Math.max(max2Errors, slotErrors + previousErrors);
 
-                maxConcurrency = slotMaxConcurrency + maxConcurrency;
-                maxMaxConcurrency = Math.max(maxMaxConcurrency, slotMaxConcurrency);
-                max2MaxConcurrency = Math.max(max2MaxConcurrency, slotMaxConcurrency + previousMaxConcurrency);
+            maxConcurrency = slotMaxConcurrency + maxConcurrency;
+            maxMaxConcurrency = Math.max(maxMaxConcurrency, slotMaxConcurrency);
+            max2MaxConcurrency = Math.max(max2MaxConcurrency, slotMaxConcurrency + previousMaxConcurrency);
 
-                queueFull = slotQueueFull + queueFull;
-                maxQueueFull = Math.max(maxQueueFull, slotQueueFull);
-                max2QueueFull = Math.max(max2QueueFull, slotQueueFull + previousQueueFull);
+            queueFull = slotQueueFull + queueFull;
+            maxQueueFull = Math.max(maxQueueFull, slotQueueFull);
+            max2QueueFull = Math.max(max2QueueFull, slotQueueFull + previousQueueFull);
 
-                circuitOpen = slotCircuitOpen + circuitOpen;
-                maxCircuitOpen = Math.max(maxCircuitOpen, slotCircuitOpen);
-                max2CircuitOpen = Math.max(max2CircuitOpen, slotCircuitOpen + previousCircuitOpen);
+            circuitOpen = slotCircuitOpen + circuitOpen;
+            maxCircuitOpen = Math.max(maxCircuitOpen, slotCircuitOpen);
+            max2CircuitOpen = Math.max(max2CircuitOpen, slotCircuitOpen + previousCircuitOpen);
 
-                allRejected = slotAllRejected + allRejected;
-                maxAllRejected = Math.max(maxAllRejected, slotAllRejected);
-                max2AllRejected = Math.max(max2AllRejected, slotAllRejected + previousAllRejected);
+            allRejected = slotAllRejected + allRejected;
+            maxAllRejected = Math.max(maxAllRejected, slotAllRejected);
+            max2AllRejected = Math.max(max2AllRejected, slotAllRejected + previousAllRejected);
 
-                previousTotal = slotTotal;
-                previousSuccesses = slotSuccesses;
-                previousTimeouts = slotTimeouts;
-                previousErrors = slotErrors;
-                previousMaxConcurrency = slotMaxConcurrency;
-                previousQueueFull = slotQueueFull;
-                previousCircuitOpen = slotCircuitOpen;
-            }
+            previousTotal = slotTotal;
+            previousSuccesses = slotSuccesses;
+            previousTimeouts = slotTimeouts;
+            previousErrors = slotErrors;
+            previousMaxConcurrency = slotMaxConcurrency;
+            previousQueueFull = slotQueueFull;
+            previousCircuitOpen = slotCircuitOpen;
         }
 
         Map<Object, Object> metricsMap = new HashMap<>();
