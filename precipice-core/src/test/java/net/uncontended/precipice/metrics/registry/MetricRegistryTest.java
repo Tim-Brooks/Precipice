@@ -18,10 +18,7 @@ package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.metrics.LatencySnapshot;
-import net.uncontended.precipice.metrics.MetricCounter;
+import net.uncontended.precipice.metrics.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -29,6 +26,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -60,10 +58,24 @@ public class MetricRegistryTest {
     @Test
     public void testSummary() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
+        Random random = new Random();
+
+        MetricCounter counter = new MetricCounter();
+        int successN = random.nextInt(50);
+        int errorN = random.nextInt(50);
+        int timeoutN = random.nextInt(50);
+        int pendingN = random.nextInt(100);
+        int capacityN = random.nextInt(1000);
+        incrementCounts(counter, Metric.SUCCESS, successN);
+        incrementCounts(counter, Metric.ERROR, errorN);
+        incrementCounts(counter, Metric.TIMEOUT, timeoutN);
+
+        when(service.pendingCount()).thenReturn(pendingN);
+        when(service.remainingCapacity()).thenReturn(capacityN);
+        when(actionMetrics.totalCountMetricCounter()).thenReturn(counter);
+        when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(new ArrayList<MetricCounter>());
 
         registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
-        when(actionMetrics.totalCountMetricCounter()).thenReturn(new MetricCounter());
-        when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(new ArrayList<MetricCounter>());
 
         final AtomicReference<MetricRegistry.Summary> summaryReference = new AtomicReference<>();
 
@@ -80,18 +92,15 @@ public class MetricRegistryTest {
         registry.shutdown();
 
         MetricRegistry.Summary summary = summaryReference.get();
-        assertEquals(0, summary.pendingCount);
-        assertEquals(0, summary.totalPendingCount);
-        assertEquals(0, summary.totalRemainingCapacity);
-        assertEquals(0, summary.totalSuccesses);
-        assertEquals(0, summary.totalErrors);
-        assertEquals(0, summary.totalTimeouts);
+        assertEquals(pendingN, summary.pendingCount);
+        assertEquals(capacityN, summary.remainingCapacity);
+        assertEquals(successN, summary.totalSuccesses);
+        assertEquals(errorN, summary.totalErrors);
+        assertEquals(timeoutN, summary.totalTimeouts);
         assertEquals(0, summary.totalMaxConcurrency);
         assertEquals(0, summary.totalQueueFull);
         assertEquals(0, summary.totalCircuitOpen);
         assertEquals(0, summary.totalAllRejected);
-        assertEquals(0, summary.pendingCount);
-        assertEquals(0, summary.remainingCapacity);
         assertEquals(0, summary.successes);
         assertEquals(0, summary.errors);
         assertEquals(0, summary.timeouts);
@@ -105,5 +114,11 @@ public class MetricRegistryTest {
         assertEquals(null, summary.totalSuccessLatency);
         assertEquals(null, summary.totalErrorLatency);
         assertEquals(null, summary.totalTimeoutLatency);
+    }
+
+    private void incrementCounts(MetricCounter counter, Metric metric, int n) {
+        for (int i = 0; i < n; ++i) {
+            counter.incrementMetric(metric);
+        }
     }
 }

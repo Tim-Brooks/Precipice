@@ -61,8 +61,9 @@ public class MetricRegistry {
     public class Summary {
         private final Service service;
 
-        public long totalPendingCount = 0;
-        public long totalRemainingCapacity = 0;
+        public long pendingCount = 0;
+        public long remainingCapacity = 0;
+
         public long totalSuccesses = 0;
         public long totalErrors = 0;
         public long totalTimeouts = 0;
@@ -70,8 +71,6 @@ public class MetricRegistry {
         public long totalQueueFull = 0;
         public long totalCircuitOpen = 0;
         public long totalAllRejected = 0;
-        public long pendingCount = 0;
-        public long remainingCapacity = 0;
         public long successes = 0;
         public long errors = 0;
         public long timeouts = 0;
