@@ -94,7 +94,10 @@ public class MetricRegistryTest {
         }
         LatencySnapshot successLatencySnapshot = generateSnapshot(random);
         LatencySnapshot errorLatencySnapshot = generateSnapshot(random);
-        LatencySnapshot timeLatencySnapshot = generateSnapshot(random);
+        LatencySnapshot timeoutLatencySnapshot = generateSnapshot(random);
+        LatencySnapshot totalSuccessLatencySnapshot = generateSnapshot(random);
+        LatencySnapshot totalErrorLatencySnapshot = generateSnapshot(random);
+        LatencySnapshot totalTimeoutLatencySnapshot = generateSnapshot(random);
 
         when(service.pendingCount()).thenReturn(pendingN);
         when(service.remainingCapacity()).thenReturn(capacityN);
@@ -102,7 +105,10 @@ public class MetricRegistryTest {
         when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(counters);
         when(latencyMetrics.intervalSnapshot(Metric.SUCCESS)).thenReturn(successLatencySnapshot);
         when(latencyMetrics.intervalSnapshot(Metric.ERROR)).thenReturn(errorLatencySnapshot);
-        when(latencyMetrics.intervalSnapshot(Metric.TIMEOUT)).thenReturn(timeLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(Metric.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(Metric.SUCCESS)).thenReturn(totalSuccessLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(Metric.ERROR)).thenReturn(totalErrorLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(Metric.TIMEOUT)).thenReturn(totalTimeoutLatencySnapshot);
 
         registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
 
@@ -139,10 +145,10 @@ public class MetricRegistryTest {
         assertEquals(allRejectedN * bucketCount, summary.allRejected);
         assertEquals(successLatencySnapshot, summary.successLatency);
         assertEquals(errorLatencySnapshot, summary.errorLatency);
-        assertEquals(timeLatencySnapshot, summary.timeoutLatency);
-        assertEquals(null, summary.totalSuccessLatency);
-        assertEquals(null, summary.totalErrorLatency);
-        assertEquals(null, summary.totalTimeoutLatency);
+        assertEquals(timeoutLatencySnapshot, summary.timeoutLatency);
+        assertEquals(totalSuccessLatencySnapshot, summary.totalSuccessLatency);
+        assertEquals(totalErrorLatencySnapshot, summary.totalErrorLatency);
+        assertEquals(totalTimeoutLatencySnapshot, summary.totalTimeoutLatency);
     }
 
     private static LatencySnapshot generateSnapshot(Random random) {
