@@ -41,4 +41,8 @@ public interface ActionMetrics {
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime);
 
     Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit);
+
+    Iterable<MetricCounter> metricCounterIterable(long timePeriod, TimeUnit timeUnit);
+
+    MetricCounter totalCountMetricCounter();
 }

@@ -18,7 +18,6 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.utils.SystemTime;
-import org.HdrHistogram.AtomicHistogram;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -57,8 +56,8 @@ public class SnapshotTest {
     public void testSnapshot() {
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 5) * 1000L * 1000L);
 
-        Map<Object, Object> snapshot = Snapshot.generate(metrics.totalMetricCounter(),
-                metrics.metricCounterIterator(5, TimeUnit.SECONDS));
+        Map<Object, Object> snapshot = Snapshot.generate(metrics.totalCountMetricCounter(),
+                metrics.metricCounterIterable(5, TimeUnit.SECONDS));
         assertEquals(29L, snapshot.get(Snapshot.TOTAL_TOTAL));
         assertEquals(5L, snapshot.get(Snapshot.TOTAL_SUCCESSES));
         assertEquals(4L, snapshot.get(Snapshot.TOTAL_TIMEOUTS));

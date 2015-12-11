@@ -60,6 +60,15 @@ public class MetricRegistry {
     private class Summary {
         private final Service service;
 
+        public long totalPendingCount = 0;
+        public long totalRemainingCapacity = 0;
+        public long totalSuccesses = 0;
+        public long totalErrors = 0;
+        public long totalTimeouts = 0;
+        public long totalMaxConcurrency = 0;
+        public long totalQueueFull = 0;
+        public long totalCircuitOpen = 0;
+        public long totalAllRejected = 0;
         public long pendingCount = 0;
         public long remainingCapacity = 0;
         public long successes = 0;
@@ -85,6 +94,17 @@ public class MetricRegistry {
         private void refresh() {
             pendingCount = service.pendingCount();
             remainingCapacity = service.remainingCapacity();
+
+            ActionMetrics actionMetrics = service.getActionMetrics();
+            MetricCounter metricCounter = actionMetrics.totalCountMetricCounter();
+
+            totalSuccesses = metricCounter.getMetric(Metric.SUCCESS).longValue();
+            totalErrors = metricCounter.getMetric(Metric.ERROR).longValue();
+            totalTimeouts = metricCounter.getMetric(Metric.TIMEOUT).longValue();
+            totalMaxConcurrency = metricCounter.getMetric(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED).longValue();
+            totalQueueFull = metricCounter.getMetric(Metric.QUEUE_FULL).longValue();
+            totalCircuitOpen = metricCounter.getMetric(Metric.CIRCUIT_OPEN).longValue();
+            totalAllRejected = metricCounter.getMetric(Metric.ALL_SERVICES_REJECTED).longValue();
             successes = 0;
             errors = 0;
             timeouts = 0;
@@ -93,8 +113,7 @@ public class MetricRegistry {
             circuitOpen = 0;
             allRejected = 0;
 
-            ActionMetrics actionMetrics = service.getActionMetrics();
-            for (MetricCounter m : ((DefaultActionMetrics) actionMetrics).metricCounterIterator(period, unit)) {
+            for (MetricCounter m : actionMetrics.metricCounterIterable(period, unit)) {
                 // TODO: Remove possibility of null
                 if (m != null) {
                     successes += m.getMetric(Metric.SUCCESS).longValue();

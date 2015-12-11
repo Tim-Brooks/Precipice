@@ -143,11 +143,13 @@ public class DefaultActionMetrics implements ActionMetrics {
                 systemTime.nanoTime()));
     }
 
-    public Iterable<MetricCounter> metricCounterIterator(long timePeriod, TimeUnit timeUnit) {
+    @Override
+    public Iterable<MetricCounter> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
         return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime());
     }
 
-    public MetricCounter totalMetricCounter() {
+    @Override
+    public MetricCounter totalCountMetricCounter() {
         return totalCounter;
     }
 }
