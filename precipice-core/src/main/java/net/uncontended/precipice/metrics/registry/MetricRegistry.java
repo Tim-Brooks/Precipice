@@ -64,7 +64,7 @@ public class MetricRegistry {
     private class Summary {
         private final Service service;
         private int index = 0;
-        private Map[] buffer = new Map[bucketCount];
+        private Map<Object, Object> snapshot;
 
         private Summary(Service service) {
             this.service = service;
@@ -72,9 +72,7 @@ public class MetricRegistry {
 
         private void refresh() {
             ActionMetrics actionMetrics = service.getActionMetrics();
-            Map<Object, Object> snapshot = actionMetrics.snapshot(period, unit);
-            buffer[index] = snapshot;
-            index = ++index % buffer.length;
+            snapshot = actionMetrics.snapshot(period, unit);
         }
     }
 

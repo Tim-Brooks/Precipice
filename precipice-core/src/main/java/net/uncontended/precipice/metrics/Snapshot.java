@@ -57,15 +57,6 @@ public class Snapshot {
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
     public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
-    public static final String LATENCY_MAX = "latency-max";
-    public static final String LATENCY_MEAN = "latency-mean";
-    public static final String LATENCY_50 = "latency-50";
-    public static final String LATENCY_90 = "latency-90";
-    public static final String LATENCY_99 = "latency-99";
-    public static final String LATENCY_99_9 = "latency-99.9";
-    public static final String LATENCY_99_99 = "latency-99.99";
-    public static final String LATENCY_99_999 = "latency-99.999";
-
     public static Map<Object, Object> generate(MetricCounter totalCounter, Iterable<MetricCounter> slots) {
 
         long total = 0;
