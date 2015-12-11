@@ -20,8 +20,8 @@ import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.metrics.*;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +31,7 @@ public class MetricRegistry {
     private int bucketCount = 6;
     private long period = 10;
     private TimeUnit unit = TimeUnit.SECONDS;
-    private Map<String, Summary> services = new HashMap<>();
+    private Map<String, Summary> services = new ConcurrentHashMap<>();
     private volatile PrecipiceFunction<Map<String, Summary>> callback;
     // TODO: Name thread
     private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -44,12 +44,8 @@ public class MetricRegistry {
         services.put(service.getName(), new Summary(service));
     }
 
-    public Summary getSummary(String name) {
-        Summary summary = services.get(name);
-        if (summary == null) {
-            throw new IllegalArgumentException("Service: " + name + " not registered.");
-        }
-        return summary;
+    public boolean deregister(String name) {
+        return null == services.remove(name);
     }
 
     public void setUpdateCallback(PrecipiceFunction<Map<String, Summary>> callback) {
@@ -99,6 +95,7 @@ public class MetricRegistry {
 
             ActionMetrics actionMetrics = service.getActionMetrics();
             for (MetricCounter m : ((DefaultActionMetrics) actionMetrics).metricCounterIterator(period, unit)) {
+                // TODO: Remove possibility of null
                 if (m != null) {
                     successes += m.getMetric(Metric.SUCCESS).longValue();
                     errors += m.getMetric(Metric.ERROR).longValue();
