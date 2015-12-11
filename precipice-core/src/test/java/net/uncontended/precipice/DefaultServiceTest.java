@@ -15,8 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core;
-
+package net.uncontended.precipice;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
@@ -28,8 +27,8 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
-import net.uncontended.precipice.core.test_utils.TestActions;
-import net.uncontended.precipice.core.test_utils.TestCallbacks;
+import net.uncontended.precipice.test_utils.TestActions;
+import net.uncontended.precipice.test_utils.TestCallbacks;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;
@@ -44,18 +43,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
-public class DefaultAsyncServiceTest {
+public class DefaultServiceTest {
 
-    private AsyncService service;
+    private MultiService service;
 
     @Before
     public void setUp() {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(100);
-        service = Services.submissionService("Test", 1, properties);
+        service = Services.defaultService("Test", 1, properties);
     }
 
     @After
@@ -91,7 +88,7 @@ public class DefaultAsyncServiceTest {
             assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
-            service.submit(TestActions.successAction(1), 100L);
+            service.run(TestActions.successAction(1));
             fail();
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
@@ -103,14 +100,15 @@ public class DefaultAsyncServiceTest {
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        service = Services.submissionService("Test", 1, properties);
+        service = Services.defaultService("Test", 1, properties);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
+            PrecipiceFuture<String> future = service.submit(TestActions.successAction(1), 500);
+            future.get();
             int j = 0;
             while (true) {
                 try {
-                    PrecipiceFuture<String> future = service.submit(TestActions.successAction(1), 100L);
-                    future.get();
+                    service.run(TestActions.successAction(1));
                     break;
                 } catch (RejectedActionException e) {
                     Thread.sleep(5);
@@ -142,7 +140,13 @@ public class DefaultAsyncServiceTest {
     }
 
     @Test
-    public void promisePassedToExecutorWillBeCompleted() throws Exception {
+    public void runCompletesAction() throws Exception {
+        String result = service.run(TestActions.successAction(1));
+        assertEquals("Success", result);
+    }
+
+    @Test
+    public void promisePassedToServiceWillBeCompleted() throws Exception {
         PrecipicePromise<String> promise = new Eventual<>();
         service.complete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
 
@@ -181,6 +185,20 @@ public class DefaultAsyncServiceTest {
     }
 
     @Test
+    public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
+        ActionTimeoutException exception = new ActionTimeoutException();
+        PrecipiceFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
+
+        try {
+            future.get();
+            fail("Should have thrown ExecutionException from ActionTimeoutException");
+        } catch (ExecutionException e) {
+            assertTrue(e.getCause() instanceof ActionTimeoutException);
+        }
+        assertEquals(Status.TIMEOUT, future.getStatus());
+    }
+
+    @Test
     public void erredActionWillReturnException() {
         RuntimeException exception = new RuntimeException();
         PrecipiceFuture<String> future = service.submit(TestActions.erredAction(exception), 100);
@@ -193,90 +211,7 @@ public class DefaultAsyncServiceTest {
         } catch (ExecutionException e) {
             assertEquals(exception, e.getCause());
         }
-        assertEquals(exception, future.error());
-        assertNull(future.result());
         assertEquals(Status.ERROR, future.getStatus());
-    }
-
-    @Test
-    public void resultMetricsUpdated() throws Exception {
-        CountDownLatch timeoutLatch = new CountDownLatch(1);
-        CountDownLatch blockingLatch = new CountDownLatch(3);
-
-        PrecipiceFuture<String> errorF = service.submit(TestActions.erredAction(new IOException()), 100);
-        PrecipiceFunction<Throwable> callback = TestCallbacks.latchedCallback(blockingLatch);
-        errorF.onError(callback);
-        PrecipiceFuture<String> timeOutF = service.submit(TestActions.blockedAction(timeoutLatch), 1);
-        PrecipiceFunction<Void> callback2 = TestCallbacks.latchedCallback(blockingLatch);
-        timeOutF.onTimeout(callback2);
-
-        PrecipiceFuture<String> successF = service.submit(TestActions.successAction(50, "Success"), Long.MAX_VALUE);
-        PrecipiceFunction<String> callback3 = TestCallbacks.latchedCallback(blockingLatch);
-        successF.onSuccess(callback3);
-
-        for (PrecipiceFuture<String> f : Arrays.asList(errorF, timeOutF, successF)) {
-            try {
-                f.get();
-                f.get();
-                f.get();
-            } catch (ExecutionException e) {
-            }
-        }
-
-        ActionMetrics metrics = service.getActionMetrics();
-        Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(Status.SUCCESS, 1);
-        expectedCounts.put(Status.ERROR, 1);
-        expectedCounts.put(Status.TIMEOUT, 1);
-
-        blockingLatch.await();
-
-        assertNewMetrics(metrics, expectedCounts);
-    }
-
-    @Test
-    public void rejectedMetricsUpdated() throws Exception {
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(1);
-        service = Services.submissionService("Test", 1, properties);
-        CountDownLatch latch = new CountDownLatch(1);
-        CountDownLatch blockingLatch = new CountDownLatch(1);
-        PrecipiceFunction<String> callback = TestCallbacks.latchedCallback(blockingLatch);
-
-        PrecipiceFuture<String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
-        f.onSuccess(callback);
-
-        try {
-            service.submit(TestActions.successAction(1), Long.MAX_VALUE);
-            f.onSuccess(callback);
-        } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
-        }
-
-        latch.countDown();
-        f.get();
-        blockingLatch.await();
-        service.getCircuitBreaker().forceOpen();
-
-        int maxConcurrencyErrors = 1;
-        for (int i = 0; i < 5; ++i) {
-            try {
-                service.submit(TestActions.successAction(1), Long.MAX_VALUE);
-            } catch (RejectedActionException e) {
-                if (e.reason == RejectionReason.CIRCUIT_OPEN) {
-                    break;
-                } else {
-                    maxConcurrencyErrors++;
-                }
-            }
-        }
-
-        Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(Status.SUCCESS, 1);
-        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
-        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
-
-        assertNewMetrics(service.getActionMetrics(), expectedCounts);
     }
 
     @Test
@@ -327,6 +262,87 @@ public class DefaultAsyncServiceTest {
     }
 
     @Test
+    public void resultMetricsUpdated() throws Exception {
+        CountDownLatch timeoutLatch = new CountDownLatch(1);
+        CountDownLatch blockingLatch = new CountDownLatch(3);
+
+        PrecipiceFuture<String> errorF = service.submit(TestActions.erredAction(new IOException()), 100);
+        PrecipiceFunction<Throwable> callback = TestCallbacks.latchedCallback(blockingLatch);
+        errorF.onError(callback);
+        PrecipiceFuture<String> timeOutF = service.submit(TestActions.blockedAction(timeoutLatch), 1);
+        PrecipiceFunction<Void> callback2 = TestCallbacks.latchedCallback(blockingLatch);
+        timeOutF.onTimeout(callback2);
+
+        PrecipiceFuture<String> successF = service.submit(TestActions.successAction(50, "Success"), Long.MAX_VALUE);
+        PrecipiceFunction<String> callback3 = TestCallbacks.latchedCallback(blockingLatch);
+        successF.onSuccess(callback3);
+
+        for (PrecipiceFuture<String> f : Arrays.asList(errorF, timeOutF, successF)) {
+            try {
+                f.get();
+                f.get();
+                f.get();
+            } catch (ExecutionException e) {
+            }
+        }
+
+        ActionMetrics metrics = service.getActionMetrics();
+        Map<Object, Integer> expectedCounts = new HashMap<>();
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.ERROR, 1);
+        expectedCounts.put(Status.TIMEOUT, 1);
+
+        blockingLatch.await();
+
+        assertNewMetrics(metrics, expectedCounts);
+    }
+
+    @Test
+    public void rejectedMetricsUpdated() throws Exception {
+        ServiceProperties properties = new ServiceProperties();
+        properties.concurrencyLevel(1);
+        service = Services.defaultService("Test", 1, properties);
+        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch blockingLatch = new CountDownLatch(1);
+        PrecipiceFunction<String> callback = TestCallbacks.latchedCallback(blockingLatch);
+
+        PrecipiceFuture<String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        f.onSuccess(callback);
+
+        try {
+            service.submit(TestActions.successAction(1), Long.MAX_VALUE);
+            f.onSuccess(callback);
+        } catch (RejectedActionException e) {
+            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+        }
+
+        latch.countDown();
+        f.get();
+        blockingLatch.await();
+        service.getCircuitBreaker().forceOpen();
+
+        int maxConcurrencyErrors = 1;
+        for (int i = 0; i < 5; ++i) {
+            try {
+                service.submit(TestActions.successAction(1), Long.MAX_VALUE);
+            } catch (RejectedActionException e) {
+                if (e.reason == RejectionReason.CIRCUIT_OPEN) {
+                    break;
+                } else {
+                    maxConcurrencyErrors++;
+                }
+            }
+        }
+
+        Map<Object, Integer> expectedCounts = new HashMap<>();
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
+        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
+
+        assertNewMetrics(service.getActionMetrics(), expectedCounts);
+    }
+
+    @Test
     public void metricsUpdatedEvenIfPromiseAlreadyCompleted() throws Exception {
         CountDownLatch timeoutLatch = new CountDownLatch(1);
         PrecipicePromise<String> errP = new Eventual<>();
@@ -367,7 +383,7 @@ public class DefaultAsyncServiceTest {
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        service = Services.submissionService("Test", 1, properties);
+        service = Services.defaultService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
 
         PrecipiceFuture<String> future = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
@@ -377,7 +393,7 @@ public class DefaultAsyncServiceTest {
         int i = 0;
         while (true) {
             try {
-                service.submit(TestActions.successAction(0), 100L);
+                service.run(TestActions.successAction(0));
                 break;
             } catch (RejectedActionException e) {
                 Thread.sleep(5);
@@ -465,6 +481,4 @@ public class DefaultAsyncServiceTest {
         assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
         assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
     }
-
-
 }

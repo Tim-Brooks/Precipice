@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core;
+package net.uncontended.precipice;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
@@ -24,7 +24,7 @@ import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.Metric;
-import net.uncontended.precipice.core.test_utils.TestActions;
+import net.uncontended.precipice.test_utils.TestActions;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.After;
 import org.junit.Before;

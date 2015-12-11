@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.core.test_utils;
+package net.uncontended.precipice.test_utils;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
