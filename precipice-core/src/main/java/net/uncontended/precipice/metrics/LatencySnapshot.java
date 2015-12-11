@@ -69,17 +69,17 @@ public class LatencySnapshot {
     public int hashCode() {
         int result;
         long temp;
-        result = (int) (latencyMax ^ (latencyMax >>> 32));
-        result = 31 * result + (int) (latency50 ^ (latency50 >>> 32));
-        result = 31 * result + (int) (latency90 ^ (latency90 >>> 32));
-        result = 31 * result + (int) (latency99 ^ (latency99 >>> 32));
-        result = 31 * result + (int) (latency999 ^ (latency999 >>> 32));
-        result = 31 * result + (int) (latency9999 ^ (latency9999 >>> 32));
-        result = 31 * result + (int) (latency99999 ^ (latency99999 >>> 32));
+        result = (int) (latencyMax ^ latencyMax >>> 32);
+        result = 31 * result + (int) (latency50 ^ latency50 >>> 32);
+        result = 31 * result + (int) (latency90 ^ latency90 >>> 32);
+        result = 31 * result + (int) (latency99 ^ latency99 >>> 32);
+        result = 31 * result + (int) (latency999 ^ latency999 >>> 32);
+        result = 31 * result + (int) (latency9999 ^ latency9999 >>> 32);
+        result = 31 * result + (int) (latency99999 ^ latency99999 >>> 32);
         temp = Double.doubleToLongBits(latencyMean);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (int) (startTime ^ (startTime >>> 32));
-        result = 31 * result + (int) (endTime ^ (endTime >>> 32));
+        result = 31 * result + (int) (temp ^ temp >>> 32);
+        result = 31 * result + (int) (startTime ^ startTime >>> 32);
+        result = 31 * result + (int) (endTime ^ endTime >>> 32);
         return result;
     }
 
