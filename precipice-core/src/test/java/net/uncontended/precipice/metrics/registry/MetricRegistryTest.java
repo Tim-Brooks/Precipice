@@ -20,6 +20,7 @@ import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.LatencySnapshot;
 import net.uncontended.precipice.metrics.MetricCounter;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,5 +81,29 @@ public class MetricRegistryTest {
 
         MetricRegistry.Summary summary = summaryReference.get();
         assertEquals(0, summary.pendingCount);
+        assertEquals(0, summary.totalPendingCount);
+        assertEquals(0, summary.totalRemainingCapacity);
+        assertEquals(0, summary.totalSuccesses);
+        assertEquals(0, summary.totalErrors);
+        assertEquals(0, summary.totalTimeouts);
+        assertEquals(0, summary.totalMaxConcurrency);
+        assertEquals(0, summary.totalQueueFull);
+        assertEquals(0, summary.totalCircuitOpen);
+        assertEquals(0, summary.totalAllRejected);
+        assertEquals(0, summary.pendingCount);
+        assertEquals(0, summary.remainingCapacity);
+        assertEquals(0, summary.successes);
+        assertEquals(0, summary.errors);
+        assertEquals(0, summary.timeouts);
+        assertEquals(0, summary.maxConcurrency);
+        assertEquals(0, summary.queueFull);
+        assertEquals(0, summary.circuitOpen);
+        assertEquals(0, summary.allRejected);
+        assertEquals(null, summary.successLatency);
+        assertEquals(null, summary.errorLatency);
+        assertEquals(null, summary.timeoutLatency);
+        assertEquals(null, summary.totalSuccessLatency);
+        assertEquals(null, summary.totalErrorLatency);
+        assertEquals(null, summary.totalTimeoutLatency);
     }
 }
