@@ -17,8 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-import org.HdrHistogram.Histogram;
-
 import java.util.HashMap;
 import java.util.Map;
 
