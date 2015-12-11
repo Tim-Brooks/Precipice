@@ -20,10 +20,8 @@ import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MetricRegistry {
 
@@ -31,12 +29,13 @@ public class MetricRegistry {
     private final TimeUnit unit;
     private final Map<String, Summary> services = new ConcurrentHashMap<>();
     private volatile PrecipiceFunction<Map<String, Summary>> callback;
-    // TODO: Name thread
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executorService;
 
     public MetricRegistry(long period, TimeUnit unit) {
         this.unit = unit;
         this.period = period;
+
+        executorService = Executors.newSingleThreadScheduledExecutor(new RegistryThreadFactory());
         executorService.scheduleAtFixedRate(new Task(), 0, period, unit);
     }
 
@@ -56,7 +55,6 @@ public class MetricRegistry {
         executorService.shutdown();
     }
 
-
     private class Task implements Runnable {
 
         @Override
@@ -68,6 +66,17 @@ public class MetricRegistry {
             if (callback != null) {
                 callback.apply(services);
             }
+        }
+    }
+
+    private static class RegistryThreadFactory implements ThreadFactory {
+        private static final AtomicLong counter = new AtomicLong(0);
+
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setName("metric-registry-thread-" + counter.incrementAndGet());
+            return thread;
         }
     }
 }
