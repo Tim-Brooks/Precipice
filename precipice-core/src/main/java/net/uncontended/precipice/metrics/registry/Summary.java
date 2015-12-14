@@ -81,7 +81,6 @@ public class Summary {
         allRejected = 0;
 
         for (MetricCounter m : actionMetrics.metricCounterIterable(period, unit)) {
-            // TODO: Remove possibility of null
             successes += m.getMetricCount(Metric.SUCCESS);
             errors += m.getMetricCount(Metric.ERROR);
             timeouts += m.getMetricCount(Metric.TIMEOUT);
