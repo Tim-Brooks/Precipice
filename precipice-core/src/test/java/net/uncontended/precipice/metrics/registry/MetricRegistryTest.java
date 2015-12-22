@@ -35,16 +35,20 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+/**
+ * Should be considered experimental. Development is not complete. May be moved to precipice-reporting.
+ */
 public class MetricRegistryTest {
+
+    private static final String serviceName = "Service Name";
 
     @Mock
     private Service service;
     @Mock
     private ActionMetrics actionMetrics;
+
     @Mock
     private IntervalLatencyMetrics latencyMetrics;
-
-    private String serviceName = "Service Name";
     private MetricRegistry registry;
 
     @Before
