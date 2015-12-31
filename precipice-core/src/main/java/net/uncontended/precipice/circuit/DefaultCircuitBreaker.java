@@ -36,8 +36,8 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastTestedTime = new AtomicLong(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
-    private final AtomicReference<HealthSnapshot> health = new AtomicReference<>(new HealthSnapshot(0, 0, 0, 0));
-    private final AtomicReference<BreakerConfig> breakerConfig;
+    private volatile BreakerConfig breakerConfig;
+    private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
     private ActionMetrics actionMetrics;
 
     public DefaultCircuitBreaker(BreakerConfig breakerConfig) {
@@ -46,7 +46,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
 
     public DefaultCircuitBreaker(BreakerConfig breakerConfig, SystemTime systemTime) {
         this.systemTime = systemTime;
-        this.breakerConfig = new AtomicReference<>(breakerConfig);
+        this.breakerConfig = breakerConfig;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     public boolean allowAction(long nanoTime) {
         int state = this.state.get();
         if (state == OPEN) {
-            long backOffTimeMillis = breakerConfig.get().backOffTimeMillis;
+            long backOffTimeMillis = breakerConfig.backOffTimeMillis;
             long currentTime = currentMillisTime(nanoTime);
             // This potentially allows a couple of tests through. Should think about this decision
             if (currentTime < backOffTimeMillis + lastTestedTime.get()) {
@@ -89,7 +89,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         } else {
             if (state.get() == CLOSED) {
                 long currentTime = currentMillisTime(nanoTime);
-                BreakerConfig config = this.breakerConfig.get();
+                BreakerConfig config = breakerConfig;
                 HealthSnapshot health = getHealthSnapshot(config, currentTime);
                 long failures = health.failures;
                 int failurePercentage = health.failurePercentage();
@@ -104,12 +104,12 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
 
     @Override
     public BreakerConfig getBreakerConfig() {
-        return breakerConfig.get();
+        return breakerConfig;
     }
 
     @Override
     public void setBreakerConfig(BreakerConfig breakerConfig) {
-        this.breakerConfig.set(breakerConfig);
+        this.breakerConfig = breakerConfig;
     }
 
     @Override
@@ -132,12 +132,11 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         if (lastHealthTime + config.healthRefreshMillis < currentTime) {
             if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
                 HealthSnapshot newHealth = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
-                health.set(newHealth);
+                health = newHealth;
                 return newHealth;
             }
         }
-
-        return health.get();
+        return health;
     }
 
     private long currentMillisTime(long nanoTime) {
