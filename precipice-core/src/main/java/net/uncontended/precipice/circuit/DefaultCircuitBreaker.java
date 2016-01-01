@@ -19,12 +19,12 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultCircuitBreaker implements CircuitBreaker {
 
@@ -32,7 +32,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;
 
-    private final SystemTime systemTime;
+    private final Clock systemTime;
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastTestedTime = new AtomicLong(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
@@ -44,7 +44,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         this(breakerConfig, new SystemTime());
     }
 
-    public DefaultCircuitBreaker(BreakerConfig breakerConfig, SystemTime systemTime) {
+    public DefaultCircuitBreaker(BreakerConfig breakerConfig, Clock systemTime) {
         this.systemTime = systemTime;
         this.breakerConfig = breakerConfig;
     }

@@ -17,14 +17,12 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.utils.SystemTime;
-import org.HdrHistogram.AtomicHistogram;
+import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class DefaultActionMetricsTest {
 
     @Mock
-    private SystemTime systemTime;
+    private Clock systemTime;
 
     private DefaultActionMetrics metrics;
 

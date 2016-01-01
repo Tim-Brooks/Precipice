@@ -15,14 +15,16 @@
  *
  */
 
-package net.uncontended.precipice.utils;
+package net.uncontended.precipice.time;
 
-public class SystemTime {
+public class SystemTime implements Clock {
 
+    @Override
     public long currentTimeMillis() {
         return System.currentTimeMillis();
     }
 
+    @Override
     public long nanoTime() {
         return System.nanoTime();
     }

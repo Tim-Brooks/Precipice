@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class SnapshotTest {
 
     @Mock
-    private SystemTime systemTime;
+    private Clock systemTime;
 
     private DefaultActionMetrics metrics;
     private final long offsetTime = 50L;

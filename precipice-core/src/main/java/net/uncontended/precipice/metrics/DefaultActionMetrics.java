@@ -17,7 +17,8 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.time.SystemTime;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ public class DefaultActionMetrics implements ActionMetrics {
     private final CircularBuffer<MetricCounter> buffer;
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
-    private final SystemTime systemTime;
+    private final Clock systemTime;
 
     public DefaultActionMetrics() {
         this(3600, 1, TimeUnit.SECONDS);
@@ -38,7 +39,7 @@ public class DefaultActionMetrics implements ActionMetrics {
         this(slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, SystemTime systemTime) {
+    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
         this.systemTime = systemTime;
         millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {

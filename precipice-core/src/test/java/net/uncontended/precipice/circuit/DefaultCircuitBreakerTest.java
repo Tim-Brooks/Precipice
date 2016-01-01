@@ -19,7 +19,7 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
-import net.uncontended.precipice.utils.SystemTime;
+import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -36,7 +36,7 @@ public class DefaultCircuitBreakerTest {
     @Mock
     private ActionMetrics actionMetrics;
     @Mock
-    private SystemTime systemTime;
+    private Clock systemTime;
 
     private CircuitBreaker circuitBreaker;
 
