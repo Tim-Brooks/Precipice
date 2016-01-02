@@ -46,7 +46,7 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
     public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy,
                              ActionMetrics metrics) {
         super(metrics);
-        if (executorToContext.size() == 0) {
+        if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
 
