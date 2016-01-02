@@ -41,11 +41,11 @@ public enum Metric {
     public static Metric statusToMetric(Status status) {
         switch (status) {
             case SUCCESS:
-                return Metric.SUCCESS;
+                return SUCCESS;
             case ERROR:
-                return Metric.ERROR;
+                return ERROR;
             case TIMEOUT:
-                return Metric.TIMEOUT;
+                return TIMEOUT;
             default:
                 throw new RuntimeException("Cannot convert Status to Metric: " + status);
         }
