@@ -22,9 +22,11 @@ import net.uncontended.precipice.concurrent.LongAdder;
 public class MetricCounter {
 
     public static final MetricCounter NO_OP_COUNTER = new MetricCounter() {
+        @Override
         public void incrementMetric(Metric metric) {
         }
 
+        @Override
         public long getMetricCount(Metric metric) {
             return 0L;
         }
