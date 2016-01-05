@@ -34,8 +34,8 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
 
     private final Clock systemTime;
     private final AtomicInteger state = new AtomicInteger(0);
-    private final AtomicLong lastTestedTime = new AtomicLong(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
+    private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
     private ActionMetrics actionMetrics;
@@ -66,10 +66,10 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
             long backOffTimeMillis = breakerConfig.backOffTimeMillis;
             long currentTime = currentMillisTime(nanoTime);
             // This potentially allows a couple of tests through. Should think about this decision
-            if (currentTime < backOffTimeMillis + lastTestedTime.get()) {
+            if (currentTime < backOffTimeMillis + lastTestedTime) {
                 return false;
             }
-            lastTestedTime.set(currentTime);
+            lastTestedTime = currentTime;
         }
         return state != FORCED_OPEN;
     }
@@ -95,7 +95,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
                 int failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
                         config.sampleSizeThreshold < health.total)) {
-                    lastTestedTime.set(currentTime);
+                    lastTestedTime = currentTime;
                     state.compareAndSet(CLOSED, OPEN);
                 }
             }
