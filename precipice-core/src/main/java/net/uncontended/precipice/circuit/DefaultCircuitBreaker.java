@@ -139,7 +139,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         return health;
     }
 
-    private long currentMillisTime(long nanoTime) {
+    private static long currentMillisTime(long nanoTime) {
         return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
     }
 }
