@@ -32,7 +32,7 @@ public class HealthSnapshot {
 
     public int failurePercentage() {
         if (totalNotRejected != 0) {
-            return (int) ((100 * failures) / totalNotRejected);
+            return (int) (100 * failures / totalNotRejected);
         } else {
             return 0;
         }
@@ -40,7 +40,7 @@ public class HealthSnapshot {
 
     public double rejectionPercentage() {
         if (total != 0) {
-            return (int) ((100 * rejections) / total);
+            return (int) (100 * rejections / total);
         } else {
             return 0;
         }

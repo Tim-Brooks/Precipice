@@ -35,6 +35,7 @@ public class SWCircularBuffer<T> {
         this(slotsToTrack, resolution, slotUnit, System.nanoTime());
     }
 
+    @SuppressWarnings("unchecked")
     public SWCircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit, long startTime) {
         long millisecondsPerSlot = slotUnit.toMillis(resolution);
 

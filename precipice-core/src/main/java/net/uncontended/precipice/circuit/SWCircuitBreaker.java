@@ -18,15 +18,15 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.BackgroundTask;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class SWCircuitBreaker implements CircuitBreaker {
+public class SWCircuitBreaker implements CircuitBreaker, BackgroundTask {
 
     private static final int CLOSED = 0;
     private static final int OPEN = 1;
@@ -34,8 +34,7 @@ public class SWCircuitBreaker implements CircuitBreaker {
 
     private final Clock systemTime;
     private final AtomicInteger state = new AtomicInteger(0);
-    private final AtomicLong lastTestedTime = new AtomicLong(0);
-    private final AtomicLong lastHealthTime = new AtomicLong(0);
+    private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
     private ActionMetrics actionMetrics;
@@ -65,11 +64,10 @@ public class SWCircuitBreaker implements CircuitBreaker {
         if (state == OPEN) {
             long backOffTimeMillis = breakerConfig.backOffTimeMillis;
             long currentTime = currentMillisTime(nanoTime);
-            // This potentially allows a couple of tests through. Should think about this decision
-            if (currentTime < backOffTimeMillis + lastTestedTime.get()) {
+            if (currentTime < backOffTimeMillis + lastTestedTime) {
                 return false;
             }
-            lastTestedTime.set(currentTime);
+            lastTestedTime = currentTime;
         }
         return state != FORCED_OPEN;
     }
@@ -95,7 +93,7 @@ public class SWCircuitBreaker implements CircuitBreaker {
                 int failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
                         config.sampleSizeThreshold < health.total)) {
-                    lastTestedTime.set(currentTime);
+                    lastTestedTime = currentTime;
                     state.compareAndSet(CLOSED, OPEN);
                 }
             }
@@ -127,17 +125,12 @@ public class SWCircuitBreaker implements CircuitBreaker {
         state.set(CLOSED);
     }
 
+    @Override
     public void tick(long currentTime) {
-        long lastHealthTime = this.lastHealthTime.get();
-        BreakerConfig config = this.breakerConfig;
-        if (lastHealthTime + config.healthRefreshMillis < currentTime) {
-            if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                health = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
-            }
-        }
+        health = actionMetrics.healthSnapshot(breakerConfig.trailingPeriodMillis, TimeUnit.MILLISECONDS);
     }
 
-    private long currentMillisTime(long nanoTime) {
+    private static long currentMillisTime(long nanoTime) {
         return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
     }
 }

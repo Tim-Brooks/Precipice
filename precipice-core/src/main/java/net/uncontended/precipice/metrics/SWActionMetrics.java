@@ -23,7 +23,7 @@ import net.uncontended.precipice.time.SystemTime;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class SWActionMetrics implements ActionMetrics {
+public class SWActionMetrics implements ActionMetrics, BackgroundTask {
 
     private final MetricCounter totalCounter = new MetricCounter();
     private final SWCircularBuffer<MetricCounter> buffer;
@@ -149,6 +149,7 @@ public class SWActionMetrics implements ActionMetrics {
         return totalCounter;
     }
 
+    @Override
     public void tick(long nanoTime) {
         buffer.put(nanoTime, new MetricCounter());
     }
