@@ -23,6 +23,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * Unstable and still in development. At this time, {@link SystemTime} should be used.
+ */
 public class TickingClock implements Clock {
 
     public Histogram gram = new Histogram(TimeUnit.MILLISECONDS.toNanos(100), 3);
