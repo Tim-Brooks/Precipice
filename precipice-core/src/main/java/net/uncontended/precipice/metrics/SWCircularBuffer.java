@@ -20,16 +20,16 @@ package net.uncontended.precipice.metrics;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class SWCircularBuffer<T> {
 
-    private final T[] buffer;
+    private final Slot<T>[] buffer;
     private final int mask;
     private final int totalSlots;
     private final int millisecondsPerSlot;
     private final long startTime;
     private volatile int currentIndex = 0;
+    private int currentAbsoluteIndex = 0;
 
     public SWCircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit) {
         this(slotsToTrack, resolution, slotUnit, System.nanoTime());
@@ -45,25 +45,31 @@ public class SWCircularBuffer<T> {
 
         int arraySlot = nextPositivePowerOfTwo(slotsToTrack);
         this.mask = arraySlot - 1;
-        this.buffer = (T[]) new Object[arraySlot];
+        this.buffer = (Slot<T>[]) new Object[arraySlot];
     }
 
     public T getSlot() {
         int index = currentIndex;
-        return buffer[index];
+        return buffer[index].get();
     }
 
+    // TODO: Make sure this logic works.
     public void put(long nanoTime, T object) {
         long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int relativeSlot = absoluteSlot & mask;
 
-        // TODO: this is flawed. It assumes that the tick will never be delayed for a full traversal
-        if (relativeSlot != currentIndex) {
-            buffer[relativeSlot] = object;
+        if (absoluteSlot != currentAbsoluteIndex) {
+            int relativeSlot = absoluteSlot & mask;
+            buffer[relativeSlot].set(object);
+            currentIndex = relativeSlot;
+
+            int upperBound = Math.min(absoluteSlot, currentAbsoluteIndex + totalSlots - 1);
+            for (int i = currentAbsoluteIndex + 1; i < upperBound; ++i) {
+                buffer[i & mask] = null;
+            }
+
+            currentAbsoluteIndex = absoluteSlot;
         }
-
-        currentIndex = relativeSlot;
     }
 
     public Iterable<T> collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
@@ -106,6 +112,30 @@ public class SWCircularBuffer<T> {
         return 1 << 32 - Integer.numberOfLeadingZeros(slotsToTrack - 1);
     }
 
+    private static class Slot<T> {
+        private T objectOne;
+        private T objectTwo;
+        private volatile int flag;
+
+        private Slot(T object) {
+            objectOne = object;
+        }
+
+        private void set(T object) {
+            if (flag == 0) {
+                objectTwo = object;
+                flag = 1;
+            } else {
+                objectOne = object;
+                flag = 0;
+            }
+        }
+
+        private T get() {
+            return flag == 0 ? objectOne : objectTwo;
+        }
+    }
+
     private class SlotView implements Iterable<T> {
 
         private final T dead;
@@ -133,7 +163,7 @@ public class SWCircularBuffer<T> {
                     }
                     int currentIndex = index++;
                     int relativeSlot = currentIndex & mask;
-                    T slot = buffer[relativeSlot];
+                    T slot = buffer[relativeSlot].get();
                     if (slot != null) {
                         return slot;
                     } else {
