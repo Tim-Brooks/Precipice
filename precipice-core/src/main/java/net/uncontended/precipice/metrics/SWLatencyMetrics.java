@@ -21,7 +21,7 @@ import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
 
-public class SWLatencyMetrics implements LatencyMetrics, BackgroundTask {
+public class SWLatencyMetrics implements BackgroundTask {
 
     private final LatencyBucket successBucket;
     private final LatencyBucket errorBucket;
@@ -33,29 +33,44 @@ public class SWLatencyMetrics implements LatencyMetrics, BackgroundTask {
         timeoutBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
     }
 
-    @Override
     public void recordLatency(Metric metric, long nanoLatency) {
+        getLatencyBucket(metric).record(nanoLatency);
 
     }
 
-    @Override
     public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
-
+        getLatencyBucket(metric).record(nanoLatency);
     }
 
-    @Override
     public LatencySnapshot latencySnapshot() {
         return null;
     }
 
-    @Override
     public LatencySnapshot latencySnapshot(Metric metric) {
         return null;
     }
 
-    @Override
     public void tick(long nanoTime) {
+        LatencyBucket[] buckets = {successBucket, errorBucket, timeoutBucket};
 
+    }
+
+    private LatencyBucket getLatencyBucket(Metric metric) {
+        LatencyBucket bucket;
+        switch (metric) {
+            case SUCCESS:
+                bucket = successBucket;
+                break;
+            case ERROR:
+                bucket = errorBucket;
+                break;
+            case TIMEOUT:
+                bucket = timeoutBucket;
+                break;
+            default:
+                throw new IllegalArgumentException("No latency capture for: " + metric);
+        }
+        return bucket;
     }
 
     private static class LatencyBucket {
