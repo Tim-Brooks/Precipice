@@ -17,7 +17,21 @@
 
 package net.uncontended.precipice.metrics;
 
+import org.HdrHistogram.AtomicHistogram;
+import org.HdrHistogram.Histogram;
+import org.HdrHistogram.Recorder;
+
 public class SWLatencyMetrics implements LatencyMetrics, BackgroundTask {
+
+    private final LatencyBucket successBucket;
+    private final LatencyBucket errorBucket;
+    private final LatencyBucket timeoutBucket;
+
+    public SWLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
+        successBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+        errorBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+        timeoutBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+    }
 
     @Override
     public void recordLatency(Metric metric, long nanoLatency) {
@@ -41,6 +55,31 @@ public class SWLatencyMetrics implements LatencyMetrics, BackgroundTask {
 
     @Override
     public void tick(long nanoTime) {
-        
+
+    }
+
+    private static class LatencyBucket {
+        private final Histogram histogram;
+        private final Recorder recorder;
+        private Histogram inactive;
+
+        private LatencyBucket(long highestTrackableValue, int numberOfSignificantValueDigits) {
+            histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+            histogram.setStartTimeStamp(System.currentTimeMillis());
+
+            recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
+            inactive = recorder.getIntervalHistogram();
+        }
+
+        private void record(long nanoLatency) {
+            recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
+            histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
+        }
+
+        private Histogram getIntervalHistogram() {
+            Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
+            inactive = intervalHistogram;
+            return intervalHistogram;
+        }
     }
 }
