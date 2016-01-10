@@ -53,7 +53,7 @@ public class SWActionMetrics implements ActionMetrics, BackgroundTask {
 
         long startTime = systemTime.nanoTime();
         this.slotsToTrack = slotsToTrack;
-        buffer = new SWCircularBuffer<MetricCounter>(slotsToTrack, resolution, slotUnit, startTime);
+        buffer = new SWCircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime, new MetricCounter());
     }
 
     @Override

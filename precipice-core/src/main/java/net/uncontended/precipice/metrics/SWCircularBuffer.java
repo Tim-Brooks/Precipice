@@ -31,12 +31,8 @@ public class SWCircularBuffer<T> {
     private volatile int currentIndex = 0;
     private int currentAbsoluteIndex = 0;
 
-    public SWCircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit) {
-        this(slotsToTrack, resolution, slotUnit, System.nanoTime());
-    }
-
     @SuppressWarnings("unchecked")
-    public SWCircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit, long startTime) {
+    public SWCircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit, long startTime, T object) {
         long millisecondsPerSlot = slotUnit.toMillis(resolution);
 
         this.millisecondsPerSlot = (int) millisecondsPerSlot;
@@ -46,6 +42,11 @@ public class SWCircularBuffer<T> {
         int arraySlot = nextPositivePowerOfTwo(slotsToTrack);
         this.mask = arraySlot - 1;
         this.buffer = (Slot<T>[]) new Object[arraySlot];
+
+        for (int i = 0; i < totalSlots; ++i) {
+            buffer[i] = new Slot<>(i);
+        }
+        buffer[0].set(0, object);
     }
 
     public T getSlot() {
@@ -113,37 +114,46 @@ public class SWCircularBuffer<T> {
     }
 
     private static class Slot<T> {
+        private static final long LONG_ZERO = (long) Integer.MAX_VALUE + 1;
+        private T alwaysActiveObject;
         private T objectOne;
         private T objectTwo;
-        private volatile long flag;
+        private volatile long absoluteSlotAndFlag;
 
-        private Slot(T object) {
-            objectOne = object;
+        private Slot(long absoluteSlot) {
+            absoluteSlotAndFlag = absoluteSlot;
         }
 
         private void set(int absoluteSlot, T object) {
-            if (flag == 0) {
+            long absoluteSlotAndFlag = this.absoluteSlotAndFlag;
+            if (LONG_ZERO > absoluteSlotAndFlag) {
                 objectTwo = object;
-                flag = 1;
+                alwaysActiveObject = object;
+                this.absoluteSlotAndFlag = LONG_ZERO + absoluteSlot;
             } else {
                 objectOne = object;
-                flag = 0;
+                alwaysActiveObject = object;
+                this.absoluteSlotAndFlag = absoluteSlot;
             }
         }
 
         private T get() {
-            return flag == 0 ? objectOne : objectTwo;
+            return alwaysActiveObject;
         }
 
-        private boolean isLive(int absoluteIndex) {
-            long flag = this.flag;
-            int shifted = (int) flag >> 8;
-            // TODO: This is probably incorrect. Check.
-            if (shifted == Integer.MAX_VALUE) {
-                return flag == absoluteIndex;
+        private T getIfLive(int absoluteIndex) {
+            // TODO: What if it flips twice?
+            long absoluteSlotAndFlag = this.absoluteSlotAndFlag;
+            if (LONG_ZERO > absoluteSlotAndFlag) {
+                if (absoluteSlotAndFlag == absoluteIndex) {
+                    return objectOne;
+                }
             } else {
-                return shifted == absoluteIndex;
+                if (absoluteSlotAndFlag - LONG_ZERO == absoluteIndex) {
+                    return objectTwo;
+                }
             }
+            return null;
         }
     }
 
@@ -174,9 +184,10 @@ public class SWCircularBuffer<T> {
                     }
                     int currentIndex = index++;
                     int relativeSlot = currentIndex & mask;
-                    T slot = buffer[relativeSlot].get();
-                    if (slot != null) {
-                        return slot;
+                    Slot<T> slot = buffer[relativeSlot];
+                    T object = slot.getIfLive(currentIndex);
+                    if (object != null) {
+                        return object;
                     } else {
                         return dead;
                     }
