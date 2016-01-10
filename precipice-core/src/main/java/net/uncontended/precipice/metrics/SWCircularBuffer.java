@@ -60,7 +60,7 @@ public class SWCircularBuffer<T> {
 
         if (absoluteSlot != currentAbsoluteIndex) {
             int relativeSlot = absoluteSlot & mask;
-            buffer[relativeSlot].set(object);
+            buffer[relativeSlot].set(absoluteSlot, object);
             currentIndex = relativeSlot;
 
             int upperBound = Math.min(absoluteSlot, currentAbsoluteIndex + totalSlots - 1);
@@ -115,13 +115,13 @@ public class SWCircularBuffer<T> {
     private static class Slot<T> {
         private T objectOne;
         private T objectTwo;
-        private volatile int flag;
+        private volatile long flag;
 
         private Slot(T object) {
             objectOne = object;
         }
 
-        private void set(T object) {
+        private void set(int absoluteSlot, T object) {
             if (flag == 0) {
                 objectTwo = object;
                 flag = 1;
@@ -133,6 +133,17 @@ public class SWCircularBuffer<T> {
 
         private T get() {
             return flag == 0 ? objectOne : objectTwo;
+        }
+
+        private boolean isLive(int absoluteIndex) {
+            long flag = this.flag;
+            int shifted = (int) flag >> 8;
+            // TODO: This is probably incorrect. Check.
+            if (shifted == Integer.MAX_VALUE) {
+                return flag == absoluteIndex;
+            } else {
+                return shifted == absoluteIndex;
+            }
         }
     }
 
