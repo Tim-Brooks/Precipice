@@ -142,7 +142,7 @@ public class SWCircularBuffer<T> {
         }
 
         private T getIfLive(int absoluteIndex) {
-            // TODO: What if it flips twice?
+            // TODO: What if it flips twice? Could always move back to atomic array
             long absoluteSlotAndFlag = this.absoluteSlotAndFlag;
             if (LONG_ZERO > absoluteSlotAndFlag) {
                 if (absoluteSlotAndFlag == absoluteIndex) {
