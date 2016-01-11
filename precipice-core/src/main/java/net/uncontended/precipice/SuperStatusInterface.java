@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,15 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice;
 
-import net.uncontended.precipice.SuperImpl;
+public interface SuperStatusInterface {
 
-public interface LatencyMetrics {
+    boolean isRejected();
 
-    LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
+    boolean isFailure();
 
-    void recordLatency(SuperImpl metric, long nanoLatency);
+    boolean trackLatency();
 
-    void recordLatency(SuperImpl metric, long nanoLatency, long nanoTime);
-
-    LatencySnapshot latencySnapshot();
-
-    LatencySnapshot latencySnapshot(SuperImpl metric);
+    boolean trackMetrics();
 }

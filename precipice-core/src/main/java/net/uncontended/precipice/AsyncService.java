@@ -40,7 +40,7 @@ public interface AsyncService extends Service {
      * @return a {@link PrecipiceFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout);
+    <T> PrecipiceFuture<SuperImpl, T> submit(ResilientAction<T> action, long millisTimeout);
 
-    <T> void complete(ResilientAction<T> action, PrecipicePromise<T> promise, long millisTimeout);
+    <T> void complete(ResilientAction<T> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout);
 }

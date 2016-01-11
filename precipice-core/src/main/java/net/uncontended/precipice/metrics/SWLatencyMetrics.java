@@ -17,28 +17,32 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperStatusInterface;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
 
-public class SWLatencyMetrics implements BackgroundTask {
+public class SWLatencyMetrics<T extends Enum<T> & SuperStatusInterface> implements BackgroundTask {
 
-    private final LatencyBucket successBucket;
-    private final LatencyBucket errorBucket;
-    private final LatencyBucket timeoutBucket;
+    private final LatencyBucket[] buckets;
 
-    public SWLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
-        successBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-        errorBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-        timeoutBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+    public SWLatencyMetrics(Class<T> type, long highestTrackableValue, int numberOfSignificantValueDigits) {
+        T[] metricValues = type.getEnumConstants();
+
+        buckets = new LatencyBucket[metricValues.length];
+        for (T metric : metricValues) {
+            if (metric.trackLatency()) {
+                buckets[metric.ordinal()] = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+            }
+        }
     }
 
-    public void recordLatency(Metric metric, long nanoLatency) {
+    public void recordLatency(T metric, long nanoLatency) {
         getLatencyBucket(metric).record(nanoLatency);
 
     }
 
-    public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
+    public void recordLatency(T metric, long nanoLatency, long nanoTime) {
         getLatencyBucket(metric).record(nanoLatency);
     }
 
@@ -50,27 +54,13 @@ public class SWLatencyMetrics implements BackgroundTask {
         return null;
     }
 
+    @Override
     public void tick(long nanoTime) {
-        LatencyBucket[] buckets = {successBucket, errorBucket, timeoutBucket};
 
     }
 
-    private LatencyBucket getLatencyBucket(Metric metric) {
-        LatencyBucket bucket;
-        switch (metric) {
-            case SUCCESS:
-                bucket = successBucket;
-                break;
-            case ERROR:
-                bucket = errorBucket;
-                break;
-            case TIMEOUT:
-                bucket = timeoutBucket;
-                break;
-            default:
-                throw new IllegalArgumentException("No latency capture for: " + metric);
-        }
-        return bucket;
+    private LatencyBucket getLatencyBucket(T metric) {
+        return buckets[metric.ordinal()];
     }
 
     private static class LatencyBucket {

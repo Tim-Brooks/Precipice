@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 
+import net.uncontended.precipice.SuperImpl;
 import org.HdrHistogram.*;
 
 import java.util.concurrent.TimeUnit;
@@ -39,12 +40,12 @@ public class IntervalLatencyMetrics implements LatencyMetrics {
     }
 
     @Override
-    public void recordLatency(Metric metric, long nanoLatency) {
+    public void recordLatency(SuperImpl metric, long nanoLatency) {
         recordLatency(metric, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
+    public void recordLatency(SuperImpl metric, long nanoLatency, long nanoTime) {
         if (nanoLatency != -1) {
             LatencyBucket bucket = getLatencyBucket(metric);
             bucket.record(nanoLatency);
@@ -52,7 +53,7 @@ public class IntervalLatencyMetrics implements LatencyMetrics {
     }
 
     @Override
-    public LatencySnapshot latencySnapshot(Metric metric) {
+    public LatencySnapshot latencySnapshot(SuperImpl metric) {
         LatencyBucket bucket = getLatencyBucket(metric);
         return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
     }
@@ -74,13 +75,13 @@ public class IntervalLatencyMetrics implements LatencyMetrics {
         return createSnapshot(accumulated, startTime, System.currentTimeMillis());
     }
 
-    public synchronized LatencySnapshot intervalSnapshot(Metric metric) {
+    public synchronized LatencySnapshot intervalSnapshot(SuperImpl metric) {
         LatencyBucket latencyBucket = getLatencyBucket(metric);
         Histogram histogram = latencyBucket.getIntervalHistogram();
         return createSnapshot(histogram, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
     }
 
-    private LatencyBucket getLatencyBucket(Metric metric) {
+    private LatencyBucket getLatencyBucket(SuperImpl metric) {
         LatencyBucket bucket;
         switch (metric) {
             case SUCCESS:

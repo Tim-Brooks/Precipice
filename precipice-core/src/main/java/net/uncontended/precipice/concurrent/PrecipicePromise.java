@@ -17,17 +17,13 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.SuperStatusInterface;
 
-public interface PrecipicePromise<T> {
+public interface PrecipicePromise<S extends SuperStatusInterface, T> {
 
-    boolean complete(T result);
+    boolean complete(S status, T result);
 
-    boolean completeExceptionally(Throwable ex);
+    boolean completeExceptionally(S status, Throwable ex);
 
-    boolean completeWithTimeout();
-
-    boolean completeWithTimeout(ActionTimeoutException ex);
-
-    PrecipiceFuture<T> future();
+    PrecipiceFuture<S, T> future();
 }

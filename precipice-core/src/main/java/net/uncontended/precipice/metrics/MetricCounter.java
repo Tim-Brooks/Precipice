@@ -17,17 +17,18 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.concurrent.LongAdder;
 
 public class MetricCounter {
 
     public static final MetricCounter NO_OP_COUNTER = new MetricCounter() {
         @Override
-        public void incrementMetric(Metric metric) {
+        public void incrementMetric(SuperImpl metric) {
         }
 
         @Override
-        public long getMetricCount(Metric metric) {
+        public long getMetricCount(SuperImpl metric) {
             return 0L;
         }
     };
@@ -35,19 +36,19 @@ public class MetricCounter {
     private final LongAdder[] metrics;
 
     public MetricCounter() {
-        Metric[] metricValues = Metric.values();
+        SuperImpl[] metricValues = SuperImpl.values();
 
         metrics = new LongAdder[metricValues.length];
-        for (Metric metric : metricValues) {
+        for (SuperImpl metric : metricValues) {
             metrics[metric.ordinal()] = new LongAdder();
         }
     }
 
-    public void incrementMetric(Metric metric) {
+    public void incrementMetric(SuperImpl metric) {
         metrics[metric.ordinal()].increment();
     }
 
-    public long getMetricCount(Metric metric) {
+    public long getMetricCount(SuperImpl metric) {
         return metrics[metric.ordinal()].longValue();
     }
 }

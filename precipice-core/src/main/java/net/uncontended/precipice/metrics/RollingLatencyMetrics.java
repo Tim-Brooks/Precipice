@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.metrics.util.RawCircularBuffer;
 import org.HdrHistogram.*;
 
@@ -48,12 +49,12 @@ public class RollingLatencyMetrics implements LatencyMetrics {
     }
 
     @Override
-    public void recordLatency(Metric metric, long nanoLatency) {
+    public void recordLatency(SuperImpl metric, long nanoLatency) {
         recordLatency(metric, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(Metric metric, long nanoLatency, long nanoTime) {
+    public void recordLatency(SuperImpl metric, long nanoLatency, long nanoTime) {
         if (nanoLatency != -1) {
             LatencyBucket bucket = getLatencyBucket(metric);
             bucket.record(nanoLatency, nanoTime);
@@ -61,7 +62,7 @@ public class RollingLatencyMetrics implements LatencyMetrics {
     }
 
     @Override
-    public LatencySnapshot latencySnapshot(Metric metric) {
+    public LatencySnapshot latencySnapshot(SuperImpl metric) {
         LatencyBucket bucket = getLatencyBucket(metric);
         return createSnapshot(startTime, -1, bucket.histogram);
     }
@@ -76,27 +77,27 @@ public class RollingLatencyMetrics implements LatencyMetrics {
         return createSnapshot(startTime, -1, accumulated);
     }
 
-    public Iterable<LatencySnapshot> snapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
+    public Iterable<LatencySnapshot> snapshotsForPeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit) {
         return snapshotsForPeriod(metric, timePeriod, timeUnit, System.nanoTime());
     }
 
-    public Iterable<LatencySnapshot> snapshotsForPeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public Iterable<LatencySnapshot> snapshotsForPeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         LatencyBucket bucket = getLatencyBucket(metric);
         return bucket.getIterable(timePeriod, timeUnit, nanoTime);
     }
 
-    public Histogram getHistogram(Metric metric) {
+    public Histogram getHistogram(SuperImpl metric) {
         LatencyBucket latencyBucket = getLatencyBucket(metric);
         return latencyBucket.histogram;
     }
 
-    public Histogram getInactiveHistogram(Metric metric) {
+    public Histogram getInactiveHistogram(SuperImpl metric) {
         LatencyBucket latencyBucket = getLatencyBucket(metric);
         // TODO: Threadsafe?
         return latencyBucket.inactive;
     }
 
-    private LatencyBucket getLatencyBucket(Metric metric) {
+    private LatencyBucket getLatencyBucket(SuperImpl metric) {
         LatencyBucket bucket;
         switch (metric) {
             case SUCCESS:

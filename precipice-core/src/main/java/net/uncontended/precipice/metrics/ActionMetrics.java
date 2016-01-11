@@ -17,24 +17,26 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperImpl;
+
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public interface ActionMetrics {
 
-    void incrementMetricCount(Metric metric);
+    void incrementMetricCount(SuperImpl metric);
 
-    void incrementMetricCount(Metric metric, long nanoTime);
+    void incrementMetricCount(SuperImpl metric, long nanoTime);
 
-    long getMetricCount(Metric metric);
+    long getMetricCount(SuperImpl metric);
 
-    long getMetricCountForTotalPeriod(Metric metric);
+    long getMetricCountForTotalPeriod(SuperImpl metric);
 
-    long getMetricCountForTotalPeriod(Metric metric, long nanoTime);
+    long getMetricCountForTotalPeriod(SuperImpl metric, long nanoTime);
 
-    long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit);
+    long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit);
 
-    long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
+    long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
 
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit);
 

@@ -17,10 +17,7 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultRunService extends AbstractService implements RunService {
 
@@ -35,13 +32,13 @@ public class DefaultRunService extends AbstractService implements RunService {
         long nanoStart = System.nanoTime();
         try {
             T result = action.run();
-            metricsAndBreakerFeedback(nanoStart, Status.SUCCESS);
+            metricsAndBreakerFeedback(nanoStart, SuperImpl.SUCCESS);
             return result;
         } catch (ActionTimeoutException e) {
-            metricsAndBreakerFeedback(nanoStart, Status.TIMEOUT);
+            metricsAndBreakerFeedback(nanoStart, SuperImpl.TIMEOUT);
             throw e;
         } catch (Exception e) {
-            metricsAndBreakerFeedback(nanoStart, Status.ERROR);
+            metricsAndBreakerFeedback(nanoStart, SuperImpl.ERROR);
             throw e;
         } finally {
             semaphore.releasePermit();
@@ -54,14 +51,11 @@ public class DefaultRunService extends AbstractService implements RunService {
 
     }
 
-    private void metricsAndBreakerFeedback(long nanoStart, Status status) {
+    private void metricsAndBreakerFeedback(long nanoStart, SuperImpl status) {
         long nanoTime = System.nanoTime();
-        Metric metric = Metric.statusToMetric(status);
-        actionMetrics.incrementMetricCount(metric, nanoTime);
-        circuitBreaker.informBreakerOfResult(status == Status.SUCCESS, nanoTime);
-        if (metric == Metric.SUCCESS || metric == Metric.TIMEOUT || metric == Metric.ERROR) {
-            long latency = nanoTime - nanoStart;
-            latencyMetrics.recordLatency(metric, latency, nanoTime);
-        }
+        actionMetrics.incrementMetricCount(status, nanoTime);
+        circuitBreaker.informBreakerOfResult(status == SuperImpl.SUCCESS, nanoTime);
+        long latency = nanoTime - nanoStart;
+        latencyMetrics.recordLatency(status, latency, nanoTime);
     }
 }

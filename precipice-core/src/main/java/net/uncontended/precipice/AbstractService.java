@@ -21,9 +21,6 @@ import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.metrics.Metric;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractService implements Service {
     protected final PrecipiceSemaphore semaphore;
@@ -81,12 +78,12 @@ public abstract class AbstractService implements Service {
 
         boolean isPermitAcquired = semaphore.acquirePermit();
         if (!isPermitAcquired) {
-            actionMetrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            actionMetrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
             throw new RejectedActionException(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         }
 
         if (!circuitBreaker.allowAction()) {
-            actionMetrics.incrementMetricCount(Metric.CIRCUIT_OPEN);
+            actionMetrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN);
             semaphore.releasePermit();
             throw new RejectedActionException(RejectionReason.CIRCUIT_OPEN);
         }

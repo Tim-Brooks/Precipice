@@ -19,6 +19,7 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
@@ -36,7 +37,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public final long nanosAbsoluteTimeout;
     public final long nanosAbsoluteStart;
     public final long millisRelativeTimeout;
-    private final PrecipicePromise<T> promise;
+    private final PrecipicePromise<SuperImpl, T> promise;
     private final LatencyMetrics latencyMetrics;
     private final ActionMetrics metrics;
     private final PrecipiceSemaphore semaphore;
@@ -45,7 +46,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     private volatile Thread runner;
 
     public ResilientTask(ActionMetrics metrics, LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore,
-                         CircuitBreaker breaker, ResilientAction<T> action, PrecipicePromise<T> promise,
+                         CircuitBreaker breaker, ResilientAction<T> action, PrecipicePromise<SuperImpl, T> promise,
                          long millisRelativeTimeout, long nanosAbsoluteStart) {
         this.metrics = metrics;
         this.latencyMetrics = latencyMetrics;
@@ -104,7 +105,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public void setTimedOut() {
         if (status.get() == Status.PENDING) {
             if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
-                safeSetTimedOut(null);
+                safeSetTimedOut(new ActionTimeoutException());
                 if (runner != null) {
                     runner.interrupt();
                 }
@@ -114,21 +115,21 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     private void safeSetSuccess(T result) {
         try {
-            promise.complete(result);
+            promise.complete(SuperImpl.SUCCESS, result);
         } catch (Throwable t) {
         }
     }
 
     private void safeSetErred(Throwable e) {
         try {
-            promise.completeExceptionally(e);
+            promise.completeExceptionally(SuperImpl.ERROR, e);
         } catch (Throwable t) {
         }
     }
 
     private void safeSetTimedOut(ActionTimeoutException e) {
         try {
-            promise.completeWithTimeout(e);
+            promise.completeExceptionally(SuperImpl.ERROR, e);
         } catch (Throwable t) {
         }
     }

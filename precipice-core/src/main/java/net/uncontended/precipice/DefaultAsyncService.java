@@ -21,7 +21,6 @@ import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.ResilientTask;
-import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
@@ -39,14 +38,14 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
     }
 
     @Override
-    public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        Eventual<T> promise = new Eventual<>();
+    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientAction<T> action, long millisTimeout) {
+        Eventual<SuperImpl, T> promise = new Eventual<>();
         complete(action, promise, millisTimeout);
         return promise;
     }
 
     @Override
-    public <T> void complete(ResilientAction<T> action, PrecipicePromise<T> promise, long millisTimeout) {
+    public <T> void complete(ResilientAction<T> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
         acquirePermitOrRejectIfActionNotAllowed();
         try {
             ResilientTask<T> task = new ResilientTask<>(actionMetrics, latencyMetrics, semaphore, circuitBreaker,
@@ -56,7 +55,7 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
             timeoutService.scheduleTimeout(task);
 
         } catch (RejectedExecutionException e) {
-            actionMetrics.incrementMetricCount(Metric.QUEUE_FULL);
+            actionMetrics.incrementMetricCount(SuperImpl.QUEUE_FULL);
             semaphore.releasePermit();
             throw new RejectedActionException(RejectionReason.QUEUE_FULL);
         }

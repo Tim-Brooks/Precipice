@@ -19,17 +19,16 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.SuperStatusInterface;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public interface PrecipiceFuture<T> extends Future<T> {
+public interface PrecipiceFuture<S extends SuperStatusInterface, T> extends Future<T> {
 
-    void onSuccess(PrecipiceFunction<T> fn);
+    void onSuccess(PrecipiceFunction<S, T> fn);
 
-    void onError(PrecipiceFunction<Throwable> fn);
-
-    void onTimeout(PrecipiceFunction<Void> fn);
+    void onError(PrecipiceFunction<S, Throwable> fn);
 
     void await() throws InterruptedException;
 
@@ -39,5 +38,5 @@ public interface PrecipiceFuture<T> extends Future<T> {
 
     Throwable error();
 
-    Status getStatus();
+    S getStatus();
 }

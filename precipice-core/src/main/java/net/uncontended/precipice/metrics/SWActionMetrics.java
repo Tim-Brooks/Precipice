@@ -17,13 +17,15 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.SuperStatusInterface;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class SWActionMetrics implements ActionMetrics, BackgroundTask {
+public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implements ActionMetrics, BackgroundTask {
 
     private final MetricCounter totalCounter = new MetricCounter();
     private final SWCircularBuffer<MetricCounter> buffer;
@@ -31,15 +33,15 @@ public class SWActionMetrics implements ActionMetrics, BackgroundTask {
     private final long millisecondsPerSlot;
     private final Clock systemTime;
 
-    public SWActionMetrics() {
-        this(3600, 1, TimeUnit.SECONDS);
+    public SWActionMetrics(Class<T> type) {
+        this(type, 3600, 1, TimeUnit.SECONDS);
     }
 
-    public SWActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit) {
-        this(slotsToTrack, resolution, slotUnit, new SystemTime());
+    public SWActionMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+        this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public SWActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
+    public SWActionMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
         this.systemTime = systemTime;
         millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
@@ -57,40 +59,40 @@ public class SWActionMetrics implements ActionMetrics, BackgroundTask {
     }
 
     @Override
-    public void incrementMetricCount(Metric metric) {
+    public void incrementMetricCount(SuperImpl metric) {
         incrementMetricCount(metric, -1);
     }
 
     @Override
-    public void incrementMetricCount(Metric metric, long nanoTime) {
+    public void incrementMetricCount(SuperImpl metric, long nanoTime) {
         totalCounter.incrementMetric(metric);
         MetricCounter currentMetricCounter = buffer.getSlot();
         currentMetricCounter.incrementMetric(metric);
     }
 
     @Override
-    public long getMetricCount(Metric metric) {
+    public long getMetricCount(SuperImpl metric) {
         return totalCounter.getMetricCount(metric);
     }
 
     @Override
-    public long getMetricCountForTotalPeriod(Metric metric) {
+    public long getMetricCountForTotalPeriod(SuperImpl metric) {
         return getMetricCountForTotalPeriod(metric, systemTime.nanoTime());
     }
 
     @Override
-    public long getMetricCountForTotalPeriod(Metric metric, long nanoTime) {
+    public long getMetricCountForTotalPeriod(SuperImpl metric, long nanoTime) {
         long milliseconds = slotsToTrack * millisecondsPerSlot;
         return getMetricCountForTimePeriod(metric, milliseconds, TimeUnit.MILLISECONDS, nanoTime);
     }
 
     @Override
-    public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit) {
+    public long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit) {
         return getMetricCountForTimePeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
     }
 
     @Override
-    public long getMetricCountForTimePeriod(Metric metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, MetricCounter.NO_OP_COUNTER);
 
         long count = 0;
@@ -115,19 +117,19 @@ public class SWActionMetrics implements ActionMetrics, BackgroundTask {
         long failures = 0;
         long rejections = 0;
         for (MetricCounter metricCounter : counters) {
-            long successes = metricCounter.getMetricCount(Metric.SUCCESS);
-            long errors = metricCounter.getMetricCount(Metric.ERROR);
-            long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
-            long maxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-            long circuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
-            long queueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
-            long slotNotRejectedTotal = successes + errors + timeouts;
-            long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
-
-            total += slotTotal;
-            notRejectedTotal += slotNotRejectedTotal;
-            failures += errors + timeouts;
-            rejections += circuitOpen + queueFull + maxConcurrency;
+//            long successes = metricCounter.getMetricCount(Metric.SUCCESS);
+//            long errors = metricCounter.getMetricCount(Metric.ERROR);
+//            long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+//            long maxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+//            long circuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+//            long queueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
+//            long slotNotRejectedTotal = successes + errors + timeouts;
+//            long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
+//
+//            total += slotTotal;
+//            notRejectedTotal += slotNotRejectedTotal;
+//            failures += errors + timeouts;
+//            rejections += circuitOpen + queueFull + maxConcurrency;
         }
         return new HealthSnapshot(total, notRejectedTotal, failures, rejections);
     }
