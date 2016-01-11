@@ -17,22 +17,10 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.SuperStatusInterface;
 import net.uncontended.precipice.concurrent.LongAdder;
 
 public class MetricCounter<T extends Enum<T> & SuperStatusInterface> {
-
-    public static final MetricCounter<SuperImpl> NO_OP_COUNTER = new MetricCounter<SuperImpl>(SuperImpl.class) {
-        @Override
-        public void incrementMetric(SuperImpl metric) {
-        }
-
-        @Override
-        public long getMetricCount(SuperImpl metric) {
-            return 0L;
-        }
-    };
 
     private final LongAdder[] metrics;
 
@@ -45,22 +33,22 @@ public class MetricCounter<T extends Enum<T> & SuperStatusInterface> {
         }
     }
 
-    public void incrementMetric(SuperImpl metric) {
+    public void incrementMetric(T metric) {
         metrics[metric.ordinal()].increment();
     }
 
-    public long getMetricCount(SuperImpl metric) {
+    public long getMetricCount(T metric) {
         return metrics[metric.ordinal()].longValue();
     }
 
     public static <T extends Enum<T> & SuperStatusInterface> MetricCounter<T> noOpCounter(Class<T> clazz) {
         return new MetricCounter<T>(clazz) {
             @Override
-            public void incrementMetric(SuperImpl metric) {
+            public void incrementMetric(T metric) {
             }
 
             @Override
-            public long getMetricCount(SuperImpl metric) {
+            public long getMetricCount(T metric) {
                 return 0L;
             }
         };

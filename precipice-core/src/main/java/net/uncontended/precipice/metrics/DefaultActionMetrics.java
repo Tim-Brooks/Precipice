@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.SuperStatusInterface;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
@@ -65,12 +64,12 @@ public class DefaultActionMetrics<T extends Enum<T> & SuperStatusInterface> impl
     }
 
     @Override
-    public void incrementMetricCount(SuperImpl metric) {
+    public void incrementMetricCount(T metric) {
         incrementMetricCount(metric, systemTime.nanoTime());
     }
 
     @Override
-    public void incrementMetricCount(SuperImpl metric, long nanoTime) {
+    public void incrementMetricCount(T metric, long nanoTime) {
         totalCounter.incrementMetric(metric);
         MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
@@ -80,28 +79,28 @@ public class DefaultActionMetrics<T extends Enum<T> & SuperStatusInterface> impl
     }
 
     @Override
-    public long getMetricCount(SuperImpl metric) {
+    public long getMetricCount(T metric) {
         return totalCounter.getMetricCount(metric);
     }
 
     @Override
-    public long getMetricCountForTotalPeriod(SuperImpl metric) {
+    public long getMetricCountForTotalPeriod(T metric) {
         return getMetricCountForTotalPeriod(metric, systemTime.nanoTime());
     }
 
     @Override
-    public long getMetricCountForTotalPeriod(SuperImpl metric, long nanoTime) {
+    public long getMetricCountForTotalPeriod(T metric, long nanoTime) {
         long milliseconds = slotsToTrack * millisecondsPerSlot;
         return getMetricCountForTimePeriod(metric, milliseconds, TimeUnit.MILLISECONDS, nanoTime);
     }
 
     @Override
-    public long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit) {
+    public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit) {
         return getMetricCountForTimePeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
     }
 
     @Override
-    public long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
@@ -126,19 +125,20 @@ public class DefaultActionMetrics<T extends Enum<T> & SuperStatusInterface> impl
         long failures = 0;
         long rejections = 0;
         for (MetricCounter<T> metricCounter : counters) {
-//            long successes = metricCounter.getMetricCount(Metric.SUCCESS);
-//            long errors = metricCounter.getMetricCount(Metric.ERROR);
-//            long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
-//            long maxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-//            long circuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
-//            long queueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
-//            long slotNotRejectedTotal = successes + errors + timeouts;
-//            long slotTotal = slotNotRejectedTotal + maxConcurrency + circuitOpen + queueFull;
-//
-//            total += slotTotal;
-//            notRejectedTotal += slotNotRejectedTotal;
-//            failures += errors + timeouts;
-//            rejections += circuitOpen + queueFull + maxConcurrency;
+            for (T t : type.getEnumConstants()) {
+                long metricCount = metricCounter.getMetricCount(t);
+                total += metricCount;
+
+                if (t.isFailure()) {
+                    failures += metricCount;
+                }
+
+                if (t.isRejected()) {
+                    rejections += metricCount;
+                } else {
+                    notRejectedTotal += metricCount;
+                }
+            }
         }
         return new HealthSnapshot(total, notRejectedTotal, failures, rejections);
     }

@@ -25,19 +25,19 @@ import java.util.concurrent.TimeUnit;
 
 public interface ActionMetrics<T extends Enum<T> & SuperStatusInterface> {
 
-    void incrementMetricCount(SuperImpl metric);
+    void incrementMetricCount(T metric);
 
-    void incrementMetricCount(SuperImpl metric, long nanoTime);
+    void incrementMetricCount(T metric, long nanoTime);
 
-    long getMetricCount(SuperImpl metric);
+    long getMetricCount(T metric);
 
-    long getMetricCountForTotalPeriod(SuperImpl metric);
+    long getMetricCountForTotalPeriod(T metric);
 
-    long getMetricCountForTotalPeriod(SuperImpl metric, long nanoTime);
+    long getMetricCountForTotalPeriod(T metric, long nanoTime);
 
-    long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit);
+    long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit);
 
-    long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
+    long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
 
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit);
 
