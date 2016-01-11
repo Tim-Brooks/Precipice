@@ -18,29 +18,32 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.SuperStatusInterface;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultActionMetrics implements ActionMetrics {
+public class DefaultActionMetrics<T extends Enum<T> & SuperStatusInterface> implements ActionMetrics<T> {
 
-    private final MetricCounter totalCounter = new MetricCounter();
-    private final CircularBuffer<MetricCounter> buffer;
+    private final MetricCounter<T> totalCounter;
+    private final MetricCounter<T> noOpCounter;
+    private final CircularBuffer<MetricCounter<T>> buffer;
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
     private final Clock systemTime;
+    private final Class<T> type;
 
-    public DefaultActionMetrics() {
-        this(3600, 1, TimeUnit.SECONDS);
+    public DefaultActionMetrics(Class<T> type) {
+        this(type, 3600, 1, TimeUnit.SECONDS);
     }
 
-    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit) {
-        this(slotsToTrack, resolution, slotUnit, new SystemTime());
+    public DefaultActionMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+        this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public DefaultActionMetrics(int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
+    public DefaultActionMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
         this.systemTime = systemTime;
         millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
@@ -54,6 +57,10 @@ public class DefaultActionMetrics implements ActionMetrics {
 
         long startTime = systemTime.nanoTime();
         this.slotsToTrack = slotsToTrack;
+
+        this.type = type;
+        totalCounter = new MetricCounter<>(this.type);
+        noOpCounter = MetricCounter.noOpCounter(type);
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
     }
 
@@ -65,9 +72,9 @@ public class DefaultActionMetrics implements ActionMetrics {
     @Override
     public void incrementMetricCount(SuperImpl metric, long nanoTime) {
         totalCounter.incrementMetric(metric);
-        MetricCounter currentMetricCounter = buffer.getSlot(nanoTime);
+        MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
-            currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter());
+            currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
         }
         currentMetricCounter.incrementMetric(metric);
     }
@@ -95,10 +102,10 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, MetricCounter.NO_OP_COUNTER);
+        Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
-        for (MetricCounter metricCounter : slots) {
+        for (MetricCounter<T> metricCounter : slots) {
             count += metricCounter.getMetricCount(metric);
         }
         return count;
@@ -111,14 +118,14 @@ public class DefaultActionMetrics implements ActionMetrics {
 
     @Override
     public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter> counters = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
-                MetricCounter.NO_OP_COUNTER);
+        Iterable<MetricCounter<T>> counters = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
+                noOpCounter);
 
         long total = 0;
         long notRejectedTotal = 0;
         long failures = 0;
         long rejections = 0;
-        for (MetricCounter metricCounter : counters) {
+        for (MetricCounter<T> metricCounter : counters) {
 //            long successes = metricCounter.getMetricCount(Metric.SUCCESS);
 //            long errors = metricCounter.getMetricCount(Metric.ERROR);
 //            long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
@@ -139,17 +146,16 @@ public class DefaultActionMetrics implements ActionMetrics {
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
         return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
-                systemTime.nanoTime(), MetricCounter.NO_OP_COUNTER));
+                systemTime.nanoTime(), noOpCounter));
     }
 
     @Override
-    public Iterable<MetricCounter> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
-        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime(),
-                MetricCounter.NO_OP_COUNTER);
+    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
+        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime(), noOpCounter);
     }
 
     @Override
-    public MetricCounter totalCountMetricCounter() {
+    public MetricCounter<T> totalCountMetricCounter() {
         return totalCounter;
     }
 }

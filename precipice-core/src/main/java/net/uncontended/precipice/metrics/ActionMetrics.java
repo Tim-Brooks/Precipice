@@ -18,11 +18,12 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.SuperStatusInterface;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public interface ActionMetrics {
+public interface ActionMetrics<T extends Enum<T> & SuperStatusInterface> {
 
     void incrementMetricCount(SuperImpl metric);
 
@@ -44,7 +45,7 @@ public interface ActionMetrics {
 
     Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit);
 
-    Iterable<MetricCounter> metricCounterIterable(long timePeriod, TimeUnit timeUnit);
+    Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit);
 
-    MetricCounter totalCountMetricCounter();
+    MetricCounter<T> totalCountMetricCounter();
 }

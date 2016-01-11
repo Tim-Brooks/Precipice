@@ -17,10 +17,12 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperStatusInterface;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class Snapshot {
+public final class Snapshot {
 
     public static final String TOTAL_TOTAL = "total-total";
     public static final String TOTAL_SUCCESSES = "total-successes";
@@ -55,7 +57,10 @@ public class Snapshot {
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
     public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
-    public static Map<Object, Object> generate(MetricCounter totalCounter, Iterable<MetricCounter> slots) {
+    private Snapshot() {}
+
+    public static <T extends Enum<T> & SuperStatusInterface> Map<Object, Object> generate(MetricCounter<T> totalCounter,
+                                                                                          Iterable<MetricCounter<T>> slots) {
 
         long total = 0;
         long successes = 0;
@@ -92,56 +97,56 @@ public class Snapshot {
         long previousQueueFull = 0;
         long previousCircuitOpen = 0;
         long previousAllRejected = 0;
-        for (MetricCounter metricCounter : slots) {
-            long slotSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
-            long slotErrors = metricCounter.getMetricCount(Metric.ERROR);
-            long slotTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
-            long slotMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-            long slotCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
-            long slotQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
-            long slotAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
-            long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
-                    slotQueueFull + slotAllRejected;
-
-            total = total + slotTotal;
-            maxTotal = Math.max(maxTotal, slotTotal);
-            max2Total = Math.max(max2Total, slotTotal + previousTotal);
-
-            successes = successes + slotSuccesses;
-            maxSuccesses = Math.max(maxSuccesses, slotSuccesses);
-            max2Successes = Math.max(max2Successes, slotSuccesses + previousSuccesses);
-
-            timeouts = timeouts + slotTimeouts;
-            maxTimeouts = Math.max(maxTimeouts, slotTimeouts);
-            max2Timeouts = Math.max(max2Timeouts, slotTimeouts + previousTimeouts);
-
-            errors = errors + slotErrors;
-            maxErrors = Math.max(maxErrors, slotErrors);
-            max2Errors = Math.max(max2Errors, slotErrors + previousErrors);
-
-            maxConcurrency = slotMaxConcurrency + maxConcurrency;
-            maxMaxConcurrency = Math.max(maxMaxConcurrency, slotMaxConcurrency);
-            max2MaxConcurrency = Math.max(max2MaxConcurrency, slotMaxConcurrency + previousMaxConcurrency);
-
-            queueFull = slotQueueFull + queueFull;
-            maxQueueFull = Math.max(maxQueueFull, slotQueueFull);
-            max2QueueFull = Math.max(max2QueueFull, slotQueueFull + previousQueueFull);
-
-            circuitOpen = slotCircuitOpen + circuitOpen;
-            maxCircuitOpen = Math.max(maxCircuitOpen, slotCircuitOpen);
-            max2CircuitOpen = Math.max(max2CircuitOpen, slotCircuitOpen + previousCircuitOpen);
-
-            allRejected = slotAllRejected + allRejected;
-            maxAllRejected = Math.max(maxAllRejected, slotAllRejected);
-            max2AllRejected = Math.max(max2AllRejected, slotAllRejected + previousAllRejected);
-
-            previousTotal = slotTotal;
-            previousSuccesses = slotSuccesses;
-            previousTimeouts = slotTimeouts;
-            previousErrors = slotErrors;
-            previousMaxConcurrency = slotMaxConcurrency;
-            previousQueueFull = slotQueueFull;
-            previousCircuitOpen = slotCircuitOpen;
+        for (MetricCounter<T> metricCounter : slots) {
+//            long slotSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
+//            long slotErrors = metricCounter.getMetricCount(Metric.ERROR);
+//            long slotTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+//            long slotMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+//            long slotCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+//            long slotQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
+//            long slotAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
+//            long slotTotal = slotSuccesses + slotErrors + slotTimeouts + slotMaxConcurrency + slotCircuitOpen +
+//                    slotQueueFull + slotAllRejected;
+//
+//            total = total + slotTotal;
+//            maxTotal = Math.max(maxTotal, slotTotal);
+//            max2Total = Math.max(max2Total, slotTotal + previousTotal);
+//
+//            successes = successes + slotSuccesses;
+//            maxSuccesses = Math.max(maxSuccesses, slotSuccesses);
+//            max2Successes = Math.max(max2Successes, slotSuccesses + previousSuccesses);
+//
+//            timeouts = timeouts + slotTimeouts;
+//            maxTimeouts = Math.max(maxTimeouts, slotTimeouts);
+//            max2Timeouts = Math.max(max2Timeouts, slotTimeouts + previousTimeouts);
+//
+//            errors = errors + slotErrors;
+//            maxErrors = Math.max(maxErrors, slotErrors);
+//            max2Errors = Math.max(max2Errors, slotErrors + previousErrors);
+//
+//            maxConcurrency = slotMaxConcurrency + maxConcurrency;
+//            maxMaxConcurrency = Math.max(maxMaxConcurrency, slotMaxConcurrency);
+//            max2MaxConcurrency = Math.max(max2MaxConcurrency, slotMaxConcurrency + previousMaxConcurrency);
+//
+//            queueFull = slotQueueFull + queueFull;
+//            maxQueueFull = Math.max(maxQueueFull, slotQueueFull);
+//            max2QueueFull = Math.max(max2QueueFull, slotQueueFull + previousQueueFull);
+//
+//            circuitOpen = slotCircuitOpen + circuitOpen;
+//            maxCircuitOpen = Math.max(maxCircuitOpen, slotCircuitOpen);
+//            max2CircuitOpen = Math.max(max2CircuitOpen, slotCircuitOpen + previousCircuitOpen);
+//
+//            allRejected = slotAllRejected + allRejected;
+//            maxAllRejected = Math.max(maxAllRejected, slotAllRejected);
+//            max2AllRejected = Math.max(max2AllRejected, slotAllRejected + previousAllRejected);
+//
+//            previousTotal = slotTotal;
+//            previousSuccesses = slotSuccesses;
+//            previousTimeouts = slotTimeouts;
+//            previousErrors = slotErrors;
+//            previousMaxConcurrency = slotMaxConcurrency;
+//            previousQueueFull = slotQueueFull;
+//            previousCircuitOpen = slotCircuitOpen;
         }
 
         Map<Object, Object> metricsMap = new HashMap<>();
@@ -177,22 +182,23 @@ public class Snapshot {
         return metricsMap;
     }
 
-    private static void putTotalCounts(MetricCounter totalCounter, Map<Object, Object> metricsMap) {
-        long totalSuccesses = totalCounter.getMetricCount(Metric.SUCCESS);
-        long totalTimeouts = totalCounter.getMetricCount(Metric.TIMEOUT);
-        long totalErrors = totalCounter.getMetricCount(Metric.ERROR);
-        long totalMaxConcurrency = totalCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        long totalQueueFull = totalCounter.getMetricCount(Metric.QUEUE_FULL);
-        long totalCircuitOpen = totalCounter.getMetricCount(Metric.CIRCUIT_OPEN);
-        long totalAllRejected = totalCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
-        metricsMap.put(TOTAL_TOTAL, totalSuccesses + totalTimeouts + totalErrors + totalMaxConcurrency +
-                totalQueueFull + totalCircuitOpen + totalAllRejected);
-        metricsMap.put(TOTAL_SUCCESSES, totalSuccesses);
-        metricsMap.put(TOTAL_TIMEOUTS, totalTimeouts);
-        metricsMap.put(TOTAL_ERRORS, totalErrors);
-        metricsMap.put(TOTAL_MAX_CONCURRENCY, totalMaxConcurrency);
-        metricsMap.put(TOTAL_QUEUE_FULL, totalQueueFull);
-        metricsMap.put(TOTAL_CIRCUIT_OPEN, totalCircuitOpen);
-        metricsMap.put(TOTAL_ALL_REJECTED, totalAllRejected);
+    private static <T extends Enum<T> & SuperStatusInterface> void putTotalCounts(MetricCounter<T> totalCounter,
+                                                                                  Map<Object, Object> metricsMap) {
+//        long totalSuccesses = totalCounter.getMetricCount(Metric.SUCCESS);
+//        long totalTimeouts = totalCounter.getMetricCount(Metric.TIMEOUT);
+//        long totalErrors = totalCounter.getMetricCount(Metric.ERROR);
+//        long totalMaxConcurrency = totalCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+//        long totalQueueFull = totalCounter.getMetricCount(Metric.QUEUE_FULL);
+//        long totalCircuitOpen = totalCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+//        long totalAllRejected = totalCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
+//        metricsMap.put(TOTAL_TOTAL, totalSuccesses + totalTimeouts + totalErrors + totalMaxConcurrency +
+//                totalQueueFull + totalCircuitOpen + totalAllRejected);
+//        metricsMap.put(TOTAL_SUCCESSES, totalSuccesses);
+//        metricsMap.put(TOTAL_TIMEOUTS, totalTimeouts);
+//        metricsMap.put(TOTAL_ERRORS, totalErrors);
+//        metricsMap.put(TOTAL_MAX_CONCURRENCY, totalMaxConcurrency);
+//        metricsMap.put(TOTAL_QUEUE_FULL, totalQueueFull);
+//        metricsMap.put(TOTAL_CIRCUIT_OPEN, totalCircuitOpen);
+//        metricsMap.put(TOTAL_ALL_REJECTED, totalAllRejected);
     }
 }

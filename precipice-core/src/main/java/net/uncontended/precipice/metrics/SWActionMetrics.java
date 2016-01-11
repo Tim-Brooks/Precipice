@@ -25,13 +25,15 @@ import net.uncontended.precipice.time.SystemTime;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implements ActionMetrics, BackgroundTask {
+public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implements ActionMetrics<T>, BackgroundTask {
 
-    private final MetricCounter totalCounter = new MetricCounter();
-    private final SWCircularBuffer<MetricCounter> buffer;
+    private final MetricCounter<T> totalCounter;
+    private final MetricCounter<T> noOpCounter;
+    private final SWCircularBuffer<MetricCounter<T>> buffer;
     private final int slotsToTrack;
     private final long millisecondsPerSlot;
     private final Clock systemTime;
+    private final Class<T> type;
 
     public SWActionMetrics(Class<T> type) {
         this(type, 3600, 1, TimeUnit.SECONDS);
@@ -55,7 +57,10 @@ public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implement
 
         long startTime = systemTime.nanoTime();
         this.slotsToTrack = slotsToTrack;
-        buffer = new SWCircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime, new MetricCounter());
+        this.type = type;
+        totalCounter = new MetricCounter<>(this.type);
+        noOpCounter = MetricCounter.noOpCounter(type);
+        buffer = new SWCircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime, new MetricCounter<>(type));
     }
 
     @Override
@@ -66,7 +71,7 @@ public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implement
     @Override
     public void incrementMetricCount(SuperImpl metric, long nanoTime) {
         totalCounter.incrementMetric(metric);
-        MetricCounter currentMetricCounter = buffer.getSlot();
+        MetricCounter<T> currentMetricCounter = buffer.getSlot();
         currentMetricCounter.incrementMetric(metric);
     }
 
@@ -93,10 +98,10 @@ public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implement
 
     @Override
     public long getMetricCountForTimePeriod(SuperImpl metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, MetricCounter.NO_OP_COUNTER);
+        Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
-        for (MetricCounter metricCounter : slots) {
+        for (MetricCounter<T> metricCounter : slots) {
             count += metricCounter.getMetricCount(metric);
         }
         return count;
@@ -109,14 +114,13 @@ public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implement
 
     @Override
     public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter> counters = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
-                MetricCounter.NO_OP_COUNTER);
+        Iterable<MetricCounter<T>> counters = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long total = 0;
         long notRejectedTotal = 0;
         long failures = 0;
         long rejections = 0;
-        for (MetricCounter metricCounter : counters) {
+        for (MetricCounter<T> metricCounter : counters) {
 //            long successes = metricCounter.getMetricCount(Metric.SUCCESS);
 //            long errors = metricCounter.getMetricCount(Metric.ERROR);
 //            long timeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
@@ -137,13 +141,12 @@ public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implement
     @Override
     public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
         return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
-                systemTime.nanoTime(), MetricCounter.NO_OP_COUNTER));
+                systemTime.nanoTime(), noOpCounter));
     }
 
     @Override
-    public Iterable<MetricCounter> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
-        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime(),
-                MetricCounter.NO_OP_COUNTER);
+    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
+        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime(), noOpCounter);
     }
 
     @Override
@@ -153,6 +156,6 @@ public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implement
 
     @Override
     public void tick(long nanoTime) {
-        buffer.put(nanoTime, new MetricCounter());
+        buffer.put(nanoTime, new MetricCounter<T>(type));
     }
 }
