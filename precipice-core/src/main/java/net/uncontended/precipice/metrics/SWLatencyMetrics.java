@@ -38,12 +38,16 @@ public class SWLatencyMetrics<T extends Enum<T> & SuperStatusInterface> implemen
     }
 
     public void recordLatency(T metric, long nanoLatency) {
-        getLatencyBucket(metric).record(nanoLatency);
+        if (metric.trackLatency()) {
+            getLatencyBucket(metric).record(nanoLatency);
+        }
 
     }
 
     public void recordLatency(T metric, long nanoLatency, long nanoTime) {
-        getLatencyBucket(metric).record(nanoLatency);
+        if (metric.trackLatency()) {
+            getLatencyBucket(metric).record(nanoLatency);
+        }
     }
 
     public LatencySnapshot latencySnapshot() {

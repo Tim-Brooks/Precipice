@@ -53,6 +53,11 @@ public enum SuperImpl implements SuperStatusInterface {
     }
 
     @Override
+    public boolean isSuccess() {
+        return this == SUCCESS;
+    }
+
+    @Override
     public boolean trackLatency() {
         return trackLatency;
     }

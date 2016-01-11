@@ -23,6 +23,8 @@ public interface SuperStatusInterface {
 
     boolean isFailure();
 
+    boolean isSuccess();
+
     boolean trackLatency();
 
     boolean trackMetrics();

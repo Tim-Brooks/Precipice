@@ -33,19 +33,19 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ResilientTask<T> implements Runnable, Delayed {
 
-    public final AtomicReference<Status> status = new AtomicReference<>(Status.PENDING);
+    public final AtomicReference<SuperImpl> status = new AtomicReference<>(null);
     public final long nanosAbsoluteTimeout;
     public final long nanosAbsoluteStart;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<SuperImpl, T> promise;
     private final LatencyMetrics latencyMetrics;
-    private final ActionMetrics metrics;
+    private final ActionMetrics<SuperImpl> metrics;
     private final PrecipiceSemaphore semaphore;
     private final CircuitBreaker breaker;
     private final ResilientAction<T> action;
     private volatile Thread runner;
 
-    public ResilientTask(ActionMetrics metrics, LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore,
+    public ResilientTask(ActionMetrics<SuperImpl> metrics, LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore,
                          CircuitBreaker breaker, ResilientAction<T> action, PrecipicePromise<SuperImpl, T> promise,
                          long millisRelativeTimeout, long nanosAbsoluteStart) {
         this.metrics = metrics;
@@ -67,21 +67,21 @@ public class ResilientTask<T> implements Runnable, Delayed {
     @Override
     public void run() {
         try {
-            if (status.get() == Status.PENDING) {
+            if (status.get() == null) {
                 runner = Thread.currentThread();
                 T result = action.run();
-                if (status.compareAndSet(Status.PENDING, Status.SUCCESS)) {
+                if (status.compareAndSet(null, SuperImpl.SUCCESS)) {
                     safeSetSuccess(result);
                 }
             }
         } catch (InterruptedException e) {
             Thread.interrupted();
         } catch (ActionTimeoutException e) {
-            if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+            if (status.compareAndSet(null, SuperImpl.TIMEOUT)) {
                 safeSetTimedOut(e);
             }
         } catch (Throwable e) {
-            if (status.compareAndSet(Status.PENDING, Status.ERROR)) {
+            if (status.compareAndSet(null, SuperImpl.ERROR)) {
                 safeSetErred(e);
             }
         } finally {
@@ -103,8 +103,8 @@ public class ResilientTask<T> implements Runnable, Delayed {
     }
 
     public void setTimedOut() {
-        if (status.get() == Status.PENDING) {
-            if (status.compareAndSet(Status.PENDING, Status.TIMEOUT)) {
+        if (status.get() == null) {
+            if (status.compareAndSet(null, SuperImpl.TIMEOUT)) {
                 safeSetTimedOut(new ActionTimeoutException());
                 if (runner != null) {
                     runner.interrupt();
@@ -136,12 +136,12 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     private void done() {
         long nanoTime = System.nanoTime();
-        Metric metric = Metric.statusToMetric(status.get());
-        metrics.incrementMetricCount(metric, nanoTime);
-        breaker.informBreakerOfResult(status.get() == Status.SUCCESS, nanoTime);
-        if (metric == Metric.SUCCESS || metric == Metric.TIMEOUT || metric == Metric.ERROR) {
+        SuperImpl status = this.status.get();
+        metrics.incrementMetricCount(status, nanoTime);
+        breaker.informBreakerOfResult(status.isSuccess(), nanoTime);
+        if (status.trackLatency()) {
             long latency = nanoTime - nanosAbsoluteStart;
-            latencyMetrics.recordLatency(metric, latency, nanoTime);
+            latencyMetrics.recordLatency(status, latency, nanoTime);
         }
         semaphore.releasePermit();
     }
