@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.SuperStatusInterface;
 
 import java.util.Map;
@@ -39,6 +38,7 @@ public interface ActionMetrics<T extends Enum<T> & SuperStatusInterface> {
 
     long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
 
+    // TODO: Maybe this does not need to be part of the action metrics interface
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit);
 
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime);

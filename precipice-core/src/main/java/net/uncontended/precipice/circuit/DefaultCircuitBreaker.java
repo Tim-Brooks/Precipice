@@ -38,7 +38,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
-    private ActionMetrics actionMetrics;
+    private ActionMetrics<?> actionMetrics;
 
     public DefaultCircuitBreaker(BreakerConfig breakerConfig) {
         this(breakerConfig, new SystemTime());
@@ -113,7 +113,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     }
 
     @Override
-    public void setActionMetrics(ActionMetrics actionMetrics) {
+    public void setActionMetrics(ActionMetrics<?> actionMetrics) {
         this.actionMetrics = actionMetrics;
     }
 

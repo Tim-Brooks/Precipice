@@ -31,7 +31,7 @@ public interface CircuitBreaker {
     
     void informBreakerOfResult(boolean successful, long nanoTime);
 
-    void setActionMetrics(ActionMetrics metrics);
+    void setActionMetrics(ActionMetrics<?> metrics);
 
     void setBreakerConfig(BreakerConfig breakerConfig);
 
