@@ -46,4 +46,6 @@ public interface ActionMetrics<T extends Enum<T> & SuperStatusInterface> {
     Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit);
 
     MetricCounter<T> totalCountMetricCounter();
+
+    Class<T> getMetricType();
 }

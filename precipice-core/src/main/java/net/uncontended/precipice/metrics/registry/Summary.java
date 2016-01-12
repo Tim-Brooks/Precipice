@@ -17,17 +17,21 @@
 package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.Service;
+import net.uncontended.precipice.SuperStatusInterface;
 import net.uncontended.precipice.metrics.*;
 
 import java.util.concurrent.TimeUnit;
 
-public class Summary {
+public class Summary<T extends Enum<T> & SuperStatusInterface> {
     private final long period;
     private final TimeUnit unit;
+    private final ActionMetrics<T> actionMetrics;
     private final Service service;
 
     public long pendingCount = 0;
     public long remainingCapacity = 0;
+
+    public final long[] metricCounts;
 
     public long totalSuccesses = 0;
     public long totalErrors = 0;
@@ -51,27 +55,28 @@ public class Summary {
     public LatencySnapshot totalErrorLatency = LatencyMetrics.DEFAULT_SNAPSHOT;
     public LatencySnapshot totalTimeoutLatency = LatencyMetrics.DEFAULT_SNAPSHOT;
 
-    Summary(long period, TimeUnit unit, Service service) {
+    Summary(long period, TimeUnit unit, ActionMetrics<T> metrics, Service service) {
         this.period = period;
         this.unit = unit;
+        actionMetrics = metrics;
         this.service = service;
-        this.remainingCapacity = service.remainingCapacity();
+        remainingCapacity = service.remainingCapacity();
+        metricCounts = new long[metrics.getMetricType().getEnumConstants().length];
     }
 
     public void refresh() {
         pendingCount = service.pendingCount();
         remainingCapacity = service.remainingCapacity();
 
-        ActionMetrics actionMetrics = service.getActionMetrics();
-        MetricCounter metricCounter = actionMetrics.totalCountMetricCounter();
+        MetricCounter<T> metricCounter = actionMetrics.totalCountMetricCounter();
 
-        totalSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
-        totalErrors = metricCounter.getMetricCount(Metric.ERROR);
-        totalTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
-        totalMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        totalQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
-        totalCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
-        totalAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
+//        totalSuccesses = metricCounter.getMetricCount(Metric.SUCCESS);
+//        totalErrors = metricCounter.getMetricCount(Metric.ERROR);
+//        totalTimeouts = metricCounter.getMetricCount(Metric.TIMEOUT);
+//        totalMaxConcurrency = metricCounter.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+//        totalQueueFull = metricCounter.getMetricCount(Metric.QUEUE_FULL);
+//        totalCircuitOpen = metricCounter.getMetricCount(Metric.CIRCUIT_OPEN);
+//        totalAllRejected = metricCounter.getMetricCount(Metric.ALL_SERVICES_REJECTED);
         successes = 0;
         errors = 0;
         timeouts = 0;
@@ -80,26 +85,26 @@ public class Summary {
         circuitOpen = 0;
         allRejected = 0;
 
-        for (MetricCounter m : actionMetrics.metricCounterIterable(period, unit)) {
-            successes += m.getMetricCount(Metric.SUCCESS);
-            errors += m.getMetricCount(Metric.ERROR);
-            timeouts += m.getMetricCount(Metric.TIMEOUT);
-            maxConcurrency += m.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-            queueFull += m.getMetricCount(Metric.QUEUE_FULL);
-            circuitOpen += m.getMetricCount(Metric.CIRCUIT_OPEN);
-            allRejected += m.getMetricCount(Metric.ALL_SERVICES_REJECTED);
+        for (MetricCounter<T> m : actionMetrics.metricCounterIterable(period, unit)) {
+//            successes += m.getMetricCount(Metric.SUCCESS);
+//            errors += m.getMetricCount(Metric.ERROR);
+//            timeouts += m.getMetricCount(Metric.TIMEOUT);
+//            maxConcurrency += m.getMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+//            queueFull += m.getMetricCount(Metric.QUEUE_FULL);
+//            circuitOpen += m.getMetricCount(Metric.CIRCUIT_OPEN);
+//            allRejected += m.getMetricCount(Metric.ALL_SERVICES_REJECTED);
         }
 
         LatencyMetrics latencyMetrics = service.getLatencyMetrics();
         if (latencyMetrics instanceof IntervalLatencyMetrics) {
             IntervalLatencyMetrics intervalMetrics = (IntervalLatencyMetrics) latencyMetrics;
-            successLatency = intervalMetrics.intervalSnapshot(Metric.SUCCESS);
-            errorLatency = intervalMetrics.intervalSnapshot(Metric.ERROR);
-            timeoutLatency = intervalMetrics.intervalSnapshot(Metric.TIMEOUT);
+//            successLatency = intervalMetrics.intervalSnapshot(Metric.SUCCESS);
+//            errorLatency = intervalMetrics.intervalSnapshot(Metric.ERROR);
+//            timeoutLatency = intervalMetrics.intervalSnapshot(Metric.TIMEOUT);
         }
 
-        totalSuccessLatency = latencyMetrics.latencySnapshot(Metric.SUCCESS);
-        totalErrorLatency = latencyMetrics.latencySnapshot(Metric.ERROR);
-        totalTimeoutLatency = latencyMetrics.latencySnapshot(Metric.TIMEOUT);
+//        totalSuccessLatency = latencyMetrics.latencySnapshot(Metric.SUCCESS);
+//        totalErrorLatency = latencyMetrics.latencySnapshot(Metric.ERROR);
+//        totalTimeoutLatency = latencyMetrics.latencySnapshot(Metric.TIMEOUT);
     }
 }

@@ -80,12 +80,12 @@ public class ActionThreadPool implements Executor {
         }
     }
 
-    private class ThreadManager {
+    private static class ThreadManager {
         private final ExchangingQueue<Runnable> queue = new ExchangingQueue<>(10);
         private final Thread thread;
         private int scheduledCount = 0;
 
-        public ThreadManager(String threadName) {
+        private ThreadManager(String threadName) {
             thread = new Thread(new Runnable() {
                 @Override
                 public void run() {

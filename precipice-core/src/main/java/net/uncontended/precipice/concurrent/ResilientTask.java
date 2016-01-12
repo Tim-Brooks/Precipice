@@ -97,7 +97,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
     @Override
     public int compareTo(Delayed o) {
         if (o instanceof ResilientTask) {
-            return Long.compare(nanosAbsoluteTimeout, ((ResilientTask) o).nanosAbsoluteTimeout);
+            return Long.compare(nanosAbsoluteTimeout, ((ResilientTask<T>) o).nanosAbsoluteTimeout);
         }
         return Long.compare(getDelay(TimeUnit.NANOSECONDS), o.getDelay(TimeUnit.NANOSECONDS));
     }

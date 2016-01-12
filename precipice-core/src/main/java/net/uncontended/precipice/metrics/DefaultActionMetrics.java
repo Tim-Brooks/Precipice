@@ -152,4 +152,9 @@ public class DefaultActionMetrics<T extends Enum<T> & SuperStatusInterface> impl
     public MetricCounter<T> totalCountMetricCounter() {
         return totalCounter;
     }
+
+    @Override
+    public Class<T> getMetricType() {
+        return type;
+    }
 }

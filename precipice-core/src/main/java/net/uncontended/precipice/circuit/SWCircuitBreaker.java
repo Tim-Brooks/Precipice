@@ -37,7 +37,7 @@ public class SWCircuitBreaker implements CircuitBreaker, BackgroundTask {
     private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
-    private ActionMetrics actionMetrics;
+    private ActionMetrics<?> actionMetrics;
 
     public SWCircuitBreaker(BreakerConfig breakerConfig) {
         this(breakerConfig, new SystemTime());
@@ -111,7 +111,7 @@ public class SWCircuitBreaker implements CircuitBreaker, BackgroundTask {
     }
 
     @Override
-    public void setActionMetrics(ActionMetrics actionMetrics) {
+    public void setActionMetrics(ActionMetrics<?> actionMetrics) {
         this.actionMetrics = actionMetrics;
     }
 

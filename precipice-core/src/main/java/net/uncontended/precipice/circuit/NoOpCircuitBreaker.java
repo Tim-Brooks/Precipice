@@ -59,7 +59,7 @@ public class NoOpCircuitBreaker implements CircuitBreaker {
     }
 
     @Override
-    public void setActionMetrics(ActionMetrics metrics) {
+    public void setActionMetrics(ActionMetrics<?> metrics) {
     }
 
     @Override

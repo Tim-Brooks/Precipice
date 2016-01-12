@@ -32,8 +32,8 @@ public class ExchangingQueue<T> {
     @SuppressWarnings("unchecked")
     public ExchangingQueue(final int capacity) {
         this.capacity = 1 << (32 - Integer.numberOfLeadingZeros(capacity - 1));
-        this.mask = this.capacity - 1;
-        this.queue = (T[]) new Object[this.capacity];
+        mask = this.capacity - 1;
+        queue = (T[]) new Object[capacity];
     }
 
     public boolean offer(final T element) {

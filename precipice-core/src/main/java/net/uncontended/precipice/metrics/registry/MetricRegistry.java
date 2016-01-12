@@ -16,7 +16,6 @@
 
 package net.uncontended.precipice.metrics.registry;
 
-import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
 
 import java.util.Map;
@@ -27,8 +26,8 @@ public class MetricRegistry {
 
     private final long period;
     private final TimeUnit unit;
-    private final Map<String, Summary> services = new ConcurrentHashMap<>();
-    private volatile PrecipiceFunction<Map<String, Summary>> callback;
+    private final Map<String, Summary<?>> services = new ConcurrentHashMap<>();
+    private volatile MetricRegistryCallback<Map<String, Summary<?>>> callback;
     private final ScheduledExecutorService executorService;
 
     public MetricRegistry(long period, TimeUnit unit) {
@@ -40,14 +39,14 @@ public class MetricRegistry {
     }
 
     public void register(Service service) {
-        services.put(service.getName(), new Summary(period, unit, service));
+        services.put(service.getName(), new Summary<>(period, unit, service.getActionMetrics(), service));
     }
 
     public boolean deregister(String name) {
         return null == services.remove(name);
     }
 
-    public void setUpdateCallback(PrecipiceFunction<Map<String, Summary>> callback) {
+    public void setUpdateCallback(MetricRegistryCallback<Map<String, Summary<?>>> callback) {
         this.callback = callback;
     }
 
@@ -59,7 +58,7 @@ public class MetricRegistry {
 
         @Override
         public void run() {
-            for (Summary summary : services.values()) {
+            for (Summary<?> summary : services.values()) {
                 summary.refresh();
             }
 

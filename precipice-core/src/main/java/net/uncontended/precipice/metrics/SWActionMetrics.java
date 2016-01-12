@@ -21,7 +21,6 @@ import net.uncontended.precipice.SuperStatusInterface;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implements ActionMetrics<T>, BackgroundTask {
@@ -147,6 +146,11 @@ public class SWActionMetrics<T extends Enum<T> & SuperStatusInterface> implement
     @Override
     public MetricCounter<T> totalCountMetricCounter() {
         return totalCounter;
+    }
+
+    @Override
+    public Class<T> getMetricType() {
+        return type;
     }
 
     @Override
