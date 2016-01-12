@@ -43,8 +43,6 @@ public interface ActionMetrics<T extends Enum<T> & SuperStatusInterface> {
 
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime);
 
-    Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit);
-
     Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit);
 
     MetricCounter<T> totalCountMetricCounter();

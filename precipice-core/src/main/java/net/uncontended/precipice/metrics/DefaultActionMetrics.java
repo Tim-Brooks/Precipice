@@ -144,12 +144,6 @@ public class DefaultActionMetrics<T extends Enum<T> & SuperStatusInterface> impl
     }
 
     @Override
-    public Map<Object, Object> snapshot(long timePeriod, TimeUnit timeUnit) {
-        return Snapshot.generate(totalCounter, buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit,
-                systemTime.nanoTime(), noOpCounter));
-    }
-
-    @Override
     public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
         return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime(), noOpCounter);
     }
