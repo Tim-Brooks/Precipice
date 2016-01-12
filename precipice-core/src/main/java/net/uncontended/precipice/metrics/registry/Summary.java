@@ -17,6 +17,7 @@
 package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.Service;
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.SuperStatusInterface;
 import net.uncontended.precipice.metrics.*;
 
@@ -33,7 +34,7 @@ public class Summary<T extends Enum<T> & SuperStatusInterface> {
 
     public final long[] totalMetricCounts;
     public final long[] metricCounts;
-    
+
     public LatencySnapshot successLatency = LatencyMetrics.DEFAULT_SNAPSHOT;
     public LatencySnapshot errorLatency = LatencyMetrics.DEFAULT_SNAPSHOT;
     public LatencySnapshot timeoutLatency = LatencyMetrics.DEFAULT_SNAPSHOT;
@@ -73,15 +74,18 @@ public class Summary<T extends Enum<T> & SuperStatusInterface> {
         }
 
         LatencyMetrics latencyMetrics = service.getLatencyMetrics();
-        if (latencyMetrics instanceof IntervalLatencyMetrics) {
-            IntervalLatencyMetrics intervalMetrics = (IntervalLatencyMetrics) latencyMetrics;
-//            successLatency = intervalMetrics.intervalSnapshot(Metric.SUCCESS);
-//            errorLatency = intervalMetrics.intervalSnapshot(Metric.ERROR);
-//            timeoutLatency = intervalMetrics.intervalSnapshot(Metric.TIMEOUT);
-        }
 
-//        totalSuccessLatency = latencyMetrics.latencySnapshot(Metric.SUCCESS);
-//        totalErrorLatency = latencyMetrics.latencySnapshot(Metric.ERROR);
-//        totalTimeoutLatency = latencyMetrics.latencySnapshot(Metric.TIMEOUT);
+        if (metricType == SuperImpl.class) {
+            if (latencyMetrics instanceof IntervalLatencyMetrics) {
+                IntervalLatencyMetrics intervalMetrics = (IntervalLatencyMetrics) latencyMetrics;
+                successLatency = intervalMetrics.intervalSnapshot(SuperImpl.SUCCESS);
+                errorLatency = intervalMetrics.intervalSnapshot(SuperImpl.ERROR);
+                timeoutLatency = intervalMetrics.intervalSnapshot(SuperImpl.TIMEOUT);
+            }
+
+            totalSuccessLatency = latencyMetrics.latencySnapshot(SuperImpl.SUCCESS);
+            totalErrorLatency = latencyMetrics.latencySnapshot(SuperImpl.ERROR);
+            totalTimeoutLatency = latencyMetrics.latencySnapshot(SuperImpl.TIMEOUT);
+        }
     }
 }
