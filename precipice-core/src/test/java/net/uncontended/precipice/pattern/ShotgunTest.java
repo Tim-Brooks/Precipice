@@ -196,7 +196,7 @@ public class ShotgunTest {
             contextsUsed.add(contextCaptured1);
             contextsUsed.add(contextCaptured2);
 
-            assertTrue(contextCaptured1 != contextCaptured2);
+            assertNotSame(contextCaptured1, contextCaptured2);
         }
         assertEquals(3, contextsUsed.size());
     }

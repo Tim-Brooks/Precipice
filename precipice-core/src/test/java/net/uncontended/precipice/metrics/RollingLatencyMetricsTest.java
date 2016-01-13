@@ -17,14 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-
 public class RollingLatencyMetricsTest {
 
 //    private static final long TWO_MINUTES = TimeUnit.MINUTES.toNanos(2);

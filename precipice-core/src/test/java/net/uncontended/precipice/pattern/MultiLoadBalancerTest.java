@@ -49,7 +49,7 @@ public class MultiLoadBalancerTest {
     @Mock
     private ResilientPatternAction<String, Map<String, Object>> action;
     @Mock
-    private ActionMetrics metrics;
+    private ActionMetrics<SuperImpl> metrics;
     @Captor
     private ArgumentCaptor<ResilientAction<String>> actionCaptor;
 
@@ -146,14 +146,14 @@ public class MultiLoadBalancerTest {
 
         promiseCaptor.getValue().completeExceptionally(SuperImpl.ERROR, new IOException());
 
-        verify(metrics).incrementMetricCount(Metric.ERROR);
+        verify(metrics).incrementMetricCount(SuperImpl.ERROR);
     }
 
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForRun() throws Exception {
         when(strategy.nextExecutorIndex()).thenReturn(0);
         balancer.run(action);
-        verify(metrics).incrementMetricCount(Metric.SUCCESS);
+        verify(metrics).incrementMetricCount(SuperImpl.SUCCESS);
 
         try {
             when(strategy.nextExecutorIndex()).thenReturn(0);
@@ -161,7 +161,7 @@ public class MultiLoadBalancerTest {
             balancer.run(action);
         } catch (Exception e) {
         }
-        verify(metrics).incrementMetricCount(Metric.ERROR);
+        verify(metrics).incrementMetricCount(SuperImpl.ERROR);
 
         try {
             when(strategy.nextExecutorIndex()).thenReturn(1);
@@ -169,7 +169,7 @@ public class MultiLoadBalancerTest {
             balancer.run(action);
         } catch (ActionTimeoutException e) {
         }
-        verify(metrics).incrementMetricCount(Metric.TIMEOUT);
+        verify(metrics).incrementMetricCount(SuperImpl.TIMEOUT);
     }
 
     @Test
@@ -187,7 +187,7 @@ public class MultiLoadBalancerTest {
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);
         }
-        verify(metrics).incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
+        verify(metrics).incrementMetricCount(SuperImpl.ALL_SERVICES_REJECTED);
     }
 
     // TODO: Add tests for other submission methods
