@@ -31,9 +31,10 @@ public class ExchangingQueue<T> {
 
     @SuppressWarnings("unchecked")
     public ExchangingQueue(final int capacity) {
-        this.capacity = 1 << (32 - Integer.numberOfLeadingZeros(capacity - 1));
-        mask = this.capacity - 1;
-        queue = (T[]) new Object[capacity];
+        int adjustedCapacity = 1 << 32 - Integer.numberOfLeadingZeros(capacity - 1);
+        this.capacity = adjustedCapacity;
+        mask = adjustedCapacity - 1;
+        queue = (T[]) new Object[adjustedCapacity];
     }
 
     public boolean offer(final T element) {
