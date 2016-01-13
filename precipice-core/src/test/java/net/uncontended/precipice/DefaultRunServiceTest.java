@@ -222,7 +222,7 @@ public class DefaultRunServiceTest {
         // A hack to ensure that health is always refreshed.
         builder.healthRefreshMillis = -1;
 
-        ActionMetrics metrics = new DefaultActionMetrics(3600, 1, TimeUnit.SECONDS);
+        ActionMetrics<SuperImpl> metrics = new DefaultActionMetrics<>(SuperImpl.class, 3600, 1, TimeUnit.SECONDS);
         CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
         ServiceProperties properties = new ServiceProperties();
         properties.actionMetrics(metrics);
