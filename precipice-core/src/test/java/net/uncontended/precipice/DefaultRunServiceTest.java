@@ -130,7 +130,7 @@ public class DefaultRunServiceTest {
         } catch (ActionTimeoutException e) {
         }
 
-        assertEquals(1, service.getActionMetrics().getMetricCountForTimePeriod(Metric.TIMEOUT, 1, TimeUnit.HOURS));
+        assertEquals(1, service.getActionMetrics().getMetricCountForTimePeriod(SuperImpl.TIMEOUT, 1, TimeUnit.HOURS));
     }
 
     @Test
@@ -159,11 +159,11 @@ public class DefaultRunServiceTest {
         }
         service.run(TestActions.successAction(50, "Success"));
 
-        ActionMetrics metrics = service.getActionMetrics();
+        ActionMetrics<SuperImpl> metrics = service.getActionMetrics();
         Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(Status.SUCCESS, 1);
-        expectedCounts.put(Status.ERROR, 1);
-        expectedCounts.put(Status.TIMEOUT, 1);
+        expectedCounts.put(SuperImpl.SUCCESS, 1);
+        expectedCounts.put(SuperImpl.ERROR, 1);
+        expectedCounts.put(SuperImpl.TIMEOUT, 1);
 
 
         assertNewMetrics(metrics, expectedCounts);
@@ -210,9 +210,9 @@ public class DefaultRunServiceTest {
         }
 
         Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(Status.SUCCESS, 1);
-        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
-        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1);
+        expectedCounts.put(SuperImpl.SUCCESS, 1);
+        expectedCounts.put(SuperImpl.CIRCUIT_OPEN, 1);
+        expectedCounts.put(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1);
 
         assertNewMetrics(service.getActionMetrics(), expectedCounts);
     }
@@ -285,21 +285,20 @@ public class DefaultRunServiceTest {
         });
     }
 
-    private void assertNewMetrics(ActionMetrics metrics, Map<Object, Integer> expectedCounts) {
+    private void assertNewMetrics(ActionMetrics<SuperImpl> metrics, Map<Object, Integer> expectedCounts) {
         int milliseconds = 5;
-        int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
-        int expectedSuccesses = expectedCounts.get(Status.SUCCESS) == null ? 0 : expectedCounts.get(Status.SUCCESS);
-        int expectedTimeouts = expectedCounts.get(Status.TIMEOUT) == null ? 0 : expectedCounts.get(Status.TIMEOUT);
-        int expectedMaxConcurrency = expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
-                expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        int expectedCircuitOpen = expectedCounts.get(RejectionReason.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get
-                (RejectionReason.CIRCUIT_OPEN);
+        int expectedErrors = expectedCounts.get(SuperImpl.ERROR) == null ? 0 : expectedCounts.get(SuperImpl.ERROR);
+        int expectedSuccesses = expectedCounts.get(SuperImpl.SUCCESS) == null ? 0 : expectedCounts.get(SuperImpl.SUCCESS);
+        int expectedTimeouts = expectedCounts.get(SuperImpl.TIMEOUT) == null ? 0 : expectedCounts.get(SuperImpl.TIMEOUT);
+        int expectedMaxConcurrency = expectedCounts.get(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
+                expectedCounts.get(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        int expectedCircuitOpen = expectedCounts.get(SuperImpl.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(SuperImpl.CIRCUIT_OPEN);
 
-        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(Metric.ERROR, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(SuperImpl.TIMEOUT, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(SuperImpl.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
     }
 }
