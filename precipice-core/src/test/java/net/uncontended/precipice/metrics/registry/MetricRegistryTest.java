@@ -16,8 +16,8 @@
 
 package net.uncontended.precipice.metrics.registry;
 
-import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Service;
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.metrics.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +75,7 @@ public class MetricRegistryTest {
         long queueFullN = random.nextInt(50);
         long allRejectedN = random.nextInt(50);
 
-        MetricCounter counter = new MetricCounter();
+        MetricCounter<SuperImpl> counter = new MetricCounter<>(SuperImpl.class);
         incrementCounts(counter, Metric.SUCCESS, successN);
         incrementCounts(counter, Metric.ERROR, errorN);
         incrementCounts(counter, Metric.TIMEOUT, timeoutN);
@@ -83,10 +83,10 @@ public class MetricRegistryTest {
         incrementCounts(counter, Metric.CIRCUIT_OPEN, circuitOpenN);
         incrementCounts(counter, Metric.QUEUE_FULL, queueFullN);
         incrementCounts(counter, Metric.ALL_SERVICES_REJECTED, allRejectedN);
-        List<MetricCounter> counters = new ArrayList<>();
+        List<MetricCounter<SuperImpl>> counters = new ArrayList<>();
         int bucketCount = random.nextInt(10);
         for (int i = 0; i < bucketCount; ++i) {
-            MetricCounter mc = new MetricCounter();
+            MetricCounter<SuperImpl> mc = new MetricCounter<>(SuperImpl.class);
             incrementCounts(mc, Metric.SUCCESS, successN);
             incrementCounts(mc, Metric.ERROR, errorN);
             incrementCounts(mc, Metric.TIMEOUT, timeoutN);
@@ -107,21 +107,21 @@ public class MetricRegistryTest {
         when(service.remainingCapacity()).thenReturn(capacityN);
         when(actionMetrics.totalCountMetricCounter()).thenReturn(counter);
         when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(counters);
-        when(latencyMetrics.intervalSnapshot(Metric.SUCCESS)).thenReturn(successLatencySnapshot);
-        when(latencyMetrics.intervalSnapshot(Metric.ERROR)).thenReturn(errorLatencySnapshot);
-        when(latencyMetrics.intervalSnapshot(Metric.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
-        when(latencyMetrics.latencySnapshot(Metric.SUCCESS)).thenReturn(totalSuccessLatencySnapshot);
-        when(latencyMetrics.latencySnapshot(Metric.ERROR)).thenReturn(totalErrorLatencySnapshot);
-        when(latencyMetrics.latencySnapshot(Metric.TIMEOUT)).thenReturn(totalTimeoutLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(SuperImpl.SUCCESS)).thenReturn(successLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(SuperImpl.ERROR)).thenReturn(errorLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(SuperImpl.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(SuperImpl.SUCCESS)).thenReturn(totalSuccessLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(SuperImpl.ERROR)).thenReturn(totalErrorLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(SuperImpl.TIMEOUT)).thenReturn(totalTimeoutLatencySnapshot);
 
         registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
 
-        final AtomicReference<Summary> summaryReference = new AtomicReference<>();
+        final AtomicReference<Summary<?>> summaryReference = new AtomicReference<>();
 
         registry.register(service);
-        registry.setUpdateCallback(new PrecipiceFunction<Map<String, Summary>>() {
+        registry.setUpdateCallback(new MetricRegistryCallback<Map<String, Summary<?>>>() {
             @Override
-            public void apply(Map<String, Summary> argument) {
+            public void apply(Map<String, Summary<?>> argument) {
                 summaryReference.compareAndSet(null, argument.get(serviceName));
                 latch.countDown();
             }
@@ -130,23 +130,12 @@ public class MetricRegistryTest {
         latch.await();
         registry.shutdown();
 
-        Summary summary = summaryReference.get();
+        Summary<?> summary = summaryReference.get();
         assertEquals(pendingN, summary.pendingCount);
         assertEquals(capacityN, summary.remainingCapacity);
-        assertEquals(successN, summary.totalSuccesses);
-        assertEquals(errorN, summary.totalErrors);
-        assertEquals(timeoutN, summary.totalTimeouts);
-        assertEquals(maxConcurrencyN, summary.totalMaxConcurrency);
-        assertEquals(queueFullN, summary.totalQueueFull);
-        assertEquals(circuitOpenN, summary.totalCircuitOpen);
-        assertEquals(allRejectedN, summary.totalAllRejected);
-        assertEquals(successN * bucketCount, summary.successes);
-        assertEquals(errorN * bucketCount, summary.errors);
-        assertEquals(timeoutN * bucketCount, summary.timeouts);
-        assertEquals(maxConcurrencyN * bucketCount, summary.maxConcurrency);
-        assertEquals(queueFullN * bucketCount, summary.queueFull);
-        assertEquals(circuitOpenN * bucketCount, summary.circuitOpen);
-        assertEquals(allRejectedN * bucketCount, summary.allRejected);
+        assertEquals(null, summary.totalMetricCounts);
+        assertEquals(errorN, summary.metricCounts);
+
         assertEquals(successLatencySnapshot, summary.successLatency);
         assertEquals(errorLatencySnapshot, summary.errorLatency);
         assertEquals(timeoutLatencySnapshot, summary.timeoutLatency);

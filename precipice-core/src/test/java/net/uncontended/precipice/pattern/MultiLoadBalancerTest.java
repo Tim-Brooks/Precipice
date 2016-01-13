@@ -17,10 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.MultiService;
-import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.RejectionReason;
-import net.uncontended.precipice.ResilientAction;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -94,7 +91,7 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitActionCalledWithCorrectArguments() throws Exception {
         long timeout = 100L;
-        PrecipicePromise<String> promise = mock(PrecipicePromise.class);
+        PrecipicePromise<SuperImpl, String> promise = mock(PrecipicePromise.class);
         when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
@@ -113,7 +110,7 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitTriedOnSecondServiceIfRejectedOnFirst() throws Exception {
         long timeout = 100L;
-        PrecipicePromise<String> promise = mock(PrecipicePromise.class);
+        PrecipicePromise<SuperImpl, String> promise = mock(PrecipicePromise.class);
         when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
@@ -139,7 +136,7 @@ public class MultiLoadBalancerTest {
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
         long timeout = 100L;
-        PrecipicePromise<String> promise = mock(PrecipicePromise.class);
+        PrecipicePromise<SuperImpl, String> promise = mock(PrecipicePromise.class);
         ArgumentCaptor<PrecipicePromise> promiseCaptor = ArgumentCaptor.forClass(PrecipicePromise.class);
 
 
@@ -147,7 +144,7 @@ public class MultiLoadBalancerTest {
 
         verify(executor1).complete(any(ResilientAction.class), promiseCaptor.capture(), eq(timeout));
 
-        promiseCaptor.getValue().completeExceptionally(new IOException());
+        promiseCaptor.getValue().completeExceptionally(SuperImpl.ERROR, new IOException());
 
         verify(metrics).incrementMetricCount(Metric.ERROR);
     }

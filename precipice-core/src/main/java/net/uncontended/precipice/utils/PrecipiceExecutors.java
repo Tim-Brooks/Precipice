@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class PrecipiceExecutors {
+public final class PrecipiceExecutors {
 
     public static ExecutorService threadPoolExecutor(String name, int poolSize, int concurrencyLevel) {
         if (concurrencyLevel > Service.MAX_CONCURRENCY_LEVEL) {

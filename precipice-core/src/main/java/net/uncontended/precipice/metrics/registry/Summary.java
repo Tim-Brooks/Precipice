@@ -75,7 +75,7 @@ public class Summary<T extends Enum<T> & SuperStatusInterface> {
 
         LatencyMetrics latencyMetrics = service.getLatencyMetrics();
 
-        if (metricType == SuperImpl.class) {
+        if (metricType.isInstance(SuperImpl.class)) {
             if (latencyMetrics instanceof IntervalLatencyMetrics) {
                 IntervalLatencyMetrics intervalMetrics = (IntervalLatencyMetrics) latencyMetrics;
                 successLatency = intervalMetrics.intervalSnapshot(SuperImpl.SUCCESS);
