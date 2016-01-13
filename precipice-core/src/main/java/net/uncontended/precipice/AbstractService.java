@@ -83,7 +83,7 @@ public abstract class AbstractService implements Service {
 
         if (!circuitBreaker.allowAction()) {
             semaphore.releasePermit();
-            return RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED;
+            return RejectionReason.CIRCUIT_OPEN;
         }
         return null;
     }

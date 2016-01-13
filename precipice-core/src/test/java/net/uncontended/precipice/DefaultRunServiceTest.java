@@ -44,12 +44,13 @@ import static org.junit.Assert.fail;
 public class DefaultRunServiceTest {
 
     private RunService service;
-    private ExecutorService actionRunner = Executors.newCachedThreadPool();
+    private final ExecutorService actionRunner = Executors.newCachedThreadPool();
 
     @Before
     public void setUp() {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(100);
+        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
         service = Services.runService("Test", properties);
     }
 
@@ -74,6 +75,7 @@ public class DefaultRunServiceTest {
     public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(2);
+        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
         service = Services.runService("Test", properties);
         final CountDownLatch latch = new CountDownLatch(1);
         final CountDownLatch startedLatch = new CountDownLatch(2);
@@ -101,6 +103,7 @@ public class DefaultRunServiceTest {
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
+        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
         service = Services.runService("Test", properties);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
@@ -170,6 +173,7 @@ public class DefaultRunServiceTest {
     public void rejectedMetricsUpdated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
+        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
         service = Services.runService("Test", properties);
         final CountDownLatch latch = new CountDownLatch(1);
         final CountDownLatch startedLatch = new CountDownLatch(1);
