@@ -31,12 +31,12 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
     private final LoadBalancerStrategy strategy;
 
     public RunLoadBalancer(Map<? extends RunService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(executorToContext, strategy, new DefaultActionMetrics<>(SuperImpl.class));
+        this(executorToContext, strategy, new DefaultActionMetrics<>(Status.class));
     }
 
     @SuppressWarnings("unchecked")
     public RunLoadBalancer(Map<? extends RunService, C> executorToContext, LoadBalancerStrategy strategy,
-                           ActionMetrics<SuperImpl> metrics) {
+                           ActionMetrics<Status> metrics) {
         super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
@@ -53,7 +53,7 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
         }
     }
 
-    public RunLoadBalancer(RunService[] services, C[] contexts, LoadBalancerStrategy strategy, ActionMetrics<SuperImpl> metrics) {
+    public RunLoadBalancer(RunService[] services, C[] contexts, LoadBalancerStrategy strategy, ActionMetrics<Status> metrics) {
         super(metrics);
         this.strategy = strategy;
         this.services = services;
@@ -72,19 +72,19 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
                 T result = services[serviceIndex].run(actionWithContext);
-                metrics.incrementMetricCount(SuperImpl.SUCCESS);
+                metrics.incrementMetricCount(Status.SUCCESS);
                 return result;
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    metrics.incrementMetricCount(SuperImpl.ALL_SERVICES_REJECTED);
+                    metrics.incrementMetricCount(Status.ALL_SERVICES_REJECTED);
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
             } catch (ActionTimeoutException e) {
-                metrics.incrementMetricCount(SuperImpl.TIMEOUT);
+                metrics.incrementMetricCount(Status.TIMEOUT);
                 throw e;
             } catch (Exception e) {
-                metrics.incrementMetricCount(SuperImpl.ERROR);
+                metrics.incrementMetricCount(Status.ERROR);
                 throw e;
             }
         }

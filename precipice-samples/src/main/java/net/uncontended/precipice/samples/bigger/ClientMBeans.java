@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.samples.bigger;
 
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.Snapshot;
@@ -32,7 +32,7 @@ public class ClientMBeans {
     private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
     private volatile Map<Object, Object> currentMetrics;
 
-    public ClientMBeans(String name, final ActionMetrics<SuperImpl> actionMetrics) {
+    public ClientMBeans(String name, final ActionMetrics<Status> actionMetrics) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
@@ -90,7 +90,7 @@ public class ClientMBeans {
 
     }
 
-    public ClientMBeans(String name, final ActionMetrics<SuperImpl> actionMetrics, final CircuitBreaker breaker) {
+    public ClientMBeans(String name, final ActionMetrics<Status> actionMetrics, final CircuitBreaker breaker) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {

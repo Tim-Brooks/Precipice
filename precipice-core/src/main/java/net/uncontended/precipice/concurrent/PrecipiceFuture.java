@@ -18,12 +18,12 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.SuperStatusInterface;
+import net.uncontended.precipice.Result;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public interface PrecipiceFuture<S extends SuperStatusInterface, T> extends Future<T> {
+public interface PrecipiceFuture<S extends Result, T> extends Future<T> {
 
     void onSuccess(PrecipiceFunction<S, T> fn);
 

@@ -37,12 +37,12 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
-    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientAction<T> action, long millisTimeout) {
+    public <T> PrecipiceFuture<Status, T> submit(ResilientAction<T> action, long millisTimeout) {
         return asyncService.submit(action, millisTimeout);
     }
 
     @Override
-    public <T> void complete(ResilientAction<T> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
+    public <T> void complete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
         asyncService.complete(action, promise, millisTimeout);
     }
 

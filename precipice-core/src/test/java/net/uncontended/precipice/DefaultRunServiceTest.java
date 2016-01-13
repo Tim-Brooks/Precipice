@@ -49,7 +49,7 @@ public class DefaultRunServiceTest {
     public void setUp() {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(100);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.runService("Test", properties);
     }
 
@@ -74,7 +74,7 @@ public class DefaultRunServiceTest {
     public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(2);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.runService("Test", properties);
         final CountDownLatch latch = new CountDownLatch(1);
         final CountDownLatch startedLatch = new CountDownLatch(2);
@@ -102,7 +102,7 @@ public class DefaultRunServiceTest {
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.runService("Test", properties);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
@@ -129,7 +129,7 @@ public class DefaultRunServiceTest {
         } catch (ActionTimeoutException e) {
         }
 
-        assertEquals(1, service.getActionMetrics().getMetricCountForTimePeriod(SuperImpl.TIMEOUT, 1, TimeUnit.HOURS));
+        assertEquals(1, service.getActionMetrics().getMetricCountForTimePeriod(Status.TIMEOUT, 1, TimeUnit.HOURS));
     }
 
     @Test
@@ -158,11 +158,11 @@ public class DefaultRunServiceTest {
         }
         service.run(TestActions.successAction(50, "Success"));
 
-        ActionMetrics<SuperImpl> metrics = service.getActionMetrics();
+        ActionMetrics<Status> metrics = service.getActionMetrics();
         Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(SuperImpl.SUCCESS, 1);
-        expectedCounts.put(SuperImpl.ERROR, 1);
-        expectedCounts.put(SuperImpl.TIMEOUT, 1);
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.ERROR, 1);
+        expectedCounts.put(Status.TIMEOUT, 1);
 
 
         assertNewMetrics(metrics, expectedCounts);
@@ -172,7 +172,7 @@ public class DefaultRunServiceTest {
     public void rejectedMetricsUpdated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.runService("Test", properties);
         final CountDownLatch latch = new CountDownLatch(1);
         final CountDownLatch startedLatch = new CountDownLatch(1);
@@ -209,9 +209,9 @@ public class DefaultRunServiceTest {
         }
 
         Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(SuperImpl.SUCCESS, 1);
-        expectedCounts.put(SuperImpl.CIRCUIT_OPEN, 1);
-        expectedCounts.put(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1);
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.CIRCUIT_OPEN, 1);
+        expectedCounts.put(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1);
 
         assertNewMetrics(service.getActionMetrics(), expectedCounts);
     }
@@ -225,7 +225,7 @@ public class DefaultRunServiceTest {
         // A hack to ensure that health is always refreshed.
         builder.healthRefreshMillis = -1;
 
-        ActionMetrics<SuperImpl> metrics = new DefaultActionMetrics<>(SuperImpl.class, 3600, 1, TimeUnit.SECONDS);
+        ActionMetrics<Status> metrics = new DefaultActionMetrics<>(Status.class, 3600, 1, TimeUnit.SECONDS);
         CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
         ServiceProperties properties = new ServiceProperties();
         properties.actionMetrics(metrics);
@@ -284,20 +284,20 @@ public class DefaultRunServiceTest {
         });
     }
 
-    private void assertNewMetrics(ActionMetrics<SuperImpl> metrics, Map<Object, Integer> expectedCounts) {
+    private void assertNewMetrics(ActionMetrics<Status> metrics, Map<Object, Integer> expectedCounts) {
         int milliseconds = 5;
-        int expectedErrors = expectedCounts.get(SuperImpl.ERROR) == null ? 0 : expectedCounts.get(SuperImpl.ERROR);
-        int expectedSuccesses = expectedCounts.get(SuperImpl.SUCCESS) == null ? 0 : expectedCounts.get(SuperImpl.SUCCESS);
-        int expectedTimeouts = expectedCounts.get(SuperImpl.TIMEOUT) == null ? 0 : expectedCounts.get(SuperImpl.TIMEOUT);
-        int expectedMaxConcurrency = expectedCounts.get(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
-                expectedCounts.get(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        int expectedCircuitOpen = expectedCounts.get(SuperImpl.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(SuperImpl.CIRCUIT_OPEN);
+        int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
+        int expectedSuccesses = expectedCounts.get(Status.SUCCESS) == null ? 0 : expectedCounts.get(Status.SUCCESS);
+        int expectedTimeouts = expectedCounts.get(Status.TIMEOUT) == null ? 0 : expectedCounts.get(Status.TIMEOUT);
+        int expectedMaxConcurrency = expectedCounts.get(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
+                expectedCounts.get(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        int expectedCircuitOpen = expectedCounts.get(Status.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(Status.CIRCUIT_OPEN);
 
-        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(SuperImpl.TIMEOUT, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(SuperImpl.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
-        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(Status.ERROR, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(Status.TIMEOUT, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(Status.SUCCESS, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Status.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(Status.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
     }
 }

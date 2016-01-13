@@ -19,7 +19,7 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.ResilientAction;
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
 /**
@@ -33,7 +33,7 @@ import net.uncontended.precipice.metrics.ActionMetrics;
  */
 public interface Pattern {
 
-    ActionMetrics<SuperImpl> getActionMetrics();
+    ActionMetrics<Status> getActionMetrics();
 
     /**
      * Attempts to shutdown all the services. Actions after this

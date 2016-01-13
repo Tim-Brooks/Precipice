@@ -17,7 +17,7 @@
 package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.Service;
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class MetricRegistryTest {
     @Mock
     private Service service;
     @Mock
-    private ActionMetrics<SuperImpl> actionMetrics;
+    private ActionMetrics<Status> actionMetrics;
 
     @Mock
     private IntervalLatencyMetrics latencyMetrics;
@@ -59,7 +59,7 @@ public class MetricRegistryTest {
         when(service.getName()).thenReturn(serviceName);
         when(service.getActionMetrics()).thenReturn(actionMetrics);
         when(service.getLatencyMetrics()).thenReturn(latencyMetrics);
-        when(actionMetrics.getMetricType()).thenReturn(SuperImpl.class);
+        when(actionMetrics.getMetricType()).thenReturn(Status.class);
     }
 
     @Test
@@ -77,25 +77,25 @@ public class MetricRegistryTest {
         long queueFullN = random.nextInt(50);
         long allRejectedN = random.nextInt(50);
 
-        MetricCounter<SuperImpl> counter = new MetricCounter<>(SuperImpl.class);
-        incrementCounts(counter, SuperImpl.SUCCESS, successN);
-        incrementCounts(counter, SuperImpl.ERROR, errorN);
-        incrementCounts(counter, SuperImpl.TIMEOUT, timeoutN);
-        incrementCounts(counter, SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
-        incrementCounts(counter, SuperImpl.CIRCUIT_OPEN, circuitOpenN);
-        incrementCounts(counter, SuperImpl.QUEUE_FULL, queueFullN);
-        incrementCounts(counter, SuperImpl.ALL_SERVICES_REJECTED, allRejectedN);
-        List<MetricCounter<SuperImpl>> counters = new ArrayList<>();
+        MetricCounter<Status> counter = new MetricCounter<>(Status.class);
+        incrementCounts(counter, Status.SUCCESS, successN);
+        incrementCounts(counter, Status.ERROR, errorN);
+        incrementCounts(counter, Status.TIMEOUT, timeoutN);
+        incrementCounts(counter, Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
+        incrementCounts(counter, Status.CIRCUIT_OPEN, circuitOpenN);
+        incrementCounts(counter, Status.QUEUE_FULL, queueFullN);
+        incrementCounts(counter, Status.ALL_SERVICES_REJECTED, allRejectedN);
+        List<MetricCounter<Status>> counters = new ArrayList<>();
         int bucketCount = random.nextInt(10);
         for (int i = 0; i < bucketCount; ++i) {
-            MetricCounter<SuperImpl> mc = new MetricCounter<>(SuperImpl.class);
-            incrementCounts(mc, SuperImpl.SUCCESS, successN);
-            incrementCounts(mc, SuperImpl.ERROR, errorN);
-            incrementCounts(mc, SuperImpl.TIMEOUT, timeoutN);
-            incrementCounts(mc, SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
-            incrementCounts(mc, SuperImpl.CIRCUIT_OPEN, circuitOpenN);
-            incrementCounts(mc, SuperImpl.QUEUE_FULL, queueFullN);
-            incrementCounts(mc, SuperImpl.ALL_SERVICES_REJECTED, allRejectedN);
+            MetricCounter<Status> mc = new MetricCounter<>(Status.class);
+            incrementCounts(mc, Status.SUCCESS, successN);
+            incrementCounts(mc, Status.ERROR, errorN);
+            incrementCounts(mc, Status.TIMEOUT, timeoutN);
+            incrementCounts(mc, Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
+            incrementCounts(mc, Status.CIRCUIT_OPEN, circuitOpenN);
+            incrementCounts(mc, Status.QUEUE_FULL, queueFullN);
+            incrementCounts(mc, Status.ALL_SERVICES_REJECTED, allRejectedN);
             counters.add(mc);
         }
         LatencySnapshot successLatencySnapshot = generateSnapshot(random);
@@ -109,12 +109,12 @@ public class MetricRegistryTest {
         when(service.remainingCapacity()).thenReturn(capacityN);
         when(actionMetrics.totalCountMetricCounter()).thenReturn(counter);
         when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(counters);
-        when(latencyMetrics.intervalSnapshot(SuperImpl.SUCCESS)).thenReturn(successLatencySnapshot);
-        when(latencyMetrics.intervalSnapshot(SuperImpl.ERROR)).thenReturn(errorLatencySnapshot);
-        when(latencyMetrics.intervalSnapshot(SuperImpl.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
-        when(latencyMetrics.latencySnapshot(SuperImpl.SUCCESS)).thenReturn(totalSuccessLatencySnapshot);
-        when(latencyMetrics.latencySnapshot(SuperImpl.ERROR)).thenReturn(totalErrorLatencySnapshot);
-        when(latencyMetrics.latencySnapshot(SuperImpl.TIMEOUT)).thenReturn(totalTimeoutLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(Status.SUCCESS)).thenReturn(successLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(Status.ERROR)).thenReturn(errorLatencySnapshot);
+        when(latencyMetrics.intervalSnapshot(Status.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(Status.SUCCESS)).thenReturn(totalSuccessLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(Status.ERROR)).thenReturn(totalErrorLatencySnapshot);
+        when(latencyMetrics.latencySnapshot(Status.TIMEOUT)).thenReturn(totalTimeoutLatencySnapshot);
 
         registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
 
@@ -154,7 +154,7 @@ public class MetricRegistryTest {
                 startTime + 10000L);
     }
 
-    private static void incrementCounts(MetricCounter<SuperImpl> counter, SuperImpl metric, long n) {
+    private static void incrementCounts(MetricCounter<Status> counter, Status metric, long n) {
         for (long i = 0; i < n; ++i) {
             counter.incrementMetric(metric);
         }

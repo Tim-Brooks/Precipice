@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class SnapshotTest {
     @Mock
     private Clock systemTime;
 
-    private DefaultActionMetrics<SuperImpl> metrics;
+    private DefaultActionMetrics<Status> metrics;
     private static final long offsetTime = 50L;
     private static final long millisResolution = 1000L;
 
@@ -49,7 +49,7 @@ public class SnapshotTest {
         int slotsTracked = 10;
 
         when(systemTime.nanoTime()).thenReturn(startTime);
-        metrics = new DefaultActionMetrics<>(SuperImpl.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultActionMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
         setupMetrics();
     }
 
@@ -106,45 +106,45 @@ public class SnapshotTest {
         long currentTime = 0;
 
         currentTime = offsetTime * 1000L * 1000L;
-        metrics.incrementMetricCount(SuperImpl.SUCCESS, currentTime);
-        metrics.incrementMetricCount(SuperImpl.ERROR, currentTime);
-        metrics.incrementMetricCount(SuperImpl.TIMEOUT, currentTime);
-        metrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
-        metrics.incrementMetricCount(SuperImpl.QUEUE_FULL, currentTime);
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
-        metrics.incrementMetricCount(SuperImpl.ALL_SERVICES_REJECTED, currentTime);
+        metrics.incrementMetricCount(Status.SUCCESS, currentTime);
+        metrics.incrementMetricCount(Status.ERROR, currentTime);
+        metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
+        metrics.incrementMetricCount(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
+        metrics.incrementMetricCount(Status.QUEUE_FULL, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.ALL_SERVICES_REJECTED, currentTime);
 
         currentTime = (offsetTime + millisResolution) * 1000L * 1000L;
-        metrics.incrementMetricCount(SuperImpl.SUCCESS, currentTime);
-        metrics.incrementMetricCount(SuperImpl.SUCCESS, currentTime);
-        metrics.incrementMetricCount(SuperImpl.ERROR, currentTime);
+        metrics.incrementMetricCount(Status.SUCCESS, currentTime);
+        metrics.incrementMetricCount(Status.SUCCESS, currentTime);
+        metrics.incrementMetricCount(Status.ERROR, currentTime);
 
         currentTime = (offsetTime + millisResolution * 2) * 1000L * 1000L;
-        metrics.incrementMetricCount(SuperImpl.SUCCESS, currentTime);
-        metrics.incrementMetricCount(SuperImpl.ERROR, currentTime);
-        metrics.incrementMetricCount(SuperImpl.TIMEOUT, currentTime);
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.SUCCESS, currentTime);
+        metrics.incrementMetricCount(Status.ERROR, currentTime);
+        metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
 
         currentTime = (offsetTime + millisResolution * 3) * 1000L * 1000L;
-        metrics.incrementMetricCount(SuperImpl.SUCCESS, currentTime);
-        metrics.incrementMetricCount(SuperImpl.ERROR, currentTime);
-        metrics.incrementMetricCount(SuperImpl.ERROR, currentTime);
-        metrics.incrementMetricCount(SuperImpl.ERROR, currentTime);
+        metrics.incrementMetricCount(Status.SUCCESS, currentTime);
+        metrics.incrementMetricCount(Status.ERROR, currentTime);
+        metrics.incrementMetricCount(Status.ERROR, currentTime);
+        metrics.incrementMetricCount(Status.ERROR, currentTime);
 
         currentTime = (offsetTime + millisResolution * 4) * 1000L * 1000L;
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
-        metrics.incrementMetricCount(SuperImpl.TIMEOUT, currentTime);
-        metrics.incrementMetricCount(SuperImpl.QUEUE_FULL, currentTime);
-        metrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
+        metrics.incrementMetricCount(Status.QUEUE_FULL, currentTime);
+        metrics.incrementMetricCount(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
 
         currentTime = (offsetTime + millisResolution * 5) * 1000L * 1000L;
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
-        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, currentTime);
-        metrics.incrementMetricCount(SuperImpl.TIMEOUT, currentTime);
-        metrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.CIRCUIT_OPEN, currentTime);
+        metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
+        metrics.incrementMetricCount(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
 
     }
 }

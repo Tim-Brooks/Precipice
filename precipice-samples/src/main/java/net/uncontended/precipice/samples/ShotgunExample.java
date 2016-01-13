@@ -19,7 +19,7 @@ package net.uncontended.precipice.samples;
 
 import net.uncontended.precipice.AsyncService;
 import net.uncontended.precipice.Services;
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
 import net.uncontended.precipice.pattern.Shotgun;
@@ -59,7 +59,7 @@ public class ShotgunExample {
 
         // Will complete the action to two of the services. If all of the services reject the action,
         // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
-        PrecipiceFuture<SuperImpl, String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
+        PrecipiceFuture<Status, String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {
                 return context.get("port");

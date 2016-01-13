@@ -18,13 +18,12 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.SuperStatusInterface;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.Result;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<S extends SuperStatusInterface, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T> {
+public class Eventual<S extends Result, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T> {
     private final PrecipicePromise<S, T> wrappedPromise;
     private volatile T result;
     private volatile Throwable throwable;

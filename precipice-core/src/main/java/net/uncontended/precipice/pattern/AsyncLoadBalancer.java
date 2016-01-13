@@ -32,16 +32,16 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
     private final AsyncService[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
-    private final PrecipiceFunction<SuperImpl, Void> metricCallback = new MetricCallback(metrics);
+    private final PrecipiceFunction<Status, Void> metricCallback = new MetricCallback(metrics);
 
 
     public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(executorToContext, strategy, new DefaultActionMetrics<>(SuperImpl.class));
+        this(executorToContext, strategy, new DefaultActionMetrics<>(Status.class));
     }
 
     @SuppressWarnings("unchecked")
     public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy,
-                             ActionMetrics<SuperImpl> metrics) {
+                             ActionMetrics<Status> metrics) {
         super(metrics);
         if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
@@ -59,7 +59,7 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
     }
 
     public AsyncLoadBalancer(AsyncService[] services, C[] contexts, LoadBalancerStrategy strategy,
-                             ActionMetrics<SuperImpl> metrics) {
+                             ActionMetrics<Status> metrics) {
         super(metrics);
         this.strategy = strategy;
         this.services = services;
@@ -67,15 +67,15 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
     }
 
     @Override
-    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        Eventual<SuperImpl, T> eventual = new Eventual<>();
+    public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+        Eventual<Status, T> eventual = new Eventual<>();
         internalComplete(action, eventual, millisTimeout);
         return eventual;
     }
 
     @Override
-    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
-        Eventual<SuperImpl, T> internalEventual = new Eventual<>(promise);
+    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
+        Eventual<Status, T> internalEventual = new Eventual<>(promise);
         internalComplete(action, internalEventual, millisTimeout);
     }
 
@@ -86,7 +86,7 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
         }
     }
 
-    private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<SuperImpl, T> eventual, long millisTimeout) {
+    private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<Status, T> eventual, long millisTimeout) {
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
@@ -104,7 +104,7 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    metrics.incrementMetricCount(SuperImpl.ALL_SERVICES_REJECTED);
+                    metrics.incrementMetricCount(Status.ALL_SERVICES_REJECTED);
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
             }

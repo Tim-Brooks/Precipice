@@ -17,12 +17,11 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.SuperStatusInterface;
+import net.uncontended.precipice.Result;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public interface ActionMetrics<T extends Enum<T> & SuperStatusInterface> {
+public interface ActionMetrics<T extends Enum<T> & Result> {
 
     void incrementMetricCount(T metric);
 

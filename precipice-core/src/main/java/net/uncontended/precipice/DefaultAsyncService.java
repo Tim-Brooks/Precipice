@@ -30,24 +30,24 @@ import java.util.concurrent.RejectedExecutionException;
 public class DefaultAsyncService extends AbstractService implements AsyncService {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
-    private final ActionMetrics<SuperImpl> actionMetrics;
+    private final ActionMetrics<Status> actionMetrics;
 
     public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(), properties.semaphore());
-        actionMetrics = (ActionMetrics<SuperImpl>) properties.actionMetrics();
+        actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
         timeoutService = properties.timeoutService();
         this.service = service;
     }
 
     @Override
-    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientAction<T> action, long millisTimeout) {
-        Eventual<SuperImpl, T> promise = new Eventual<>();
+    public <T> PrecipiceFuture<Status, T> submit(ResilientAction<T> action, long millisTimeout) {
+        Eventual<Status, T> promise = new Eventual<>();
         complete(action, promise, millisTimeout);
         return promise;
     }
 
     @Override
-    public <T> void complete(ResilientAction<T> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
+    public <T> void complete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
         RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
         if (rejectionReason != null) {
             handleRejectedReason(rejectionReason);
@@ -60,7 +60,7 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
             timeoutService.scheduleTimeout(task);
 
         } catch (RejectedExecutionException e) {
-            actionMetrics.incrementMetricCount(SuperImpl.QUEUE_FULL);
+            actionMetrics.incrementMetricCount(Status.QUEUE_FULL);
             semaphore.releasePermit();
             throw new RejectedActionException(RejectionReason.QUEUE_FULL);
         }
@@ -68,9 +68,9 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
 
     private void handleRejectedReason(RejectionReason rejectionReason) {
         if (rejectionReason == RejectionReason.CIRCUIT_OPEN) {
-            actionMetrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN);
+            actionMetrics.incrementMetricCount(Status.CIRCUIT_OPEN);
         } else if (rejectionReason == RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
-            actionMetrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            actionMetrics.incrementMetricCount(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         }
         throw new RejectedActionException(rejectionReason);
     }

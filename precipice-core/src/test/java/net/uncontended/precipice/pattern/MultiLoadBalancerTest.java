@@ -48,7 +48,7 @@ public class MultiLoadBalancerTest {
     @Mock
     private ResilientPatternAction<String, Map<String, Object>> action;
     @Mock
-    private ActionMetrics<SuperImpl> metrics;
+    private ActionMetrics<Status> metrics;
     @Captor
     private ArgumentCaptor<ResilientAction<String>> actionCaptor;
 
@@ -90,7 +90,7 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitActionCalledWithCorrectArguments() throws Exception {
         long timeout = 100L;
-        PrecipicePromise<SuperImpl, String> promise = mock(PrecipicePromise.class);
+        PrecipicePromise<Status, String> promise = mock(PrecipicePromise.class);
         when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
@@ -109,7 +109,7 @@ public class MultiLoadBalancerTest {
     @Test
     public void submitTriedOnSecondServiceIfRejectedOnFirst() throws Exception {
         long timeout = 100L;
-        PrecipicePromise<SuperImpl, String> promise = mock(PrecipicePromise.class);
+        PrecipicePromise<Status, String> promise = mock(PrecipicePromise.class);
         when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
@@ -135,7 +135,7 @@ public class MultiLoadBalancerTest {
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForSubmit() throws Exception {
         long timeout = 100L;
-        PrecipicePromise<SuperImpl, String> promise = mock(PrecipicePromise.class);
+        PrecipicePromise<Status, String> promise = mock(PrecipicePromise.class);
         ArgumentCaptor<PrecipicePromise> promiseCaptor = ArgumentCaptor.forClass(PrecipicePromise.class);
 
 
@@ -143,16 +143,16 @@ public class MultiLoadBalancerTest {
 
         verify(executor1).complete(any(ResilientAction.class), promiseCaptor.capture(), eq(timeout));
 
-        promiseCaptor.getValue().completeExceptionally(SuperImpl.ERROR, new IOException());
+        promiseCaptor.getValue().completeExceptionally(Status.ERROR, new IOException());
 
-        verify(metrics).incrementMetricCount(SuperImpl.ERROR);
+        verify(metrics).incrementMetricCount(Status.ERROR);
     }
 
     @Test
     public void callbackUpdatesMetricsAndCallsUserCallbackForRun() throws Exception {
         when(strategy.nextExecutorIndex()).thenReturn(0);
         balancer.run(action);
-        verify(metrics).incrementMetricCount(SuperImpl.SUCCESS);
+        verify(metrics).incrementMetricCount(Status.SUCCESS);
 
         try {
             when(strategy.nextExecutorIndex()).thenReturn(0);
@@ -160,7 +160,7 @@ public class MultiLoadBalancerTest {
             balancer.run(action);
         } catch (Exception e) {
         }
-        verify(metrics).incrementMetricCount(SuperImpl.ERROR);
+        verify(metrics).incrementMetricCount(Status.ERROR);
 
         try {
             when(strategy.nextExecutorIndex()).thenReturn(1);
@@ -168,7 +168,7 @@ public class MultiLoadBalancerTest {
             balancer.run(action);
         } catch (ActionTimeoutException e) {
         }
-        verify(metrics).incrementMetricCount(SuperImpl.TIMEOUT);
+        verify(metrics).incrementMetricCount(Status.TIMEOUT);
     }
 
     @Test
@@ -186,7 +186,7 @@ public class MultiLoadBalancerTest {
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);
         }
-        verify(metrics).incrementMetricCount(SuperImpl.ALL_SERVICES_REJECTED);
+        verify(metrics).incrementMetricCount(Status.ALL_SERVICES_REJECTED);
     }
 
     // TODO: Add tests for other submission methods

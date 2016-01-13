@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.circuit;
 
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.time.Clock;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 public class DefaultCircuitBreakerTest {
 
     @Mock
-    private ActionMetrics<SuperImpl> actionMetrics;
+    private ActionMetrics<Status> actionMetrics;
     @Mock
     private Clock systemTime;
 

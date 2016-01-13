@@ -19,19 +19,19 @@
 package net.uncontended.precipice.utils;
 
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
-public class MetricCallback implements PrecipiceFunction<SuperImpl, Void> {
+public class MetricCallback implements PrecipiceFunction<Status, Void> {
 
-    private final ActionMetrics<SuperImpl> metrics;
+    private final ActionMetrics<Status> metrics;
 
-    public MetricCallback(ActionMetrics<SuperImpl> metrics) {
+    public MetricCallback(ActionMetrics<Status> metrics) {
         this.metrics = metrics;
     }
 
     @Override
-    public void apply(SuperImpl status, Void argument) {
+    public void apply(Status status, Void argument) {
         metrics.incrementMetricCount(status);
     }
 }

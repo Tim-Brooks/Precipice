@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.SuperStatusInterface;
+import net.uncontended.precipice.Result;
 
-public interface PrecipicePromise<S extends SuperStatusInterface, T> {
+public interface PrecipicePromise<S extends Result, T> {
 
     boolean complete(S status, T result);
 

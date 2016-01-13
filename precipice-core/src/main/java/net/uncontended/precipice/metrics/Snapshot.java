@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.SuperStatusInterface;
+import net.uncontended.precipice.Result;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,8 +59,8 @@ public final class Snapshot {
 
     private Snapshot() {}
 
-    public static <T extends Enum<T> & SuperStatusInterface> Map<Object, Object> generate(MetricCounter<T> totalCounter,
-                                                                                          Iterable<MetricCounter<T>> slots) {
+    public static <T extends Enum<T> & Result> Map<Object, Object> generate(MetricCounter<T> totalCounter,
+                                                                            Iterable<MetricCounter<T>> slots) {
 
         long total = 0;
         long successes = 0;
@@ -182,8 +182,8 @@ public final class Snapshot {
         return metricsMap;
     }
 
-    private static <T extends Enum<T> & SuperStatusInterface> void putTotalCounts(MetricCounter<T> totalCounter,
-                                                                                  Map<Object, Object> metricsMap) {
+    private static <T extends Enum<T> & Result> void putTotalCounts(MetricCounter<T> totalCounter,
+                                                                    Map<Object, Object> metricsMap) {
 //        long totalSuccesses = totalCounter.getMetricCount(Metric.SUCCESS);
 //        long totalTimeouts = totalCounter.getMetricCount(Metric.TIMEOUT);
 //        long totalErrors = totalCounter.getMetricCount(Metric.ERROR);

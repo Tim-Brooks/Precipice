@@ -17,14 +17,13 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.SuperStatusInterface;
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultActionMetrics<T extends Enum<T> & SuperStatusInterface> implements ActionMetrics<T> {
+public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionMetrics<T> {
 
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;

@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice;
 
-public enum SuperImpl implements SuperStatusInterface {
+public enum Status implements Result {
     SUCCESS(false, false, true),
     ERROR(true, false, true),
     TIMEOUT(true, false, true),
@@ -32,11 +32,11 @@ public enum SuperImpl implements SuperStatusInterface {
     private final boolean isRejected;
     private final boolean trackLatency;
 
-    SuperImpl(boolean isFailed, boolean isRejected) {
+    Status(boolean isFailed, boolean isRejected) {
         this(isFailed, isRejected, false);
     }
 
-    SuperImpl(boolean isFailed, boolean isRejected, boolean trackLatency) {
+    Status(boolean isFailed, boolean isRejected, boolean trackLatency) {
         this.isFailed = isFailed;
         this.isRejected = isRejected;
         this.trackLatency = trackLatency;

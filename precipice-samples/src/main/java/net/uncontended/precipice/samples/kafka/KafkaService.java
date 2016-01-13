@@ -32,29 +32,29 @@ import org.apache.kafka.common.errors.TimeoutException;
 public class KafkaService<K, V> extends AbstractService implements AsyncService {
 
     private final KafkaProducer<K, V> producer;
-    private final ActionMetrics<SuperImpl> actionMetrics;
+    private final ActionMetrics<Status> actionMetrics;
 
     public KafkaService(String name, ServiceProperties properties, KafkaProducer<K, V> producer) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
         this.producer = producer;
-        actionMetrics = (ActionMetrics<SuperImpl>) properties.actionMetrics();
+        actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
     }
 
-    public PrecipiceFuture<SuperImpl, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
+    public PrecipiceFuture<Status, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
         KafkaAction<RecordMetadata, K, V> action = new RecordMetadataAction<>(record);
         return submit(action, -1);
     }
 
     @Override
-    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientAction<T> action, long millisTimeout) {
-        final Eventual<SuperImpl, T> eventual = new Eventual<>();
+    public <T> PrecipiceFuture<Status, T> submit(ResilientAction<T> action, long millisTimeout) {
+        final Eventual<Status, T> eventual = new Eventual<>();
         complete(action, eventual, millisTimeout);
         return eventual;
     }
 
     @Override
-    public <T> void complete(ResilientAction<T> action, final PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
+    public <T> void complete(ResilientAction<T> action, final PrecipicePromise<Status, T> promise, long millisTimeout) {
         acquirePermitOrGetRejectedReason();
 
         final KafkaAction<T, K, V> kafkaAction = (KafkaAction<T, K, V>) action;
@@ -76,29 +76,29 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
         producer.close();
     }
 
-    private <T> void handleResult(PrecipicePromise<SuperImpl, T> promise, KafkaAction<T, K, V> kafkaAction,
+    private <T> void handleResult(PrecipicePromise<Status, T> promise, KafkaAction<T, K, V> kafkaAction,
                                   RecordMetadata metadata, Exception exception) {
         if (exception == null) {
             kafkaAction.setRecordMetadata(metadata);
 
             try {
                 T result = kafkaAction.run();
-                actionMetrics.incrementMetricCount(SuperImpl.SUCCESS);
-                promise.complete(SuperImpl.SUCCESS, result);
+                actionMetrics.incrementMetricCount(Status.SUCCESS);
+                promise.complete(Status.SUCCESS, result);
             } catch (ActionTimeoutException e) {
-                actionMetrics.incrementMetricCount(SuperImpl.TIMEOUT);
-                promise.completeExceptionally(SuperImpl.TIMEOUT, e);
+                actionMetrics.incrementMetricCount(Status.TIMEOUT);
+                promise.completeExceptionally(Status.TIMEOUT, e);
             } catch (Exception e) {
-                actionMetrics.incrementMetricCount(SuperImpl.ERROR);
-                promise.completeExceptionally(SuperImpl.ERROR, e);
+                actionMetrics.incrementMetricCount(Status.ERROR);
+                promise.completeExceptionally(Status.ERROR, e);
             }
         } else {
             if (exception instanceof TimeoutException) {
-                actionMetrics.incrementMetricCount(SuperImpl.TIMEOUT);
-                promise.completeExceptionally(SuperImpl.ERROR, exception);
+                actionMetrics.incrementMetricCount(Status.TIMEOUT);
+                promise.completeExceptionally(Status.ERROR, exception);
             } else {
-                actionMetrics.incrementMetricCount(SuperImpl.ERROR);
-                promise.completeExceptionally(SuperImpl.ERROR, exception);
+                actionMetrics.incrementMetricCount(Status.ERROR);
+                promise.completeExceptionally(Status.ERROR, exception);
             }
         }
     }

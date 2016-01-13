@@ -68,7 +68,7 @@ public class Compliancy {
         service = Services.defaultService("Test", 1, properties);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
-            PrecipiceFuture<SuperImpl, String> future = service.submit(TestActions.successAction(1), 500);
+            PrecipiceFuture<Status, String> future = service.submit(TestActions.successAction(1), 500);
             future.get();
             int j = 0;
             while (true) {

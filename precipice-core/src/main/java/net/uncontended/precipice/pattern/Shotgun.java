@@ -19,7 +19,7 @@ package net.uncontended.precipice.pattern;
 import net.uncontended.precipice.AsyncService;
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.RejectionReason;
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -39,7 +39,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
 
     @SuppressWarnings("unchecked")
     public Shotgun(Map<AsyncService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
-        super(new DefaultActionMetrics(SuperImpl.class));
+        super(new DefaultActionMetrics(Status.class));
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
         } else if (submissionCount > executorToContext.size()) {
@@ -60,8 +60,8 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
     }
 
     @Override
-    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        Eventual<SuperImpl, T> promise = new Eventual<>();
+    public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+        Eventual<Status, T> promise = new Eventual<>();
         final int[] servicesToTry = strategy.executorIndices();
 
         int submittedCount = 0;
@@ -85,7 +85,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
     }
 
     @Override
-    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
+    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
 
     }
 

@@ -45,7 +45,7 @@ public class Client {
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
 
-        loadBalancer = LoadBalancers.asyncRoundRobin(services, new DefaultActionMetrics<>(SuperImpl.class, 20, 500,
+        loadBalancer = LoadBalancers.asyncRoundRobin(services, new DefaultActionMetrics<>(Status.class, 20, 500,
                 TimeUnit.MILLISECONDS));
 
         clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.getActionMetrics()));
@@ -56,9 +56,9 @@ public class Client {
             Thread.sleep(20);
 
             try {
-                PrecipiceFuture<SuperImpl, String> f = loadBalancer.submit(new Action(), 20L);
+                PrecipiceFuture<Status, String> f = loadBalancer.submit(new Action(), 20L);
                 String result = f.get();
-                SuperImpl status = f.getStatus();
+                Status status = f.getStatus();
 
 
                 System.out.println(result);
@@ -80,7 +80,7 @@ public class Client {
         BreakerConfigBuilder builder = new BreakerConfigBuilder()
                 .backOffTimeMillis(2000)
                 .trailingPeriodMillis(3000);
-        DefaultActionMetrics<SuperImpl> actionMetrics = new DefaultActionMetrics<>(SuperImpl.class, 20, 500, TimeUnit.MILLISECONDS);
+        DefaultActionMetrics<Status> actionMetrics = new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS);
         DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
         ServiceProperties properties = new ServiceProperties();
         properties.actionMetrics(actionMetrics);

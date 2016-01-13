@@ -17,13 +17,13 @@
 package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.Service;
-import net.uncontended.precipice.SuperImpl;
-import net.uncontended.precipice.SuperStatusInterface;
+import net.uncontended.precipice.Status;
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.metrics.*;
 
 import java.util.concurrent.TimeUnit;
 
-public class Summary<T extends Enum<T> & SuperStatusInterface> {
+public class Summary<T extends Enum<T> & Result> {
     private final long period;
     private final TimeUnit unit;
     private final ActionMetrics<T> actionMetrics;
@@ -75,17 +75,17 @@ public class Summary<T extends Enum<T> & SuperStatusInterface> {
 
         LatencyMetrics latencyMetrics = service.getLatencyMetrics();
 
-        if (metricType.isInstance(SuperImpl.class)) {
+        if (metricType.isInstance(Status.class)) {
             if (latencyMetrics instanceof IntervalLatencyMetrics) {
                 IntervalLatencyMetrics intervalMetrics = (IntervalLatencyMetrics) latencyMetrics;
-                successLatency = intervalMetrics.intervalSnapshot(SuperImpl.SUCCESS);
-                errorLatency = intervalMetrics.intervalSnapshot(SuperImpl.ERROR);
-                timeoutLatency = intervalMetrics.intervalSnapshot(SuperImpl.TIMEOUT);
+                successLatency = intervalMetrics.intervalSnapshot(Status.SUCCESS);
+                errorLatency = intervalMetrics.intervalSnapshot(Status.ERROR);
+                timeoutLatency = intervalMetrics.intervalSnapshot(Status.TIMEOUT);
             }
 
-            totalSuccessLatency = latencyMetrics.latencySnapshot(SuperImpl.SUCCESS);
-            totalErrorLatency = latencyMetrics.latencySnapshot(SuperImpl.ERROR);
-            totalTimeoutLatency = latencyMetrics.latencySnapshot(SuperImpl.TIMEOUT);
+            totalSuccessLatency = latencyMetrics.latencySnapshot(Status.SUCCESS);
+            totalErrorLatency = latencyMetrics.latencySnapshot(Status.ERROR);
+            totalTimeoutLatency = latencyMetrics.latencySnapshot(Status.TIMEOUT);
         }
     }
 }

@@ -50,7 +50,7 @@ public class DefaultServiceTest {
     public void setUp() {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(100);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.defaultService("Test", 1, properties);
     }
 
@@ -75,7 +75,7 @@ public class DefaultServiceTest {
     public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(2);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.defaultService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
         service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
@@ -100,11 +100,11 @@ public class DefaultServiceTest {
     public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.defaultService("Test", 1, properties);
         int iterations = new Random().nextInt(50);
         for (int i = 0; i < iterations; ++i) {
-            PrecipiceFuture<SuperImpl, String> future = service.submit(TestActions.successAction(1), 500);
+            PrecipiceFuture<Status, String> future = service.submit(TestActions.successAction(1), 500);
             future.get();
             int j = 0;
             while (true) {
@@ -124,20 +124,20 @@ public class DefaultServiceTest {
 
     @Test
     public void actionIsSubmittedAndRan() throws Exception {
-        PrecipiceFuture<SuperImpl, String> f = service.submit(TestActions.successAction(1), 500);
+        PrecipiceFuture<Status, String> f = service.submit(TestActions.successAction(1), 500);
 
         assertEquals("Success", f.get());
-        assertEquals(SuperImpl.SUCCESS, f.getStatus());
+        assertEquals(Status.SUCCESS, f.getStatus());
     }
 
     @Test
     public void futureIsPendingUntilSubmittedActionFinished() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipiceFuture<SuperImpl, String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        PrecipiceFuture<Status, String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
         assertNull(f.getStatus());
         latch.countDown();
         f.get();
-        assertEquals(SuperImpl.SUCCESS, f.getStatus());
+        assertEquals(Status.SUCCESS, f.getStatus());
     }
 
     @Test
@@ -148,7 +148,7 @@ public class DefaultServiceTest {
 
     @Test
     public void promisePassedToServiceWillBeCompleted() throws Exception {
-        PrecipicePromise<SuperImpl, String> promise = new Eventual<>();
+        PrecipicePromise<Status, String> promise = new Eventual<>();
         service.complete(TestActions.successAction(50, "Same Promise"), promise, Long.MAX_VALUE);
 
         assertEquals("Same Promise", promise.future().get());
@@ -157,11 +157,11 @@ public class DefaultServiceTest {
     @Test
     public void promiseWillNotBeCompletedTwice() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipicePromise<SuperImpl, String> promise = new Eventual<>();
+        PrecipicePromise<Status, String> promise = new Eventual<>();
 
         service.complete(TestActions.blockedAction(latch), promise, Long.MAX_VALUE);
 
-        promise.complete(SuperImpl.SUCCESS, "CompleteOnThisThread");
+        promise.complete(Status.SUCCESS, "CompleteOnThisThread");
         latch.countDown();
 
         for (int i = 0; i < 10; ++i) {
@@ -173,7 +173,7 @@ public class DefaultServiceTest {
     @Test
     public void submittedActionWillTimeout() throws Exception {
         CountDownLatch blockingLatch = new CountDownLatch(1);
-        PrecipiceFuture<SuperImpl, String> future = service.submit(TestActions.blockedAction(blockingLatch), 1);
+        PrecipiceFuture<Status, String> future = service.submit(TestActions.blockedAction(blockingLatch), 1);
 
         try {
             future.get();
@@ -184,13 +184,13 @@ public class DefaultServiceTest {
             blockingLatch.countDown();
         }
 
-        assertEquals(SuperImpl.TIMEOUT, future.getStatus());
+        assertEquals(Status.TIMEOUT, future.getStatus());
     }
 
     @Test
     public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
         ActionTimeoutException exception = new ActionTimeoutException();
-        PrecipiceFuture<SuperImpl, String> future = service.submit(TestActions.erredAction(exception), 100);
+        PrecipiceFuture<Status, String> future = service.submit(TestActions.erredAction(exception), 100);
 
         try {
             future.get();
@@ -198,13 +198,13 @@ public class DefaultServiceTest {
         } catch (ExecutionException e) {
             assertTrue(e.getCause() instanceof ActionTimeoutException);
         }
-        assertEquals(SuperImpl.TIMEOUT, future.getStatus());
+        assertEquals(Status.TIMEOUT, future.getStatus());
     }
 
     @Test
     public void erredActionWillReturnException() {
         RuntimeException exception = new RuntimeException();
-        PrecipiceFuture<SuperImpl, String> future = service.submit(TestActions.erredAction(exception), 100);
+        PrecipiceFuture<Status, String> future = service.submit(TestActions.erredAction(exception), 100);
 
         try {
             future.get();
@@ -214,7 +214,7 @@ public class DefaultServiceTest {
         } catch (ExecutionException e) {
             assertEquals(exception, e.getCause());
         }
-        assertEquals(SuperImpl.ERROR, future.getStatus());
+        assertEquals(Status.ERROR, future.getStatus());
     }
 
     @Test
@@ -228,29 +228,29 @@ public class DefaultServiceTest {
         final CountDownLatch callbackLatch = new CountDownLatch(3);
 
         IOException exception = new IOException();
-        PrecipiceFuture<SuperImpl, String> errorF = service.submit(TestActions.erredAction(exception), 100);
-        errorF.onError(new PrecipiceFunction<SuperImpl, Throwable>() {
+        PrecipiceFuture<Status, String> errorF = service.submit(TestActions.erredAction(exception), 100);
+        errorF.onError(new PrecipiceFunction<Status, Throwable>() {
             @Override
-            public void apply(SuperImpl status, Throwable argument) {
+            public void apply(Status status, Throwable argument) {
                 error.set(argument);
                 callbackLatch.countDown();
             }
         });
 
-        PrecipiceFuture<SuperImpl, String> timeOutF = service.submit(TestActions.blockedAction(blockingLatch), 1);
-        timeOutF.onError(new PrecipiceFunction<SuperImpl, Throwable>() {
+        PrecipiceFuture<Status, String> timeOutF = service.submit(TestActions.blockedAction(blockingLatch), 1);
+        timeOutF.onError(new PrecipiceFunction<Status, Throwable>() {
             @Override
-            public void apply(SuperImpl status, Throwable argument) {
+            public void apply(Status status, Throwable argument) {
                 isTimedOut.set(true);
                 callbackLatch.countDown();
             }
         });
 
         String resultString = "Success";
-        final PrecipiceFuture<SuperImpl, String> successF = service.submit(TestActions.successAction(50, resultString), Long.MAX_VALUE);
-        successF.onSuccess(new PrecipiceFunction<SuperImpl, String>() {
+        final PrecipiceFuture<Status, String> successF = service.submit(TestActions.successAction(50, resultString), Long.MAX_VALUE);
+        successF.onSuccess(new PrecipiceFunction<Status, String>() {
             @Override
-            public void apply(SuperImpl status, String argument) {
+            public void apply(Status status, String argument) {
                 result.set(argument);
                 callbackLatch.countDown();
             }
@@ -269,18 +269,18 @@ public class DefaultServiceTest {
         CountDownLatch timeoutLatch = new CountDownLatch(1);
         CountDownLatch blockingLatch = new CountDownLatch(3);
 
-        PrecipiceFuture<SuperImpl, String> errorF = service.submit(TestActions.erredAction(new IOException()), 100);
-        PrecipiceFunction<SuperImpl, Throwable> callback = TestCallbacks.latchedCallback(blockingLatch);
+        PrecipiceFuture<Status, String> errorF = service.submit(TestActions.erredAction(new IOException()), 100);
+        PrecipiceFunction<Status, Throwable> callback = TestCallbacks.latchedCallback(blockingLatch);
         errorF.onError(callback);
-        PrecipiceFuture<SuperImpl, String> timeOutF = service.submit(TestActions.blockedAction(timeoutLatch), 1);
-        PrecipiceFunction<SuperImpl, Throwable> callback2 = TestCallbacks.latchedCallback(blockingLatch);
+        PrecipiceFuture<Status, String> timeOutF = service.submit(TestActions.blockedAction(timeoutLatch), 1);
+        PrecipiceFunction<Status, Throwable> callback2 = TestCallbacks.latchedCallback(blockingLatch);
         timeOutF.onError(callback2);
 
-        PrecipiceFuture<SuperImpl, String> successF = service.submit(TestActions.successAction(50, "Success"), Long.MAX_VALUE);
-        PrecipiceFunction<SuperImpl, String> callback3 = TestCallbacks.latchedCallback(blockingLatch);
+        PrecipiceFuture<Status, String> successF = service.submit(TestActions.successAction(50, "Success"), Long.MAX_VALUE);
+        PrecipiceFunction<Status, String> callback3 = TestCallbacks.latchedCallback(blockingLatch);
         successF.onSuccess(callback3);
 
-        for (PrecipiceFuture<SuperImpl, String> f : Arrays.asList(errorF, timeOutF, successF)) {
+        for (PrecipiceFuture<Status, String> f : Arrays.asList(errorF, timeOutF, successF)) {
             try {
                 f.get();
                 f.get();
@@ -289,11 +289,11 @@ public class DefaultServiceTest {
             }
         }
 
-        ActionMetrics<SuperImpl> metrics = service.getActionMetrics();
+        ActionMetrics<Status> metrics = service.getActionMetrics();
         Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(SuperImpl.SUCCESS, 1);
-        expectedCounts.put(SuperImpl.ERROR, 1);
-        expectedCounts.put(SuperImpl.TIMEOUT, 1);
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.ERROR, 1);
+        expectedCounts.put(Status.TIMEOUT, 1);
 
         blockingLatch.await();
 
@@ -304,13 +304,13 @@ public class DefaultServiceTest {
     public void rejectedMetricsUpdated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.defaultService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
         CountDownLatch blockingLatch = new CountDownLatch(1);
-        PrecipiceFunction<SuperImpl, String> callback = TestCallbacks.latchedCallback(blockingLatch);
+        PrecipiceFunction<Status, String> callback = TestCallbacks.latchedCallback(blockingLatch);
 
-        PrecipiceFuture<SuperImpl, String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        PrecipiceFuture<Status, String> f = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
         f.onSuccess(callback);
 
         try {
@@ -341,9 +341,9 @@ public class DefaultServiceTest {
         }
 
         Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(SuperImpl.SUCCESS, 1);
-        expectedCounts.put(SuperImpl.CIRCUIT_OPEN, 1);
-        expectedCounts.put(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.CIRCUIT_OPEN, 1);
+        expectedCounts.put(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
 
         assertNewMetrics(service.getActionMetrics(), expectedCounts);
     }
@@ -351,20 +351,20 @@ public class DefaultServiceTest {
     @Test
     public void metricsUpdatedEvenIfPromiseAlreadyCompleted() throws Exception {
         CountDownLatch timeoutLatch = new CountDownLatch(1);
-        PrecipicePromise<SuperImpl, String> errP = new Eventual<>();
-        PrecipicePromise<SuperImpl, String> timeoutP = new Eventual<>();
-        PrecipicePromise<SuperImpl, String> successP = new Eventual<>();
-        errP.complete(SuperImpl.ERROR, "Done");
-        timeoutP.complete(SuperImpl.TIMEOUT, "Done");
-        successP.complete(SuperImpl.SUCCESS, "Done");
+        PrecipicePromise<Status, String> errP = new Eventual<>();
+        PrecipicePromise<Status, String> timeoutP = new Eventual<>();
+        PrecipicePromise<Status, String> successP = new Eventual<>();
+        errP.complete(Status.ERROR, "Done");
+        timeoutP.complete(Status.TIMEOUT, "Done");
+        successP.complete(Status.SUCCESS, "Done");
 
         service.complete(TestActions.erredAction(new IOException()), errP, 100);
         service.complete(TestActions.successAction(50, "Success"), successP, Long.MAX_VALUE);
         service.complete(TestActions.blockedAction(timeoutLatch), timeoutP, 1);
 
-        ActionMetrics<SuperImpl> metrics = service.getActionMetrics();
+        ActionMetrics<Status> metrics = service.getActionMetrics();
         for (int i = 0; i <= 20; ++i) {
-            if (metrics.getMetricCountForTimePeriod(SuperImpl.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
+            if (metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
                 break;
             } else {
                 if (i == 20) {
@@ -378,9 +378,9 @@ public class DefaultServiceTest {
         timeoutLatch.countDown();
 
         Map<Object, Integer> expectedCounts = new HashMap<>();
-        expectedCounts.put(SuperImpl.SUCCESS, 1);
-        expectedCounts.put(SuperImpl.ERROR, 1);
-        expectedCounts.put(SuperImpl.TIMEOUT, 1);
+        expectedCounts.put(Status.SUCCESS, 1);
+        expectedCounts.put(Status.ERROR, 1);
+        expectedCounts.put(Status.TIMEOUT, 1);
 
         assertNewMetrics(metrics, expectedCounts);
     }
@@ -389,11 +389,11 @@ public class DefaultServiceTest {
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(1);
-        properties.actionMetrics(new DefaultActionMetrics<SuperImpl>(SuperImpl.class));
+        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
         service = Services.defaultService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
 
-        PrecipiceFuture<SuperImpl, String> future = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
+        PrecipiceFuture<Status, String> future = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
         future.onSuccess(TestCallbacks.exceptionCallback(""));
         latch.countDown();
 
@@ -421,7 +421,7 @@ public class DefaultServiceTest {
         // A hack to ensure that health is always refreshed.
         builder.healthRefreshMillis = -1;
 
-        ActionMetrics<SuperImpl> metrics = new DefaultActionMetrics<>(SuperImpl.class, 3600, 1, TimeUnit.SECONDS);
+        ActionMetrics<Status> metrics = new DefaultActionMetrics<>(Status.class, 3600, 1, TimeUnit.SECONDS);
         CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
         ServiceProperties properties = new ServiceProperties();
         properties.actionMetrics(metrics);
@@ -429,12 +429,12 @@ public class DefaultServiceTest {
         properties.concurrencyLevel(100);
         service = Services.defaultService("Test", 1, properties);
 
-        List<PrecipiceFuture<SuperImpl, String>> fs = new ArrayList<>();
+        List<PrecipiceFuture<Status, String>> fs = new ArrayList<>();
         for (int i = 0; i < 6; ++i) {
             fs.add(service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
         }
 
-        for (PrecipiceFuture<SuperImpl, String> f : fs) {
+        for (PrecipiceFuture<Status, String> f : fs) {
             try {
                 f.get();
             } catch (ExecutionException e) {
@@ -452,10 +452,10 @@ public class DefaultServiceTest {
 
         Thread.sleep(150);
 
-        PrecipiceFuture<SuperImpl, String> f = service.submit(TestActions.successAction(0, "Result"), 100);
+        PrecipiceFuture<Status, String> f = service.submit(TestActions.successAction(0, "Result"), 100);
         assertEquals("Result", f.get());
 
-        PrecipiceFuture<SuperImpl, String> fe = service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
+        PrecipiceFuture<Status, String> fe = service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
         try {
             fe.get();
         } catch (ExecutionException e) {
@@ -471,20 +471,20 @@ public class DefaultServiceTest {
         }
     }
 
-    private static void assertNewMetrics(ActionMetrics<SuperImpl> metrics, Map<Object, Integer> expectedCounts) {
+    private static void assertNewMetrics(ActionMetrics<Status> metrics, Map<Object, Integer> expectedCounts) {
         int milliseconds = 5;
-        int expectedErrors = expectedCounts.get(SuperImpl.ERROR) == null ? 0 : expectedCounts.get(SuperImpl.ERROR);
-        int expectedSuccesses = expectedCounts.get(SuperImpl.SUCCESS) == null ? 0 : expectedCounts.get(SuperImpl.SUCCESS);
-        int expectedTimeouts = expectedCounts.get(SuperImpl.TIMEOUT) == null ? 0 : expectedCounts.get(SuperImpl.TIMEOUT);
-        int expectedMaxConcurrency = expectedCounts.get(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
-                expectedCounts.get(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        int expectedCircuitOpen = expectedCounts.get(SuperImpl.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(SuperImpl.CIRCUIT_OPEN);
+        int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
+        int expectedSuccesses = expectedCounts.get(Status.SUCCESS) == null ? 0 : expectedCounts.get(Status.SUCCESS);
+        int expectedTimeouts = expectedCounts.get(Status.TIMEOUT) == null ? 0 : expectedCounts.get(Status.TIMEOUT);
+        int expectedMaxConcurrency = expectedCounts.get(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
+                expectedCounts.get(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        int expectedCircuitOpen = expectedCounts.get(Status.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(Status.CIRCUIT_OPEN);
 
-        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(SuperImpl.TIMEOUT, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(SuperImpl.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
-        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(Status.ERROR, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(Status.TIMEOUT, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(Status.SUCCESS, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Status.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(Status.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
     }
 }

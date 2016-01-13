@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice;
 
-public interface SuperStatusInterface {
+public interface Result {
 
     boolean isRejected();
 

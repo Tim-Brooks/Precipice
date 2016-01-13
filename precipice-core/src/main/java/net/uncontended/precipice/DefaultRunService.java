@@ -22,12 +22,12 @@ import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 public class DefaultRunService extends AbstractService implements RunService {
 
-    private final ActionMetrics<SuperImpl> actionMetrics;
+    private final ActionMetrics<Status> actionMetrics;
 
     public DefaultRunService(String name, ServiceProperties properties) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
-        actionMetrics = (ActionMetrics<SuperImpl>) properties.actionMetrics();
+        actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
     }
 
     @Override
@@ -39,13 +39,13 @@ public class DefaultRunService extends AbstractService implements RunService {
         long nanoStart = System.nanoTime();
         try {
             T result = action.run();
-            metricsAndBreakerFeedback(nanoStart, SuperImpl.SUCCESS);
+            metricsAndBreakerFeedback(nanoStart, Status.SUCCESS);
             return result;
         } catch (ActionTimeoutException e) {
-            metricsAndBreakerFeedback(nanoStart, SuperImpl.TIMEOUT);
+            metricsAndBreakerFeedback(nanoStart, Status.TIMEOUT);
             throw e;
         } catch (Exception e) {
-            metricsAndBreakerFeedback(nanoStart, SuperImpl.ERROR);
+            metricsAndBreakerFeedback(nanoStart, Status.ERROR);
             throw e;
         } finally {
             semaphore.releasePermit();
@@ -60,17 +60,17 @@ public class DefaultRunService extends AbstractService implements RunService {
 
     private void handleRejectedReason(RejectionReason rejectionReason) {
         if (rejectionReason == RejectionReason.CIRCUIT_OPEN) {
-            actionMetrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN);
+            actionMetrics.incrementMetricCount(Status.CIRCUIT_OPEN);
         } else if (rejectionReason == RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
-            actionMetrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            actionMetrics.incrementMetricCount(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         }
         throw new RejectedActionException(rejectionReason);
     }
 
-    private void metricsAndBreakerFeedback(long nanoStart, SuperImpl status) {
+    private void metricsAndBreakerFeedback(long nanoStart, Status status) {
         long nanoTime = System.nanoTime();
         actionMetrics.incrementMetricCount(status, nanoTime);
-        circuitBreaker.informBreakerOfResult(status == SuperImpl.SUCCESS, nanoTime);
+        circuitBreaker.informBreakerOfResult(status == Status.SUCCESS, nanoTime);
         long latency = nanoTime - nanoStart;
         latencyMetrics.recordLatency(status, latency, nanoTime);
     }

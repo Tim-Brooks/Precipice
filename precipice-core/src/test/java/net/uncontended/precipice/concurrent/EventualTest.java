@@ -18,11 +18,10 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,26 +36,26 @@ public class EventualTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
-        Eventual<SuperImpl, String> eventual = new Eventual<>();
+        Eventual<Status, String> eventual = new Eventual<>();
 
 
         IOException exception = new IOException();
-        eventual.onError(new PrecipiceFunction<SuperImpl, Throwable>() {
+        eventual.onError(new PrecipiceFunction<Status, Throwable>() {
             @Override
-            public void apply(SuperImpl status, Throwable argument) {
+            public void apply(Status status, Throwable argument) {
                 error.set(argument);
             }
         });
 
-        eventual.onSuccess(new PrecipiceFunction<SuperImpl, String>() {
+        eventual.onSuccess(new PrecipiceFunction<Status, String>() {
             @Override
-            public void apply(SuperImpl status, String argument) {
+            public void apply(Status status, String argument) {
                 result.set(argument);
             }
         });
 
-        assertTrue(eventual.completeExceptionally(SuperImpl.ERROR, exception));
-        assertFalse(eventual.complete(SuperImpl.SUCCESS, "NOO"));
+        assertTrue(eventual.completeExceptionally(Status.ERROR, exception));
+        assertFalse(eventual.complete(Status.SUCCESS, "NOO"));
         assertFalse(eventual.cancel(true));
 
         assertSame(exception, error.get());
@@ -79,27 +78,27 @@ public class EventualTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
-        Eventual<SuperImpl, String> eventual = new Eventual<>();
+        Eventual<Status, String> eventual = new Eventual<>();
 
 
         IOException exception = new IOException();
-        eventual.onError(new PrecipiceFunction<SuperImpl, Throwable>() {
+        eventual.onError(new PrecipiceFunction<Status, Throwable>() {
             @Override
-            public void apply(SuperImpl status, Throwable argument) {
+            public void apply(Status status, Throwable argument) {
                 error.set(argument);
             }
         });
 
-        eventual.onSuccess(new PrecipiceFunction<SuperImpl, String>() {
+        eventual.onSuccess(new PrecipiceFunction<Status, String>() {
             @Override
-            public void apply(SuperImpl status, String argument) {
+            public void apply(Status status, String argument) {
                 result.set(argument);
             }
         });
 
         String stringResult = "YESS";
-        assertTrue(eventual.complete(SuperImpl.SUCCESS, stringResult));
-        assertFalse(eventual.completeExceptionally(SuperImpl.ERROR, exception));
+        assertTrue(eventual.complete(Status.SUCCESS, stringResult));
+        assertFalse(eventual.completeExceptionally(Status.ERROR, exception));
         assertFalse(eventual.cancel(true));
 
         assertSame(stringResult, result.get());
@@ -117,27 +116,27 @@ public class EventualTest {
 //        final AtomicReference<String> result = new AtomicReference<>();
 //        final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 //
-//        Eventual<SuperImpl, String> eventual = new Eventual<>();
+//        Eventual<Status, String> eventual = new Eventual<>();
 //
 //
 //        IOException exception = new IOException();
-//        eventual.onError(new PrecipiceFunction<SuperImpl, Throwable>() {
+//        eventual.onError(new PrecipiceFunction<Status, Throwable>() {
 //            @Override
-//            public void apply(SuperImpl status, Throwable argument) {
+//            public void apply(Status status, Throwable argument) {
 //                error.set(argument);
 //            }
 //        });
 //
-//        eventual.onSuccess(new PrecipiceFunction<SuperImpl, String>() {
+//        eventual.onSuccess(new PrecipiceFunction<Status, String>() {
 //            @Override
-//            public void apply(SuperImpl status, String argument) {
+//            public void apply(Status status, String argument) {
 //                result.set(argument);
 //            }
 //        });
 //
 //        assertTrue(eventual.cancel(true));
-//        assertFalse(eventual.complete(SuperImpl.SUCCESS, "NOO"));
-//        assertFalse(eventual.completeExceptionally(SuperImpl.ERROR, exception));
+//        assertFalse(eventual.complete(Status.SUCCESS, "NOO"));
+//        assertFalse(eventual.completeExceptionally(Status.ERROR, exception));
 //
 //        assertNull(result.get());
 //        assertNull(eventual.result());

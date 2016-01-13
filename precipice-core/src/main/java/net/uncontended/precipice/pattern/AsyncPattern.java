@@ -18,7 +18,7 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.SuperImpl;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
@@ -35,8 +35,8 @@ public interface AsyncPattern<C> extends Pattern {
      * @return a {@link PrecipiceFuture} representing pending completion of the action
      * @throws RejectedActionException if the action is rejected
      */
-    <T> PrecipiceFuture<SuperImpl, T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
+    <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout);
 
-    <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout);
+    <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout);
 
 }
