@@ -56,7 +56,7 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
 
     @Override
     public <T> void complete(ResilientAction<T> action, final PrecipicePromise<T> promise, long millisTimeout) {
-        acquirePermitOrRejectIfActionNotAllowed();
+        acquirePermitOrGetRejectedReason();
 
         final KafkaAction<T, K, V> kafkaAction = (KafkaAction<T, K, V>) action;
         producer.send(kafkaAction.getRecord(), new Callback() {

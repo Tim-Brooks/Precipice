@@ -45,7 +45,7 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
 
     @Override
     public <T> PrecipiceFuture<T> submit(final ResilientAction<T> action, long millisTimeout) {
-        acquirePermitOrRejectIfActionNotAllowed();
+        acquirePermitOrGetRejectedReason();
         final Eventual<T> eventual = new Eventual<>();
 
         final ServiceRequest<T> asyncRequest = (ServiceRequest<T>) action;

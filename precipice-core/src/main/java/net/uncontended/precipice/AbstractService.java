@@ -24,13 +24,13 @@ import net.uncontended.precipice.metrics.LatencyMetrics;
 
 public abstract class AbstractService implements Service {
     protected final PrecipiceSemaphore semaphore;
-    protected final ActionMetrics actionMetrics;
+    protected final ActionMetrics<?> actionMetrics;
     protected final LatencyMetrics latencyMetrics;
     protected final CircuitBreaker circuitBreaker;
     protected final String name;
     protected volatile boolean isShutdown = false;
 
-    protected AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics actionMetrics,
+    protected AbstractService(String name, CircuitBreaker circuitBreaker, ActionMetrics<?> actionMetrics,
                               LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore) {
         this.name = name;
         this.circuitBreaker = circuitBreaker;
@@ -46,7 +46,7 @@ public abstract class AbstractService implements Service {
     }
 
     @Override
-    public ActionMetrics getActionMetrics() {
+    public ActionMetrics<?> getActionMetrics() {
         return actionMetrics;
     }
 
@@ -71,21 +71,20 @@ public abstract class AbstractService implements Service {
         return semaphore.currentConcurrencyLevel();
     }
 
-    protected void acquirePermitOrRejectIfActionNotAllowed() {
+    protected RejectionReason acquirePermitOrGetRejectedReason() {
         if (isShutdown) {
-            throw new RejectedActionException(RejectionReason.SERVICE_SHUTDOWN);
+            return RejectionReason.SERVICE_SHUTDOWN;
         }
 
         boolean isPermitAcquired = semaphore.acquirePermit();
         if (!isPermitAcquired) {
-            actionMetrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-            throw new RejectedActionException(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            return RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED;
         }
 
         if (!circuitBreaker.allowAction()) {
-            actionMetrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN);
             semaphore.releasePermit();
-            throw new RejectedActionException(RejectionReason.CIRCUIT_OPEN);
+            return RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED;
         }
+        return null;
     }
 }

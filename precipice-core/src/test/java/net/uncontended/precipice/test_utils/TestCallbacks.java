@@ -18,34 +18,35 @@
 package net.uncontended.precipice.test_utils;
 
 import net.uncontended.precipice.PrecipiceFunction;
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
 import java.util.concurrent.CountDownLatch;
 
-public class TestCallbacks {
+public final class TestCallbacks {
 
-    public static <T> PrecipiceFunction<T> completePromiseCallback(final PrecipicePromise<T> promiseToComplete) {
-        return new PrecipiceFunction<T>() {
+    public static <T> PrecipiceFunction<SuperImpl, T> completePromiseCallback(final PrecipicePromise<SuperImpl, T> promiseToComplete) {
+        return new PrecipiceFunction<SuperImpl, T>() {
             @Override
-            public void apply(T result) {
-                promiseToComplete.complete(result);
+            public void apply(SuperImpl status, T result) {
+                promiseToComplete.complete(status, result);
             }
         };
     }
 
-    public static <T> PrecipiceFunction<T> latchedCallback(final CountDownLatch latch) {
-        return new PrecipiceFunction<T>() {
+    public static <T> PrecipiceFunction<SuperImpl, T> latchedCallback(final CountDownLatch latch) {
+        return new PrecipiceFunction<SuperImpl, T>() {
             @Override
-            public void apply(T resultPromise) {
+            public void apply(SuperImpl status, T resultPromise) {
                 latch.countDown();
             }
         };
     }
 
-    public static <T> PrecipiceFunction<T> exceptionCallback(T type) {
-        return new PrecipiceFunction<T>() {
+    public static <T> PrecipiceFunction<SuperImpl, T> exceptionCallback(T type) {
+        return new PrecipiceFunction<SuperImpl, T>() {
             @Override
-            public void apply(T exception) {
+            public void apply(SuperImpl status, T exception) {
                 throw new RuntimeException("Boom");
             }
         };

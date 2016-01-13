@@ -30,19 +30,19 @@ import net.uncontended.precipice.timeout.TimeoutService;
 
 public class ServiceProperties {
 
-    private ActionMetrics metrics = new DefaultActionMetrics();
+    private ActionMetrics<?> metrics;
     private LatencyMetrics latencyMetrics = new IntervalLatencyMetrics();
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;
     private int concurrencyLevel = Service.MAX_CONCURRENCY_LEVEL;
 
-    public ServiceProperties actionMetrics(ActionMetrics metrics) {
+    public ServiceProperties actionMetrics(ActionMetrics<?> metrics) {
         this.metrics = metrics;
         return this;
     }
 
-    public ActionMetrics actionMetrics() {
+    public ActionMetrics<?> actionMetrics() {
         return metrics;
     }
 

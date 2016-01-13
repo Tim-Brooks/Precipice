@@ -17,18 +17,25 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 public class DefaultRunService extends AbstractService implements RunService {
 
+    private final ActionMetrics<SuperImpl> actionMetrics;
+
     public DefaultRunService(String name, ServiceProperties properties) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
+        actionMetrics = (ActionMetrics<SuperImpl>) properties.actionMetrics();
     }
 
     @Override
     public <T> T run(final ResilientAction<T> action) throws Exception {
-        acquirePermitOrRejectIfActionNotAllowed();
+        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        if (rejectionReason != null) {
+            handleRejectedReason(rejectionReason);
+        }
         long nanoStart = System.nanoTime();
         try {
             T result = action.run();
@@ -49,6 +56,15 @@ public class DefaultRunService extends AbstractService implements RunService {
     public void shutdown() {
         isShutdown = true;
 
+    }
+
+    private void handleRejectedReason(RejectionReason rejectionReason) {
+        if (rejectionReason == RejectionReason.CIRCUIT_OPEN) {
+            actionMetrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN);
+        } else if (rejectionReason == RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
+            actionMetrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        }
+        throw new RejectedActionException(rejectionReason);
     }
 
     private void metricsAndBreakerFeedback(long nanoStart, SuperImpl status) {
