@@ -20,14 +20,11 @@ package net.uncontended.precipice.samples.http;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import net.uncontended.precipice.AbstractService;
-import net.uncontended.precipice.AsyncService;
-import net.uncontended.precipice.ResilientAction;
-import net.uncontended.precipice.ServiceProperties;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.concurrent.TimeoutException;
@@ -36,17 +33,19 @@ import java.util.concurrent.TimeoutException;
 public class HttpAsyncService extends AbstractService implements AsyncService {
 
     private final AsyncHttpClient client;
+    private final ActionMetrics<SuperImpl> metrics;
 
     public HttpAsyncService(String name, ServiceProperties properties, AsyncHttpClient client) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
+        this.metrics = (ActionMetrics<SuperImpl>) properties.actionMetrics();
         this.client = client;
     }
 
     @Override
-    public <T> PrecipiceFuture<T> submit(final ResilientAction<T> action, long millisTimeout) {
+    public <T> PrecipiceFuture<SuperImpl, T> submit(final ResilientAction<T> action, long millisTimeout) {
         acquirePermitOrGetRejectedReason();
-        final Eventual<T> eventual = new Eventual<>();
+        final Eventual<SuperImpl, T> eventual = new Eventual<>();
 
         final ServiceRequest<T> asyncRequest = (ServiceRequest<T>) action;
         client.executeRequest(asyncRequest.getRequest(), new AsyncCompletionHandler<Void>() {
@@ -55,14 +54,14 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
                 asyncRequest.setResponse(response);
                 try {
                     T result = asyncRequest.run();
-                    actionMetrics.incrementMetricCount(Metric.SUCCESS);
-                    eventual.complete(result);
+                    metrics.incrementMetricCount(SuperImpl.SUCCESS);
+                    eventual.complete(SuperImpl.SUCCESS, result);
                 } catch (ActionTimeoutException e) {
-                    actionMetrics.incrementMetricCount(Metric.TIMEOUT);
-                    eventual.completeWithTimeout();
+                    metrics.incrementMetricCount(SuperImpl.TIMEOUT);
+                    eventual.completeExceptionally(SuperImpl.TIMEOUT, e);
                 } catch (Exception e) {
-                    actionMetrics.incrementMetricCount(Metric.ERROR);
-                    eventual.completeExceptionally(e);
+                    metrics.incrementMetricCount(SuperImpl.ERROR);
+                    eventual.completeExceptionally(SuperImpl.ERROR, e);
                 }
                 semaphore.releasePermit();
                 return null;
@@ -71,11 +70,11 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
             @Override
             public void onThrowable(Throwable t) {
                 if (t instanceof TimeoutException) {
-                    actionMetrics.incrementMetricCount(Metric.TIMEOUT);
-                    eventual.completeWithTimeout();
+                    metrics.incrementMetricCount(SuperImpl.TIMEOUT);
+                    eventual.completeExceptionally(SuperImpl.TIMEOUT, t);
                 } else {
-                    actionMetrics.incrementMetricCount(Metric.ERROR);
-                    eventual.completeExceptionally(t);
+                    metrics.incrementMetricCount(SuperImpl.ERROR);
+                    eventual.completeExceptionally(SuperImpl.ERROR, t);
                 }
                 semaphore.releasePermit();
             }

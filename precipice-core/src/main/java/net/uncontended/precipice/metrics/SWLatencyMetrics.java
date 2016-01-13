@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.SuperStatusInterface;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
@@ -54,7 +55,7 @@ public class SWLatencyMetrics<T extends Enum<T> & SuperStatusInterface> implemen
         return null;
     }
 
-    public LatencySnapshot latencySnapshot(Metric metric) {
+    public LatencySnapshot latencySnapshot(T metric) {
         return null;
     }
 

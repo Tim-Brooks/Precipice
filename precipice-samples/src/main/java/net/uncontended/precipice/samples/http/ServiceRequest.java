@@ -26,7 +26,7 @@ abstract class ServiceRequest<T> implements ResilientAction<T> {
     protected final Request request;
     protected volatile Response response;
 
-    public ServiceRequest(Request request) {
+    protected ServiceRequest(Request request) {
         this.request = request;
     }
 

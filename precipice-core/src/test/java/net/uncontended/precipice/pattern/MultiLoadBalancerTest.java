@@ -21,7 +21,6 @@ import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.Before;
 import org.junit.Test;

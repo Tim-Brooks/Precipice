@@ -18,7 +18,6 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Status;
 import net.uncontended.precipice.SuperStatusInterface;
 
 import java.util.concurrent.Future;

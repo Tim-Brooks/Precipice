@@ -17,14 +17,11 @@
 
 package net.uncontended.precipice.samples.kafka;
 
-import net.uncontended.precipice.AbstractService;
-import net.uncontended.precipice.AsyncService;
-import net.uncontended.precipice.ResilientAction;
-import net.uncontended.precipice.ServiceProperties;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -35,27 +32,29 @@ import org.apache.kafka.common.errors.TimeoutException;
 public class KafkaService<K, V> extends AbstractService implements AsyncService {
 
     private final KafkaProducer<K, V> producer;
+    private final ActionMetrics<SuperImpl> actionMetrics;
 
     public KafkaService(String name, ServiceProperties properties, KafkaProducer<K, V> producer) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
         this.producer = producer;
+        actionMetrics = (ActionMetrics<SuperImpl>) properties.actionMetrics();
     }
 
-    public PrecipiceFuture<RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
+    public PrecipiceFuture<SuperImpl, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
         KafkaAction<RecordMetadata, K, V> action = new RecordMetadataAction<>(record);
         return submit(action, -1);
     }
 
     @Override
-    public <T> PrecipiceFuture<T> submit(ResilientAction<T> action, long millisTimeout) {
-        final Eventual<T> eventual = new Eventual<>();
+    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientAction<T> action, long millisTimeout) {
+        final Eventual<SuperImpl, T> eventual = new Eventual<>();
         complete(action, eventual, millisTimeout);
         return eventual;
     }
 
     @Override
-    public <T> void complete(ResilientAction<T> action, final PrecipicePromise<T> promise, long millisTimeout) {
+    public <T> void complete(ResilientAction<T> action, final PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
         acquirePermitOrGetRejectedReason();
 
         final KafkaAction<T, K, V> kafkaAction = (KafkaAction<T, K, V>) action;
@@ -77,35 +76,35 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
         producer.close();
     }
 
-    private <T> void handleResult(PrecipicePromise<T> promise, KafkaAction<T, K, V> kafkaAction, RecordMetadata
-            metadata, Exception exception) {
+    private <T> void handleResult(PrecipicePromise<SuperImpl, T> promise, KafkaAction<T, K, V> kafkaAction,
+                                  RecordMetadata metadata, Exception exception) {
         if (exception == null) {
             kafkaAction.setRecordMetadata(metadata);
 
             try {
                 T result = kafkaAction.run();
-                actionMetrics.incrementMetricCount(Metric.SUCCESS);
-                promise.complete(result);
+                actionMetrics.incrementMetricCount(SuperImpl.SUCCESS);
+                promise.complete(SuperImpl.SUCCESS, result);
             } catch (ActionTimeoutException e) {
-                actionMetrics.incrementMetricCount(Metric.TIMEOUT);
-                promise.completeWithTimeout();
+                actionMetrics.incrementMetricCount(SuperImpl.TIMEOUT);
+                promise.completeExceptionally(SuperImpl.TIMEOUT, e);
             } catch (Exception e) {
-                actionMetrics.incrementMetricCount(Metric.ERROR);
-                promise.completeExceptionally(e);
+                actionMetrics.incrementMetricCount(SuperImpl.ERROR);
+                promise.completeExceptionally(SuperImpl.ERROR, e);
             }
         } else {
             if (exception instanceof TimeoutException) {
-                actionMetrics.incrementMetricCount(Metric.TIMEOUT);
-                promise.completeWithTimeout();
+                actionMetrics.incrementMetricCount(SuperImpl.TIMEOUT);
+                promise.completeExceptionally(SuperImpl.ERROR, exception);
             } else {
-                actionMetrics.incrementMetricCount(Metric.ERROR);
-                promise.completeExceptionally(exception);
+                actionMetrics.incrementMetricCount(SuperImpl.ERROR);
+                promise.completeExceptionally(SuperImpl.ERROR, exception);
             }
         }
     }
 
     private static class RecordMetadataAction<K, V> extends KafkaAction<RecordMetadata, K, V> {
-        public RecordMetadataAction(ProducerRecord<K, V> record) {
+        private RecordMetadataAction(ProducerRecord<K, V> record) {
             super(record);
         }
 

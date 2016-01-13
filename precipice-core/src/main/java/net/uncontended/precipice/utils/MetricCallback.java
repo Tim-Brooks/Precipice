@@ -21,7 +21,6 @@ package net.uncontended.precipice.utils;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.Metric;
 
 public class MetricCallback implements PrecipiceFunction<SuperImpl, Void> {
 

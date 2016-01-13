@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.Services;
-import net.uncontended.precipice.Status;
 import net.uncontended.precipice.AsyncService;
+import net.uncontended.precipice.Services;
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 
 import java.util.concurrent.CountDownLatch;
@@ -34,7 +34,7 @@ public class SubmissionExample {
         AsyncService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
-        PrecipiceFuture<Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);
+        PrecipiceFuture<SuperImpl, Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);
 
         try {
             // Should return 64
@@ -42,9 +42,9 @@ public class SubmissionExample {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-        assert (successFuture.getStatus() == Status.SUCCESS);
+        assert successFuture.getStatus() == SuperImpl.SUCCESS;
 
-        PrecipiceFuture<Integer> errorFuture = service.submit(Actions.errorAction(), millisTimeout);
+        PrecipiceFuture<SuperImpl, Integer> errorFuture = service.submit(Actions.errorAction(), millisTimeout);
 
         try {
             // Should throw ExecutionException
@@ -55,12 +55,12 @@ public class SubmissionExample {
             // Should be "Action Failed."
             cause.getMessage();
         }
-        assert (errorFuture.getStatus() == Status.ERROR);
+        assert errorFuture.getStatus() == SuperImpl.ERROR;
 
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipiceFuture<Integer> timeoutFuture = service.submit(Actions.timeoutAction(latch), millisTimeout);
+        PrecipiceFuture<SuperImpl, Integer> timeoutFuture = service.submit(Actions.timeoutAction(latch), millisTimeout);
 
-        assert (timeoutFuture.getStatus() == Status.PENDING);
+        assert timeoutFuture.getStatus() == SuperImpl.PENDING;
         try {
             // Should return null
             timeoutFuture.get();
@@ -68,7 +68,7 @@ public class SubmissionExample {
             e.printStackTrace();
         }
         // Should return Status.TIMEOUT
-        assert (timeoutFuture.getStatus() == Status.TIMEOUT);
+        assert timeoutFuture.getStatus() == SuperImpl.TIMEOUT;
         latch.countDown();
         service.shutdown();
     }

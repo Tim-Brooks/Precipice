@@ -26,7 +26,7 @@ abstract class KafkaAction<T, K, V> implements ResilientAction<T> {
     protected final ProducerRecord<K, V> record;
     protected RecordMetadata recordMetadata;
 
-    public KafkaAction(ProducerRecord<K, V> record) {
+    protected KafkaAction(ProducerRecord<K, V> record) {
         this.record = record;
     }
 

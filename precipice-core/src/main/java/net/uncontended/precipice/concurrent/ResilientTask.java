@@ -18,12 +18,10 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.ResilientAction;
-import net.uncontended.precipice.Status;
 import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
 
