@@ -19,6 +19,7 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.ResilientAction;
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
 /**
@@ -29,11 +30,10 @@ import net.uncontended.precipice.metrics.ActionMetrics;
  * The {@link ResilientPatternAction} {@code run} method is passed a context
  * specific to the service on which it is run.
  *
- * @param <C> the context passed to an pattern action
  */
-public interface Pattern<C> {
+public interface Pattern {
 
-    ActionMetrics getActionMetrics();
+    ActionMetrics<SuperImpl> getActionMetrics();
 
     /**
      * Attempts to shutdown all the services. Actions after this

@@ -19,6 +19,7 @@ package net.uncontended.precipice.pattern;
 
 
 import net.uncontended.precipice.MultiService;
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -33,12 +34,12 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
     private final MultiService[] services;
 
     public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(executorToContext, strategy, new DefaultActionMetrics());
+        this(executorToContext, strategy, new DefaultActionMetrics<>(SuperImpl.class));
     }
 
     @SuppressWarnings("unchecked")
     public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy,
-                             ActionMetrics metrics) {
+                             ActionMetrics<SuperImpl> metrics) {
         super(metrics);
         if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
@@ -52,17 +53,17 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
             contexts[i] = entry.getValue();
             ++i;
         }
-        this.submissionBalancer = new AsyncLoadBalancer<>(services, contexts, strategy, metrics);
-        this.runBalancer = new RunLoadBalancer<>(services, contexts, strategy, metrics);
+        submissionBalancer = new AsyncLoadBalancer<>(services, contexts, strategy, metrics);
+        runBalancer = new RunLoadBalancer<>(services, contexts, strategy, metrics);
     }
 
     @Override
-    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         return submissionBalancer.submit(action, millisTimeout);
     }
 
     @Override
-    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<T> promise, long millisTimeout) {
+    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
         submissionBalancer.complete(action, promise, millisTimeout);
     }
 

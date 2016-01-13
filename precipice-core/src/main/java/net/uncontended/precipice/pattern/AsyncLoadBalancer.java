@@ -23,7 +23,6 @@ import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.metrics.Metric;
 import net.uncontended.precipice.utils.MetricCallback;
 
 import java.util.Map;
@@ -33,18 +32,16 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
     private final AsyncService[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
-    private final PrecipiceFunction<Void> successCallback = new MetricCallback(metrics, Metric.SUCCESS);
-    private final PrecipiceFunction<Void> errorCallback = new MetricCallback(metrics, Metric.ERROR);
-    private final PrecipiceFunction<Void> timeoutCallback = new MetricCallback(metrics, Metric.TIMEOUT);
+    private final PrecipiceFunction<SuperImpl, Void> metricCallback = new MetricCallback(metrics);
 
 
     public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(executorToContext, strategy, new DefaultActionMetrics());
+        this(executorToContext, strategy, new DefaultActionMetrics<>(SuperImpl.class));
     }
 
     @SuppressWarnings("unchecked")
     public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy,
-                             ActionMetrics metrics) {
+                             ActionMetrics<SuperImpl> metrics) {
         super(metrics);
         if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
@@ -62,7 +59,7 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
     }
 
     public AsyncLoadBalancer(AsyncService[] services, C[] contexts, LoadBalancerStrategy strategy,
-                             ActionMetrics metrics) {
+                             ActionMetrics<SuperImpl> metrics) {
         super(metrics);
         this.strategy = strategy;
         this.services = services;
@@ -70,15 +67,15 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
     }
 
     @Override
-    public <T> PrecipiceFuture<T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        Eventual<T> eventual = new Eventual<>();
+    public <T> PrecipiceFuture<SuperImpl, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+        Eventual<SuperImpl, T> eventual = new Eventual<>();
         internalComplete(action, eventual, millisTimeout);
         return eventual;
     }
 
     @Override
-    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<T> promise, long millisTimeout) {
-        Eventual<T> internalEventual = new Eventual<>(promise);
+    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<SuperImpl, T> promise, long millisTimeout) {
+        Eventual<SuperImpl, T> internalEventual = new Eventual<>(promise);
         internalComplete(action, internalEventual, millisTimeout);
     }
 
@@ -89,13 +86,12 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
         }
     }
 
-    private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<T> eventual, long millisTimeout) {
+    private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<SuperImpl, T> eventual, long millisTimeout) {
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
-        eventual.internalOnSuccess(successCallback);
-        eventual.internalOnError(errorCallback);
-        eventual.internalOnTimeout(timeoutCallback);
+        eventual.internalOnSuccess(metricCallback);
+        eventual.internalOnError(metricCallback);
 
         int j = 0;
         int serviceCount = services.length;
@@ -108,7 +104,7 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    metrics.incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
+                    metrics.incrementMetricCount(SuperImpl.ALL_SERVICES_REJECTED);
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
             }

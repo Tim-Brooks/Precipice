@@ -32,6 +32,6 @@ public class ServiceThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        return new Thread(r, name + "-" + count.getAndIncrement());
+        return new Thread(r, name + '-' + count.getAndIncrement());
     }
 }

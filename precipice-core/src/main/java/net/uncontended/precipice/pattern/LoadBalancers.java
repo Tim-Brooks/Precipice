@@ -31,7 +31,7 @@ public class LoadBalancers {
         return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
-    public static <C> MultiPattern<C> multiRoundRobin(Map<MultiService, C> serviceToContext, ActionMetrics metrics) {
+    public static <C> MultiPattern<C> multiRoundRobin(Map<MultiService, C> serviceToContext, ActionMetrics<SuperImpl> metrics) {
         return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
     }
 
@@ -40,7 +40,7 @@ public class LoadBalancers {
     }
 
     public static <C> AsyncPattern<C> asyncRoundRobin(Map<? extends AsyncService, C> serviceToContext,
-                                                      ActionMetrics metrics) {
+                                                      ActionMetrics<SuperImpl> metrics) {
         return new AsyncLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
     }
 
@@ -48,7 +48,7 @@ public class LoadBalancers {
         return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
-    public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext, ActionMetrics metrics) {
+    public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext, ActionMetrics<SuperImpl> metrics) {
         return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
     }
 
@@ -60,7 +60,7 @@ public class LoadBalancers {
         for (C context : contexts) {
             ServiceProperties serviceProperties = new ServiceProperties();
             serviceProperties.concurrencyLevel(properties.concurrencyLevel());
-            MultiService service = new DefaultService(name + "-" + i, executor, serviceProperties);
+            MultiService service = new DefaultService(name + '-' + i, executor, serviceProperties);
             serviceToContext.put(service, context);
             ++i;
         }

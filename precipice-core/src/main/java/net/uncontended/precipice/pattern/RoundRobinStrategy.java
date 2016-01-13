@@ -48,9 +48,7 @@ public class RoundRobinStrategy implements LoadBalancerStrategy {
     private void resetCounter(int start) {
         int index = start;
         for (; ; ) {
-            if (index < FLIP_POINT) {
-                break;
-            } else if (counter.compareAndSet(index + 1, 0)) {
+            if (index < FLIP_POINT || counter.compareAndSet(index + 1, 0)) {
                 break;
             }
             index = counter.get();

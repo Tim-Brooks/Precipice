@@ -47,7 +47,7 @@ public class ShotgunStrategy {
         return submissionCount;
     }
 
-    private void shuffle(int[] orderToTry) {
+    private static void shuffle(int[] orderToTry) {
         int index;
         Random random = ThreadLocalRandom.current();
         for (int i = orderToTry.length - 1; i > 0; i--) {

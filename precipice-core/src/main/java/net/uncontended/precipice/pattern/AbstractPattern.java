@@ -17,18 +17,19 @@
 
 package net.uncontended.precipice.pattern;
 
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
-public abstract class AbstractPattern<C> implements Pattern<C> {
+public abstract class AbstractPattern<C> implements Pattern {
 
-    protected final ActionMetrics metrics;
+    protected final ActionMetrics<SuperImpl> metrics;
 
-    public AbstractPattern(ActionMetrics metrics) {
+    protected AbstractPattern(ActionMetrics<SuperImpl> metrics) {
         this.metrics = metrics;
     }
 
     @Override
-    public ActionMetrics getActionMetrics() {
+    public ActionMetrics<SuperImpl> getActionMetrics() {
         return metrics;
     }
 }

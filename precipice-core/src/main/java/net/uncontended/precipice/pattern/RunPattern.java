@@ -20,7 +20,7 @@ package net.uncontended.precipice.pattern;
 import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 
-public interface RunPattern<C> extends Pattern<C> {
+public interface RunPattern<C> extends Pattern {
 
     /**
      * Performs a {@link ResilientPatternAction} that will be run synchronously on the

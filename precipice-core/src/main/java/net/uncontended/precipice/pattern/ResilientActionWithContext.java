@@ -19,7 +19,7 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.ResilientAction;
 
-class ResilientActionWithContext<T, C> implements ResilientAction<T> {
+public class ResilientActionWithContext<T, C> implements ResilientAction<T> {
     public C context;
     private final ResilientPatternAction<T, C> action;
 

@@ -17,14 +17,10 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.MultiService;
-import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.RejectionReason;
-import net.uncontended.precipice.RunService;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.metrics.Metric;
+import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 import java.util.Map;
 
@@ -35,12 +31,12 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
     private final LoadBalancerStrategy strategy;
 
     public RunLoadBalancer(Map<? extends RunService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(executorToContext, strategy, new DefaultActionMetrics());
+        this(executorToContext, strategy, new DefaultActionMetrics<>(SuperImpl.class));
     }
 
     @SuppressWarnings("unchecked")
     public RunLoadBalancer(Map<? extends RunService, C> executorToContext, LoadBalancerStrategy strategy,
-                           ActionMetrics metrics) {
+                           ActionMetrics<SuperImpl> metrics) {
         super(metrics);
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
@@ -57,7 +53,7 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
         }
     }
 
-    public RunLoadBalancer(RunService[] services, C[] contexts, LoadBalancerStrategy strategy, ActionMetrics metrics) {
+    public RunLoadBalancer(RunService[] services, C[] contexts, LoadBalancerStrategy strategy, ActionMetrics<SuperImpl> metrics) {
         super(metrics);
         this.strategy = strategy;
         this.services = services;
@@ -76,19 +72,19 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
                 T result = services[serviceIndex].run(actionWithContext);
-                metrics.incrementMetricCount(Metric.SUCCESS);
+                metrics.incrementMetricCount(SuperImpl.SUCCESS);
                 return result;
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    metrics.incrementMetricCount(Metric.ALL_SERVICES_REJECTED);
+                    metrics.incrementMetricCount(SuperImpl.ALL_SERVICES_REJECTED);
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
             } catch (ActionTimeoutException e) {
-                metrics.incrementMetricCount(Metric.TIMEOUT);
+                metrics.incrementMetricCount(SuperImpl.TIMEOUT);
                 throw e;
             } catch (Exception e) {
-                metrics.incrementMetricCount(Metric.ERROR);
+                metrics.incrementMetricCount(SuperImpl.ERROR);
                 throw e;
             }
         }
