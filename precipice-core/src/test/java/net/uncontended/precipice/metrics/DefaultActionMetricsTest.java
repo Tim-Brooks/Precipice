@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.SuperImpl;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,7 @@ public class DefaultActionMetricsTest {
     @Mock
     private Clock systemTime;
 
-    private DefaultActionMetrics metrics;
+    private DefaultActionMetrics<SuperImpl> metrics;
 
     @Before
     public void setUp() {
@@ -44,18 +45,18 @@ public class DefaultActionMetricsTest {
     @Test
     public void testMetricsEdgeScenario() {
         when(systemTime.nanoTime()).thenReturn(0L * 1000L * 1000L);
-        metrics = new DefaultActionMetrics(1, 1, TimeUnit.SECONDS, systemTime);
+        metrics = new DefaultActionMetrics<>(SuperImpl.class, 1, 1, TimeUnit.SECONDS, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
+        metrics.incrementMetricCount(SuperImpl.SUCCESS);
         when(systemTime.nanoTime()).thenReturn(2L * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
+        metrics.incrementMetricCount(SuperImpl.SUCCESS);
 
         when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, 1, TimeUnit.SECONDS));
+        assertEquals(2, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, 1, TimeUnit.SECONDS));
 
         when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, 1, TimeUnit.SECONDS));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, 1, TimeUnit.SECONDS));
     }
 
     @Test
@@ -65,30 +66,30 @@ public class DefaultActionMetricsTest {
         int slotsToTrack = 2;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new DefaultActionMetrics(slotsToTrack, 1, unit, systemTime);
+        metrics = new DefaultActionMetrics<>(SuperImpl.class, slotsToTrack, 1, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.ERROR);
+        metrics.incrementMetricCount(SuperImpl.ERROR);
         when(systemTime.nanoTime()).thenReturn(2L * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.ERROR);
+        metrics.incrementMetricCount(SuperImpl.ERROR);
 
         when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCountForTimePeriod(Metric.ERROR, 1, unit));
+        assertEquals(2, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 1, unit));
 
         when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCountForTimePeriod(Metric.ERROR, 2, unit));
+        assertEquals(2, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 2, unit));
 
         when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.ERROR, 1, unit));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 1, unit));
 
         when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCountForTimePeriod(Metric.ERROR, 2, unit));
+        assertEquals(2, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 2, unit));
 
         when(systemTime.nanoTime()).thenReturn(2000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.ERROR, 1, unit));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 1, unit));
 
         when(systemTime.nanoTime()).thenReturn(2000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.ERROR, 2, unit));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 2, unit));
     }
 
     @Test
@@ -101,19 +102,19 @@ public class DefaultActionMetricsTest {
         long millisResolution = resolution * 1000;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultActionMetrics<>(SuperImpl.class, slotsTracked, resolution, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 8) * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.ERROR);
+        metrics.incrementMetricCount(SuperImpl.ERROR);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 20) * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
+        metrics.incrementMetricCount(SuperImpl.SUCCESS);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 21) * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.ERROR, resolution, unit));
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution, unit));
-        assertEquals(1, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution * 2, unit));
-        assertEquals(1, metrics.getMetricCount(Metric.ERROR));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, resolution, unit));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, resolution, unit));
+        assertEquals(1, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, resolution * 2, unit));
+        assertEquals(1, metrics.getMetricCount(SuperImpl.ERROR));
     }
 
     @Test
@@ -123,15 +124,15 @@ public class DefaultActionMetricsTest {
         long resolution = 1;
         int slotsTracked = 10;
         when(systemTime.nanoTime()).thenReturn(startTime);
-        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultActionMetrics<>(SuperImpl.class, slotsTracked, resolution, unit, systemTime);
 
-        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(0));
-        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(10));
-        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(20));
-        metrics.incrementMetricCount(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(30));
+        metrics.incrementMetricCount(SuperImpl.SUCCESS, TimeUnit.SECONDS.toNanos(0));
+        metrics.incrementMetricCount(SuperImpl.SUCCESS, TimeUnit.SECONDS.toNanos(10));
+        metrics.incrementMetricCount(SuperImpl.SUCCESS, TimeUnit.SECONDS.toNanos(20));
+        metrics.incrementMetricCount(SuperImpl.SUCCESS, TimeUnit.SECONDS.toNanos(30));
 
-        assertEquals(1, metrics.getMetricCountForTotalPeriod(Metric.SUCCESS, TimeUnit.SECONDS.toNanos(30)));
-        assertEquals(4, metrics.getMetricCount(Metric.SUCCESS));
+        assertEquals(1, metrics.getMetricCountForTotalPeriod(SuperImpl.SUCCESS, TimeUnit.SECONDS.toNanos(30)));
+        assertEquals(4, metrics.getMetricCount(SuperImpl.SUCCESS));
 
     }
 
@@ -144,20 +145,20 @@ public class DefaultActionMetricsTest {
         int slotsTracked = 1000;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultActionMetrics<>(SuperImpl.class, slotsTracked, resolution, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(offsetTime * 1000L * 1000L);
-        metrics.incrementMetricCount(Metric.SUCCESS);
+        metrics.incrementMetricCount(SuperImpl.SUCCESS);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + resolution) * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution, unit));
-        assertEquals(1, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, resolution * 2, unit));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, resolution, unit));
+        assertEquals(1, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, resolution * 2, unit));
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * (slotsTracked - 1)) * 1000L * 1000L);
-        assertEquals(1, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, slotsTracked * resolution, unit));
+        assertEquals(1, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, slotsTracked * resolution, unit));
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * slotsTracked) * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, slotsTracked * resolution, unit));
+        assertEquals(0, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, slotsTracked * resolution, unit));
     }
 
     @Test
@@ -168,17 +169,17 @@ public class DefaultActionMetricsTest {
 //
 //        long trackableValue = TimeUnit.HOURS.toNanos(1);
 //        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
-//        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
+//        metrics.incrementMetricAndRecordLatency(SuperImpl.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
 //
 //        trackableValue = TimeUnit.MINUTES.toNanos(1);
 //        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
-//        metrics.incrementMetricAndRecordLatency(Metric.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
+//        metrics.incrementMetricAndRecordLatency(SuperImpl.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
     }
 
     @Test
     public void concurrentTest() throws Exception {
         when(systemTime.nanoTime()).thenReturn(1500L * 1000L * 1000L);
-        metrics = new DefaultActionMetrics(5, 1, TimeUnit.SECONDS, systemTime);
+        metrics = new DefaultActionMetrics<>(SuperImpl.class, 5, 1, TimeUnit.SECONDS, systemTime);
 
         long currentTime = 1980L * 1000L * 1000L;
         fireThreads(metrics, currentTime, 10);
@@ -196,30 +197,30 @@ public class DefaultActionMetricsTest {
         fireThreads(metrics, currentTime, 10);
 
         when(systemTime.nanoTime()).thenReturn(6000L * 1000L * 1000L);
-        assertEquals(5000, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getMetricCountForTimePeriod(Metric.ERROR, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getMetricCountForTimePeriod(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCountForTimePeriod(SuperImpl.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCountForTimePeriod(SuperImpl.TIMEOUT, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCountForTimePeriod(SuperImpl.QUEUE_FULL, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCountForTimePeriod(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
 
-        assertEquals(1000, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getMetricCountForTimePeriod(Metric.ERROR, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getMetricCountForTimePeriod(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCountForTimePeriod(SuperImpl.CIRCUIT_OPEN, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCountForTimePeriod(SuperImpl.TIMEOUT, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCountForTimePeriod(SuperImpl.QUEUE_FULL, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCountForTimePeriod(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1, TimeUnit.SECONDS));
 
         when(systemTime.nanoTime()).thenReturn(6500L * 1000L * 1000L);
-        assertEquals(4000, metrics.getMetricCountForTimePeriod(Metric.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getMetricCountForTimePeriod(Metric.SUCCESS, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getMetricCountForTimePeriod(Metric.ERROR, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getMetricCountForTimePeriod(Metric.TIMEOUT, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getMetricCountForTimePeriod(Metric.QUEUE_FULL, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getMetricCountForTimePeriod(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCountForTimePeriod(SuperImpl.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCountForTimePeriod(SuperImpl.SUCCESS, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCountForTimePeriod(SuperImpl.ERROR, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCountForTimePeriod(SuperImpl.TIMEOUT, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCountForTimePeriod(SuperImpl.QUEUE_FULL, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCountForTimePeriod(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
     }
 
-    private void fireThreads(final ActionMetrics metrics, final long nanoTime, int num) throws InterruptedException {
+    private static void fireThreads(final ActionMetrics<SuperImpl> metrics, final long nanoTime, int num) throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(num);
 
         for (int i = 0; i < num; ++i) {
@@ -227,12 +228,12 @@ public class DefaultActionMetricsTest {
                 @Override
                 public void run() {
                     for (int j = 0; j < 100; ++j) {
-                        metrics.incrementMetricCount(Metric.SUCCESS, nanoTime);
-                        metrics.incrementMetricCount(Metric.ERROR, nanoTime);
-                        metrics.incrementMetricCount(Metric.TIMEOUT, nanoTime);
-                        metrics.incrementMetricCount(Metric.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
-                        metrics.incrementMetricCount(Metric.QUEUE_FULL, nanoTime);
-                        metrics.incrementMetricCount(Metric.CIRCUIT_OPEN, nanoTime);
+                        metrics.incrementMetricCount(SuperImpl.SUCCESS, nanoTime);
+                        metrics.incrementMetricCount(SuperImpl.ERROR, nanoTime);
+                        metrics.incrementMetricCount(SuperImpl.TIMEOUT, nanoTime);
+                        metrics.incrementMetricCount(SuperImpl.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
+                        metrics.incrementMetricCount(SuperImpl.QUEUE_FULL, nanoTime);
+                        metrics.incrementMetricCount(SuperImpl.CIRCUIT_OPEN, nanoTime);
                     }
                     latch.countDown();
                 }
