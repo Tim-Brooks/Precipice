@@ -129,7 +129,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
 
     private void safeSetTimedOut(ActionTimeoutException e) {
         try {
-            promise.completeExceptionally(SuperImpl.ERROR, e);
+            promise.completeExceptionally(SuperImpl.TIMEOUT, e);
         } catch (Throwable t) {
         }
     }
