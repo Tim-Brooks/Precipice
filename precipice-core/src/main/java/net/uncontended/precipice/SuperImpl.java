@@ -24,8 +24,9 @@ public enum SuperImpl implements SuperStatusInterface {
     CIRCUIT_OPEN(false, true),
     QUEUE_FULL(false, true),
     MAX_CONCURRENCY_LEVEL_EXCEEDED(false, true),
-    PENDING(false, false),
-    CANCELLED(false, false);
+    ALL_SERVICES_REJECTED(false, true),
+    CANCELLED(false, false),
+    PENDING(false, false);
 
     private final boolean isFailed;
     private final boolean isRejected;
