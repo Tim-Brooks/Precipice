@@ -1,0 +1,118 @@
+/*
+ * Copyright 2016 Timothy Brooks
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package net.uncontended.precipice;
+
+import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.NewEventual;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
+
+public class NewController<T extends Enum<T> & Result> implements Service {
+    private final PrecipiceSemaphore semaphore;
+    private final ActionMetrics<T> actionMetrics;
+    private final LatencyMetrics latencyMetrics;
+    private final CircuitBreaker circuitBreaker;
+    private final String name;
+    private volatile boolean isShutdown = false;
+
+    public NewController(String name, PrecipiceSemaphore semaphore, ActionMetrics<T> actionMetrics,
+                         LatencyMetrics latencyMetrics, CircuitBreaker circuitBreaker) {
+        this.semaphore = semaphore;
+        this.actionMetrics = actionMetrics;
+        this.latencyMetrics = latencyMetrics;
+        this.circuitBreaker = circuitBreaker;
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public ActionMetrics<T> getActionMetrics() {
+        return actionMetrics;
+    }
+
+    @Override
+    public LatencyMetrics getLatencyMetrics() {
+        return latencyMetrics;
+    }
+
+    @Override
+    public CircuitBreaker getCircuitBreaker() {
+        return circuitBreaker;
+    }
+
+    @Override
+    public int remainingCapacity() {
+        return semaphore.remainingCapacity();
+    }
+
+    @Override
+    public int pendingCount() {
+        return semaphore.currentConcurrencyLevel();
+    }
+
+    public RejectionReason acquirePermitOrGetRejectedReason() {
+        if (isShutdown) {
+            throw new IllegalStateException("Service has been shutdown.");
+        }
+
+        boolean isPermitAcquired = semaphore.acquirePermit();
+        if (!isPermitAcquired) {
+            return RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED;
+        }
+
+        if (!circuitBreaker.allowAction()) {
+            semaphore.releasePermit();
+            return RejectionReason.CIRCUIT_OPEN;
+        }
+        return null;
+    }
+
+    public <R> PrecipicePromise<T,R> getPromise() {
+        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        if (rejectionReason != null) {
+            // TODO: Record metrics. Maybe a mapping method on status?
+            throw new RejectedActionException(rejectionReason);
+        }
+
+        long startTime = System.nanoTime();
+        NewEventual<T, R> promise = new NewEventual<>(startTime);
+        promise.internalOnComplete(new PrecipiceFunction<T, NewEventual<T, R>>() {
+            @Override
+            public void apply(T status, NewEventual<T, R> eventual) {
+                actionMetrics.incrementMetricCount(status);
+                circuitBreaker.informBreakerOfResult(status.isSuccess());
+                // TODO: Record latency & remove cast
+                latencyMetrics.recordLatency((Status) status, eventual.startNanos());
+                semaphore.releasePermit();
+            }
+        });
+        return promise;
+    }
+
+    @Override
+    public void shutdown() {
+        isShutdown = true;
+    }
+}

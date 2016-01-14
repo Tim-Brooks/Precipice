@@ -37,7 +37,7 @@ public interface Service {
      *
      * @return the metrics backing this service
      */
-    ActionMetrics getActionMetrics();
+    ActionMetrics<?> getActionMetrics();
 
     /**
      * Returns the {@link LatencyMetrics} for this service.
