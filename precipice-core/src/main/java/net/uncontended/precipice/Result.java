@@ -19,8 +19,6 @@ package net.uncontended.precipice;
 
 public interface Result {
 
-    boolean isRejected();
-
     boolean isFailure();
 
     boolean isSuccess();
@@ -28,4 +26,5 @@ public interface Result {
     boolean trackLatency();
 
     boolean trackMetrics();
+
 }

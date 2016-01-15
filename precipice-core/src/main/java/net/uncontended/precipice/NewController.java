@@ -18,7 +18,6 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.NewEventual;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
@@ -28,13 +27,13 @@ import net.uncontended.precipice.metrics.LatencyMetrics;
 public class NewController<T extends Enum<T> & Result> implements Service {
     private final PrecipiceSemaphore semaphore;
     private final ActionMetrics<T> actionMetrics;
-    private final LatencyMetrics latencyMetrics;
+    private final LatencyMetrics<T> latencyMetrics;
     private final CircuitBreaker circuitBreaker;
     private final String name;
     private volatile boolean isShutdown = false;
 
     public NewController(String name, PrecipiceSemaphore semaphore, ActionMetrics<T> actionMetrics,
-                         LatencyMetrics latencyMetrics, CircuitBreaker circuitBreaker) {
+                         LatencyMetrics<T> latencyMetrics, CircuitBreaker circuitBreaker) {
         this.semaphore = semaphore;
         this.actionMetrics = actionMetrics;
         this.latencyMetrics = latencyMetrics;
@@ -53,7 +52,7 @@ public class NewController<T extends Enum<T> & Result> implements Service {
     }
 
     @Override
-    public LatencyMetrics getLatencyMetrics() {
+    public LatencyMetrics<T> getLatencyMetrics() {
         return latencyMetrics;
     }
 
@@ -89,22 +88,22 @@ public class NewController<T extends Enum<T> & Result> implements Service {
         return null;
     }
 
-    public <R> PrecipicePromise<T,R> getPromise() {
+    public <R> PrecipicePromise<T, R> getPromise() {
         RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        long startTime = System.nanoTime();
         if (rejectionReason != null) {
-            // TODO: Record metrics. Maybe a mapping method on status?
+            actionMetrics.incrementRejectionCount(rejectionReason, startTime);
             throw new RejectedActionException(rejectionReason);
         }
 
-        long startTime = System.nanoTime();
         NewEventual<T, R> promise = new NewEventual<>(startTime);
         promise.internalOnComplete(new PrecipiceFunction<T, NewEventual<T, R>>() {
             @Override
             public void apply(T status, NewEventual<T, R> eventual) {
+                long endTime = System.nanoTime();
                 actionMetrics.incrementMetricCount(status);
                 circuitBreaker.informBreakerOfResult(status.isSuccess());
-                // TODO: Record latency & remove cast
-                latencyMetrics.recordLatency((Status) status, eventual.startNanos());
+                latencyMetrics.recordLatency(status, endTime - eventual.startNanos(), endTime);
                 semaphore.releasePermit();
             }
         });

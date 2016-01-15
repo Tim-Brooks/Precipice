@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.RejectionReason;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
@@ -68,9 +69,23 @@ public class SWActionMetrics<T extends Enum<T> & Result> implements ActionMetric
 
     @Override
     public void incrementMetricCount(T metric, long nanoTime) {
-        totalCounter.incrementMetric(metric);
+        if (metric.trackMetrics()) {
+            totalCounter.incrementMetric(metric);
+            MetricCounter<T> currentMetricCounter = buffer.getSlot();
+            currentMetricCounter.incrementMetric(metric);
+        }
+    }
+
+    @Override
+    public void incrementRejectionCount(RejectionReason reason) {
+        incrementRejectionCount(reason, systemTime.nanoTime());
+    }
+
+    @Override
+    public void incrementRejectionCount(RejectionReason reason, long nanoTime) {
+        totalCounter.incrementRejection(reason);
         MetricCounter<T> currentMetricCounter = buffer.getSlot();
-        currentMetricCounter.incrementMetric(metric);
+        currentMetricCounter.incrementRejection(reason);
     }
 
     @Override
@@ -127,12 +142,13 @@ public class SWActionMetrics<T extends Enum<T> & Result> implements ActionMetric
                 if (t.isFailure()) {
                     failures += metricCount;
                 }
+                notRejectedTotal += metricCount;
+            }
 
-                if (t.isRejected()) {
-                    rejections += metricCount;
-                } else {
-                    notRejectedTotal += metricCount;
-                }
+            for (RejectionReason r : RejectionReason.values()) {
+                long metricCount = metricCounter.getRejectionCount(r);
+                total += metricCount;
+                rejections += metricCount;
             }
         }
         return new HealthSnapshot(total, notRejectedTotal, failures, rejections);

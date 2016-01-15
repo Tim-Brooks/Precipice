@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.RejectionReason;
 import net.uncontended.precipice.Result;
 
 import java.util.concurrent.TimeUnit;
@@ -26,6 +27,10 @@ public interface ActionMetrics<T extends Enum<T> & Result> {
     void incrementMetricCount(T metric);
 
     void incrementMetricCount(T metric, long nanoTime);
+
+    void incrementRejectionCount(RejectionReason rejectionReason);
+
+    void incrementRejectionCount(RejectionReason rejectionReason, long nanoTime);
 
     long getMetricCount(T metric);
 

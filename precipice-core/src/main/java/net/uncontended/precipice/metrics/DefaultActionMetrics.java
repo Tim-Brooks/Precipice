@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.RejectionReason;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
@@ -69,12 +70,30 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
 
     @Override
     public void incrementMetricCount(T metric, long nanoTime) {
-        totalCounter.incrementMetric(metric);
+        if (metric.trackMetrics()) {
+            totalCounter.incrementMetric(metric);
+            MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
+            if (currentMetricCounter == null) {
+                currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
+            }
+            currentMetricCounter.incrementMetric(metric);
+        }
+    }
+
+    @Override
+    public void incrementRejectionCount(RejectionReason rejectionReason) {
+        incrementRejectionCount(rejectionReason, systemTime.nanoTime());
+
+    }
+
+    @Override
+    public void incrementRejectionCount(RejectionReason rejectionReason, long nanoTime) {
+        totalCounter.incrementRejection(rejectionReason);
         MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
         }
-        currentMetricCounter.incrementMetric(metric);
+        currentMetricCounter.incrementRejection(rejectionReason);
     }
 
     @Override
@@ -131,12 +150,13 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
                 if (t.isFailure()) {
                     failures += metricCount;
                 }
+                notRejectedTotal += metricCount;
+            }
 
-                if (t.isRejected()) {
-                    rejections += metricCount;
-                } else {
-                    notRejectedTotal += metricCount;
-                }
+            for (RejectionReason r : RejectionReason.values()) {
+                long metricCount = metricCounter.getRejectionCount(r);
+                total += metricCount;
+                rejections += metricCount;
             }
         }
         return new HealthSnapshot(total, notRejectedTotal, failures, rejections);

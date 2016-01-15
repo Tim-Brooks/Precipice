@@ -17,19 +17,27 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.RejectionReason;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.concurrent.LongAdder;
 
 public class MetricCounter<T extends Enum<T> & Result> {
 
     private final LongAdder[] metrics;
+    private final LongAdder[] rejectionMetrics;
 
     public MetricCounter(Class<T> clazz) {
         T[] metricValues = clazz.getEnumConstants();
 
         metrics = new LongAdder[metricValues.length];
+        // TODO: Only track metrics for relevant statuses
         for (T metric : metricValues) {
             metrics[metric.ordinal()] = new LongAdder();
+        }
+
+        rejectionMetrics = new LongAdder[RejectionReason.values().length];
+        for (RejectionReason reason : RejectionReason.values()) {
+            rejectionMetrics[reason.ordinal()] = new LongAdder();
         }
     }
 
@@ -41,6 +49,15 @@ public class MetricCounter<T extends Enum<T> & Result> {
         return metrics[metric.ordinal()].longValue();
     }
 
+    public void incrementRejection(RejectionReason reason) {
+        rejectionMetrics[reason.ordinal()].increment();
+
+    }
+
+    public long getRejectionCount(RejectionReason reason) {
+        return rejectionMetrics[reason.ordinal()].longValue();
+    }
+
     public static <T extends Enum<T> & Result> MetricCounter<T> noOpCounter(Class<T> clazz) {
         return new MetricCounter<T>(clazz) {
             @Override
@@ -50,6 +67,10 @@ public class MetricCounter<T extends Enum<T> & Result> {
             @Override
             public long getMetricCount(T metric) {
                 return 0L;
+            }
+
+            @Override
+            public void incrementRejection(RejectionReason rejectionReason) {
             }
         };
     }

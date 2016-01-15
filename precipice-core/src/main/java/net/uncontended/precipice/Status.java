@@ -18,34 +18,26 @@
 package net.uncontended.precipice;
 
 public enum Status implements Result {
-    SUCCESS(false, false, true),
-    ERROR(true, false, true),
-    TIMEOUT(true, false, true),
-    CIRCUIT_OPEN(false, true),
-    QUEUE_FULL(false, true),
-    MAX_CONCURRENCY_LEVEL_EXCEEDED(false, true),
-    ALL_SERVICES_REJECTED(false, true),
-    CANCELLED(false, false),
-    PENDING(false, false);
+    SUCCESS(false, true),
+    ERROR(true, true),
+    TIMEOUT(true, true),
+    CIRCUIT_OPEN(false),
+    QUEUE_FULL(false),
+    MAX_CONCURRENCY_LEVEL_EXCEEDED(false),
+    ALL_SERVICES_REJECTED(false),
+    CANCELLED(false),
+    PENDING(false);
 
     private final boolean isFailed;
-    private final boolean isRejected;
     private final boolean trackLatency;
 
-    Status(boolean isFailed, boolean isRejected) {
-        this(isFailed, isRejected, false);
+    Status(boolean isFailed) {
+        this(isFailed, false);
     }
 
-    Status(boolean isFailed, boolean isRejected, boolean trackLatency) {
+    Status(boolean isFailed, boolean trackLatency) {
         this.isFailed = isFailed;
-        this.isRejected = isRejected;
         this.trackLatency = trackLatency;
-    }
-
-
-    @Override
-    public boolean isRejected() {
-        return isRejected;
     }
 
     @Override
