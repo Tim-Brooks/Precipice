@@ -32,6 +32,11 @@ public class NewController<T extends Enum<T> & Result> implements Service {
     private final String name;
     private volatile boolean isShutdown = false;
 
+    public NewController(String name, ControllerProperties<T> properties) {
+        this(name, properties.semaphore(), properties.actionMetrics(), properties.latencyMetrics(),
+                properties.circuitBreaker());
+    }
+
     public NewController(String name, PrecipiceSemaphore semaphore, ActionMetrics<T> actionMetrics,
                          LatencyMetrics<T> latencyMetrics, CircuitBreaker circuitBreaker) {
         this.semaphore = semaphore;

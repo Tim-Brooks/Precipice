@@ -101,7 +101,7 @@ public class ControllerProperties<T extends Enum<T> & Result> {
         return this;
     }
 
-    public LatencyMetrics<?> latencyMetrics() {
+    public LatencyMetrics<T> latencyMetrics() {
         return latencyMetrics;
     }
 }
