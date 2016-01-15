@@ -71,12 +71,12 @@ public class DefaultAsyncService implements AsyncService {
     }
 
     @Override
-    public ActionMetrics<?> getActionMetrics() {
+    public ActionMetrics<Status> getActionMetrics() {
         return controller.getActionMetrics();
     }
 
     @Override
-    public LatencyMetrics<?> getLatencyMetrics() {
+    public LatencyMetrics<Status> getLatencyMetrics() {
         return controller.getLatencyMetrics();
     }
 

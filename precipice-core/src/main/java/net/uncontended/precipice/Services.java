@@ -50,11 +50,21 @@ public final class Services {
     public static RunService runService(String name, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
-        return new DefaultRunService(name, properties);
+
+        ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
+        LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
+        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+                latencyMetrics, properties.circuitBreaker());
+
+        return new DefaultRunService(controller);
     }
 
-    public static RunService runService(String name, ServiceProperties serviceProperties) {
-        return new DefaultRunService(name, serviceProperties);
+    public static RunService runService(String name, ServiceProperties properties) {
+        ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
+        LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
+        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+                latencyMetrics, properties.circuitBreaker());
+        return new DefaultRunService(controller);
     }
 
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {

@@ -34,13 +34,13 @@ public class DefaultService extends AbstractService implements MultiService {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
         this.service = service;
-        runService = new DefaultRunService(name, properties);
 
         ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
         LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
         NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
                 latencyMetrics, properties.circuitBreaker());
 
+        runService = new DefaultRunService(controller);
         asyncService = new DefaultAsyncService(service, controller);
     }
 

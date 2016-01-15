@@ -17,22 +17,22 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 
-public class DefaultRunService extends AbstractService implements RunService {
+public class DefaultRunService implements RunService {
 
-    private final ActionMetrics<Status> actionMetrics;
+    private final NewController<Status> controller;
 
-    public DefaultRunService(String name, ServiceProperties properties) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
-                properties.semaphore());
-        actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
+    public DefaultRunService(NewController<Status> controller) {
+        this.controller = controller;
     }
 
     @Override
     public <T> T run(final ResilientAction<T> action) throws Exception {
-        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        RejectionReason rejectionReason = controller.acquirePermitOrGetRejectedReason();
         if (rejectionReason != null) {
             handleRejectedReason(rejectionReason);
         }
@@ -48,30 +48,59 @@ public class DefaultRunService extends AbstractService implements RunService {
             metricsAndBreakerFeedback(nanoStart, Status.ERROR);
             throw e;
         } finally {
-            semaphore.releasePermit();
+            controller.getSemaphore().releasePermit();
         }
     }
 
     @Override
-    public void shutdown() {
-        isShutdown = true;
+    public String getName() {
+        return controller.getName();
+    }
 
+    @Override
+    public ActionMetrics<Status> getActionMetrics() {
+        return controller.getActionMetrics();
+    }
+
+    @Override
+    public LatencyMetrics<Status> getLatencyMetrics() {
+        return controller.getLatencyMetrics();
+    }
+
+    @Override
+    public CircuitBreaker getCircuitBreaker() {
+        return controller.getCircuitBreaker();
+    }
+
+    @Override
+    public int remainingCapacity() {
+        return controller.remainingCapacity();
+    }
+
+    @Override
+    public int pendingCount() {
+        return controller.pendingCount();
+    }
+
+    @Override
+    public void shutdown() {
+        controller.shutdown();
     }
 
     private void handleRejectedReason(RejectionReason rejectionReason) {
         if (rejectionReason == RejectionReason.CIRCUIT_OPEN) {
-            actionMetrics.incrementMetricCount(Status.CIRCUIT_OPEN);
+            controller.getActionMetrics().incrementRejectionCount(RejectionReason.CIRCUIT_OPEN);
         } else if (rejectionReason == RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
-            actionMetrics.incrementMetricCount(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+            controller.getActionMetrics().incrementRejectionCount(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         }
         throw new RejectedActionException(rejectionReason);
     }
 
     private void metricsAndBreakerFeedback(long nanoStart, Status status) {
         long nanoTime = System.nanoTime();
-        actionMetrics.incrementMetricCount(status, nanoTime);
-        circuitBreaker.informBreakerOfResult(status == Status.SUCCESS, nanoTime);
+        controller.getActionMetrics().incrementMetricCount(status, nanoTime);
+        controller.getCircuitBreaker().informBreakerOfResult(status.isSuccess(), nanoTime);
         long latency = nanoTime - nanoStart;
-        latencyMetrics.recordLatency(status, latency, nanoTime);
+        controller.getLatencyMetrics().recordLatency(status, latency, nanoTime);
     }
 }
