@@ -18,7 +18,10 @@ package net.uncontended.precipice.metrics.registry;
 
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.metrics.*;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
+import net.uncontended.precipice.metrics.LatencySnapshot;
+import net.uncontended.precipice.metrics.MetricCounter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -33,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 /**
@@ -46,7 +48,7 @@ public class MetricRegistryTest {
     @Mock
     private Service service;
     @Mock
-    private ActionMetrics<Status> actionMetrics;
+    private ActionMetrics actionMetrics;
 
     @Mock
     private IntervalLatencyMetrics latencyMetrics;

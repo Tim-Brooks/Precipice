@@ -17,16 +17,16 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.Result;
 
-public class NoOpLatencyMetrics implements LatencyMetrics {
+public class NoOpLatencyMetrics<T extends Enum<T> & Result> implements LatencyMetrics<T> {
 
     @Override
-    public void recordLatency(Status metric, long nanoLatency) {
+    public void recordLatency(T metric, long nanoLatency) {
     }
 
     @Override
-    public void recordLatency(Status metric, long nanoLatency, long nanoTime) {
+    public void recordLatency(T metric, long nanoLatency, long nanoTime) {
     }
 
     @Override
@@ -35,7 +35,7 @@ public class NoOpLatencyMetrics implements LatencyMetrics {
     }
 
     @Override
-    public LatencySnapshot latencySnapshot(Status metric) {
+    public LatencySnapshot latencySnapshot(T metric) {
         return LatencyMetrics.DEFAULT_SNAPSHOT;
     }
 }

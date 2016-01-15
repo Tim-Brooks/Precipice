@@ -17,17 +17,17 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.Result;
 
-public interface LatencyMetrics {
+public interface LatencyMetrics<T extends Enum<T> & Result> {
 
     LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 
-    void recordLatency(Status metric, long nanoLatency);
+    void recordLatency(T result, long nanoLatency);
 
-    void recordLatency(Status metric, long nanoLatency, long nanoTime);
+    void recordLatency(T result, long nanoLatency, long nanoTime);
 
     LatencySnapshot latencySnapshot();
 
-    LatencySnapshot latencySnapshot(Status metric);
+    LatencySnapshot latencySnapshot(T result);
 }

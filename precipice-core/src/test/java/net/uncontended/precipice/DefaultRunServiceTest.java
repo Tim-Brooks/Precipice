@@ -129,7 +129,8 @@ public class DefaultRunServiceTest {
         } catch (ActionTimeoutException e) {
         }
 
-        assertEquals(1, service.getActionMetrics().getMetricCountForTimePeriod(Status.TIMEOUT, 1, TimeUnit.HOURS));
+        ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) service.getActionMetrics();
+        assertEquals(1, actionMetrics.getMetricCountForTimePeriod(Status.TIMEOUT, 1, TimeUnit.HOURS));
     }
 
     @Test
@@ -158,7 +159,7 @@ public class DefaultRunServiceTest {
         }
         service.run(TestActions.successAction(50, "Success"));
 
-        ActionMetrics<Status> metrics = service.getActionMetrics();
+        ActionMetrics<Status> metrics = (ActionMetrics<Status>) service.getActionMetrics();
         Map<Object, Integer> expectedCounts = new HashMap<>();
         expectedCounts.put(Status.SUCCESS, 1);
         expectedCounts.put(Status.ERROR, 1);
@@ -213,7 +214,7 @@ public class DefaultRunServiceTest {
         expectedCounts.put(Status.CIRCUIT_OPEN, 1);
         expectedCounts.put(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1);
 
-        assertNewMetrics(service.getActionMetrics(), expectedCounts);
+        assertNewMetrics((ActionMetrics<Status>) service.getActionMetrics(), expectedCounts);
     }
 
     @Test

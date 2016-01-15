@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.metrics.util.RawCircularBuffer;
 import org.HdrHistogram.*;
 
@@ -28,33 +28,38 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Unstable and still in development. At this time, {@link IntervalLatencyMetrics} should be used.
  */
-public class RollingLatencyMetrics implements LatencyMetrics {
+public class RollingLatencyMetrics<T extends Enum<T> & Result> implements LatencyMetrics<T> {
 
     private final long startTime;
 
-    private final LatencyBucket successBucket;
-    private final LatencyBucket errorBucket;
-    private final LatencyBucket timeoutBucket;
+    private final LatencyBucket[] buckets;
+    private final long highestTrackableValue;
+    private final int numberOfSignificantValueDigits;
 
-    public RollingLatencyMetrics(long startTime) {
-        this(startTime, TimeUnit.MINUTES.toNanos(10), TimeUnit.HOURS.toNanos(1), 2);
+    public RollingLatencyMetrics(Class<T> type, long startTime) {
+        this(type, startTime, TimeUnit.MINUTES.toNanos(10), TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public RollingLatencyMetrics(long startTime, long bucketResolution, long highestTrackableValue, int
-            numberOfSignificantValueDigits) {
+    public RollingLatencyMetrics(Class<T> type, long startTime, long bucketResolution, long highestTrackableValue,
+                                 int numberOfSignificantValueDigits) {
         this.startTime = startTime;
-        successBucket = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
-        errorBucket = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
-        timeoutBucket = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
+        this.highestTrackableValue = highestTrackableValue;
+        this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
+        buckets = new LatencyBucket[type.getEnumConstants().length];
+        for (int i = 0; i < buckets.length; ++i) {
+            if (type.getEnumConstants()[i].trackLatency()) {
+                buckets[i] = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
+            }
+        }
     }
 
     @Override
-    public void recordLatency(Status metric, long nanoLatency) {
+    public void recordLatency(T metric, long nanoLatency) {
         recordLatency(metric, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(Status metric, long nanoLatency, long nanoTime) {
+    public void recordLatency(T metric, long nanoLatency, long nanoTime) {
         if (nanoLatency != -1) {
             LatencyBucket bucket = getLatencyBucket(metric);
             bucket.record(nanoLatency, nanoTime);
@@ -62,60 +67,56 @@ public class RollingLatencyMetrics implements LatencyMetrics {
     }
 
     @Override
-    public LatencySnapshot latencySnapshot(Status metric) {
+    public LatencySnapshot latencySnapshot(T metric) {
         LatencyBucket bucket = getLatencyBucket(metric);
-        return createSnapshot(startTime, -1, bucket.histogram);
+        return createSnapshot(bucket.histogram, startTime, -1);
     }
 
     @Override
     public LatencySnapshot latencySnapshot() {
-        Histogram accumulated = new Histogram(successBucket.histogram);
-        accumulated.add(successBucket.histogram);
-        accumulated.add(errorBucket.histogram);
-        accumulated.add(timeoutBucket.histogram);
+        Histogram accumulated = new Histogram(highestTrackableValue, numberOfSignificantValueDigits);
 
-        return createSnapshot(startTime, -1, accumulated);
+        long startTime = -1;
+        for (LatencyBucket bucket : buckets) {
+            if (bucket != null) {
+                Histogram histogram = bucket.histogram;
+                if (startTime == -1) {
+                    startTime = histogram.getStartTimeStamp();
+                } else {
+                    startTime = Math.min(startTime, histogram.getStartTimeStamp());
+                }
+                accumulated.add(histogram);
+            }
+        }
+
+        return createSnapshot(accumulated, startTime, System.currentTimeMillis());
     }
 
-    public Iterable<LatencySnapshot> snapshotsForPeriod(Status metric, long timePeriod, TimeUnit timeUnit) {
-        return snapshotsForPeriod(metric, timePeriod, timeUnit, System.nanoTime());
+    public Iterable<LatencySnapshot> snapshotsForPeriod(T result, long timePeriod, TimeUnit timeUnit) {
+        return snapshotsForPeriod(result, timePeriod, timeUnit, System.nanoTime());
     }
 
-    public Iterable<LatencySnapshot> snapshotsForPeriod(Status metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        LatencyBucket bucket = getLatencyBucket(metric);
+    public Iterable<LatencySnapshot> snapshotsForPeriod(T result, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        LatencyBucket bucket = getLatencyBucket(result);
         return bucket.getIterable(timePeriod, timeUnit, nanoTime);
     }
 
-    public Histogram getHistogram(Status metric) {
-        LatencyBucket latencyBucket = getLatencyBucket(metric);
+    public Histogram getHistogram(T result) {
+        LatencyBucket latencyBucket = getLatencyBucket(result);
         return latencyBucket.histogram;
     }
 
-    public Histogram getInactiveHistogram(Status metric) {
-        LatencyBucket latencyBucket = getLatencyBucket(metric);
+    public Histogram getInactiveHistogram(T result) {
+        LatencyBucket latencyBucket = getLatencyBucket(result);
         // TODO: Threadsafe?
         return latencyBucket.inactive;
     }
 
-    private LatencyBucket getLatencyBucket(Status metric) {
-        LatencyBucket bucket;
-        switch (metric) {
-            case SUCCESS:
-                bucket = successBucket;
-                break;
-            case ERROR:
-                bucket = errorBucket;
-                break;
-            case TIMEOUT:
-                bucket = timeoutBucket;
-                break;
-            default:
-                throw new IllegalArgumentException("No latency capture for: " + metric);
-        }
-        return bucket;
+    private LatencyBucket getLatencyBucket(T result) {
+        return buckets[result.ordinal()];
     }
 
-    private static LatencySnapshot createSnapshot(long startTime, long endTime, Histogram histogram) {
+    private static LatencySnapshot createSnapshot(Histogram histogram, long startTime, long endTime) {
         if (histogram.getTotalCount() != 0) {
             long latency50 = histogram.getValueAtPercentile(50.0);
             long latency90 = histogram.getValueAtPercentile(90.0);
@@ -177,7 +178,7 @@ public class RollingLatencyMetrics implements LatencyMetrics {
         private LatencySnapshot swapHistograms(long startTime, long endTime) {
             Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
             inactive = intervalHistogram;
-            return createSnapshot(startTime, endTime, intervalHistogram);
+            return createSnapshot(intervalHistogram, startTime, endTime);
         }
 
         private Iterable<LatencySnapshot> getIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {

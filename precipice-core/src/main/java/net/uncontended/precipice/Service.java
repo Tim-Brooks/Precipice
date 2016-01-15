@@ -44,7 +44,7 @@ public interface Service {
      *
      * @return the latency metrics backing this service
      */
-    LatencyMetrics getLatencyMetrics();
+    LatencyMetrics<?> getLatencyMetrics();
 
     /**
      * Returns the {@link CircuitBreaker} for this service.

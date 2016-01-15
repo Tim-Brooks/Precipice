@@ -223,7 +223,7 @@ public class DefaultAsyncServiceTest {
             }
         }
 
-        ActionMetrics<Status> metrics = service.getActionMetrics();
+        ActionMetrics<Status> metrics = (ActionMetrics<Status>) service.getActionMetrics();
         Map<Status, Integer> expectedCounts = new EnumMap<>(Status.class);
         expectedCounts.put(Status.SUCCESS, 1);
         expectedCounts.put(Status.ERROR, 1);
@@ -277,7 +277,7 @@ public class DefaultAsyncServiceTest {
         expectedCounts.put(Status.CIRCUIT_OPEN, 1);
         expectedCounts.put(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
 
-        assertNewMetrics(service.getActionMetrics(), expectedCounts);
+        assertNewMetrics((ActionMetrics<Status>) service.getActionMetrics(), expectedCounts);
     }
 
     @Test
@@ -341,7 +341,7 @@ public class DefaultAsyncServiceTest {
         service.complete(TestActions.successAction(50, "Success"), successP, Long.MAX_VALUE);
         service.complete(TestActions.blockedAction(timeoutLatch), timeoutP, 1);
 
-        ActionMetrics<Status> metrics = service.getActionMetrics();
+        ActionMetrics<Status> metrics = (ActionMetrics<Status>) service.getActionMetrics();
         for (int i = 0; i <= 20; ++i) {
             if (metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
                 break;

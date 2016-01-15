@@ -23,7 +23,6 @@ import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.IntegerSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
 import net.uncontended.precipice.timeout.TimeoutService;
@@ -31,7 +30,7 @@ import net.uncontended.precipice.timeout.TimeoutService;
 public class ServiceProperties {
 
     private ActionMetrics<?> metrics;
-    private LatencyMetrics latencyMetrics = new IntervalLatencyMetrics();
+    private LatencyMetrics latencyMetrics = new IntervalLatencyMetrics(Status.class);
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;

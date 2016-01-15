@@ -18,85 +18,87 @@
 package net.uncontended.precipice.metrics;
 
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.Result;
 import org.HdrHistogram.*;
 
 import java.util.concurrent.TimeUnit;
 
-public class IntervalLatencyMetrics implements LatencyMetrics {
+public class IntervalLatencyMetrics<T extends Enum<T> & Result> implements LatencyMetrics<T> {
 
-    private final LatencyBucket successBucket;
-    private final LatencyBucket errorBucket;
-    private final LatencyBucket timeoutBucket;
+    private final LatencyBucket[] buckets;
+    private final long highestTrackableValue;
+    private final int numberOfSignificantValueDigits;
 
-    public IntervalLatencyMetrics() {
-        this(TimeUnit.HOURS.toNanos(1), 2);
+    public IntervalLatencyMetrics(Class<T> type) {
+        this(type, TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public IntervalLatencyMetrics(long highestTrackableValue, int numberOfSignificantValueDigits) {
-        successBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-        errorBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-        timeoutBucket = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+    public IntervalLatencyMetrics(Class<T> type, long highestTrackableValue, int numberOfSignificantValueDigits) {
+        this.highestTrackableValue = highestTrackableValue;
+        this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
+        buckets = new LatencyBucket[type.getEnumConstants().length];
+        for (int i = 0; i < buckets.length; ++i) {
+            if (type.getEnumConstants()[i].trackLatency()) {
+                buckets[i] = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
+            }
+        }
     }
 
     @Override
-    public void recordLatency(Status metric, long nanoLatency) {
-        recordLatency(metric, nanoLatency, System.nanoTime());
+    public void recordLatency(T result, long nanoLatency) {
+        recordLatency(result, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(Status metric, long nanoLatency, long nanoTime) {
-        if (nanoLatency != -1) {
-            LatencyBucket bucket = getLatencyBucket(metric);
+    public void recordLatency(T result, long nanoLatency, long nanoTime) {
+        if (result.trackLatency()) {
+            LatencyBucket bucket = getLatencyBucket(result);
             bucket.record(nanoLatency);
         }
     }
 
     @Override
-    public LatencySnapshot latencySnapshot(Status metric) {
-        LatencyBucket bucket = getLatencyBucket(metric);
-        return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
+    public LatencySnapshot latencySnapshot(T result) {
+        if (result.trackLatency()) {
+            LatencyBucket bucket = getLatencyBucket(result);
+            return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
+        } else {
+            return LatencyMetrics.DEFAULT_SNAPSHOT;
+        }
     }
 
     @Override
     public LatencySnapshot latencySnapshot() {
-        Histogram successHistogram = successBucket.histogram;
-        Histogram errorHistogram = errorBucket.histogram;
-        Histogram timeoutHistogram = timeoutBucket.histogram;
+        Histogram accumulated = new Histogram(highestTrackableValue, numberOfSignificantValueDigits);
 
-        Histogram accumulated = new Histogram(successHistogram);
-        accumulated.add(successHistogram);
-        accumulated.add(errorHistogram);
-        accumulated.add(timeoutHistogram);
-
-        long startTime = Math.min(Math.min(successHistogram.getStartTimeStamp(), errorHistogram.getStartTimeStamp()),
-                timeoutHistogram.getStartTimeStamp());
+        long startTime = -1;
+        for (LatencyBucket bucket : buckets) {
+            if (bucket != null) {
+                Histogram histogram = bucket.histogram;
+                if (startTime == -1) {
+                    startTime = histogram.getStartTimeStamp();
+                } else {
+                    startTime = Math.min(startTime, histogram.getStartTimeStamp());
+                }
+                accumulated.add(histogram);
+            }
+        }
 
         return createSnapshot(accumulated, startTime, System.currentTimeMillis());
     }
 
-    public synchronized LatencySnapshot intervalSnapshot(Status metric) {
-        LatencyBucket latencyBucket = getLatencyBucket(metric);
-        Histogram histogram = latencyBucket.getIntervalHistogram();
-        return createSnapshot(histogram, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
+    public synchronized LatencySnapshot intervalSnapshot(T result) {
+        if (result.trackLatency()) {
+            LatencyBucket latencyBucket = getLatencyBucket(result);
+            Histogram histogram = latencyBucket.getIntervalHistogram();
+            return createSnapshot(histogram, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
+        } else {
+            return LatencyMetrics.DEFAULT_SNAPSHOT;
+        }
     }
 
-    private LatencyBucket getLatencyBucket(Status metric) {
-        LatencyBucket bucket;
-        switch (metric) {
-            case SUCCESS:
-                bucket = successBucket;
-                break;
-            case ERROR:
-                bucket = errorBucket;
-                break;
-            case TIMEOUT:
-                bucket = timeoutBucket;
-                break;
-            default:
-                throw new IllegalArgumentException("No latency capture for: " + metric);
-        }
-        return bucket;
+    private LatencyBucket getLatencyBucket(T result) {
+        return buckets[result.ordinal()];
     }
 
     private static LatencySnapshot createSnapshot(Histogram histogram, long startTime, long endTime) {

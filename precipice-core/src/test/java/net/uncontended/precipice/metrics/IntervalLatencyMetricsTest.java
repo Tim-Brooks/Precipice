@@ -30,7 +30,7 @@ public class IntervalLatencyMetricsTest {
 
     @Before
     public void setup() {
-        metrics = new IntervalLatencyMetrics();
+        metrics = new IntervalLatencyMetrics(Status.class);
     }
 
     @Test
