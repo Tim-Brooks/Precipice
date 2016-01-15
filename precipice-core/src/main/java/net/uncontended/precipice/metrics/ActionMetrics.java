@@ -34,13 +34,15 @@ public interface ActionMetrics<T extends Enum<T> & Result> {
 
     long getMetricCount(T metric);
 
-    long getMetricCountForTotalPeriod(T metric);
-
-    long getMetricCountForTotalPeriod(T metric, long nanoTime);
-
     long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit);
 
     long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
+
+    long getRejectionCount(RejectionReason metric);
+
+    long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit);
+
+    long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit, long nanoTime);
 
     // TODO: Maybe this does not need to be part of the action metrics interface
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit);

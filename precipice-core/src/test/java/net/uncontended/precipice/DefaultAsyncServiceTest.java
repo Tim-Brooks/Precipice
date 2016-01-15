@@ -61,14 +61,14 @@ public class DefaultAsyncServiceTest {
     }
 
     @Test
-    public void actionRejectedIfShutdown() {
+    public void exceptionIfShutdown() {
         service.shutdown();
 
         try {
             service.submit(TestActions.successAction(0), Long.MAX_VALUE);
-            fail("Action should have been rejected due to shutdown.");
-        } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.SERVICE_SHUTDOWN, e.reason);
+            fail("Exception should have been thrown due to shutdown.");
+        } catch (IllegalStateException e) {
+            assertEquals("Service has been shutdown.", e.getMessage());
         }
     }
 
@@ -224,7 +224,7 @@ public class DefaultAsyncServiceTest {
         }
 
         ActionMetrics<Status> metrics = (ActionMetrics<Status>) service.getActionMetrics();
-        Map<Status, Integer> expectedCounts = new EnumMap<>(Status.class);
+        Map<Object, Integer> expectedCounts = new HashMap<>();
         expectedCounts.put(Status.SUCCESS, 1);
         expectedCounts.put(Status.ERROR, 1);
         expectedCounts.put(Status.TIMEOUT, 1);
@@ -272,10 +272,10 @@ public class DefaultAsyncServiceTest {
             }
         }
 
-        Map<Status, Integer> expectedCounts = new EnumMap<>(Status.class);
+        Map<Object, Integer> expectedCounts = new HashMap<>();
         expectedCounts.put(Status.SUCCESS, 1);
-        expectedCounts.put(Status.CIRCUIT_OPEN, 1);
-        expectedCounts.put(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
+        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
+        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
 
         assertNewMetrics((ActionMetrics<Status>) service.getActionMetrics(), expectedCounts);
     }
@@ -356,7 +356,7 @@ public class DefaultAsyncServiceTest {
 
         timeoutLatch.countDown();
 
-        Map<Status, Integer> expectedCounts = new EnumMap<>(Status.class);
+        Map<Object, Integer> expectedCounts = new HashMap<>();
         expectedCounts.put(Status.SUCCESS, 1);
         expectedCounts.put(Status.ERROR, 1);
         expectedCounts.put(Status.TIMEOUT, 1);
@@ -451,21 +451,22 @@ public class DefaultAsyncServiceTest {
         }
     }
 
-    private static void assertNewMetrics(ActionMetrics<Status> metrics, Map<Status, Integer> expectedCounts) {
+    private static void assertNewMetrics(ActionMetrics<Status> metrics, Map<Object, Integer> expectedCounts) {
         int milliseconds = 5;
         int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
         int expectedSuccesses = expectedCounts.get(Status.SUCCESS) == null ? 0 : expectedCounts.get(Status.SUCCESS);
         int expectedTimeouts = expectedCounts.get(Status.TIMEOUT) == null ? 0 : expectedCounts.get(Status.TIMEOUT);
-        int expectedMaxConcurrency = expectedCounts.get(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
-                expectedCounts.get(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        int expectedCircuitOpen = expectedCounts.get(Status.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(Status.CIRCUIT_OPEN);
+        int expectedMaxConcurrency = expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
+                expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        int expectedCircuitOpen = expectedCounts.get(RejectionReason.CIRCUIT_OPEN) == null ? 0 :
+                expectedCounts.get(RejectionReason.CIRCUIT_OPEN);
 
         assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(Status.ERROR, milliseconds, TimeUnit.SECONDS));
         assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(Status.TIMEOUT, milliseconds, TimeUnit.SECONDS));
         assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(Status.SUCCESS, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedMaxConcurrency, metrics.getMetricCountForTimePeriod(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedCircuitOpen, metrics.getMetricCountForTimePeriod(Status.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
-        assertEquals(0, metrics.getMetricCountForTimePeriod(Status.QUEUE_FULL, milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedMaxConcurrency, metrics.getRejectionCountForTimePeriod(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED,
+                milliseconds, TimeUnit.SECONDS));
+        assertEquals(expectedCircuitOpen, metrics.getRejectionCountForTimePeriod(RejectionReason.CIRCUIT_OPEN, milliseconds, TimeUnit.SECONDS));
     }
 
 

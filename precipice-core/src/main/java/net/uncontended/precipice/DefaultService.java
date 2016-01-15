@@ -19,6 +19,8 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 
 import java.util.concurrent.ExecutorService;
 
@@ -33,7 +35,13 @@ public class DefaultService extends AbstractService implements MultiService {
                 properties.semaphore());
         this.service = service;
         runService = new DefaultRunService(name, properties);
-        asyncService = new DefaultAsyncService(name, service, properties);
+
+        ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
+        LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
+        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+                latencyMetrics, properties.circuitBreaker());
+
+        asyncService = new DefaultAsyncService(service, controller);
     }
 
     @Override

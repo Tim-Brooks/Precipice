@@ -102,17 +102,6 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
     }
 
     @Override
-    public long getMetricCountForTotalPeriod(T metric) {
-        return getMetricCountForTotalPeriod(metric, systemTime.nanoTime());
-    }
-
-    @Override
-    public long getMetricCountForTotalPeriod(T metric, long nanoTime) {
-        long milliseconds = slotsToTrack * millisecondsPerSlot;
-        return getMetricCountForTimePeriod(metric, milliseconds, TimeUnit.MILLISECONDS, nanoTime);
-    }
-
-    @Override
     public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit) {
         return getMetricCountForTimePeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
     }
@@ -124,6 +113,27 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
         long count = 0;
         for (MetricCounter<T> metricCounter : slots) {
             count += metricCounter.getMetricCount(metric);
+        }
+        return count;
+    }
+
+    @Override
+    public long getRejectionCount(RejectionReason reason) {
+        return totalCounter.getRejectionCount(reason);
+    }
+
+    @Override
+    public long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit) {
+        return getRejectionCountForTimePeriod(reason, timePeriod, timeUnit, systemTime.nanoTime());
+    }
+
+    @Override
+    public long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+
+        long count = 0;
+        for (MetricCounter<T> metricCounter : slots) {
+            count += metricCounter.getRejectionCount(reason);
         }
         return count;
     }

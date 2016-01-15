@@ -44,6 +44,7 @@ public class NewController<T extends Enum<T> & Result> implements Service {
         this.latencyMetrics = latencyMetrics;
         this.circuitBreaker = circuitBreaker;
         this.name = name;
+        this.circuitBreaker.setActionMetrics(actionMetrics);
     }
 
     @Override
@@ -113,6 +114,10 @@ public class NewController<T extends Enum<T> & Result> implements Service {
             }
         });
         return promise;
+    }
+
+    public PrecipiceSemaphore getSemaphore() {
+        return semaphore;
     }
 
     @Override

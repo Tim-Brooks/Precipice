@@ -17,22 +17,34 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.concurrent.ExecutorService;
 
-public class Services {
+public final class Services {
 
     public static AsyncService submissionService(String name, int poolSize, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultAsyncService(name, executor, properties);
+
+        ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
+        LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
+        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+                latencyMetrics, properties.circuitBreaker());
+        return new DefaultAsyncService(executor, controller);
     }
 
     public static AsyncService submissionService(String name, int poolSize, ServiceProperties properties) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultAsyncService(name, executor, properties);
+
+        ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
+        LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
+        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+                latencyMetrics, properties.circuitBreaker());
+        return new DefaultAsyncService(executor, controller);
     }
 
     public static RunService runService(String name, int concurrencyLevel) {

@@ -17,25 +17,26 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.ResilientTask;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
-public class DefaultAsyncService extends AbstractService implements AsyncService {
+public class DefaultAsyncService implements AsyncService {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
-    private final ActionMetrics<Status> actionMetrics;
+    private final NewController<Status> controller;
 
-    public DefaultAsyncService(String name, ExecutorService service, ServiceProperties properties) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(), properties.semaphore());
-        actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
-        timeoutService = properties.timeoutService();
+    public DefaultAsyncService(ExecutorService service, NewController<Status> controller) {
+        this.controller = controller;
+        timeoutService = TimeoutService.defaultTimeoutService;
         this.service = service;
     }
 
@@ -48,36 +49,55 @@ public class DefaultAsyncService extends AbstractService implements AsyncService
 
     @Override
     public <T> void complete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        RejectionReason rejectionReason = controller.acquirePermitOrGetRejectedReason();
         if (rejectionReason != null) {
-            handleRejectedReason(rejectionReason);
+            controller.getActionMetrics().incrementRejectionCount(rejectionReason);
+            throw new RejectedActionException(rejectionReason);
         }
         try {
-            ResilientTask<T> task = new ResilientTask<>(actionMetrics, latencyMetrics, semaphore, circuitBreaker,
-                    action, promise, millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout,
-                    System.nanoTime());
+            ResilientTask<T> task = new ResilientTask<>(controller, action, promise,
+                    millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout, System.nanoTime());
             service.execute(task);
             timeoutService.scheduleTimeout(task);
-
         } catch (RejectedExecutionException e) {
-            actionMetrics.incrementMetricCount(Status.QUEUE_FULL);
-            semaphore.releasePermit();
-            throw new RejectedActionException(RejectionReason.QUEUE_FULL);
+            controller.getSemaphore().releasePermit();
+            throw e;
         }
     }
 
-    private void handleRejectedReason(RejectionReason rejectionReason) {
-        if (rejectionReason == RejectionReason.CIRCUIT_OPEN) {
-            actionMetrics.incrementMetricCount(Status.CIRCUIT_OPEN);
-        } else if (rejectionReason == RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
-            actionMetrics.incrementMetricCount(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        }
-        throw new RejectedActionException(rejectionReason);
+    @Override
+    public String getName() {
+        return controller.getName();
+    }
+
+    @Override
+    public ActionMetrics<?> getActionMetrics() {
+        return controller.getActionMetrics();
+    }
+
+    @Override
+    public LatencyMetrics<?> getLatencyMetrics() {
+        return controller.getLatencyMetrics();
+    }
+
+    @Override
+    public CircuitBreaker getCircuitBreaker() {
+        return controller.getCircuitBreaker();
+    }
+
+    @Override
+    public int remainingCapacity() {
+        return controller.remainingCapacity();
+    }
+
+    @Override
+    public int pendingCount() {
+        return controller.pendingCount();
     }
 
     @Override
     public void shutdown() {
-        isShutdown = true;
+        controller.shutdown();
         service.shutdown();
     }
 }

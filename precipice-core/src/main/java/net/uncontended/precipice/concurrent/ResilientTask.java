@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.NewController;
 import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.CircuitBreaker;
@@ -36,20 +37,19 @@ public class ResilientTask<T> implements Runnable, Delayed {
     public final long nanosAbsoluteStart;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<Status, T> promise;
-    private final LatencyMetrics latencyMetrics;
+    private final LatencyMetrics<Status> latencyMetrics;
     private final ActionMetrics<Status> metrics;
     private final PrecipiceSemaphore semaphore;
     private final CircuitBreaker breaker;
     private final ResilientAction<T> action;
     private volatile Thread runner;
 
-    public ResilientTask(ActionMetrics<Status> metrics, LatencyMetrics latencyMetrics, PrecipiceSemaphore semaphore,
-                         CircuitBreaker breaker, ResilientAction<T> action, PrecipicePromise<Status, T> promise,
+    public ResilientTask(NewController<Status> controller, ResilientAction<T> action, PrecipicePromise<Status, T> promise,
                          long millisRelativeTimeout, long nanosAbsoluteStart) {
-        this.metrics = metrics;
-        this.latencyMetrics = latencyMetrics;
-        this.semaphore = semaphore;
-        this.breaker = breaker;
+        metrics = controller.getActionMetrics();
+        latencyMetrics = controller.getLatencyMetrics();
+        semaphore = controller.getSemaphore();
+        breaker = controller.getCircuitBreaker();
         this.action = action;
         this.promise = promise;
         this.millisRelativeTimeout = millisRelativeTimeout;

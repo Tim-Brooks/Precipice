@@ -131,9 +131,8 @@ public class DefaultActionMetricsTest {
         metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(20));
         metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(30));
 
-        assertEquals(1, metrics.getMetricCountForTotalPeriod(Status.SUCCESS, TimeUnit.SECONDS.toNanos(30)));
+        assertEquals(1, metrics.getMetricCountForTimePeriod(Status.SUCCESS, 30, TimeUnit.NANOSECONDS));
         assertEquals(4, metrics.getMetricCount(Status.SUCCESS));
-
     }
 
     @Test
