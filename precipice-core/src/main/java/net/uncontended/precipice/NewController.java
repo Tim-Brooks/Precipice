@@ -30,6 +30,7 @@ public class NewController<T extends Enum<T> & Result> {
     private final LatencyMetrics<T> latencyMetrics;
     private final CircuitBreaker circuitBreaker;
     private final String name;
+    private final FinishingCallback<T> finishingCallback;
     private volatile boolean isShutdown = false;
 
     public NewController(String name, ControllerProperties<T> properties) {
@@ -45,6 +46,7 @@ public class NewController<T extends Enum<T> & Result> {
         this.circuitBreaker = circuitBreaker;
         this.name = name;
         this.circuitBreaker.setActionMetrics(actionMetrics);
+        finishingCallback = new FinishingCallback<>(actionMetrics, circuitBreaker, latencyMetrics, semaphore);
     }
 
     public String getName() {
@@ -89,34 +91,7 @@ public class NewController<T extends Enum<T> & Result> {
     }
 
     public <R> PrecipicePromise<T, R> getPromise() {
-        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
-        long startTime = System.nanoTime();
-        if (rejectionReason != null) {
-            actionMetrics.incrementRejectionCount(rejectionReason, startTime);
-            throw new RejectedActionException(rejectionReason);
-        }
-
-        NewEventual<T, R> promise = new NewEventual<>(startTime);
-        // TODO: Single impl
-        promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
-            @Override
-            public void apply(T status, PerformingContext context) {
-                long endTime = System.nanoTime();
-                actionMetrics.incrementMetricCount(status);
-                circuitBreaker.informBreakerOfResult(status.isSuccess());
-                latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
-                semaphore.releasePermit();
-            }
-        });
-        return promise;
-    }
-
-    public PrecipiceSemaphore getSemaphore() {
-        return semaphore;
-    }
-
-    public void shutdown() {
-        isShutdown = true;
+        return getPromise(null);
     }
 
     public <R> PrecipicePromise<T, R> getPromise(PrecipicePromise<T, R> externalPromise) {
@@ -128,17 +103,40 @@ public class NewController<T extends Enum<T> & Result> {
         }
 
         NewEventual<T, R> promise = new NewEventual<>(startTime, externalPromise);
-        // TODO: Single impl
-        promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
-            @Override
-            public void apply(T status, PerformingContext context) {
-                long endTime = System.nanoTime();
-                actionMetrics.incrementMetricCount(status);
-                circuitBreaker.informBreakerOfResult(status.isSuccess());
-                latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
-                semaphore.releasePermit();
-            }
-        });
+        promise.internalOnComplete(finishingCallback);
         return promise;
+    }
+
+    public PrecipiceSemaphore getSemaphore() {
+        return semaphore;
+    }
+
+    public void shutdown() {
+        isShutdown = true;
+    }
+
+    private static class FinishingCallback<T extends Enum<T> & Result> implements PrecipiceFunction<T, PerformingContext> {
+        
+        private final ActionMetrics<T> actionMetrics;
+        private final CircuitBreaker circuitBreaker;
+        private final LatencyMetrics<T> latencyMetrics;
+        private final PrecipiceSemaphore semaphore;
+
+        private FinishingCallback(ActionMetrics<T> actionMetrics, CircuitBreaker circuitBreaker,
+                                  LatencyMetrics<T> latencyMetrics, PrecipiceSemaphore semaphore) {
+            this.actionMetrics = actionMetrics;
+            this.circuitBreaker = circuitBreaker;
+            this.latencyMetrics = latencyMetrics;
+            this.semaphore = semaphore;
+        }
+
+        @Override
+        public void apply(T status, PerformingContext context) {
+            long endTime = System.nanoTime();
+            actionMetrics.incrementMetricCount(status);
+            circuitBreaker.informBreakerOfResult(status.isSuccess());
+            latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
+            semaphore.releasePermit();
+        }
     }
 }
