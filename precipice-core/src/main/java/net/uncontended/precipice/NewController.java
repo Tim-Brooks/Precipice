@@ -116,7 +116,7 @@ public class NewController<T extends Enum<T> & Result> {
     }
 
     private static class FinishingCallback<T extends Enum<T> & Result> implements PrecipiceFunction<T, PerformingContext> {
-        
+
         private final ActionMetrics<T> actionMetrics;
         private final CircuitBreaker circuitBreaker;
         private final LatencyMetrics<T> latencyMetrics;

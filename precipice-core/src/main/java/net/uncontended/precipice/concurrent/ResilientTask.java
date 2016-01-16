@@ -91,6 +91,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
         try {
             promise.complete(Status.SUCCESS, result);
         } catch (Throwable t) {
+            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
     }
 
@@ -98,6 +99,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
         try {
             promise.completeExceptionally(Status.ERROR, e);
         } catch (Throwable t) {
+            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
     }
 
@@ -105,6 +107,7 @@ public class ResilientTask<T> implements Runnable, Delayed {
         try {
             promise.completeExceptionally(Status.TIMEOUT, e);
         } catch (Throwable t) {
+            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
     }
 
