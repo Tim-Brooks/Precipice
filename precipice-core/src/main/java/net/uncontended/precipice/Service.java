@@ -22,9 +22,6 @@ import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 
 public interface Service {
-    long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
-    int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
-
     /**
      * Returns the name of this service.
      *

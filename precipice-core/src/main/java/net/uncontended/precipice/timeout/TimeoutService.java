@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimeoutService {
 
+    public static long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
+
     public static final long NO_TIMEOUT = -1;
     public static final TimeoutService defaultTimeoutService = new TimeoutService("default");
     private final DelayQueue<ResilientTask<?>> timeoutQueue = new DelayQueue<>();

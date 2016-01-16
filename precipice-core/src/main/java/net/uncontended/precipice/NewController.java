@@ -24,7 +24,7 @@ import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 
-public class NewController<T extends Enum<T> & Result> implements Service {
+public class NewController<T extends Enum<T> & Result> {
     private final PrecipiceSemaphore semaphore;
     private final ActionMetrics<T> actionMetrics;
     private final LatencyMetrics<T> latencyMetrics;
@@ -47,32 +47,26 @@ public class NewController<T extends Enum<T> & Result> implements Service {
         this.circuitBreaker.setActionMetrics(actionMetrics);
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
     public ActionMetrics<T> getActionMetrics() {
         return actionMetrics;
     }
 
-    @Override
     public LatencyMetrics<T> getLatencyMetrics() {
         return latencyMetrics;
     }
 
-    @Override
     public CircuitBreaker getCircuitBreaker() {
         return circuitBreaker;
     }
 
-    @Override
     public int remainingCapacity() {
         return semaphore.remainingCapacity();
     }
 
-    @Override
     public int pendingCount() {
         return semaphore.currentConcurrencyLevel();
     }
@@ -120,7 +114,6 @@ public class NewController<T extends Enum<T> & Result> implements Service {
         return semaphore;
     }
 
-    @Override
     public void shutdown() {
         isShutdown = true;
     }

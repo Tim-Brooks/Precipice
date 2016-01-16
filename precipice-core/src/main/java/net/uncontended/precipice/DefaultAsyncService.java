@@ -56,7 +56,8 @@ public class DefaultAsyncService implements AsyncService {
         }
         try {
             ResilientTask<T> task = new ResilientTask<>(controller, action, promise,
-                    millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout, System.nanoTime());
+                    millisTimeout > TimeoutService.MAX_TIMEOUT_MILLIS ? TimeoutService.MAX_TIMEOUT_MILLIS :
+                            millisTimeout, System.nanoTime());
             service.execute(task);
             timeoutService.scheduleTimeout(task);
         } catch (RejectedExecutionException e) {

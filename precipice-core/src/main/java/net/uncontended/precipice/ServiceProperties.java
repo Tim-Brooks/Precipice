@@ -34,7 +34,7 @@ public class ServiceProperties {
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;
-    private int concurrencyLevel = Service.MAX_CONCURRENCY_LEVEL;
+    private int concurrencyLevel = ControllerProperties.MAX_CONCURRENCY_LEVEL;
 
     public ServiceProperties actionMetrics(ActionMetrics<?> metrics) {
         this.metrics = metrics;

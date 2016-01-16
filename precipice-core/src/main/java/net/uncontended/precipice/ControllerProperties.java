@@ -30,6 +30,8 @@ import net.uncontended.precipice.timeout.TimeoutService;
 
 public class ControllerProperties<T extends Enum<T> & Result> {
 
+    public static int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
+
 
     private final Class<T> type;
     private ActionMetrics<T> metrics;
@@ -37,7 +39,7 @@ public class ControllerProperties<T extends Enum<T> & Result> {
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;
-    private int concurrencyLevel = Service.MAX_CONCURRENCY_LEVEL;
+    private int concurrencyLevel = MAX_CONCURRENCY_LEVEL;
 
     public ControllerProperties(Class<T> type) {
         this.type = type;
