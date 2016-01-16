@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -110,9 +110,9 @@ public class SnapshotTest {
         metrics.incrementMetricCount(Status.SUCCESS, currentTime);
         metrics.incrementMetricCount(Status.ERROR, currentTime);
         metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.ALL_SERVICES_REJECTED, currentTime);
+        metrics.incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, currentTime);
 
         currentTime = (offsetTime + millisResolution) * 1000L * 1000L;
         metrics.incrementMetricCount(Status.SUCCESS, currentTime);
@@ -123,9 +123,9 @@ public class SnapshotTest {
         metrics.incrementMetricCount(Status.SUCCESS, currentTime);
         metrics.incrementMetricCount(Status.ERROR, currentTime);
         metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
 
         currentTime = (offsetTime + millisResolution * 3) * 1000L * 1000L;
         metrics.incrementMetricCount(Status.SUCCESS, currentTime);
@@ -134,15 +134,15 @@ public class SnapshotTest {
         metrics.incrementMetricCount(Status.ERROR, currentTime);
 
         currentTime = (offsetTime + millisResolution * 4) * 1000L * 1000L;
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
         metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
+        metrics.incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
 
         currentTime = (offsetTime + millisResolution * 5) * 1000L * 1000L;
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
+        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, currentTime);
         metrics.incrementMetricCount(Status.TIMEOUT, currentTime);
-        metrics.incrementRejectionCount(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
+        metrics.incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, currentTime);
     }
 }

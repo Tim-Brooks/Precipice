@@ -71,19 +71,19 @@ public abstract class AbstractService implements Service {
         return semaphore.currentConcurrencyLevel();
     }
 
-    protected RejectionReason acquirePermitOrGetRejectedReason() {
+    protected Rejected acquirePermitOrGetRejectedReason() {
         if (isShutdown) {
             throw new IllegalStateException("Service has been shutdown.");
         }
 
         boolean isPermitAcquired = semaphore.acquirePermit();
         if (!isPermitAcquired) {
-            return RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED;
+            return Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED;
         }
 
         if (!circuitBreaker.allowAction()) {
             semaphore.releasePermit();
-            return RejectionReason.CIRCUIT_OPEN;
+            return Rejected.CIRCUIT_OPEN;
         }
         return null;
     }

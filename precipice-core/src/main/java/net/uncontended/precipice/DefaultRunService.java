@@ -32,9 +32,9 @@ public class DefaultRunService implements RunService {
 
     @Override
     public <T> T run(final ResilientAction<T> action) throws Exception {
-        RejectionReason rejectionReason = controller.acquirePermitOrGetRejectedReason();
-        if (rejectionReason != null) {
-            handleRejectedReason(rejectionReason);
+        Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+        if (rejected != null) {
+            handleRejectedReason(rejected);
         }
         long nanoStart = System.nanoTime();
         try {
@@ -87,13 +87,13 @@ public class DefaultRunService implements RunService {
         controller.shutdown();
     }
 
-    private void handleRejectedReason(RejectionReason rejectionReason) {
-        if (rejectionReason == RejectionReason.CIRCUIT_OPEN) {
-            controller.getActionMetrics().incrementRejectionCount(RejectionReason.CIRCUIT_OPEN);
-        } else if (rejectionReason == RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
-            controller.getActionMetrics().incrementRejectionCount(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+    private void handleRejectedReason(Rejected rejected) {
+        if (rejected == Rejected.CIRCUIT_OPEN) {
+            controller.getActionMetrics().incrementRejectionCount(Rejected.CIRCUIT_OPEN);
+        } else if (rejected == Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
+            controller.getActionMetrics().incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         }
-        throw new RejectedActionException(rejectionReason);
+        throw new RejectedActionException(rejected);
     }
 
     private void metricsAndBreakerFeedback(long nanoStart, Status status) {

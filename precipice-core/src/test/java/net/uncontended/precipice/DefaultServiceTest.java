@@ -85,13 +85,13 @@ public class DefaultServiceTest {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             fail();
         } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
             service.run(TestActions.successAction(1));
             fail();
         } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         latch.countDown();
     }
@@ -316,7 +316,7 @@ public class DefaultServiceTest {
         try {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
         } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
         latch.countDown();
@@ -332,7 +332,7 @@ public class DefaultServiceTest {
             try {
                 service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             } catch (RejectedActionException e) {
-                if (e.reason == RejectionReason.CIRCUIT_OPEN) {
+                if (e.reason == Rejected.CIRCUIT_OPEN) {
                     break;
                 } else {
                     maxConcurrencyErrors++;
@@ -342,8 +342,8 @@ public class DefaultServiceTest {
 
         Map<Object, Integer> expectedCounts = new HashMap<>();
         expectedCounts.put(Status.SUCCESS, 1);
-        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
-        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
+        expectedCounts.put(Rejected.CIRCUIT_OPEN, 1);
+        expectedCounts.put(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
 
         assertNewMetrics((ActionMetrics<Status>) service.getActionMetrics(), expectedCounts);
     }
@@ -447,7 +447,7 @@ public class DefaultServiceTest {
             service.submit(TestActions.successAction(0), 100);
             fail("Should have been rejected due to open circuit.");
         } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
+            assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
         }
 
         Thread.sleep(150);
@@ -467,7 +467,7 @@ public class DefaultServiceTest {
             service.submit(TestActions.successAction(0), 100);
             fail("Should have been rejected due to open circuit.");
         } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.CIRCUIT_OPEN, e.reason);
+            assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
         }
     }
 
@@ -476,16 +476,16 @@ public class DefaultServiceTest {
         int expectedErrors = expectedCounts.get(Status.ERROR) == null ? 0 : expectedCounts.get(Status.ERROR);
         int expectedSuccesses = expectedCounts.get(Status.SUCCESS) == null ? 0 : expectedCounts.get(Status.SUCCESS);
         int expectedTimeouts = expectedCounts.get(Status.TIMEOUT) == null ? 0 : expectedCounts.get(Status.TIMEOUT);
-        int expectedMaxConcurrency = expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
-                expectedCounts.get(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        int expectedCircuitOpen = expectedCounts.get(RejectionReason.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(RejectionReason.CIRCUIT_OPEN);
+        int expectedMaxConcurrency = expectedCounts.get(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED) == null ? 0 :
+                expectedCounts.get(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        int expectedCircuitOpen = expectedCounts.get(Rejected.CIRCUIT_OPEN) == null ? 0 : expectedCounts.get(Rejected.CIRCUIT_OPEN);
 
         assertEquals(expectedErrors, metrics.getMetricCountForTimePeriod(Status.ERROR, milliseconds, TimeUnit.SECONDS));
         assertEquals(expectedTimeouts, metrics.getMetricCountForTimePeriod(Status.TIMEOUT, milliseconds, TimeUnit.SECONDS));
         assertEquals(expectedSuccesses, metrics.getMetricCountForTimePeriod(Status.SUCCESS, milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedMaxConcurrency, metrics.getRejectionCountForTimePeriod(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED,
+        assertEquals(expectedMaxConcurrency, metrics.getRejectionCountForTimePeriod(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED,
                 milliseconds, TimeUnit.SECONDS));
-        assertEquals(expectedCircuitOpen, metrics.getRejectionCountForTimePeriod(RejectionReason.CIRCUIT_OPEN,
+        assertEquals(expectedCircuitOpen, metrics.getRejectionCountForTimePeriod(Rejected.CIRCUIT_OPEN,
                 milliseconds, TimeUnit.SECONDS));
     }
 }

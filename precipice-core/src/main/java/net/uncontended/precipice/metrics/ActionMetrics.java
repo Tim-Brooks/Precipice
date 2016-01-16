@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 
 import java.util.concurrent.TimeUnit;
@@ -28,9 +28,9 @@ public interface ActionMetrics<T extends Enum<T> & Result> {
 
     void incrementMetricCount(T metric, long nanoTime);
 
-    void incrementRejectionCount(RejectionReason rejectionReason);
+    void incrementRejectionCount(Rejected rejected);
 
-    void incrementRejectionCount(RejectionReason rejectionReason, long nanoTime);
+    void incrementRejectionCount(Rejected rejected, long nanoTime);
 
     long getMetricCount(T metric);
 
@@ -38,11 +38,11 @@ public interface ActionMetrics<T extends Enum<T> & Result> {
 
     long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime);
 
-    long getRejectionCount(RejectionReason metric);
+    long getRejectionCount(Rejected metric);
 
-    long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit);
+    long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit);
 
-    long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit, long nanoTime);
+    long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit, long nanoTime);
 
     // TODO: Maybe this does not need to be part of the action metrics interface
     HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit);

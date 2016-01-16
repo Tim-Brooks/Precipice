@@ -73,19 +73,19 @@ public class NewController<T extends Enum<T> & Result> {
         return semaphore.currentConcurrencyLevel();
     }
 
-    public RejectionReason acquirePermitOrGetRejectedReason() {
+    public Rejected acquirePermitOrGetRejectedReason() {
         if (isShutdown) {
             throw new IllegalStateException("Service has been shutdown.");
         }
 
         boolean isPermitAcquired = semaphore.acquirePermit();
         if (!isPermitAcquired) {
-            return RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED;
+            return Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED;
         }
 
         if (!circuitBreaker.allowAction()) {
             semaphore.releasePermit();
-            return RejectionReason.CIRCUIT_OPEN;
+            return Rejected.CIRCUIT_OPEN;
         }
         return null;
     }
@@ -95,11 +95,11 @@ public class NewController<T extends Enum<T> & Result> {
     }
 
     public <R> PrecipicePromise<T, R> getPromise(PrecipicePromise<T, R> externalPromise) {
-        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        Rejected rejected = acquirePermitOrGetRejectedReason();
         long startTime = System.nanoTime();
-        if (rejectionReason != null) {
-            actionMetrics.incrementRejectionCount(rejectionReason, startTime);
-            throw new RejectedActionException(rejectionReason);
+        if (rejected != null) {
+            actionMetrics.incrementRejectionCount(rejected, startTime);
+            throw new RejectedActionException(rejected);
         }
 
         NewEventual<T, R> promise = new NewEventual<>(startTime, externalPromise);

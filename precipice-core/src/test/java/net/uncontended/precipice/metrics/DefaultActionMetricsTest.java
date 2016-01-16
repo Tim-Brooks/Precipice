@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -198,24 +198,24 @@ public class DefaultActionMetricsTest {
         fireThreads(metrics, currentTime, 10);
 
         when(systemTime.nanoTime()).thenReturn(6000L * 1000L * 1000L);
-        assertEquals(5000, metrics.getRejectionCountForTimePeriod(RejectionReason.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getRejectionCountForTimePeriod(Rejected.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
         assertEquals(5000, metrics.getMetricCountForTimePeriod(Status.SUCCESS, 5, TimeUnit.SECONDS));
         assertEquals(5000, metrics.getMetricCountForTimePeriod(Status.ERROR, 5, TimeUnit.SECONDS));
         assertEquals(5000, metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getRejectionCountForTimePeriod(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getRejectionCountForTimePeriod(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
 
-        assertEquals(1000, metrics.getRejectionCountForTimePeriod(RejectionReason.CIRCUIT_OPEN, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getRejectionCountForTimePeriod(Rejected.CIRCUIT_OPEN, 1, TimeUnit.SECONDS));
         assertEquals(1000, metrics.getMetricCountForTimePeriod(Status.SUCCESS, 1, TimeUnit.SECONDS));
         assertEquals(1000, metrics.getMetricCountForTimePeriod(Status.ERROR, 1, TimeUnit.SECONDS));
         assertEquals(1000, metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getRejectionCountForTimePeriod(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getRejectionCountForTimePeriod(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, 1, TimeUnit.SECONDS));
 
         when(systemTime.nanoTime()).thenReturn(6500L * 1000L * 1000L);
-        assertEquals(4000, metrics.getRejectionCountForTimePeriod(RejectionReason.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getRejectionCountForTimePeriod(Rejected.CIRCUIT_OPEN, 5, TimeUnit.SECONDS));
         assertEquals(4000, metrics.getMetricCountForTimePeriod(Status.SUCCESS, 5, TimeUnit.SECONDS));
         assertEquals(4000, metrics.getMetricCountForTimePeriod(Status.ERROR, 5, TimeUnit.SECONDS));
         assertEquals(4000, metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getRejectionCountForTimePeriod(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getRejectionCountForTimePeriod(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
     }
 
     private static void fireThreads(final ActionMetrics<Status> metrics, final long nanoTime, int num) throws InterruptedException {
@@ -229,8 +229,8 @@ public class DefaultActionMetricsTest {
                         metrics.incrementMetricCount(Status.SUCCESS, nanoTime);
                         metrics.incrementMetricCount(Status.ERROR, nanoTime);
                         metrics.incrementMetricCount(Status.TIMEOUT, nanoTime);
-                        metrics.incrementRejectionCount(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
-                        metrics.incrementRejectionCount(RejectionReason.CIRCUIT_OPEN, nanoTime);
+                        metrics.incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
+                        metrics.incrementRejectionCount(Rejected.CIRCUIT_OPEN, nanoTime);
                     }
                     latch.countDown();
                 }

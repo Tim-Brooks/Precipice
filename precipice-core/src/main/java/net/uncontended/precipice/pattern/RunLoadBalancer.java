@@ -77,8 +77,8 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    metrics.incrementRejectionCount(RejectionReason.ALL_SERVICES_REJECTED);
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
+                    metrics.incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
+                    throw new RejectedActionException(Rejected.ALL_SERVICES_REJECTED);
                 }
             } catch (ActionTimeoutException e) {
                 metrics.incrementMetricCount(Status.TIMEOUT);

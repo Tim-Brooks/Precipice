@@ -19,9 +19,9 @@ package net.uncontended.precipice;
 
 public class RejectedActionException extends RuntimeException {
 
-    public final RejectionReason reason;
+    public final Rejected reason;
 
-    public RejectedActionException(RejectionReason reason) {
+    public RejectedActionException(Rejected reason) {
         this.reason = reason;
     }
 

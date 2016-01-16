@@ -108,7 +108,7 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    RejectionReason reason = RejectionReason.ALL_SERVICES_REJECTED;
+                    Rejected reason = Rejected.ALL_SERVICES_REJECTED;
                     controller.getActionMetrics().incrementRejectionCount(reason);
                     throw new RejectedActionException(reason);
                 }

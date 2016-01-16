@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
@@ -81,19 +81,19 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
     }
 
     @Override
-    public void incrementRejectionCount(RejectionReason rejectionReason) {
-        incrementRejectionCount(rejectionReason, systemTime.nanoTime());
+    public void incrementRejectionCount(Rejected rejected) {
+        incrementRejectionCount(rejected, systemTime.nanoTime());
 
     }
 
     @Override
-    public void incrementRejectionCount(RejectionReason rejectionReason, long nanoTime) {
-        totalCounter.incrementRejection(rejectionReason);
+    public void incrementRejectionCount(Rejected rejected, long nanoTime) {
+        totalCounter.incrementRejection(rejected);
         MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
         }
-        currentMetricCounter.incrementRejection(rejectionReason);
+        currentMetricCounter.incrementRejection(rejected);
     }
 
     @Override
@@ -118,17 +118,17 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
     }
 
     @Override
-    public long getRejectionCount(RejectionReason reason) {
+    public long getRejectionCount(Rejected reason) {
         return totalCounter.getRejectionCount(reason);
     }
 
     @Override
-    public long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit) {
+    public long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit) {
         return getRejectionCountForTimePeriod(reason, timePeriod, timeUnit, systemTime.nanoTime());
     }
 
     @Override
-    public long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
@@ -163,7 +163,7 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
                 notRejectedTotal += metricCount;
             }
 
-            for (RejectionReason r : RejectionReason.values()) {
+            for (Rejected r : Rejected.values()) {
                 long metricCount = metricCounter.getRejectionCount(r);
                 total += metricCount;
                 rejections += metricCount;

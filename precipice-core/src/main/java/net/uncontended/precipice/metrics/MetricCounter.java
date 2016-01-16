@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.concurrent.LongAdder;
 
@@ -35,8 +35,8 @@ public class MetricCounter<T extends Enum<T> & Result> {
             metrics[metric.ordinal()] = new LongAdder();
         }
 
-        rejectionMetrics = new LongAdder[RejectionReason.values().length];
-        for (RejectionReason reason : RejectionReason.values()) {
+        rejectionMetrics = new LongAdder[Rejected.values().length];
+        for (Rejected reason : Rejected.values()) {
             rejectionMetrics[reason.ordinal()] = new LongAdder();
         }
     }
@@ -49,12 +49,12 @@ public class MetricCounter<T extends Enum<T> & Result> {
         return metrics[metric.ordinal()].longValue();
     }
 
-    public void incrementRejection(RejectionReason reason) {
+    public void incrementRejection(Rejected reason) {
         rejectionMetrics[reason.ordinal()].increment();
 
     }
 
-    public long getRejectionCount(RejectionReason reason) {
+    public long getRejectionCount(Rejected reason) {
         return rejectionMetrics[reason.ordinal()].longValue();
     }
 
@@ -70,7 +70,7 @@ public class MetricCounter<T extends Enum<T> & Result> {
             }
 
             @Override
-            public void incrementRejection(RejectionReason rejectionReason) {
+            public void incrementRejection(Rejected rejected) {
             }
         };
     }

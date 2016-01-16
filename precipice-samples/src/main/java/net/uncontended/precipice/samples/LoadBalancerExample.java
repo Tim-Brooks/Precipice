@@ -62,7 +62,7 @@ public class LoadBalancerExample {
         MultiPattern<Map<String, String>> balancer = LoadBalancers.multiRoundRobin(serviceToContext);
 
         // Will complete the action to one of the services. If all of the services reject the action,
-        // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
+        // this will throw a RejectedActionException with Rejected ALL_SERVICES_REJECTED.
         PrecipiceFuture<Status, String> f = balancer.submit(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {

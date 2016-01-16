@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
@@ -77,12 +77,12 @@ public class SWActionMetrics<T extends Enum<T> & Result> implements ActionMetric
     }
 
     @Override
-    public void incrementRejectionCount(RejectionReason reason) {
+    public void incrementRejectionCount(Rejected reason) {
         incrementRejectionCount(reason, systemTime.nanoTime());
     }
 
     @Override
-    public void incrementRejectionCount(RejectionReason reason, long nanoTime) {
+    public void incrementRejectionCount(Rejected reason, long nanoTime) {
         totalCounter.incrementRejection(reason);
         MetricCounter<T> currentMetricCounter = buffer.getSlot();
         currentMetricCounter.incrementRejection(reason);
@@ -110,17 +110,17 @@ public class SWActionMetrics<T extends Enum<T> & Result> implements ActionMetric
     }
 
     @Override
-    public long getRejectionCount(RejectionReason reason) {
+    public long getRejectionCount(Rejected reason) {
         return totalCounter.getRejectionCount(reason);
     }
 
     @Override
-    public long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit) {
+    public long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit) {
         return getRejectionCountForTimePeriod(reason, timePeriod, timeUnit, systemTime.nanoTime());
     }
 
     @Override
-    public long getRejectionCountForTimePeriod(RejectionReason reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
@@ -155,7 +155,7 @@ public class SWActionMetrics<T extends Enum<T> & Result> implements ActionMetric
                 notRejectedTotal += metricCount;
             }
 
-            for (RejectionReason r : RejectionReason.values()) {
+            for (Rejected r : Rejected.values()) {
                 long metricCount = metricCounter.getRejectionCount(r);
                 total += metricCount;
                 rejections += metricCount;

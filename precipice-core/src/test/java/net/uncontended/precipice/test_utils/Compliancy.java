@@ -40,13 +40,13 @@ public class Compliancy {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             fail();
         } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             fail();
         } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         latch.countDown();
     }

@@ -58,7 +58,7 @@ public class ShotgunExample {
         Shotgun<Map<String, String>> shotgun = new Shotgun<>(serviceToContext, 2);
 
         // Will complete the action to two of the services. If all of the services reject the action,
-        // this will throw a RejectedActionException with RejectionReason ALL_SERVICES_REJECTED.
+        // this will throw a RejectedActionException with Rejected ALL_SERVICES_REJECTED.
         PrecipiceFuture<Status, String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {

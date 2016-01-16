@@ -16,7 +16,7 @@
 
 package net.uncontended.precipice.metrics.registry;
 
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -84,9 +84,9 @@ public class MetricRegistryTest {
         incrementCounts(counter, Status.SUCCESS, successN);
         incrementCounts(counter, Status.ERROR, errorN);
         incrementCounts(counter, Status.TIMEOUT, timeoutN);
-        incrementCounts(counter, RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
-        incrementCounts(counter, RejectionReason.CIRCUIT_OPEN, circuitOpenN);
-        incrementCounts(counter, RejectionReason.ALL_SERVICES_REJECTED, allRejectedN);
+        incrementCounts(counter, Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
+        incrementCounts(counter, Rejected.CIRCUIT_OPEN, circuitOpenN);
+        incrementCounts(counter, Rejected.ALL_SERVICES_REJECTED, allRejectedN);
         List<MetricCounter<Status>> counters = new ArrayList<>();
         int bucketCount = random.nextInt(10);
         for (int i = 0; i < bucketCount; ++i) {
@@ -94,9 +94,9 @@ public class MetricRegistryTest {
             incrementCounts(mc, Status.SUCCESS, successN);
             incrementCounts(mc, Status.ERROR, errorN);
             incrementCounts(mc, Status.TIMEOUT, timeoutN);
-            incrementCounts(mc, RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
-            incrementCounts(mc, RejectionReason.CIRCUIT_OPEN, circuitOpenN);
-            incrementCounts(mc, RejectionReason.ALL_SERVICES_REJECTED, allRejectedN);
+            incrementCounts(mc, Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyN);
+            incrementCounts(mc, Rejected.CIRCUIT_OPEN, circuitOpenN);
+            incrementCounts(mc, Rejected.ALL_SERVICES_REJECTED, allRejectedN);
             counters.add(mc);
         }
         LatencySnapshot successLatencySnapshot = generateSnapshot(random);
@@ -161,7 +161,7 @@ public class MetricRegistryTest {
         }
     }
 
-    private static void incrementCounts(MetricCounter<Status> counter, RejectionReason reason, long n) {
+    private static void incrementCounts(MetricCounter<Status> counter, Rejected reason, long n) {
         for (long i = 0; i < n; ++i) {
             counter.incrementRejection(reason);
         }

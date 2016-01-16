@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice;
 
-public enum RejectionReason {
+public enum Rejected {
     CIRCUIT_OPEN,
     MAX_CONCURRENCY_LEVEL_EXCEEDED,
-    ALL_SERVICES_REJECTED;
+    ALL_SERVICES_REJECTED
 }

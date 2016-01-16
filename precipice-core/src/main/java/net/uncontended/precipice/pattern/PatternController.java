@@ -51,7 +51,7 @@ public class PatternController<T extends Enum<T> & Result> {
         return latencyMetrics;
     }
 
-    public RejectionReason acquirePermitOrGetRejectedReason() {
+    public Rejected acquirePermitOrGetRejectedReason() {
         if (isShutdown) {
             throw new IllegalStateException("Service has been shutdown.");
         }
@@ -59,11 +59,11 @@ public class PatternController<T extends Enum<T> & Result> {
     }
 
     public <R> PrecipicePromise<T, R> getPromise() {
-        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        Rejected rejected = acquirePermitOrGetRejectedReason();
         long startTime = System.nanoTime();
-        if (rejectionReason != null) {
-            actionMetrics.incrementRejectionCount(rejectionReason, startTime);
-            throw new RejectedActionException(rejectionReason);
+        if (rejected != null) {
+            actionMetrics.incrementRejectionCount(rejected, startTime);
+            throw new RejectedActionException(rejected);
         }
 
         NewEventual<T, R> promise = new NewEventual<>(startTime);

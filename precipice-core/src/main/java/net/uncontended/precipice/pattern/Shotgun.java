@@ -18,7 +18,7 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.AsyncService;
 import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.RejectionReason;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
@@ -79,8 +79,8 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
             }
         }
         if (submittedCount == 0) {
-            metrics.incrementRejectionCount(RejectionReason.ALL_SERVICES_REJECTED);
-            throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
+            metrics.incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
+            throw new RejectedActionException(Rejected.ALL_SERVICES_REJECTED);
         }
         return promise;
     }
