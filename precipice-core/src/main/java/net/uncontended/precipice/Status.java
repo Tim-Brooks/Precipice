@@ -21,7 +21,6 @@ public enum Status implements Result {
     SUCCESS(false, true),
     ERROR(true, true),
     TIMEOUT(true, true),
-    ALL_SERVICES_REJECTED(false),
     CANCELLED(false),
     PENDING(false);
 

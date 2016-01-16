@@ -186,7 +186,7 @@ public class MultiLoadBalancerTest {
         } catch (RejectedActionException e) {
             assertEquals(RejectionReason.ALL_SERVICES_REJECTED, e.reason);
         }
-        verify(metrics).incrementMetricCount(Status.ALL_SERVICES_REJECTED);
+        verify(metrics).incrementRejectionCount(RejectionReason.ALL_SERVICES_REJECTED);
     }
 
     // TODO: Add tests for other submission methods

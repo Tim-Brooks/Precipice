@@ -104,7 +104,7 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    metrics.incrementMetricCount(Status.ALL_SERVICES_REJECTED);
+                    metrics.incrementRejectionCount(RejectionReason.ALL_SERVICES_REJECTED);
                     throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
                 }
             }

@@ -79,6 +79,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
             }
         }
         if (submittedCount == 0) {
+            metrics.incrementRejectionCount(RejectionReason.ALL_SERVICES_REJECTED);
             throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
         }
         return promise;
