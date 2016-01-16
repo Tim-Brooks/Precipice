@@ -65,9 +65,9 @@ public class DefaultServiceTest {
 
         try {
             service.submit(TestActions.successAction(0), Long.MAX_VALUE);
-            fail("Action should have been rejected due to shutdown.");
-        } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.SERVICE_SHUTDOWN, e.reason);
+            fail("Exception should have been thrown due to shutdown.");
+        } catch (IllegalStateException e) {
+            assertEquals("Service has been shutdown.", e.getMessage());
         }
     }
 
@@ -342,8 +342,8 @@ public class DefaultServiceTest {
 
         Map<Object, Integer> expectedCounts = new HashMap<>();
         expectedCounts.put(Status.SUCCESS, 1);
-        expectedCounts.put(Status.CIRCUIT_OPEN, 1);
-        expectedCounts.put(Status.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
+        expectedCounts.put(RejectionReason.CIRCUIT_OPEN, 1);
+        expectedCounts.put(RejectionReason.MAX_CONCURRENCY_LEVEL_EXCEEDED, maxConcurrencyErrors);
 
         assertNewMetrics((ActionMetrics<Status>) service.getActionMetrics(), expectedCounts);
     }
