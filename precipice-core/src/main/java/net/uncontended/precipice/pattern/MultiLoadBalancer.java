@@ -53,7 +53,7 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
             contexts[i] = entry.getValue();
             ++i;
         }
-        submissionBalancer = new AsyncLoadBalancer<>(services, contexts, strategy, metrics);
+        submissionBalancer = new AsyncLoadBalancer<>(services, contexts, strategy, null);
         runBalancer = new RunLoadBalancer<>(services, contexts, strategy, metrics);
     }
 

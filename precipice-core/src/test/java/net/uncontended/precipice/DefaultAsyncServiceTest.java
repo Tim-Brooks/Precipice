@@ -202,7 +202,7 @@ public class DefaultAsyncServiceTest {
         CountDownLatch timeoutLatch = new CountDownLatch(1);
         CountDownLatch blockingLatch = new CountDownLatch(3);
 
-        PrecipiceFuture<Status, String> errorF = service.submit(TestActions.erredAction(new IOException()), 100);
+        PrecipiceFuture<Status, String> errorF = service.submit(TestActions.erredAction(new IOException()), Long.MAX_VALUE);
         PrecipiceFunction<Status, Throwable> callback = TestCallbacks.latchedCallback(blockingLatch);
         errorF.onError(callback);
 
@@ -216,8 +216,6 @@ public class DefaultAsyncServiceTest {
 
         for (PrecipiceFuture<Status, String> f : Arrays.asList(errorF, timeOutF, successF)) {
             try {
-                f.get();
-                f.get();
                 f.get();
             } catch (ExecutionException e) {
             }
@@ -343,7 +341,9 @@ public class DefaultAsyncServiceTest {
 
         ActionMetrics<Status> metrics = (ActionMetrics<Status>) service.getActionMetrics();
         for (int i = 0; i <= 20; ++i) {
-            if (metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
+            if (metrics.getMetricCountForTimePeriod(Status.SUCCESS, 5, TimeUnit.SECONDS) == 1 &&
+                    metrics.getMetricCountForTimePeriod(Status.ERROR, 5, TimeUnit.SECONDS) == 1 &&
+                    metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
                 break;
             } else {
                 if (i == 20) {

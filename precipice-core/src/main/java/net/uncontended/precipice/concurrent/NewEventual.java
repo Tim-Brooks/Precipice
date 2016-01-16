@@ -17,13 +17,15 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Result;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T> {
+public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>,
+        PerformingContext {
 
     private final long startNanos;
     private final PrecipicePromise<S, T> wrappedPromise;
@@ -33,7 +35,7 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
     private final AtomicReference<S> status = new AtomicReference<>(null);
     private final AtomicReference<PrecipiceFunction<S, T>> successCallback = new AtomicReference<>();
     private final AtomicReference<PrecipiceFunction<S, Throwable>> errorCallback = new AtomicReference<>();
-    private PrecipiceFunction<S, NewEventual<S, T>> internalCallback;
+    private PrecipiceFunction<S, PerformingContext> internalCallback;
 
     public NewEventual(long startNanos) {
         this(startNanos, null);
@@ -50,6 +52,7 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
             if (this.status.compareAndSet(null, status)) {
                 this.result = result;
                 if (internalCallback != null) {
+                    // TODO: Maybe move this to be different method
                     internalCallback.apply(status, this);
                 }
                 latch.countDown();
@@ -72,7 +75,7 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
             if (this.status.compareAndSet(null, status)) {
                 throwable = ex;
                 if (internalCallback != null) {
-                    internalCallback.apply(status, null);
+                    internalCallback.apply(status, this);
                 }
                 latch.countDown();
                 PrecipiceFunction<S, Throwable> cb = errorCallback.get();
@@ -198,7 +201,7 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
         return status.get();
     }
 
-    public void internalOnComplete(PrecipiceFunction<S, NewEventual<S, T>> fn) {
+    public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {
         internalCallback = fn;
     }
 

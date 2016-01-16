@@ -97,13 +97,14 @@ public class NewController<T extends Enum<T> & Result> {
         }
 
         NewEventual<T, R> promise = new NewEventual<>(startTime);
-        promise.internalOnComplete(new PrecipiceFunction<T, NewEventual<T, R>>() {
+        // TODO: Single impl
+        promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
             @Override
-            public void apply(T status, NewEventual<T, R> eventual) {
+            public void apply(T status, PerformingContext context) {
                 long endTime = System.nanoTime();
                 actionMetrics.incrementMetricCount(status);
                 circuitBreaker.informBreakerOfResult(status.isSuccess());
-                latencyMetrics.recordLatency(status, endTime - eventual.startNanos(), endTime);
+                latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
                 semaphore.releasePermit();
             }
         });
@@ -116,5 +117,28 @@ public class NewController<T extends Enum<T> & Result> {
 
     public void shutdown() {
         isShutdown = true;
+    }
+
+    public <R> PrecipicePromise<T, R> getPromise(PrecipicePromise<T, R> externalPromise) {
+        RejectionReason rejectionReason = acquirePermitOrGetRejectedReason();
+        long startTime = System.nanoTime();
+        if (rejectionReason != null) {
+            actionMetrics.incrementRejectionCount(rejectionReason, startTime);
+            throw new RejectedActionException(rejectionReason);
+        }
+
+        NewEventual<T, R> promise = new NewEventual<>(startTime, externalPromise);
+        // TODO: Single impl
+        promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
+            @Override
+            public void apply(T status, PerformingContext context) {
+                long endTime = System.nanoTime();
+                actionMetrics.incrementMetricCount(status);
+                circuitBreaker.informBreakerOfResult(status.isSuccess());
+                latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
+                semaphore.releasePermit();
+            }
+        });
+        return promise;
     }
 }

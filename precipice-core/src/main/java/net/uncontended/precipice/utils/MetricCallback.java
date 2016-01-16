@@ -18,20 +18,26 @@
 
 package net.uncontended.precipice.utils;
 
+import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.concurrent.NewEventual;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 
-public class MetricCallback implements PrecipiceFunction<Status, Void> {
+public class MetricCallback implements PrecipiceFunction<Status, PerformingContext> {
 
     private final ActionMetrics<Status> metrics;
+    private final LatencyMetrics<Status> latencyMetric = null;
 
     public MetricCallback(ActionMetrics<Status> metrics) {
         this.metrics = metrics;
     }
 
     @Override
-    public void apply(Status status, Void argument) {
+    public void apply(Status status, PerformingContext context) {
+        long endTime = System.nanoTime();
         metrics.incrementMetricCount(status);
+        latencyMetric.recordLatency(status, endTime - context.startNanos(), endTime);
     }
 }

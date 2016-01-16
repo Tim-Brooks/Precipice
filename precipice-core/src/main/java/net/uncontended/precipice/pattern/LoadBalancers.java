@@ -35,13 +35,10 @@ public class LoadBalancers {
         return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
     }
 
-    public static <C> AsyncPattern<C> asyncRoundRobin(Map<? extends AsyncService, C> serviceToContext) {
-        return new AsyncLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
-    }
-
-    public static <C> AsyncPattern<C> asyncRoundRobin(Map<? extends AsyncService, C> serviceToContext,
-                                                      ActionMetrics<Status> metrics) {
-        return new AsyncLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
+    public static <C> AsyncPattern<C> asyncRoundRobin(String name, Map<? extends AsyncService, C> serviceToContext,
+                                                      PatternControllerProperties<Status> properties) {
+        PatternController<Status> controller = new PatternController<>(name, properties);
+        return new AsyncLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), controller);
     }
 
     public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext) {

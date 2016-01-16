@@ -18,31 +18,27 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.NewEventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.utils.MetricCallback;
 
 import java.util.Map;
 
-public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPattern<C> {
+public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
 
     private final AsyncService[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
-    private final PrecipiceFunction<Status, Void> metricCallback = new MetricCallback(metrics);
+    private final PrecipiceFunction<Status, PerformingContext> metricCallback;
+    private final PatternController<Status> controller;
 
-
-    public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(executorToContext, strategy, new DefaultActionMetrics<>(Status.class));
-    }
 
     @SuppressWarnings("unchecked")
     public AsyncLoadBalancer(Map<? extends AsyncService, C> executorToContext, LoadBalancerStrategy strategy,
-                             ActionMetrics<Status> metrics) {
-        super(metrics);
+                             PatternController<Status> controller) {
+        this.controller = controller;
         if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -56,27 +52,36 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
             contexts[i] = entry.getValue();
             ++i;
         }
+        metricCallback = new MetricCallback(controller.getActionMetrics());
     }
 
     public AsyncLoadBalancer(AsyncService[] services, C[] contexts, LoadBalancerStrategy strategy,
-                             ActionMetrics<Status> metrics) {
-        super(metrics);
+                             PatternController<Status> controller) {
         this.strategy = strategy;
         this.services = services;
         this.contexts = contexts;
+        this.controller = controller;
+        metricCallback = new MetricCallback(controller.getActionMetrics());
     }
 
     @Override
     public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        Eventual<Status, T> eventual = new Eventual<>();
+        long startTime = System.nanoTime();
+        NewEventual<Status, T> eventual = new NewEventual<>(startTime);
         internalComplete(action, eventual, millisTimeout);
         return eventual;
     }
 
     @Override
     public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        Eventual<Status, T> internalEventual = new Eventual<>(promise);
+        long startTime = System.nanoTime();
+        NewEventual<Status, T> internalEventual = new NewEventual<>(startTime, promise);
         internalComplete(action, internalEventual, millisTimeout);
+    }
+
+    @Override
+    public ActionMetrics<Status> getActionMetrics() {
+        return controller.getActionMetrics();
     }
 
     @Override
@@ -86,12 +91,11 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
         }
     }
 
-    private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<Status, T> eventual, long millisTimeout) {
+    private <T> void internalComplete(ResilientPatternAction<T, C> action, NewEventual<Status, T> eventual, long millisTimeout) {
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
-        eventual.internalOnSuccess(metricCallback);
-        eventual.internalOnError(metricCallback);
+        eventual.internalOnComplete(metricCallback);
 
         int j = 0;
         int serviceCount = services.length;
@@ -104,8 +108,9 @@ public class AsyncLoadBalancer<C> extends AbstractPattern<C> implements AsyncPat
             } catch (RejectedActionException e) {
                 ++j;
                 if (j == serviceCount) {
-                    metrics.incrementRejectionCount(RejectionReason.ALL_SERVICES_REJECTED);
-                    throw new RejectedActionException(RejectionReason.ALL_SERVICES_REJECTED);
+                    RejectionReason reason = RejectionReason.ALL_SERVICES_REJECTED;
+                    controller.getActionMetrics().incrementRejectionCount(reason);
+                    throw new RejectedActionException(reason);
                 }
             }
         }

@@ -18,7 +18,6 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.ResilientTask;
@@ -27,7 +26,6 @@ import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
 
 public class DefaultAsyncService implements AsyncService {
     private final ExecutorService service;
@@ -42,28 +40,22 @@ public class DefaultAsyncService implements AsyncService {
 
     @Override
     public <T> PrecipiceFuture<Status, T> submit(ResilientAction<T> action, long millisTimeout) {
-        Eventual<Status, T> promise = new Eventual<>();
-        complete(action, promise, millisTimeout);
-        return promise;
+        PrecipicePromise<Status, T> promise = controller.getPromise();
+        internalComplete(action, promise, millisTimeout);
+        return promise.future();
     }
 
     @Override
     public <T> void complete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        RejectionReason rejectionReason = controller.acquirePermitOrGetRejectedReason();
-        if (rejectionReason != null) {
-            controller.getActionMetrics().incrementRejectionCount(rejectionReason);
-            throw new RejectedActionException(rejectionReason);
-        }
-        try {
-            ResilientTask<T> task = new ResilientTask<>(controller, action, promise,
-                    millisTimeout > TimeoutService.MAX_TIMEOUT_MILLIS ? TimeoutService.MAX_TIMEOUT_MILLIS :
-                            millisTimeout, System.nanoTime());
-            service.execute(task);
-            timeoutService.scheduleTimeout(task);
-        } catch (RejectedExecutionException e) {
-            controller.getSemaphore().releasePermit();
-            throw e;
-        }
+        PrecipicePromise<Status, T> internalPromise = controller.getPromise(promise);
+        internalComplete(action, internalPromise, millisTimeout);
+    }
+
+    private <T> void internalComplete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
+        long adjustedTimeout = millisTimeout > TimeoutService.MAX_TIMEOUT_MILLIS ? TimeoutService.MAX_TIMEOUT_MILLIS : millisTimeout;
+        ResilientTask<T> task = new ResilientTask<>(action, promise, adjustedTimeout, System.nanoTime());
+        service.execute(task);
+        timeoutService.scheduleTimeout(task);
     }
 
     @Override
