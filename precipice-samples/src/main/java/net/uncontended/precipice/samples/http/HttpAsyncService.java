@@ -82,6 +82,11 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
         return eventual;
     }
 
+    @Override
+    public NewController<Status> controller() {
+        return null;
+    }
+
 
     @Override
     public void complete(ResilientAction action, PrecipicePromise promise, long millisTimeout) {

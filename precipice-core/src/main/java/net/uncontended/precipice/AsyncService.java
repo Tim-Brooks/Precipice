@@ -43,4 +43,6 @@ public interface AsyncService extends Service {
     <T> PrecipiceFuture<Status, T> submit(ResilientAction<T> action, long millisTimeout);
 
     <T> void complete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout);
+
+    NewController<Status> controller();
 }

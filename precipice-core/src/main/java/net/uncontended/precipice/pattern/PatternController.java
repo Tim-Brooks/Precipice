@@ -17,7 +17,10 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.*;
+import net.uncontended.precipice.PerformingContext;
+import net.uncontended.precipice.PrecipiceFunction;
+import net.uncontended.precipice.RejectedActionException;
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.concurrent.NewEventual;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -51,19 +54,18 @@ public class PatternController<T extends Enum<T> & Result> {
         return latencyMetrics;
     }
 
-    public Rejected acquirePermitOrGetRejectedReason() {
+    public void ensureNotShutdown() {
         if (isShutdown) {
             throw new IllegalStateException("Service has been shutdown.");
         }
-        return null;
     }
 
     public <R> PrecipicePromise<T, R> getPromise() {
-        Rejected rejected = acquirePermitOrGetRejectedReason();
+        ensureNotShutdown();
         long startTime = System.nanoTime();
-        if (rejected != null) {
-            actionMetrics.incrementRejectionCount(rejected, startTime);
-            throw new RejectedActionException(rejected);
+        if (null != null) {
+            actionMetrics.incrementRejectionCount(null, startTime);
+            throw new RejectedActionException(null);
         }
 
         NewEventual<T, R> promise = new NewEventual<>(startTime);

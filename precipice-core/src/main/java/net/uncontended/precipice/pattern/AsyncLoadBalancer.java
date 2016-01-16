@@ -52,7 +52,7 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
             contexts[i] = entry.getValue();
             ++i;
         }
-        metricCallback = new MetricCallback(controller.getActionMetrics());
+        metricCallback = new MetricCallback(controller.getActionMetrics(), controller.getLatencyMetrics());
     }
 
     public AsyncLoadBalancer(AsyncService[] services, C[] contexts, LoadBalancerStrategy strategy,
@@ -61,7 +61,7 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
         this.services = services;
         this.contexts = contexts;
         this.controller = controller;
-        metricCallback = new MetricCallback(controller.getActionMetrics());
+        metricCallback = new MetricCallback(controller.getActionMetrics(), controller.getLatencyMetrics());
     }
 
     @Override
@@ -103,7 +103,8 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
             try {
                 int serviceIndex = (firstServiceToTry + j) % serviceCount;
                 actionWithContext.context = contexts[serviceIndex];
-                services[serviceIndex].complete(actionWithContext, eventual, millisTimeout);
+                AsyncService service = services[serviceIndex];
+                service.complete(actionWithContext, eventual, millisTimeout);
                 break;
             } catch (RejectedActionException e) {
                 ++j;

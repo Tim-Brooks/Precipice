@@ -33,14 +33,10 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
     private final RunPattern<C> runBalancer;
     private final MultiService[] services;
 
-    public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy) {
-        this(executorToContext, strategy, new DefaultActionMetrics<>(Status.class));
-    }
-
     @SuppressWarnings("unchecked")
-    public MultiLoadBalancer(Map<MultiService, C> executorToContext, LoadBalancerStrategy strategy,
-                             ActionMetrics<Status> metrics) {
-        super(metrics);
+    public MultiLoadBalancer(PatternController<Status> controller, Map<MultiService, C> executorToContext,
+                             LoadBalancerStrategy strategy) {
+        super(controller.getActionMetrics());
         if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
         }
@@ -53,7 +49,7 @@ public class MultiLoadBalancer<C> extends AbstractPattern<C> implements MultiPat
             contexts[i] = entry.getValue();
             ++i;
         }
-        submissionBalancer = new AsyncLoadBalancer<>(services, contexts, strategy, null);
+        submissionBalancer = new AsyncLoadBalancer<>(services, contexts, strategy, controller);
         runBalancer = new RunLoadBalancer<>(services, contexts, strategy, metrics);
     }
 

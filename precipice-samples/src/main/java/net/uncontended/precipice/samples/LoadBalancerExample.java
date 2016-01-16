@@ -59,7 +59,8 @@ public class LoadBalancerExample {
     }
 
     public void balancerExample() throws InterruptedException {
-        MultiPattern<Map<String, String>> balancer = LoadBalancers.multiRoundRobin(serviceToContext);
+        PatternControllerProperties<Status> properties = new PatternControllerProperties<>(Status.class);
+        MultiPattern<Map<String, String>> balancer = LoadBalancers.multiRoundRobin("name", properties, serviceToContext);
 
         // Will complete the action to one of the services. If all of the services reject the action,
         // this will throw a RejectedActionException with Rejected ALL_SERVICES_REJECTED.
@@ -89,27 +90,6 @@ public class LoadBalancerExample {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void userStrategyExample() {
-        LoadBalancerStrategy strategy = new LoadBalancerStrategy() {
-            @Override
-            public int nextExecutorIndex() {
-                // Implement your strategy
-                return 0;
-            }
-        };
-
-        MultiPattern<Map<String, String>> balancerWithUserStrategy = new MultiLoadBalancer<>(serviceToContext, strategy);
-    }
-
-    public void sharedThreadpool() {
-        List<Map<String, String>> contexts = new ArrayList<>();
-        contexts.addAll(serviceToContext.values());
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(concurrencyLevel);
-        MultiPattern<Map<String, String>> balancer = LoadBalancers.multiRoundRobinWithSharedPool(contexts,
-                "Identity Service", poolSize, properties);
     }
 
     private static class ImplementedPatternAction implements ResilientPatternAction<String, Map<String, String>> {

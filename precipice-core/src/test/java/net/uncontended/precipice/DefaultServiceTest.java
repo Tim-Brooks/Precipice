@@ -364,9 +364,11 @@ public class DefaultServiceTest {
 
         ActionMetrics<Status> metrics = (ActionMetrics<Status>) service.getActionMetrics();
         for (int i = 0; i <= 20; ++i) {
-            if (metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS) == 1) {
+            if (metrics.getMetricCountForTimePeriod(Status.TIMEOUT, 5, TimeUnit.SECONDS) == 1 &&
+                    metrics.getMetricCountForTimePeriod(Status.SUCCESS, 5, TimeUnit.SECONDS) == 1 &&
+            metrics.getMetricCountForTimePeriod(Status.ERROR, 5, TimeUnit.SECONDS) == 1) {
                 break;
-            } else {
+            }else{
                 if (i == 20) {
                     fail("Never encountered a timeout.");
                 } else {

@@ -25,14 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-public class LoadBalancers {
+public final class LoadBalancers {
 
-    public static <C> MultiPattern<C> multiRoundRobin(Map<MultiService, C> serviceToContext) {
-        return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
-    }
+    private LoadBalancers() {}
 
-    public static <C> MultiPattern<C> multiRoundRobin(Map<MultiService, C> serviceToContext, ActionMetrics<Status> metrics) {
-        return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
+    public static <C> MultiPattern<C> multiRoundRobin(String name, PatternControllerProperties<Status> properties,
+                                                      Map<MultiService, C> serviceToContext) {
+        PatternController<Status> controller = new PatternController<>(name, properties);
+        return new MultiLoadBalancer<>(controller, serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
     }
 
     public static <C> AsyncPattern<C> asyncRoundRobin(String name, Map<? extends AsyncService, C> serviceToContext,
@@ -47,20 +47,5 @@ public class LoadBalancers {
 
     public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext, ActionMetrics<Status> metrics) {
         return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
-    }
-
-    public static <C> MultiPattern<C> multiRoundRobinWithSharedPool(List<C> contexts, String name, int poolSize,
-                                                                    ServiceProperties properties) {
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        Map<MultiService, C> serviceToContext = new HashMap<>();
-        int i = 0;
-        for (C context : contexts) {
-            ServiceProperties serviceProperties = new ServiceProperties();
-            serviceProperties.concurrencyLevel(properties.concurrencyLevel());
-            MultiService service = new DefaultService(name + '-' + i, executor, serviceProperties);
-            serviceToContext.put(service, context);
-            ++i;
-        }
-        return new MultiLoadBalancer<>(serviceToContext, new RoundRobinStrategy(contexts.size()));
     }
 }

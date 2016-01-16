@@ -71,6 +71,11 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
     }
 
     @Override
+    public NewController<Status> controller() {
+        return null;
+    }
+
+    @Override
     public void shutdown() {
         isShutdown = true;
         producer.close();

@@ -55,6 +55,11 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
+    public NewController<Status> controller() {
+        return null;
+    }
+
+    @Override
     public <T> T run(ResilientAction<T> action) throws Exception {
         return runService.run(action);
     }

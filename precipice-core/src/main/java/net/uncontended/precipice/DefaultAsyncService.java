@@ -51,6 +51,11 @@ public class DefaultAsyncService implements AsyncService {
         internalComplete(action, internalPromise, millisTimeout);
     }
 
+    @Override
+    public NewController<Status> controller() {
+        return controller;
+    }
+
     private <T> void internalComplete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
         long adjustedTimeout = millisTimeout > TimeoutService.MAX_TIMEOUT_MILLIS ? TimeoutService.MAX_TIMEOUT_MILLIS : millisTimeout;
         ResilientTask<T> task = new ResilientTask<>(action, promise, adjustedTimeout, System.nanoTime());

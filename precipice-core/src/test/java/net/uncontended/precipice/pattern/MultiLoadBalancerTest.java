@@ -21,6 +21,7 @@ import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.timeout.ActionTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +50,8 @@ public class MultiLoadBalancerTest {
     private ResilientPatternAction<String, Map<String, Object>> action;
     @Mock
     private ActionMetrics<Status> metrics;
+    @Mock
+    private LatencyMetrics<Status> latencyMetrics;
     @Captor
     private ArgumentCaptor<ResilientAction<String>> actionCaptor;
 
@@ -69,7 +72,8 @@ public class MultiLoadBalancerTest {
         map.put(executor1, context1);
         map.put(executor2, context2);
 
-        balancer = new MultiLoadBalancer<>(map, strategy, metrics);
+        PatternController<Status> controller = new PatternController<>("name", metrics, latencyMetrics);
+        balancer = new MultiLoadBalancer<>(controller, map, strategy);
     }
 
     @Test
