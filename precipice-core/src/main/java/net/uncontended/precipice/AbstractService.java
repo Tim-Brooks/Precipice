@@ -73,7 +73,7 @@ public abstract class AbstractService implements Service {
 
     protected RejectionReason acquirePermitOrGetRejectedReason() {
         if (isShutdown) {
-            return RejectionReason.SERVICE_SHUTDOWN;
+            throw new IllegalStateException("Service has been shutdown.");
         }
 
         boolean isPermitAcquired = semaphore.acquirePermit();

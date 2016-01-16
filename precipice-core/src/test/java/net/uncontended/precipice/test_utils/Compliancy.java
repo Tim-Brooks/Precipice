@@ -28,17 +28,6 @@ import static org.junit.Assert.fail;
 
 public class Compliancy {
 
-    public void submitedActionRejectedIfShutdown(AsyncService service) {
-        service.shutdown();
-
-        try {
-            service.submit(TestActions.successAction(0), Long.MAX_VALUE);
-            fail("Action should have been rejected due to shutdown.");
-        } catch (RejectedActionException e) {
-            assertEquals(RejectionReason.SERVICE_SHUTDOWN, e.reason);
-        }
-    }
-
     public void submittedActionNotScheduledIfMaxConcurrencyLevelViolated(AsyncService service) throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(2);
