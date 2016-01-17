@@ -17,14 +17,14 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.PerformingContext;
-import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.NewEventual;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PatternController<T extends Enum<T> & Result> {
     private final ActionMetrics<T> actionMetrics;
@@ -78,6 +78,10 @@ public class PatternController<T extends Enum<T> & Result> {
             }
         });
         return promise;
+    }
+
+    public List<NewController<T>> getChildControllers() {
+        return new ArrayList<>();
     }
 
     public void shutdown() {
