@@ -25,11 +25,13 @@ import net.uncontended.precipice.metrics.LatencyMetrics;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class PatternController<T extends Enum<T> & Result> {
     private final ActionMetrics<T> actionMetrics;
     private final LatencyMetrics<T> latencyMetrics;
     private final String name;
+    private AtomicReference<NewController<T>[]> children;
     private volatile boolean isShutdown = false;
 
     public PatternController(String name, PatternControllerProperties<T> properties) {
@@ -80,8 +82,8 @@ public class PatternController<T extends Enum<T> & Result> {
         return promise;
     }
 
-    public List<NewController<T>> getChildControllers() {
-        return new ArrayList<>();
+    public NewController<T>[] getChildControllers() {
+        return children.get();
     }
 
     public void shutdown() {
