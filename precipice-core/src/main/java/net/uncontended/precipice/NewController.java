@@ -90,11 +90,11 @@ public class NewController<T extends Enum<T> & Result> {
         return null;
     }
 
-    public <R> PrecipicePromise<T, R> getPromise() {
-        return getPromise(null);
+    public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise() {
+        return acquirePermitAndGetPromise(null);
     }
 
-    public <R> PrecipicePromise<T, R> getPromise(PrecipicePromise<T, R> externalPromise) {
+    public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise(PrecipicePromise<T, R> externalPromise) {
         Rejected rejected = acquirePermitOrGetRejectedReason();
         long startTime = System.nanoTime();
         if (rejected != null) {
@@ -102,7 +102,11 @@ public class NewController<T extends Enum<T> & Result> {
             throw new RejectedActionException(rejected);
         }
 
-        NewEventual<T, R> promise = new NewEventual<>(startTime, externalPromise);
+        return getPromise(startTime, externalPromise);
+    }
+
+    public <R> PrecipicePromise<T, R> getPromise(long nanoTime, PrecipicePromise<T, R> externalPromise) {
+        NewEventual<T, R> promise = new NewEventual<>(nanoTime, externalPromise);
         promise.internalOnComplete(finishingCallback);
         return promise;
     }

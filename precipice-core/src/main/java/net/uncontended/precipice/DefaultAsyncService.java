@@ -40,14 +40,14 @@ public class DefaultAsyncService implements AsyncService {
 
     @Override
     public <T> PrecipiceFuture<Status, T> submit(ResilientAction<T> action, long millisTimeout) {
-        PrecipicePromise<Status, T> promise = controller.getPromise();
+        PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
         internalComplete(action, promise, millisTimeout);
         return promise.future();
     }
 
     @Override
     public <T> void complete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        PrecipicePromise<Status, T> internalPromise = controller.getPromise(promise);
+        PrecipicePromise<Status, T> internalPromise = controller.acquirePermitAndGetPromise(promise);
         internalComplete(action, internalPromise, millisTimeout);
     }
 

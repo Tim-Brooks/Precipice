@@ -23,15 +23,13 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PatternController<T extends Enum<T> & Result> {
     private final ActionMetrics<T> actionMetrics;
     private final LatencyMetrics<T> latencyMetrics;
     private final String name;
-    private AtomicReference<NewController<T>[]> children;
+    private final AtomicReference<NewController<T>[]> children;
     private volatile boolean isShutdown = false;
 
     public PatternController(String name, PatternControllerProperties<T> properties) {
@@ -42,6 +40,7 @@ public class PatternController<T extends Enum<T> & Result> {
         this.actionMetrics = actionMetrics;
         this.latencyMetrics = latencyMetrics;
         this.name = name;
+        children = new AtomicReference<>((NewController<T>[]) new NewController[0]);
     }
 
     public String getName() {
@@ -80,6 +79,34 @@ public class PatternController<T extends Enum<T> & Result> {
             }
         });
         return promise;
+    }
+
+    public <R> PrecipicePromise<T, R> getPromise(NewController<T>[] controllers) {
+        ensureNotShutdown();
+        long startTime = System.nanoTime();
+
+        NewController<T> controllerToUse = null;
+        for (NewController<T> controller : controllers) {
+            Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+            if (rejected != null) {
+                controllerToUse = controller;
+            }
+        }
+        if (controllerToUse != null) {
+            NewEventual<T, R> promise = new NewEventual<>(startTime);
+            promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
+                @Override
+                public void apply(T status, PerformingContext eventual) {
+                    long endTime = System.nanoTime();
+                    actionMetrics.incrementMetricCount(status);
+                    latencyMetrics.recordLatency(status, endTime - eventual.startNanos(), endTime);
+                }
+            });
+            return promise;
+        } else {
+            actionMetrics.incrementRejectionCount(null, startTime);
+            throw new RejectedActionException(null);
+        }
     }
 
     public NewController<T>[] getChildControllers() {
