@@ -28,22 +28,22 @@ public class TimeoutService {
 
     public static final long NO_TIMEOUT = -1;
     public static final TimeoutService defaultTimeoutService = new TimeoutService("default");
-    private final DelayQueue<ResilientTask<?>> timeoutQueue = new DelayQueue<>();
+    private final DelayQueue<TimeoutTask> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
-    private AtomicBoolean isStarted = new AtomicBoolean(false);
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     public TimeoutService(String name) {
-        this.timeoutThread = createThread();
-        this.timeoutThread.setName(name + "-timeout-thread");
+        timeoutThread = createThread();
+        timeoutThread.setName(name + "-timeout-thread");
         // TODO: Determine correct strategy for shutting down timeout service.
-        this.timeoutThread.setDaemon(true);
+        timeoutThread.setDaemon(true);
     }
 
-    public void scheduleTimeout(ResilientTask<?> task) {
+    public void scheduleTimeout(TimeoutTask task) {
         if (!isStarted.get()) {
             startThread();
         }
-        if (task.millisRelativeTimeout != NO_TIMEOUT) {
+        if (task.getMillisRelativeTimeout() != NO_TIMEOUT) {
             timeoutQueue.offer(task);
         }
     }
@@ -60,7 +60,7 @@ public class TimeoutService {
             public void run() {
                 for (; ; ) {
                     try {
-                        ResilientTask<?> task = timeoutQueue.take();
+                        TimeoutTask task = timeoutQueue.take();
                         task.setTimedOut();
                     } catch (InterruptedException e) {
                         break;
