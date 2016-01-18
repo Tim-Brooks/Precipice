@@ -17,16 +17,59 @@
 
 package net.uncontended.precipice;
 
-import org.junit.Before;
+import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.concurrent.IntegerSemaphore;
+import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ControllerTest {
 
     private Controller<Status> controller;
 
-    @Before
-    public void setup() {
+    @Test
+    public void capacityAndPendingCallsDelegateToSemaphore() {
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        properties.semaphore(new IntegerSemaphore(10));
         controller = new Controller<Status>("Controller Name", properties);
+
+        assertEquals(10, controller.remainingCapacity());
+        assertEquals(0, controller.pendingCount());
+
+        controller.acquirePermitOrGetRejectedReason();
+
+        assertEquals(9, controller.remainingCapacity());
+        assertEquals(1, controller.pendingCount());
+    }
+
+    @Test
+    public void acquirePermitOrGetRejectedReasonReturnsMaxConcurrency() {
+        CircuitBreaker breaker = mock(CircuitBreaker.class);
+        PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
+
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        properties.circuitBreaker(breaker);
+        properties.semaphore(semaphore);
+        controller = new Controller<Status>("Controller Name", properties);
+
+        when(semaphore.acquirePermit()).thenReturn(true);
+        when(breaker.allowAction()).thenReturn(true);
+
+        assertNull(controller.acquirePermitOrGetRejectedReason());
+
+        when(semaphore.acquirePermit()).thenReturn(false);
+        when(breaker.allowAction()).thenReturn(true);
+
+        assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, controller.acquirePermitOrGetRejectedReason());
+
+        when(semaphore.acquirePermit()).thenReturn(true);
+        when(breaker.allowAction()).thenReturn(false);
+
+        assertSame(Rejected.CIRCUIT_OPEN, controller.acquirePermitOrGetRejectedReason());
+
 
     }
 
