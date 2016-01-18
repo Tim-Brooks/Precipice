@@ -37,10 +37,10 @@ public class DefaultService extends AbstractService implements MultiService {
                 properties.semaphore());
         this.service = service;
 
-        ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
-        LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
-        Controller<Status> controller = new Controller<>(name, properties.semaphore(), actionMetrics,
-                latencyMetrics, properties.circuitBreaker());
+        ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
+        controllerProperties.actionMetrics((ActionMetrics<Status>) properties.actionMetrics());
+        controllerProperties.latencyMetrics((LatencyMetrics<Status>) properties.latencyMetrics());
+        Controller<Status> controller = new Controller<>(name, controllerProperties);
 
         runService = new DefaultRunService(controller);
         threadpoolService = new ThreadpoolService(service, controller);

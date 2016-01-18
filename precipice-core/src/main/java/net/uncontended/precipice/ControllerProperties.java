@@ -26,6 +26,8 @@ import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 public class ControllerProperties<T extends Enum<T> & Result> {
@@ -40,6 +42,7 @@ public class ControllerProperties<T extends Enum<T> & Result> {
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;
     private int concurrencyLevel = MAX_CONCURRENCY_LEVEL;
+    private Clock clock;
 
     public ControllerProperties(Class<T> type) {
         this.type = type;
@@ -105,5 +108,13 @@ public class ControllerProperties<T extends Enum<T> & Result> {
 
     public LatencyMetrics<T> latencyMetrics() {
         return latencyMetrics;
+    }
+
+    public Clock clock() {
+        return clock;
+    }
+
+    public void clock(Clock clock) {
+        this.clock = clock;
     }
 }

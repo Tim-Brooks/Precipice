@@ -19,11 +19,20 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.concurrent.IntegerSemaphore;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
+import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.time.Clock;
 import org.junit.Test;
 
+import java.util.concurrent.Semaphore;
+
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ControllerTest {
@@ -88,7 +97,31 @@ public class ControllerTest {
 
     @Test
     public void getPromiseReturnsPromiseWithMetricsCallback() {
-        
+        long starTime = 10L;
+
+        CircuitBreaker breaker = mock(CircuitBreaker.class);
+        ActionMetrics<Status> metrics = mock(ActionMetrics.class);
+        LatencyMetrics<Status> latencyMetrics = mock(LatencyMetrics.class);
+        PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
+        Clock clock = mock(Clock.class);
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        properties.circuitBreaker(breaker);
+        properties.actionMetrics(metrics);
+        properties.latencyMetrics(latencyMetrics);
+        properties.semaphore(semaphore);
+        properties.clock(clock);
+        controller = new Controller<Status>("Controller Name", properties);
+
+        PrecipicePromise<Status, String> promise = controller.getPromise(starTime, null);
+
+        when(clock.nanoTime()).thenReturn(100L);
+
+        promise.complete(Status.SUCCESS, "hello");
+
+        verify(breaker).informBreakerOfResult(true, 100L);
+        verify(metrics).incrementMetricCount(Status.SUCCESS, 100L);
+        verify(latencyMetrics).recordLatency(Status.SUCCESS, 90L, 100L);
+        verify(semaphore).releasePermit();
     }
 
 }

@@ -23,6 +23,8 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.time.SystemTime;
 
 public class Controller<T extends Enum<T> & Result> {
     private final PrecipiceSemaphore semaphore;
@@ -30,23 +32,25 @@ public class Controller<T extends Enum<T> & Result> {
     private final LatencyMetrics<T> latencyMetrics;
     private final CircuitBreaker circuitBreaker;
     private final String name;
+    private final Clock clock;
     private final FinishingCallback<T> finishingCallback;
     private volatile boolean isShutdown = false;
 
     public Controller(String name, ControllerProperties<T> properties) {
         this(name, properties.semaphore(), properties.actionMetrics(), properties.latencyMetrics(),
-                properties.circuitBreaker());
+                properties.circuitBreaker(), properties.clock());
     }
 
     public Controller(String name, PrecipiceSemaphore semaphore, ActionMetrics<T> actionMetrics,
-                      LatencyMetrics<T> latencyMetrics, CircuitBreaker circuitBreaker) {
+                      LatencyMetrics<T> latencyMetrics, CircuitBreaker circuitBreaker, Clock clock) {
         this.semaphore = semaphore;
         this.actionMetrics = actionMetrics;
         this.latencyMetrics = latencyMetrics;
         this.circuitBreaker = circuitBreaker;
         this.name = name;
+        this.clock = clock;
         this.circuitBreaker.setActionMetrics(actionMetrics);
-        finishingCallback = new FinishingCallback<>(actionMetrics, circuitBreaker, latencyMetrics, semaphore);
+        finishingCallback = new FinishingCallback<>(actionMetrics, circuitBreaker, latencyMetrics, semaphore, clock);
     }
 
     public String getName() {
@@ -96,7 +100,7 @@ public class Controller<T extends Enum<T> & Result> {
 
     public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise(PrecipicePromise<T, R> externalPromise) {
         Rejected rejected = acquirePermitOrGetRejectedReason();
-        long startTime = System.nanoTime();
+        long startTime = clock.nanoTime();
         if (rejected != null) {
             actionMetrics.incrementRejectionCount(rejected, startTime);
             throw new RejectedActionException(rejected);
@@ -125,20 +129,22 @@ public class Controller<T extends Enum<T> & Result> {
         private final CircuitBreaker circuitBreaker;
         private final LatencyMetrics<T> latencyMetrics;
         private final PrecipiceSemaphore semaphore;
+        private final Clock clock;
 
         private FinishingCallback(ActionMetrics<T> actionMetrics, CircuitBreaker circuitBreaker,
-                                  LatencyMetrics<T> latencyMetrics, PrecipiceSemaphore semaphore) {
+                                  LatencyMetrics<T> latencyMetrics, PrecipiceSemaphore semaphore, Clock clock) {
             this.actionMetrics = actionMetrics;
             this.circuitBreaker = circuitBreaker;
             this.latencyMetrics = latencyMetrics;
             this.semaphore = semaphore;
+            this.clock = clock;
         }
 
         @Override
         public void apply(T status, PerformingContext context) {
-            long endTime = System.nanoTime();
-            actionMetrics.incrementMetricCount(status);
-            circuitBreaker.informBreakerOfResult(status.isSuccess());
+            long endTime = clock.nanoTime();
+            actionMetrics.incrementMetricCount(status, endTime);
+            circuitBreaker.informBreakerOfResult(status.isSuccess(), endTime);
             latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
             semaphore.releasePermit();
         }
