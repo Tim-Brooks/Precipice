@@ -61,27 +61,7 @@ public class PatternController<T extends Enum<T> & Result> {
         }
     }
 
-    public <R> PrecipicePromise<T, R> getPromise() {
-        ensureNotShutdown();
-        long startTime = System.nanoTime();
-        if (null != null) {
-            actionMetrics.incrementRejectionCount(null, startTime);
-            throw new RejectedActionException(null);
-        }
-
-        NewEventual<T, R> promise = new NewEventual<>(startTime);
-        promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
-            @Override
-            public void apply(T status, PerformingContext eventual) {
-                long endTime = System.nanoTime();
-                actionMetrics.incrementMetricCount(status);
-                latencyMetrics.recordLatency(status, endTime - eventual.startNanos(), endTime);
-            }
-        });
-        return promise;
-    }
-
-    public <R> PrecipicePromise<T, R> getPromise(NewController<T>[] controllers) {
+    public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise(NewController<T>[] controllers) {
         ensureNotShutdown();
         long startTime = System.nanoTime();
 
@@ -93,20 +73,24 @@ public class PatternController<T extends Enum<T> & Result> {
             }
         }
         if (controllerToUse != null) {
-            NewEventual<T, R> promise = new NewEventual<>(startTime);
-            promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
-                @Override
-                public void apply(T status, PerformingContext eventual) {
-                    long endTime = System.nanoTime();
-                    actionMetrics.incrementMetricCount(status);
-                    latencyMetrics.recordLatency(status, endTime - eventual.startNanos(), endTime);
-                }
-            });
-            return promise;
+            return getPromise(startTime);
         } else {
             actionMetrics.incrementRejectionCount(null, startTime);
             throw new RejectedActionException(null);
         }
+    }
+
+    public <R> PrecipicePromise<T, R> getPromise(long startTime) {
+        NewEventual<T, R> promise = new NewEventual<>(startTime);
+        promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
+            @Override
+            public void apply(T status, PerformingContext eventual) {
+                long endTime = System.nanoTime();
+                actionMetrics.incrementMetricCount(status);
+                latencyMetrics.recordLatency(status, endTime - eventual.startNanos(), endTime);
+            }
+        });
+        return promise;
     }
 
     public NewController<T>[] getChildControllers() {
