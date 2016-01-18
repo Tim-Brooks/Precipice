@@ -15,25 +15,19 @@
  *
  */
 
-package net.uncontended.precipice.pattern;
+package net.uncontended.precipice;
 
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.Status;
+import org.junit.Before;
 
-public class ExperimentalLoadBalancer {
+public class ControllerTest {
 
-    private final PatternController<Status> controller;
-    private final LoadBalancerStrategy strategy = new RoundRobinStrategy(10);
+    private Controller<Status> controller;
 
-    public ExperimentalLoadBalancer(PatternController<Status> controller) {
-        this.controller = controller;
-    }
-
-    public void thing() {
-        Controller<Status>[] childControllers = controller.getChildControllers();
-
-
-
+    @Before
+    public void setup() {
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        controller = new Controller<Status>("Controller Name", properties);
 
     }
+
 }

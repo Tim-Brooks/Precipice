@@ -71,7 +71,7 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
     }
 
     @Override
-    public NewController<Status> controller() {
+    public Controller<Status> controller() {
         return null;
     }
 

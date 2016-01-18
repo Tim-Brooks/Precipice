@@ -29,7 +29,7 @@ public class PatternController<T extends Enum<T> & Result> {
     private final ActionMetrics<T> actionMetrics;
     private final LatencyMetrics<T> latencyMetrics;
     private final String name;
-    private final AtomicReference<NewController<T>[]> children;
+    private final AtomicReference<Controller<T>[]> children;
     private volatile boolean isShutdown = false;
 
     public PatternController(String name, PatternControllerProperties<T> properties) {
@@ -40,7 +40,7 @@ public class PatternController<T extends Enum<T> & Result> {
         this.actionMetrics = actionMetrics;
         this.latencyMetrics = latencyMetrics;
         this.name = name;
-        children = new AtomicReference<>((NewController<T>[]) new NewController[0]);
+        children = new AtomicReference<>((Controller<T>[]) new Controller[0]);
     }
 
     public String getName() {
@@ -61,12 +61,12 @@ public class PatternController<T extends Enum<T> & Result> {
         }
     }
 
-    public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise(NewController<T>[] controllers) {
+    public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise(Controller<T>[] controllers) {
         ensureNotShutdown();
         long startTime = System.nanoTime();
 
-        NewController<T> controllerToUse = null;
-        for (NewController<T> controller : controllers) {
+        Controller<T> controllerToUse = null;
+        for (Controller<T> controller : controllers) {
             Rejected rejected = controller.acquirePermitOrGetRejectedReason();
             if (rejected != null) {
                 controllerToUse = controller;
@@ -93,7 +93,7 @@ public class PatternController<T extends Enum<T> & Result> {
         return promise;
     }
 
-    public NewController<T>[] getChildControllers() {
+    public Controller<T>[] getChildControllers() {
         return children.get();
     }
 

@@ -24,9 +24,9 @@ import net.uncontended.precipice.timeout.ActionTimeoutException;
 
 public class DefaultRunService implements RunService {
 
-    private final NewController<Status> controller;
+    private final Controller<Status> controller;
 
-    public DefaultRunService(NewController<Status> controller) {
+    public DefaultRunService(Controller<Status> controller) {
         this.controller = controller;
     }
 

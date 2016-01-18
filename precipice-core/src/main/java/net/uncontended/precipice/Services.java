@@ -25,6 +25,8 @@ import java.util.concurrent.ExecutorService;
 
 public final class Services {
 
+    private Services() {}
+
     public static AsyncService submissionService(String name, int poolSize, int concurrencyLevel) {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(concurrencyLevel);
@@ -32,7 +34,7 @@ public final class Services {
 
         ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
         LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
-        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+        Controller<Status> controller = new Controller<>(name, properties.semaphore(), actionMetrics,
                 latencyMetrics, properties.circuitBreaker());
         return new DefaultAsyncService(executor, controller);
     }
@@ -42,7 +44,7 @@ public final class Services {
 
         ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
         LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
-        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+        Controller<Status> controller = new Controller<>(name, properties.semaphore(), actionMetrics,
                 latencyMetrics, properties.circuitBreaker());
         return new DefaultAsyncService(executor, controller);
     }
@@ -53,7 +55,7 @@ public final class Services {
 
         ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
         LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
-        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+        Controller<Status> controller = new Controller<>(name, properties.semaphore(), actionMetrics,
                 latencyMetrics, properties.circuitBreaker());
 
         return new DefaultRunService(controller);
@@ -62,7 +64,7 @@ public final class Services {
     public static RunService runService(String name, ServiceProperties properties) {
         ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
         LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
-        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+        Controller<Status> controller = new Controller<>(name, properties.semaphore(), actionMetrics,
                 latencyMetrics, properties.circuitBreaker());
         return new DefaultRunService(controller);
     }

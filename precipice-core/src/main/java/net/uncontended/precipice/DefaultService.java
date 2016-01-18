@@ -39,7 +39,7 @@ public class DefaultService extends AbstractService implements MultiService {
 
         ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
         LatencyMetrics<Status> latencyMetrics = (LatencyMetrics<Status>) properties.latencyMetrics();
-        NewController<Status> controller = new NewController<>(name, properties.semaphore(), actionMetrics,
+        Controller<Status> controller = new Controller<>(name, properties.semaphore(), actionMetrics,
                 latencyMetrics, properties.circuitBreaker());
 
         runService = new DefaultRunService(controller);
@@ -67,7 +67,7 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
-    public NewController<Status> controller() {
+    public Controller<Status> controller() {
         return null;
     }
 

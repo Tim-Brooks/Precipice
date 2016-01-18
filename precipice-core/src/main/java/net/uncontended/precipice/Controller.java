@@ -24,7 +24,7 @@ import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 
-public class NewController<T extends Enum<T> & Result> {
+public class Controller<T extends Enum<T> & Result> {
     private final PrecipiceSemaphore semaphore;
     private final ActionMetrics<T> actionMetrics;
     private final LatencyMetrics<T> latencyMetrics;
@@ -33,13 +33,13 @@ public class NewController<T extends Enum<T> & Result> {
     private final FinishingCallback<T> finishingCallback;
     private volatile boolean isShutdown = false;
 
-    public NewController(String name, ControllerProperties<T> properties) {
+    public Controller(String name, ControllerProperties<T> properties) {
         this(name, properties.semaphore(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.circuitBreaker());
     }
 
-    public NewController(String name, PrecipiceSemaphore semaphore, ActionMetrics<T> actionMetrics,
-                         LatencyMetrics<T> latencyMetrics, CircuitBreaker circuitBreaker) {
+    public Controller(String name, PrecipiceSemaphore semaphore, ActionMetrics<T> actionMetrics,
+                      LatencyMetrics<T> latencyMetrics, CircuitBreaker circuitBreaker) {
         this.semaphore = semaphore;
         this.actionMetrics = actionMetrics;
         this.latencyMetrics = latencyMetrics;

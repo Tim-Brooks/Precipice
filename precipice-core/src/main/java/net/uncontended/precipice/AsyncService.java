@@ -44,5 +44,5 @@ public interface AsyncService extends Service {
 
     <T> void complete(ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout);
 
-    NewController<Status> controller();
+    Controller<Status> controller();
 }

@@ -18,7 +18,7 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.Controllable;
-import net.uncontended.precipice.NewController;
+import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -30,16 +30,16 @@ import java.util.concurrent.ExecutorService;
 public class ThreadpoolService implements Controllable {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
-    private final NewController<Status> controller;
+    private final Controller<Status> controller;
 
-    public ThreadpoolService(ExecutorService service, NewController<Status> controller) {
+    public ThreadpoolService(ExecutorService service, Controller<Status> controller) {
         this.controller = controller;
         timeoutService = TimeoutService.defaultTimeoutService;
         this.service = service;
     }
 
     @Override
-    public NewController<Status> controller() {
+    public Controller<Status> controller() {
         return controller;
     }
 
