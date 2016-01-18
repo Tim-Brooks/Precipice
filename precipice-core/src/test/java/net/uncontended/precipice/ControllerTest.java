@@ -46,6 +46,21 @@ public class ControllerTest {
     }
 
     @Test
+    public void exceptionIfShutdown() {
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        controller = new Controller<Status>("Controller Name", properties);
+
+        controller.shutdown();
+        try {
+            controller.acquirePermitOrGetRejectedReason();
+            fail("Exception should have been thrown due to controller being shutdown.");
+        } catch (IllegalStateException e) {
+            assertEquals("Service has been shutdown.", e.getMessage());
+        }
+
+    }
+
+    @Test
     public void acquirePermitOrGetRejectedReasonReturnsMaxConcurrency() {
         CircuitBreaker breaker = mock(CircuitBreaker.class);
         PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
@@ -69,8 +84,11 @@ public class ControllerTest {
         when(breaker.allowAction()).thenReturn(false);
 
         assertSame(Rejected.CIRCUIT_OPEN, controller.acquirePermitOrGetRejectedReason());
+    }
 
-
+    @Test
+    public void getPromiseReturnsPromiseWithMetricsCallback() {
+        
     }
 
 }
