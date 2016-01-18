@@ -17,8 +17,6 @@
 
 package net.uncontended.precipice.timeout;
 
-import net.uncontended.precipice.concurrent.ResilientTask;
-
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 

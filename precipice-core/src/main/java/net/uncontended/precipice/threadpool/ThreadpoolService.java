@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.threadpool;
 
+import net.uncontended.precipice.Controllable;
 import net.uncontended.precipice.NewController;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
@@ -26,7 +27,7 @@ import net.uncontended.precipice.timeout.TimeoutService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadpoolService {
+public class ThreadpoolService implements Controllable {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
     private final NewController<Status> controller;
@@ -37,25 +38,30 @@ public class ThreadpoolService {
         this.service = service;
     }
 
-    public <T> PrecipiceFuture<Status, T> submit(Callable<T> action, long millisTimeout) {
-        PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
-        internalComplete(action, promise, millisTimeout);
-        return promise.future();
-    }
-
-    public <T> void complete(Callable<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        PrecipicePromise<Status, T> internalPromise = controller.acquirePermitAndGetPromise(promise);
-        internalComplete(action, internalPromise, millisTimeout);
-    }
-
+    @Override
     public NewController<Status> controller() {
         return controller;
     }
 
-    private <T> void internalComplete(Callable<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        long adjustedTimeout = millisTimeout > TimeoutService.MAX_TIMEOUT_MILLIS ? TimeoutService.MAX_TIMEOUT_MILLIS : millisTimeout;
-        NewResilientTask<T> task = new NewResilientTask<>(action, promise, adjustedTimeout, System.nanoTime());
+    public <T> PrecipiceFuture<Status, T> submit(Callable<T> callable, long millisTimeout) {
+        PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
+        bypassBackpressureAndComplete(callable, promise, millisTimeout);
+        return promise.future();
+    }
+
+    public <T> void complete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
+        PrecipicePromise<Status, T> internalPromise = controller.acquirePermitAndGetPromise(promise);
+        bypassBackpressureAndComplete(callable, internalPromise, millisTimeout);
+    }
+
+    public <T> void bypassBackpressureAndComplete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
+        long adjustedTimeout = adjustTimeout(millisTimeout);
+        NewResilientTask<T> task = new NewResilientTask<>(callable, promise, adjustedTimeout, System.nanoTime());
         service.execute(task);
         timeoutService.scheduleTimeout(task);
+    }
+
+    private static long adjustTimeout(long millisTimeout) {
+        return millisTimeout > TimeoutService.MAX_TIMEOUT_MILLIS ? TimeoutService.MAX_TIMEOUT_MILLIS : millisTimeout;
     }
 }
