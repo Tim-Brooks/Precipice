@@ -42,7 +42,7 @@ public class ControllerProperties<T extends Enum<T> & Result> {
     private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;
     private int concurrencyLevel = MAX_CONCURRENCY_LEVEL;
-    private Clock clock;
+    private Clock clock = new SystemTime();
 
     public ControllerProperties(Class<T> type) {
         this.type = type;

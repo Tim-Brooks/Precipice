@@ -40,6 +40,8 @@ public class DefaultService extends AbstractService implements MultiService {
         ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
         controllerProperties.actionMetrics((ActionMetrics<Status>) properties.actionMetrics());
         controllerProperties.latencyMetrics((LatencyMetrics<Status>) properties.latencyMetrics());
+        controllerProperties.circuitBreaker(properties.circuitBreaker());
+        controllerProperties.semaphore(properties.semaphore());
         Controller<Status> controller = new Controller<>(name, controllerProperties);
 
         runService = new DefaultRunService(controller);

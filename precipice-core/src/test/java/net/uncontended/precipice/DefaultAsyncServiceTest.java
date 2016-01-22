@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
@@ -76,7 +75,7 @@ public class DefaultAsyncServiceTest {
     public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
         ServiceProperties properties = new ServiceProperties();
         properties.concurrencyLevel(2);
-        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
+        properties.actionMetrics(new DefaultActionMetrics<>(Status.class));
         service = Services.defaultService("Test", 1, properties);
         CountDownLatch latch = new CountDownLatch(1);
         service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);

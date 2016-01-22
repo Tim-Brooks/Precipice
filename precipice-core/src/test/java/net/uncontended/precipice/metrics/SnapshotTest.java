@@ -60,20 +60,18 @@ public class SnapshotTest {
 
         Map<Object, Object> snapshot = Snapshot.generate(metrics.totalCountMetricCounter(),
                 metrics.metricCounterIterable(5, TimeUnit.SECONDS));
-        assertEquals(29L, snapshot.get(Snapshot.TOTAL_TOTAL));
+        assertEquals(27L, snapshot.get(Snapshot.TOTAL_TOTAL));
         assertEquals(5L, snapshot.get(Snapshot.TOTAL_SUCCESSES));
         assertEquals(4L, snapshot.get(Snapshot.TOTAL_TIMEOUTS));
         assertEquals(6L, snapshot.get(Snapshot.TOTAL_ERRORS));
         assertEquals(8L, snapshot.get(Snapshot.TOTAL_CIRCUIT_OPEN));
-        assertEquals(2L, snapshot.get(Snapshot.TOTAL_QUEUE_FULL));
         assertEquals(3L, snapshot.get(Snapshot.TOTAL_MAX_CONCURRENCY));
         assertEquals(1L, snapshot.get(Snapshot.TOTAL_ALL_REJECTED));
-        assertEquals(22L, snapshot.get(Snapshot.TOTAL));
+        assertEquals(21L, snapshot.get(Snapshot.TOTAL));
         assertEquals(4L, snapshot.get(Snapshot.SUCCESSES));
         assertEquals(3L, snapshot.get(Snapshot.TIMEOUTS));
         assertEquals(5L, snapshot.get(Snapshot.ERRORS));
         assertEquals(7L, snapshot.get(Snapshot.CIRCUIT_OPEN));
-        assertEquals(1L, snapshot.get(Snapshot.QUEUE_FULL));
         assertEquals(2L, snapshot.get(Snapshot.MAX_CONCURRENCY));
         assertEquals(0L, snapshot.get(Snapshot.ALL_REJECTED));
         assertEquals(6L, snapshot.get(Snapshot.MAX_1_TOTAL));
@@ -81,7 +79,6 @@ public class SnapshotTest {
         assertEquals(1L, snapshot.get(Snapshot.MAX_1_TIMEOUTS));
         assertEquals(3L, snapshot.get(Snapshot.MAX_1_ERRORS));
         assertEquals(3L, snapshot.get(Snapshot.MAX_1_CIRCUIT_OPEN));
-        assertEquals(1L, snapshot.get(Snapshot.MAX_1_QUEUE_FULL));
         assertEquals(1L, snapshot.get(Snapshot.MAX_1_MAX_CONCURRENCY));
         assertEquals(0L, snapshot.get(Snapshot.MAX_1_ALL_REJECTED));
         assertEquals(10L, snapshot.get(Snapshot.MAX_2_TOTAL));
@@ -89,18 +86,8 @@ public class SnapshotTest {
         assertEquals(2L, snapshot.get(Snapshot.MAX_2_TIMEOUTS));
         assertEquals(4L, snapshot.get(Snapshot.MAX_2_ERRORS));
         assertEquals(4L, snapshot.get(Snapshot.MAX_2_CIRCUIT_OPEN));
-        assertEquals(1L, snapshot.get(Snapshot.MAX_2_QUEUE_FULL));
         assertEquals(2L, snapshot.get(Snapshot.MAX_2_MAX_CONCURRENCY));
         assertEquals(0L, snapshot.get(Snapshot.MAX_2_ALL_REJECTED));
-
-//        assertEquals(10L, snapshot.get(Snapshot.LATENCY_MAX));
-//        assertEquals(5D, snapshot.get(Snapshot.LATENCY_MEAN));
-//        assertEquals(2L, snapshot.get(Snapshot.LATENCY_50));
-//        assertEquals(7L, snapshot.get(Snapshot.LATENCY_90));
-//        assertEquals(8L, snapshot.get(Snapshot.LATENCY_99));
-//        assertEquals(9L, snapshot.get(Snapshot.LATENCY_99_9));
-//        assertEquals(9L, snapshot.get(Snapshot.LATENCY_99_99));
-//        assertEquals(10L, snapshot.get(Snapshot.LATENCY_99_999));
     }
 
     private void setupMetrics() {
