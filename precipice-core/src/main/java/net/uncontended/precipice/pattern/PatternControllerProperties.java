@@ -31,7 +31,7 @@ public class PatternControllerProperties<T extends Enum<T> & Result> {
 
     public PatternControllerProperties(Class<T> type) {
         this.type = type;
-        metrics = new DefaultActionMetrics<T>(type);
+        metrics = new DefaultActionMetrics<>(type);
         latencyMetrics = new IntervalLatencyMetrics<>(type);
     }
 

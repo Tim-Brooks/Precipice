@@ -24,6 +24,7 @@ import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.pattern.LoadBalancers;
+import net.uncontended.precipice.pattern.PatternControllerProperties;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
 import net.uncontended.precipice.pattern.AsyncPattern;
 
@@ -45,8 +46,9 @@ public class Client {
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
 
-        loadBalancer = LoadBalancers.asyncRoundRobin("lb", services, new DefaultActionMetrics<>(Status.class, 20, 500,
-                TimeUnit.MILLISECONDS));
+        PatternControllerProperties<Status> properties = new PatternControllerProperties<>(Status.class);
+        properties.actionMetrics(new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS));
+        loadBalancer = LoadBalancers.asyncRoundRobin("lb", services, properties);
 
         clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.getActionMetrics()));
     }
