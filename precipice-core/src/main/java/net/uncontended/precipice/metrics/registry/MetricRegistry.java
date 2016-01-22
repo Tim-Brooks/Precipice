@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Should be considered experimental. Development is not complete. May be moved to precipice-reporting.
+ */
 public class MetricRegistry {
 
     private final long period;
