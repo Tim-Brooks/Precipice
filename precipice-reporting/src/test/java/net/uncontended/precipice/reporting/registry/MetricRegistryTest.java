@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.uncontended.precipice.metrics.registry;
+package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Service;
@@ -23,6 +23,9 @@ import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
 import net.uncontended.precipice.metrics.LatencySnapshot;
 import net.uncontended.precipice.metrics.MetricCounter;
+import net.uncontended.precipice.reporting.registry.MetricRegistry;
+import net.uncontended.precipice.reporting.registry.MetricRegistryCallback;
+import net.uncontended.precipice.reporting.registry.Summary;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -37,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 public class MetricRegistryTest {

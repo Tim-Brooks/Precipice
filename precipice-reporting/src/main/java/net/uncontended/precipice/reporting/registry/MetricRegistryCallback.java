@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.uncontended.precipice.metrics.registry;
+package net.uncontended.precipice.reporting.registry;
 
 @FunctionalInterface
 public interface MetricRegistryCallback<T> {
