@@ -21,7 +21,7 @@ import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.threadpool.ThreadpoolService;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +30,7 @@ public class DefaultService extends AbstractService implements MultiService {
 
     private final ExecutorService service;
     private final RunService runService;
-    private final ThreadpoolService threadpoolService;
+    private final ThreadPoolService threadPoolService;
 
     public DefaultService(String name, ExecutorService service, ServiceProperties properties) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
@@ -45,12 +45,12 @@ public class DefaultService extends AbstractService implements MultiService {
         Controller<Status> controller = new Controller<>(name, controllerProperties);
 
         runService = new DefaultRunService(controller);
-        threadpoolService = new ThreadpoolService(service, controller);
+        threadPoolService = new ThreadPoolService(service, controller);
     }
 
     @Override
     public <T> PrecipiceFuture<Status, T> submit(final ResilientAction<T> action, long millisTimeout) {
-        return threadpoolService.submit(new Callable<T>() {
+        return threadPoolService.submit(new Callable<T>() {
             @Override
             public T call() throws Exception {
                 return action.run();
@@ -60,7 +60,7 @@ public class DefaultService extends AbstractService implements MultiService {
 
     @Override
     public <T> void complete(final ResilientAction<T> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        threadpoolService.complete(new Callable<T>() {
+        threadPoolService.complete(new Callable<T>() {
             @Override
             public T call() throws Exception {
                 return action.run();
@@ -82,7 +82,7 @@ public class DefaultService extends AbstractService implements MultiService {
     public void shutdown() {
         isShutdown = true;
         runService.shutdown();
-        threadpoolService.controller().shutdown();
+        threadPoolService.controller().shutdown();
         service.shutdown();
     }
 }

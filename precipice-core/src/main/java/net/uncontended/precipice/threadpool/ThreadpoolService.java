@@ -27,12 +27,12 @@ import net.uncontended.precipice.timeout.TimeoutService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadpoolService implements Controllable {
+public class ThreadPoolService implements Controllable {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
     private final Controller<Status> controller;
 
-    public ThreadpoolService(ExecutorService service, Controller<Status> controller) {
+    public ThreadPoolService(ExecutorService service, Controller<Status> controller) {
         this.controller = controller;
         timeoutService = TimeoutService.defaultTimeoutService;
         this.service = service;
