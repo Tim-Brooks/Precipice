@@ -18,10 +18,9 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.ControllerProperties;
+import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.RejectedActionException;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.concurrent.LongSemaphore;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.test_utils.TestCallables;
 import net.uncontended.precipice.utils.PrecipiceExecutors;
 import org.junit.After;
@@ -34,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ThreadPoolServiceTest {
 
@@ -64,30 +64,24 @@ public class ThreadPoolServiceTest {
         assertTrue(executorService.isShutdown());
     }
 
-//    @Test
-//    public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
-//        ControllerProperties properties = new ControllerProperties();
-//        properties.concurrencyLevel(2);
-//        properties.actionMetrics(new DefaultActionMetrics<>(Status.class));
-//        service = Services.defaultService("Test", 1, properties);
-//        CountDownLatch latch = new CountDownLatch(1);
-//        service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
-//        service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
-//
-//        try {
-//            service.submit(TestActions.successAction(1), Long.MAX_VALUE);
-//            fail();
-//        } catch (RejectedActionException e) {
-//            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
-//        }
-//        try {
-//            service.submit(TestActions.successAction(1), 100L);
-//            fail();
-//        } catch (RejectedActionException e) {
-//            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
-//        }
-//        latch.countDown();
-//    }
+    @Test
+    public void exceptionThrownIfControllerRejects() throws Exception {
+        try {
+            when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedActionException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
+            service.submit(TestCallables.successAction(1), Long.MAX_VALUE);
+            fail();
+        } catch (RejectedActionException e) {
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+        }
+
+        try {
+            when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN));
+            service.submit(TestCallables.successAction(1), Long.MAX_VALUE);
+            fail();
+        } catch (RejectedActionException e) {
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+        }
+    }
 
 //    @Test
 //    public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
