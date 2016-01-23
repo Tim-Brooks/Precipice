@@ -26,6 +26,7 @@ import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -127,7 +128,7 @@ public class ControllerTest {
     }
 
     @Test
-    public void acquirePermitAndGetPromiseThrowsIfRejected() {
+    public void acquirePermitAndGetPromiseThrowsIfMaxConcurrencyRejected() {
         controller = new Controller<>("Controller Name", properties);
         verify(breaker).setActionMetrics(metrics);
 
@@ -136,7 +137,7 @@ public class ControllerTest {
         when(semaphore.acquirePermit(1L)).thenReturn(false);
 
         try {
-            controller.acquirePermitAndGetPromise(null);
+            controller.acquirePermitAndGetPromise();
         } catch (RejectedActionException e) {
             assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
@@ -146,6 +147,30 @@ public class ControllerTest {
         verify(metrics).incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, startTime);
         verifyZeroInteractions(latencyMetrics);
         verifyZeroInteractions(breaker);
+    }
+
+    @Test
+    public void acquirePermitAndGetPromiseThrowsIfCircuitOpen() {
+        controller = new Controller<>("Controller Name", properties);
+        verify(breaker).setActionMetrics(metrics);
+
+        long startTime = 10L;
+
+        when(clock.nanoTime()).thenReturn(startTime);
+        when(semaphore.acquirePermit(1L)).thenReturn(true);
+        when(breaker.allowAction()).thenReturn(false);
+
+        try {
+            controller.acquirePermitAndGetPromise();
+        } catch (RejectedActionException e) {
+            assertSame(Rejected.CIRCUIT_OPEN, e.reason);
+        }
+
+        InOrder inOrder = inOrder(semaphore);
+        inOrder.verify(semaphore).acquirePermit(1L);
+        inOrder.verify(semaphore).releasePermit(1L);
+        verify(metrics).incrementRejectionCount(Rejected.CIRCUIT_OPEN, startTime);
+        verifyZeroInteractions(latencyMetrics);
     }
 
 }
