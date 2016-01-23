@@ -24,24 +24,50 @@ import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ControllerTest {
 
+    @Mock
+    private ActionMetrics<Status> metrics;
+    @Mock
+    private LatencyMetrics<Status> latencyMetrics;
+    @Mock
+    private PrecipiceSemaphore semaphore;
+    @Mock
+    private CircuitBreaker breaker;
+    @Mock
+    private Clock clock;
+
     private Controller<Status> controller;
+    private ControllerProperties<Status> properties;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        properties = new ControllerProperties<>(Status.class);
+        properties.circuitBreaker(breaker);
+        properties.actionMetrics(metrics);
+        properties.latencyMetrics(latencyMetrics);
+        properties.semaphore(semaphore);
+        properties.clock(clock);
+    }
 
     @Test
     public void capacityAndPendingCallsDelegateToSemaphore() {
-        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
         properties.semaphore(new LongSemaphore(10));
-        controller = new Controller<Status>("Controller Name", properties);
+        controller = new Controller<>("Controller Name", properties);
 
         assertEquals(10, controller.remainingCapacity());
         assertEquals(0, controller.pendingCount());
 
+        when(breaker.allowAction()).thenReturn(true);
         controller.acquirePermitOrGetRejectedReason();
 
         assertEquals(9, controller.remainingCapacity());
@@ -50,8 +76,7 @@ public class ControllerTest {
 
     @Test
     public void exceptionIfShutdown() {
-        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        controller = new Controller<Status>("Controller Name", properties);
+        controller = new Controller<>("Controller Name", properties);
 
         controller.shutdown();
         try {
@@ -64,14 +89,8 @@ public class ControllerTest {
     }
 
     @Test
-    public void acquirePermitOrGetRejectedReasonReturnsMaxConcurrency() {
-        CircuitBreaker breaker = mock(CircuitBreaker.class);
-        PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
-
-        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        properties.circuitBreaker(breaker);
-        properties.semaphore(semaphore);
-        controller = new Controller<Status>("Controller Name", properties);
+    public void acquirePermitOrGetRejectedReasonReasonIfRejected() {
+        controller = new Controller<>("Controller Name", properties);
 
         when(semaphore.acquirePermit(1)).thenReturn(true);
         when(breaker.allowAction()).thenReturn(true);
@@ -91,22 +110,11 @@ public class ControllerTest {
 
     @Test
     public void getPromiseReturnsPromiseWithMetricsCallback() {
-        long starTime = 10L;
+        controller = new Controller<>("Controller Name", properties);
 
-        CircuitBreaker breaker = mock(CircuitBreaker.class);
-        ActionMetrics<Status> metrics = mock(ActionMetrics.class);
-        LatencyMetrics<Status> latencyMetrics = mock(LatencyMetrics.class);
-        PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
-        Clock clock = mock(Clock.class);
-        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        properties.circuitBreaker(breaker);
-        properties.actionMetrics(metrics);
-        properties.latencyMetrics(latencyMetrics);
-        properties.semaphore(semaphore);
-        properties.clock(clock);
-        controller = new Controller<Status>("Controller Name", properties);
+        long startTime = 10L;
 
-        PrecipicePromise<Status, String> promise = controller.getPromise(starTime, null);
+        PrecipicePromise<Status, String> promise = controller.getPromise(startTime, null);
 
         when(clock.nanoTime()).thenReturn(100L);
 
@@ -116,6 +124,28 @@ public class ControllerTest {
         verify(metrics).incrementMetricCount(Status.SUCCESS, 100L);
         verify(latencyMetrics).recordLatency(Status.SUCCESS, 90L, 100L);
         verify(semaphore).releasePermit(1);
+    }
+
+    @Test
+    public void acquirePermitAndGetPromiseThrowsIfRejected() {
+        controller = new Controller<>("Controller Name", properties);
+        verify(breaker).setActionMetrics(metrics);
+
+        long startTime = 10L;
+        when(clock.nanoTime()).thenReturn(startTime);
+        when(semaphore.acquirePermit(1L)).thenReturn(false);
+
+        try {
+            controller.acquirePermitAndGetPromise(null);
+        } catch (RejectedActionException e) {
+            assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+        }
+
+        verify(semaphore).acquirePermit(1L);
+        verifyNoMoreInteractions(semaphore);
+        verify(metrics).incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, startTime);
+        verifyZeroInteractions(latencyMetrics);
+        verifyZeroInteractions(breaker);
     }
 
 }

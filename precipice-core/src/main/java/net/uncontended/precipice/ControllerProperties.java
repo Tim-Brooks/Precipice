@@ -20,15 +20,14 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
+import net.uncontended.precipice.concurrent.UnlimitedSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
-import net.uncontended.precipice.timeout.TimeoutService;
 
 public class ControllerProperties<T extends Enum<T> & Result> {
 
@@ -39,15 +38,15 @@ public class ControllerProperties<T extends Enum<T> & Result> {
     private ActionMetrics<T> metrics;
     private LatencyMetrics<T> latencyMetrics;
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
-    private TimeoutService timeoutService = TimeoutService.defaultTimeoutService;
     private PrecipiceSemaphore semaphore;
     private int concurrencyLevel = MAX_CONCURRENCY_LEVEL;
     private Clock clock = new SystemTime();
 
     public ControllerProperties(Class<T> type) {
         this.type = type;
-        metrics = new DefaultActionMetrics<T>(type);
+        metrics = new DefaultActionMetrics<>(type);
         latencyMetrics = new IntervalLatencyMetrics<>(type);
+        semaphore = new UnlimitedSemaphore();
     }
 
     public ControllerProperties<T> actionMetrics(ActionMetrics<T> metrics) {
@@ -68,36 +67,12 @@ public class ControllerProperties<T extends Enum<T> & Result> {
         return breaker;
     }
 
-    public ControllerProperties<T> timeoutService(TimeoutService timeoutService) {
-        this.timeoutService = timeoutService;
-        return this;
-    }
-
-    public TimeoutService timeoutService() {
-        return timeoutService;
-    }
-
-    public ControllerProperties<T> concurrencyLevel(int concurrencyLevel) {
-        this.concurrencyLevel = concurrencyLevel;
-        return this;
-    }
-
-    public int concurrencyLevel() {
-        return concurrencyLevel;
-    }
-
     public ControllerProperties<T> semaphore(PrecipiceSemaphore semaphore) {
         this.semaphore = semaphore;
         return this;
     }
 
     public PrecipiceSemaphore semaphore() {
-        // TODO: Consider whether this makes sense. It may not be clear.
-
-        if (semaphore == null) {
-            semaphore = new LongSemaphore(concurrencyLevel);
-            return semaphore;
-        }
         return semaphore;
     }
 

@@ -30,7 +30,7 @@ public class LongSemaphore implements PrecipiceSemaphore {
     }
 
     @Override
-    public boolean acquirePermit(long rateUnit) {
+    public boolean acquirePermit(long rateUnits) {
         for (; ; ) {
             long permitsRemaining = this.permitsRemaining.get();
             if (permitsRemaining > 0) {
@@ -44,7 +44,7 @@ public class LongSemaphore implements PrecipiceSemaphore {
     }
 
     @Override
-    public void releasePermit(long rateUnit) {
+    public void releasePermit(long rateUnits) {
         this.permitsRemaining.getAndIncrement();
     }
 

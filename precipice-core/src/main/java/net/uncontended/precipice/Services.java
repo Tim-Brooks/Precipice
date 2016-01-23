@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.utils.PrecipiceExecutors;
@@ -31,7 +32,7 @@ public final class Services {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
 
         ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
-        controllerProperties.concurrencyLevel(concurrencyLevel);
+        controllerProperties.semaphore(new LongSemaphore(concurrencyLevel));
         return new DefaultAsyncService(executor, new Controller<>(name, controllerProperties));
     }
 
@@ -43,14 +44,13 @@ public final class Services {
         controllerProperties.latencyMetrics((LatencyMetrics<Status>) properties.latencyMetrics());
         controllerProperties.semaphore(properties.semaphore());
         controllerProperties.circuitBreaker(properties.circuitBreaker());
-        controllerProperties.concurrencyLevel(properties.concurrencyLevel());
 
         return new DefaultAsyncService(executor, new Controller<>(name, controllerProperties));
     }
 
     public static RunService runService(String name, int concurrencyLevel) {
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        properties.concurrencyLevel(concurrencyLevel);
+        properties.semaphore(new LongSemaphore(concurrencyLevel));
         return new DefaultRunService(new Controller<>(name, properties));
     }
 
@@ -60,7 +60,6 @@ public final class Services {
         controllerProperties.latencyMetrics((LatencyMetrics<Status>) properties.latencyMetrics());
         controllerProperties.semaphore(properties.semaphore());
         controllerProperties.circuitBreaker(properties.circuitBreaker());
-        controllerProperties.concurrencyLevel(properties.concurrencyLevel());
 
         return new DefaultRunService(new Controller<>(name, controllerProperties));
     }

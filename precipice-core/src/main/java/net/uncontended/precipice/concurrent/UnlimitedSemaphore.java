@@ -17,20 +17,20 @@
 
 package net.uncontended.precipice.concurrent;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class UnlimitedSemaphore implements PrecipiceSemaphore {
 
-    private final AtomicInteger concurrencyLevel = new AtomicInteger(0);
+    private final AtomicLong concurrencyLevel = new AtomicLong(0);
 
     @Override
-    public boolean acquirePermit(long rateUnit) {
+    public boolean acquirePermit(long rateUnits) {
         concurrencyLevel.incrementAndGet();
         return true;
     }
 
     @Override
-    public void releasePermit(long rateUnit) {
+    public void releasePermit(long rateUnits) {
         concurrencyLevel.decrementAndGet();
     }
 

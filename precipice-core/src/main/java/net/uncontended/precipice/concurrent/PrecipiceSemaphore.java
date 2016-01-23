@@ -19,9 +19,9 @@ package net.uncontended.precipice.concurrent;
 
 public interface PrecipiceSemaphore {
 
-    boolean acquirePermit(long rateUnit);
+    boolean acquirePermit(long rateUnits);
 
-    void releasePermit(long rateUnit);
+    void releasePermit(long rateUnits);
 
     long maxConcurrencyLevel();
 
