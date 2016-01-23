@@ -55,14 +55,14 @@ public interface Service {
      *
      * @return the remaining capacity
      */
-    int remainingCapacity();
+    long remainingCapacity();
 
     /**
      * Returns the currently pending actions count.
      *
      * @return the currently pending actions count
      */
-    int pendingCount();
+    long pendingCount();
 
     /**
      * Attempts to shutdown the service. Actions after this call will throw a

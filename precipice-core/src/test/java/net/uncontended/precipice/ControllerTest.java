@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.concurrent.IntegerSemaphore;
+import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -36,7 +36,7 @@ public class ControllerTest {
     @Test
     public void capacityAndPendingCallsDelegateToSemaphore() {
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        properties.semaphore(new IntegerSemaphore(10));
+        properties.semaphore(new LongSemaphore(10));
         controller = new Controller<Status>("Controller Name", properties);
 
         assertEquals(10, controller.remainingCapacity());
@@ -73,17 +73,17 @@ public class ControllerTest {
         properties.semaphore(semaphore);
         controller = new Controller<Status>("Controller Name", properties);
 
-        when(semaphore.acquirePermit()).thenReturn(true);
+        when(semaphore.acquirePermit(1)).thenReturn(true);
         when(breaker.allowAction()).thenReturn(true);
 
         assertNull(controller.acquirePermitOrGetRejectedReason());
 
-        when(semaphore.acquirePermit()).thenReturn(false);
+        when(semaphore.acquirePermit(1)).thenReturn(false);
         when(breaker.allowAction()).thenReturn(true);
 
         assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, controller.acquirePermitOrGetRejectedReason());
 
-        when(semaphore.acquirePermit()).thenReturn(true);
+        when(semaphore.acquirePermit(1)).thenReturn(true);
         when(breaker.allowAction()).thenReturn(false);
 
         assertSame(Rejected.CIRCUIT_OPEN, controller.acquirePermitOrGetRejectedReason());
@@ -115,7 +115,7 @@ public class ControllerTest {
         verify(breaker).informBreakerOfResult(true, 100L);
         verify(metrics).incrementMetricCount(Status.SUCCESS, 100L);
         verify(latencyMetrics).recordLatency(Status.SUCCESS, 90L, 100L);
-        verify(semaphore).releasePermit();
+        verify(semaphore).releasePermit(1);
     }
 
 }

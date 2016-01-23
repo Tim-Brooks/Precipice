@@ -17,22 +17,22 @@
 
 package net.uncontended.precipice.concurrent;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class IntegerSemaphore implements PrecipiceSemaphore {
+public class LongSemaphore implements PrecipiceSemaphore {
 
-    private final AtomicInteger permitsRemaining;
+    private final AtomicLong permitsRemaining;
     private final int maxConcurrencyLevel;
 
-    public IntegerSemaphore(int maxConcurrencyLevel) {
+    public LongSemaphore(int maxConcurrencyLevel) {
         this.maxConcurrencyLevel = maxConcurrencyLevel;
-        this.permitsRemaining = new AtomicInteger(maxConcurrencyLevel);
+        this.permitsRemaining = new AtomicLong(maxConcurrencyLevel);
     }
 
     @Override
-    public boolean acquirePermit() {
+    public boolean acquirePermit(long rateUnit) {
         for (; ; ) {
-            int permitsRemaining = this.permitsRemaining.get();
+            long permitsRemaining = this.permitsRemaining.get();
             if (permitsRemaining > 0) {
                 if (this.permitsRemaining.compareAndSet(permitsRemaining, permitsRemaining - 1)) {
                     return true;
@@ -44,22 +44,22 @@ public class IntegerSemaphore implements PrecipiceSemaphore {
     }
 
     @Override
-    public void releasePermit() {
+    public void releasePermit(long rateUnit) {
         this.permitsRemaining.getAndIncrement();
     }
 
     @Override
-    public int maxConcurrencyLevel() {
+    public long maxConcurrencyLevel() {
         return maxConcurrencyLevel;
     }
 
     @Override
-    public int remainingCapacity() {
+    public long remainingCapacity() {
         return permitsRemaining.get();
     }
 
     @Override
-    public int currentConcurrencyLevel() {
+    public long currentConcurrencyLevel() {
         return maxConcurrencyLevel - permitsRemaining.get();
     }
 }

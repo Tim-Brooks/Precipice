@@ -66,8 +66,8 @@ public class MetricRegistryTest {
     public void testSummary() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         Random random = new Random();
-        int pendingN = random.nextInt(100);
-        int capacityN = random.nextInt(1000);
+        long pendingN = random.nextInt(100);
+        long capacityN = random.nextInt(1000);
 
         long successN = random.nextInt(50);
         long errorN = random.nextInt(50);

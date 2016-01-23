@@ -24,28 +24,28 @@ public class UnlimitedSemaphore implements PrecipiceSemaphore {
     private final AtomicInteger concurrencyLevel = new AtomicInteger(0);
 
     @Override
-    public boolean acquirePermit() {
+    public boolean acquirePermit(long rateUnit) {
         concurrencyLevel.incrementAndGet();
         return true;
     }
 
     @Override
-    public void releasePermit() {
+    public void releasePermit(long rateUnit) {
         concurrencyLevel.decrementAndGet();
     }
 
     @Override
-    public int maxConcurrencyLevel() {
+    public long maxConcurrencyLevel() {
         return -1;
     }
 
     @Override
-    public int remainingCapacity() {
+    public long remainingCapacity() {
         return -1;
     }
 
     @Override
-    public int currentConcurrencyLevel() {
+    public long currentConcurrencyLevel() {
         return concurrencyLevel.get();
     }
 }

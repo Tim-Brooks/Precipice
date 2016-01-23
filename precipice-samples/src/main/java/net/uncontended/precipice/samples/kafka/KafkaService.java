@@ -64,7 +64,7 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
                 try {
                     handleResult(promise, kafkaAction, metadata, exception);
                 } finally {
-                    semaphore.releasePermit();
+                    semaphore.releasePermit(1);
                 }
             }
         });

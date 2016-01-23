@@ -20,7 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.IntegerSemaphore;
+import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
@@ -81,7 +81,7 @@ public class ServiceProperties {
         // TODO: Consider whether this makes sense. It may not be clear.
 
         if (semaphore == null) {
-            semaphore = new IntegerSemaphore(concurrencyLevel);
+            semaphore = new LongSemaphore(concurrencyLevel);
             return semaphore;
         }
         return semaphore;

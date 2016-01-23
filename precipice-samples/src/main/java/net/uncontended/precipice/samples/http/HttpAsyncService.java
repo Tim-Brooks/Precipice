@@ -63,7 +63,7 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
                     metrics.incrementMetricCount(Status.ERROR);
                     eventual.completeExceptionally(Status.ERROR, e);
                 }
-                semaphore.releasePermit();
+                semaphore.releasePermit(1);
                 return null;
             }
 
@@ -76,7 +76,7 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
                     metrics.incrementMetricCount(Status.ERROR);
                     eventual.completeExceptionally(Status.ERROR, t);
                 }
-                semaphore.releasePermit();
+                semaphore.releasePermit(1);
             }
         });
         return eventual;

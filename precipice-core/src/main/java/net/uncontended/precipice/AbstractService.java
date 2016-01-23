@@ -61,13 +61,13 @@ public abstract class AbstractService implements Service {
     }
 
     @Override
-    public int remainingCapacity() {
+    public long remainingCapacity() {
         return semaphore.remainingCapacity();
 
     }
 
     @Override
-    public int pendingCount() {
+    public long pendingCount() {
         return semaphore.currentConcurrencyLevel();
     }
 
@@ -76,13 +76,13 @@ public abstract class AbstractService implements Service {
             throw new IllegalStateException("Service has been shutdown.");
         }
 
-        boolean isPermitAcquired = semaphore.acquirePermit();
+        boolean isPermitAcquired = semaphore.acquirePermit(1);
         if (!isPermitAcquired) {
             return Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED;
         }
 
         if (!circuitBreaker.allowAction()) {
-            semaphore.releasePermit();
+            semaphore.releasePermit(1);
             return Rejected.CIRCUIT_OPEN;
         }
         return null;

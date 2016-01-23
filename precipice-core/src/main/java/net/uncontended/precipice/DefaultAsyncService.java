@@ -84,12 +84,12 @@ public class DefaultAsyncService implements AsyncService {
     }
 
     @Override
-    public int remainingCapacity() {
+    public long remainingCapacity() {
         return controller.remainingCapacity();
     }
 
     @Override
-    public int pendingCount() {
+    public long pendingCount() {
         return controller.pendingCount();
     }
 

@@ -48,7 +48,7 @@ public class DefaultRunService implements RunService {
             metricsAndBreakerFeedback(nanoStart, Status.ERROR);
             throw e;
         } finally {
-            controller.getSemaphore().releasePermit();
+            controller.getSemaphore().releasePermit(1);
         }
     }
 
@@ -73,12 +73,12 @@ public class DefaultRunService implements RunService {
     }
 
     @Override
-    public int remainingCapacity() {
+    public long remainingCapacity() {
         return controller.remainingCapacity();
     }
 
     @Override
-    public int pendingCount() {
+    public long pendingCount() {
         return controller.pendingCount();
     }
 

@@ -24,7 +24,6 @@ import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
-import net.uncontended.precipice.time.SystemTime;
 
 public class Controller<T extends Enum<T> & Result> {
     private final PrecipiceSemaphore semaphore;
@@ -69,11 +68,11 @@ public class Controller<T extends Enum<T> & Result> {
         return circuitBreaker;
     }
 
-    public int remainingCapacity() {
+    public long remainingCapacity() {
         return semaphore.remainingCapacity();
     }
 
-    public int pendingCount() {
+    public long pendingCount() {
         return semaphore.currentConcurrencyLevel();
     }
 
@@ -82,13 +81,13 @@ public class Controller<T extends Enum<T> & Result> {
             throw new IllegalStateException("Service has been shutdown.");
         }
 
-        boolean isPermitAcquired = semaphore.acquirePermit();
+        boolean isPermitAcquired = semaphore.acquirePermit(1);
         if (!isPermitAcquired) {
             return Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED;
         }
 
         if (!circuitBreaker.allowAction()) {
-            semaphore.releasePermit();
+            semaphore.releasePermit(1);
             return Rejected.CIRCUIT_OPEN;
         }
         return null;
@@ -146,7 +145,7 @@ public class Controller<T extends Enum<T> & Result> {
             actionMetrics.incrementMetricCount(status, endTime);
             circuitBreaker.informBreakerOfResult(status.isSuccess(), endTime);
             latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
-            semaphore.releasePermit();
+            semaphore.releasePermit(1);
         }
     }
 }
