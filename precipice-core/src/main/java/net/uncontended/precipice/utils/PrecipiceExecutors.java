@@ -29,12 +29,12 @@ public final class PrecipiceExecutors {
     private PrecipiceExecutors() {
     }
 
-    public static ExecutorService threadPoolExecutor(String name, int poolSize, int concurrencyLevel) {
+    public static ExecutorService threadPoolExecutor(String name, int poolSize, long concurrencyLevel) {
         if (concurrencyLevel > ControllerProperties.MAX_CONCURRENCY_LEVEL) {
             throw new IllegalArgumentException("Concurrency Level \"" + concurrencyLevel + "\" is greater than the " +
                     "allowed maximum: " + ControllerProperties.MAX_CONCURRENCY_LEVEL + '.');
         }
         return new ThreadPoolExecutor(poolSize, poolSize, Long.MAX_VALUE, TimeUnit.DAYS,
-                new ArrayBlockingQueue<Runnable>(concurrencyLevel * 2), new ServiceThreadFactory(name));
+                new ArrayBlockingQueue<Runnable>((int) concurrencyLevel + 10), new ServiceThreadFactory(name));
     }
 }

@@ -23,6 +23,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.timeout.TimeoutService;
+import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -31,6 +32,11 @@ public class ThreadPoolService implements Controllable {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
     private final Controller<Status> controller;
+
+    public ThreadPoolService(int poolSize, Controller<Status> controller) {
+        this(PrecipiceExecutors.threadPoolExecutor(controller.getName(), poolSize,
+                controller.getSemaphore().maxConcurrencyLevel()), controller);
+    }
 
     public ThreadPoolService(ExecutorService service, Controller<Status> controller) {
         this.controller = controller;
@@ -59,6 +65,11 @@ public class ThreadPoolService implements Controllable {
         NewResilientTask<T> task = new NewResilientTask<>(callable, promise, adjustedTimeout, System.nanoTime());
         service.execute(task);
         timeoutService.scheduleTimeout(task);
+    }
+
+    public void shutdown() {
+        controller.shutdown();
+        service.shutdown();
     }
 
     private static long adjustTimeout(long millisTimeout) {
