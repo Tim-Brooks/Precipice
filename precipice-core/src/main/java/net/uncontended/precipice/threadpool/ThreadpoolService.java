@@ -51,16 +51,16 @@ public class ThreadPoolService implements Controllable {
 
     public <T> PrecipiceFuture<Status, T> submit(Callable<T> callable, long millisTimeout) {
         PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
-        bypassBackpressureAndComplete(callable, promise, millisTimeout);
+        bypassBackPressureAndComplete(callable, promise, millisTimeout);
         return promise.future();
     }
 
     public <T> void complete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
         PrecipicePromise<Status, T> internalPromise = controller.acquirePermitAndGetPromise(promise);
-        bypassBackpressureAndComplete(callable, internalPromise, millisTimeout);
+        bypassBackPressureAndComplete(callable, internalPromise, millisTimeout);
     }
 
-    public <T> void bypassBackpressureAndComplete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
+    public <T> void bypassBackPressureAndComplete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
         long adjustedTimeout = adjustTimeout(millisTimeout);
         NewResilientTask<T> task = new NewResilientTask<>(callable, promise, adjustedTimeout, System.nanoTime());
         service.execute(task);
