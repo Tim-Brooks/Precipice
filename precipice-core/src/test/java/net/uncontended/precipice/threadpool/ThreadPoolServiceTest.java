@@ -27,24 +27,26 @@ import net.uncontended.precipice.utils.PrecipiceExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.verify;
 
 public class ThreadPoolServiceTest {
+
+    @Mock
+    private Controller<Status> controller;
 
     private ThreadPoolService service;
     private ExecutorService executorService;
 
     @Before
     public void setUp() {
-        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        properties.semaphore(new LongSemaphore(100));
-        properties.actionMetrics(new DefaultActionMetrics<>(Status.class));
-        Controller<Status> controller = new Controller<>("Test", properties);
-        long concurrencyLevel = controller.getSemaphore().maxConcurrencyLevel();
-        executorService = PrecipiceExecutors.threadPoolExecutor(controller.getName(), 1, concurrencyLevel);
+        MockitoAnnotations.initMocks(this);
+        executorService = PrecipiceExecutors.threadPoolExecutor("Test", 1, 100);
         service = new ThreadPoolService(executorService, controller);
     }
 
@@ -54,22 +56,17 @@ public class ThreadPoolServiceTest {
     }
 
     @Test
-    public void exceptionIfShutdown() {
+    public void controllerAndThreadPoolShutdownWhenShutdownCallMade() {
         service.shutdown();
 
-        try {
-            service.submit(TestCallables.successAction(0), Long.MAX_VALUE);
-            fail("Exception should have been thrown due to shutdown.");
-        } catch (IllegalStateException e) {
-            assertEquals("Service has been shutdown.", e.getMessage());
-        }
+        verify(controller).shutdown();
 
         assertTrue(executorService.isShutdown());
     }
-//
+
 //    @Test
 //    public void actionNotScheduledIfMaxConcurrencyLevelViolated() throws Exception {
-//        ServiceProperties properties = new ServiceProperties();
+//        ControllerProperties properties = new ControllerProperties();
 //        properties.concurrencyLevel(2);
 //        properties.actionMetrics(new DefaultActionMetrics<>(Status.class));
 //        service = Services.defaultService("Test", 1, properties);
@@ -91,7 +88,7 @@ public class ThreadPoolServiceTest {
 //        }
 //        latch.countDown();
 //    }
-//
+
 //    @Test
 //    public void actionsReleaseSemaphorePermitWhenComplete() throws Exception {
 //        ServiceProperties properties = new ServiceProperties();
