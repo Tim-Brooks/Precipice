@@ -18,7 +18,7 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.NewEventual;
+import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
@@ -81,7 +81,7 @@ public class PatternController<T extends Enum<T> & Result> {
     }
 
     public <R> PrecipicePromise<T, R> getPromise(long startTime) {
-        NewEventual<T, R> promise = new NewEventual<>(startTime);
+        Eventual<T, R> promise = new Eventual<>(startTime);
         promise.internalOnComplete(new PrecipiceFunction<T, PerformingContext>() {
             @Override
             public void apply(T status, PerformingContext eventual) {

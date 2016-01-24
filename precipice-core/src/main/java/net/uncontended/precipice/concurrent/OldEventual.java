@@ -17,17 +17,13 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Result;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>,
-        PerformingContext {
-
-    private final long startNanos;
+public class OldEventual<S extends Result, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T> {
     private final PrecipicePromise<S, T> wrappedPromise;
     private volatile T result;
     private volatile Throwable throwable;
@@ -35,18 +31,14 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
     private final AtomicReference<S> status = new AtomicReference<>(null);
     private final AtomicReference<PrecipiceFunction<S, T>> successCallback = new AtomicReference<>();
     private final AtomicReference<PrecipiceFunction<S, Throwable>> errorCallback = new AtomicReference<>();
-    private PrecipiceFunction<S, PerformingContext> internalCallback;
+    private PrecipiceFunction<S, Void> internalSuccessCallback;
+    private PrecipiceFunction<S, Void> internalErrorCallback;
 
-    public NewEventual() {
-        this(System.nanoTime());
+    public OldEventual() {
+        this(null);
     }
 
-    public NewEventual(long startNanos) {
-        this(startNanos, null);
-    }
-
-    public NewEventual(long startNanos, PrecipicePromise<S, T> promise) {
-        this.startNanos = startNanos;
+    public OldEventual(PrecipicePromise<S, T> promise) {
         wrappedPromise = promise;
     }
 
@@ -55,9 +47,8 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
         if (this.status.get() == null) {
             if (this.status.compareAndSet(null, status)) {
                 this.result = result;
-                if (internalCallback != null) {
-                    // TODO: Maybe move this to be different method
-                    internalCallback.apply(status, this);
+                if (internalSuccessCallback != null) {
+                    internalSuccessCallback.apply(status, null);
                 }
                 latch.countDown();
                 PrecipiceFunction<S, T> cb = successCallback.get();
@@ -77,9 +68,9 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
     public boolean completeExceptionally(S status, Throwable ex) {
         if (this.status.get() == null) {
             if (this.status.compareAndSet(null, status)) {
-                throwable = ex;
-                if (internalCallback != null) {
-                    internalCallback.apply(status, this);
+                this.throwable = ex;
+                if (internalErrorCallback != null) {
+                    internalErrorCallback.apply(status, null);
                 }
                 latch.countDown();
                 PrecipiceFunction<S, Throwable> cb = errorCallback.get();
@@ -205,12 +196,12 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
         return status.get();
     }
 
-    @Override
-    public long startNanos() {
-        return startNanos;
+    public void internalOnSuccess(PrecipiceFunction<S, Void> fn) {
+        internalSuccessCallback = fn;
     }
 
-    public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {
-        internalCallback = fn;
+    public void internalOnError(PrecipiceFunction<S, Void> fn) {
+        internalErrorCallback = fn;
     }
+
 }

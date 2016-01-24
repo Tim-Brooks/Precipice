@@ -18,7 +18,7 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.NewEventual;
+import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -67,7 +67,7 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
     @Override
     public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         long startTime = System.nanoTime();
-        NewEventual<Status, T> eventual = new NewEventual<>(startTime);
+        Eventual<Status, T> eventual = new Eventual<>(startTime);
         internalComplete(action, eventual, millisTimeout);
         return eventual;
     }
@@ -75,7 +75,7 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
     @Override
     public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
         long startTime = System.nanoTime();
-        NewEventual<Status, T> internalEventual = new NewEventual<>(startTime, promise);
+        Eventual<Status, T> internalEventual = new Eventual<>(startTime, promise);
         internalComplete(action, internalEventual, millisTimeout);
     }
 
@@ -91,7 +91,7 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
         }
     }
 
-    private <T> void internalComplete(ResilientPatternAction<T, C> action, NewEventual<Status, T> eventual, long millisTimeout) {
+    private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<Status, T> eventual, long millisTimeout) {
         int firstServiceToTry = strategy.nextExecutorIndex();
         ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 

@@ -90,7 +90,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void callableIsSubmittedAndRan() throws Exception {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new NewEventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
 
         PrecipiceFuture<Status, String> f = service.submit(TestCallables.success(1), 500);
 
@@ -100,9 +100,9 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void promisePassedToExecutorWillBeCompleted() throws Exception {
-        PrecipicePromise<Status, String> promise = new NewEventual<>();
+        PrecipicePromise<Status, String> promise = new Eventual<>();
 
-        when(controller.acquirePermitAndGetPromise(promise)).thenReturn(new NewEventual<>(System.nanoTime(), promise));
+        when(controller.acquirePermitAndGetPromise(promise)).thenReturn(new Eventual<>(System.nanoTime(), promise));
 
         service.complete(TestCallables.success(0, "Same Promise"), promise, TimeoutService.NO_TIMEOUT);
 
@@ -114,8 +114,8 @@ public class ThreadPoolServiceTest {
     @Test
     public void promiseCanBeCompletedExternallyWithoutImpactingService() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipicePromise<Status, String> promise = new NewEventual<>();
-        NewEventual<Status, String> internalPromise = new NewEventual<>(System.nanoTime(), promise);
+        PrecipicePromise<Status, String> promise = new Eventual<>();
+        Eventual<Status, String> internalPromise = new Eventual<>(System.nanoTime(), promise);
         when(controller.acquirePermitAndGetPromise(promise)).thenReturn(internalPromise);
 
         service.complete(TestCallables.blocked(latch), promise, Long.MAX_VALUE);
@@ -129,7 +129,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void submittedCallableWillTimeout() throws Exception {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new OldEventual<Status, Object>());
 
         CountDownLatch latch = new CountDownLatch(1);
         PrecipiceFuture<Status, String> future = service.submit(TestCallables.blocked(latch), 1);
@@ -149,7 +149,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void erredCallableWillReturnException() {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new OldEventual<Status, Object>());
 
         RuntimeException exception = new RuntimeException();
         PrecipiceFuture<Status, String> future = service.submit(TestCallables.erred(exception), 100);

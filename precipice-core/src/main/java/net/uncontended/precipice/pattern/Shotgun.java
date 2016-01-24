@@ -20,7 +20,7 @@ import net.uncontended.precipice.AsyncService;
 import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.OldEventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
@@ -61,7 +61,7 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
 
     @Override
     public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        Eventual<Status, T> promise = new Eventual<>();
+        OldEventual<Status, T> promise = new OldEventual<>();
         final int[] servicesToTry = strategy.executorIndices();
 
         int submittedCount = 0;

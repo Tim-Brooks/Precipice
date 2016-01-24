@@ -87,7 +87,7 @@ public class Controller<T extends Enum<T> & Result> {
     }
 
     public <R> PrecipicePromise<T, R> getPromise(long nanoTime, PrecipicePromise<T, R> externalPromise) {
-        NewEventual<T, R> promise = new NewEventual<>(nanoTime, externalPromise);
+        Eventual<T, R> promise = new Eventual<>(nanoTime, externalPromise);
         promise.internalOnComplete(finishingCallback);
         return promise;
     }
