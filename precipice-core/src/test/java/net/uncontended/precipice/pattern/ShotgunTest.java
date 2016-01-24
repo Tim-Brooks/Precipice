@@ -18,7 +18,7 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.RejectedActionException;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.AsyncService;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -94,7 +94,7 @@ public class ShotgunTest {
         int[] indices = {2, 0, 1};
         when(strategy.executorIndices()).thenReturn(indices);
 
-        Mockito.doThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN)).when(service1).complete
+        Mockito.doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
                 (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
         shotgun.submit(patternAction, 100L);
         InOrder inOrder = inOrder(service3, service1, service2);
@@ -120,16 +120,16 @@ public class ShotgunTest {
         when(strategy.executorIndices()).thenReturn(indices);
 
         try {
-            doThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN)).when(service3).complete
+            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
                     (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            doThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN)).when(service1).complete
+            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
                     (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             shotgun.submit(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
             inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             fail("Action should have been accepted by one service.");
         }
     }
@@ -140,11 +140,11 @@ public class ShotgunTest {
         when(strategy.executorIndices()).thenReturn(indices);
 
         try {
-            doThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN)).when(service3).complete
+            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
                     (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-            doThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN)).when(service1).complete
+            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
                     (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-            doThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN)).when(service2).complete
+            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service2).complete
                     (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
             shotgun.submit(patternAction, 100L);
             InOrder inOrder = inOrder(service3, service1, service2);
@@ -152,7 +152,7 @@ public class ShotgunTest {
             inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.ALL_SERVICES_REJECTED, e.reason);
         }
     }

@@ -76,7 +76,7 @@ public class Controller<T extends Enum<T> & Result> {
         long startTime = clock.nanoTime();
         if (rejected != null) {
             actionMetrics.incrementRejectionCount(rejected, startTime);
-            throw new RejectedActionException(rejected);
+            throw new RejectedException(rejected);
         }
 
         return getPromise(startTime, externalPromise);
@@ -97,7 +97,7 @@ public class Controller<T extends Enum<T> & Result> {
         long startTime = clock.nanoTime();
         if (rejected != null) {
             actionMetrics.incrementRejectionCount(rejected, startTime);
-            throw new RejectedActionException(rejected);
+            throw new RejectedException(rejected);
         }
 
         return getCompletableContext(startTime);

@@ -39,13 +39,13 @@ public class Compliancy {
         try {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         latch.countDown();
@@ -64,7 +64,7 @@ public class Compliancy {
                 try {
                     service.submit(TestActions.successAction(1), 100);
                     break;
-                } catch (RejectedActionException e) {
+                } catch (RejectedException e) {
                     Thread.sleep(5);
                     if (j == 20) {
                         fail("Continue to receive action rejects.");

@@ -93,7 +93,7 @@ public class DefaultRunService implements RunService {
         } else if (rejected == Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
             controller.getActionMetrics().incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         }
-        throw new RejectedActionException(rejected);
+        throw new RejectedException(rejected);
     }
 
     private void metricsAndBreakerFeedback(long nanoStart, Status status) {

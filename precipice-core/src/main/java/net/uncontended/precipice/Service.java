@@ -66,7 +66,7 @@ public interface Service {
 
     /**
      * Attempts to shutdown the service. Actions after this call will throw a
-     * {@link RejectedActionException}. Implementations may differ on if pending
+     * {@link RejectedException}. Implementations may differ on if pending
      * or executing actions are cancelled.
      */
     void shutdown();

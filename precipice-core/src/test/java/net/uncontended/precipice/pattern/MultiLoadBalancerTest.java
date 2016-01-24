@@ -117,7 +117,7 @@ public class MultiLoadBalancerTest {
         when(promise.future()).thenReturn(mock(PrecipiceFuture.class));
 
         when(strategy.nextExecutorIndex()).thenReturn(0);
-        Mockito.doThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN)).when(executor1)
+        Mockito.doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(executor1)
                 .complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(timeout));
         balancer.complete(action, promise, timeout);
         verify(executor2).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(timeout));
@@ -129,7 +129,7 @@ public class MultiLoadBalancerTest {
     public void actionTriedOnSecondServiceIfRejectedOnFirst() throws Exception {
         when(strategy.nextExecutorIndex()).thenReturn(0);
         when(executor1.run(actionCaptor.capture())).thenThrow(new
-                RejectedActionException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
+                RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
         balancer.run(action);
         verify(executor2).run(actionCaptor.capture());
         actionCaptor.getValue().run();
@@ -178,7 +178,7 @@ public class MultiLoadBalancerTest {
     @Test
     public void scenarioWhereAllServicesReject() {
         long timeout = 100L;
-        RejectedActionException rejected = new RejectedActionException(Rejected.CIRCUIT_OPEN);
+        RejectedException rejected = new RejectedException(Rejected.CIRCUIT_OPEN);
 
         when(strategy.nextExecutorIndex()).thenReturn(0).thenReturn(1);
         doThrow(rejected).when(executor1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(timeout));
@@ -187,7 +187,7 @@ public class MultiLoadBalancerTest {
         try {
             balancer.submit(action, timeout);
             fail("Should have been rejected");
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.ALL_SERVICES_REJECTED, e.reason);
         }
         verify(metrics).incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);

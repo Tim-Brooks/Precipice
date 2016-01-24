@@ -66,7 +66,7 @@ public class Client {
                 System.out.println(result);
                 System.out.println(status);
 
-            } catch (RejectedActionException e) {
+            } catch (RejectedException e) {
                 System.out.println(e.reason);
             } catch (ExecutionException e) {
                 System.out.println("ERROR");

@@ -138,7 +138,7 @@ public class ControllerTest {
 
         try {
             controller.acquirePermitAndGetPromise();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
@@ -162,7 +162,7 @@ public class ControllerTest {
 
         try {
             controller.acquirePermitAndGetPromise();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertSame(Rejected.CIRCUIT_OPEN, e.reason);
         }
 

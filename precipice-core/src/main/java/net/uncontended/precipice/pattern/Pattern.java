@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.RejectedActionException;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -37,7 +37,7 @@ public interface Pattern {
 
     /**
      * Attempts to shutdown all the services. Actions after this
-     * call will throw a {@link RejectedActionException}. Implementations
+     * call will throw a {@link RejectedException}. Implementations
      * may differ on if pending or executing actions are cancelled.
      */
     void shutdown();

@@ -17,11 +17,11 @@
 
 package net.uncontended.precipice;
 
-public class RejectedActionException extends RuntimeException {
+public class RejectedException extends RuntimeException {
 
     public final Rejected reason;
 
-    public RejectedActionException(Rejected reason) {
+    public RejectedException(Rejected reason) {
         this.reason = reason;
     }
 

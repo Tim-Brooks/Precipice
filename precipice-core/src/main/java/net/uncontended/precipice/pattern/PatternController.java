@@ -76,7 +76,7 @@ public class PatternController<T extends Enum<T> & Result> {
             return getPromise(startTime);
         } else {
             actionMetrics.incrementRejectionCount(null, startTime);
-            throw new RejectedActionException(null);
+            throw new RejectedException(null);
         }
     }
 

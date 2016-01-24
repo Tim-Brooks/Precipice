@@ -84,13 +84,13 @@ public class DefaultServiceTest {
         try {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
             service.run(TestActions.successAction(1));
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         latch.countDown();
@@ -111,7 +111,7 @@ public class DefaultServiceTest {
                 try {
                     service.run(TestActions.successAction(1));
                     break;
-                } catch (RejectedActionException e) {
+                } catch (RejectedException e) {
                     Thread.sleep(5);
                     if (j == 20) {
                         fail("Continue to receive action rejects.");
@@ -315,7 +315,7 @@ public class DefaultServiceTest {
 
         try {
             service.submit(TestActions.successAction(1), Long.MAX_VALUE);
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
@@ -331,7 +331,7 @@ public class DefaultServiceTest {
             }
             try {
                 service.submit(TestActions.successAction(1), Long.MAX_VALUE);
-            } catch (RejectedActionException e) {
+            } catch (RejectedException e) {
                 if (e.reason == Rejected.CIRCUIT_OPEN) {
                     break;
                 } else {
@@ -404,7 +404,7 @@ public class DefaultServiceTest {
             try {
                 service.run(TestActions.successAction(0));
                 break;
-            } catch (RejectedActionException e) {
+            } catch (RejectedException e) {
                 Thread.sleep(5);
                 if (i == 20) {
                     fail("Continue to receive action rejects.");
@@ -448,7 +448,7 @@ public class DefaultServiceTest {
         try {
             service.submit(TestActions.successAction(0), 100);
             fail("Should have been rejected due to open circuit.");
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
         }
 
@@ -468,7 +468,7 @@ public class DefaultServiceTest {
         try {
             service.submit(TestActions.successAction(0), 100);
             fail("Should have been rejected due to open circuit.");
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
         }
     }

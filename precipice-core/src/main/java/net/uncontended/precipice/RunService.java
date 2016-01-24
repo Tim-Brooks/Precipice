@@ -31,7 +31,7 @@ public interface RunService extends Service {
      * @param action the action to run
      * @param <T>    the type of the result of the action
      * @return result of the action
-     * @throws RejectedActionException if the action is rejected
+     * @throws RejectedException if the action is rejected
      */
     <T> T run(ResilientAction<T> action) throws Exception;
 }

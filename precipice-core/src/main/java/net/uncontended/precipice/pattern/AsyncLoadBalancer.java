@@ -106,12 +106,12 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
                 AsyncService service = services[serviceIndex];
                 service.complete(actionWithContext, eventual, millisTimeout);
                 break;
-            } catch (RejectedActionException e) {
+            } catch (RejectedException e) {
                 ++j;
                 if (j == serviceCount) {
                     Rejected reason = Rejected.ALL_SERVICES_REJECTED;
                     controller.getActionMetrics().incrementRejectionCount(reason);
-                    throw new RejectedActionException(reason);
+                    throw new RejectedException(reason);
                 }
             }
         }

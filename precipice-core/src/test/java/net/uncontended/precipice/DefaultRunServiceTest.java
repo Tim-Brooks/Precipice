@@ -86,13 +86,13 @@ public class DefaultRunServiceTest {
             startedLatch.await();
             service.run(TestActions.successAction(1));
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         try {
             service.run(TestActions.successAction(1));
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
         latch.countDown();
@@ -108,7 +108,7 @@ public class DefaultRunServiceTest {
         for (int i = 0; i < iterations; ++i) {
             try {
                 service.run(TestActions.successAction(1));
-            } catch (RejectedActionException e) {
+            } catch (RejectedException e) {
                 fail("Continue to receive action rejects.");
             }
         }
@@ -183,7 +183,7 @@ public class DefaultRunServiceTest {
 
         try {
             service.run(TestActions.successAction(1));
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
@@ -204,7 +204,7 @@ public class DefaultRunServiceTest {
 
         try {
             service.run(TestActions.successAction(1));
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
 
         }
@@ -244,7 +244,7 @@ public class DefaultRunServiceTest {
         try {
             service.run(TestActions.successAction(0));
             fail("Should have been rejected due to open circuit.");
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
         }
 
@@ -261,7 +261,7 @@ public class DefaultRunServiceTest {
         try {
             service.run(TestActions.successAction(0));
             fail("Should have been rejected due to open circuit.");
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
         }
     }

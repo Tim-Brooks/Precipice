@@ -38,7 +38,7 @@ public interface AsyncService extends Service {
      * @param millisTimeout milliseconds before the action times out
      * @param <T>           the type of the result of the action
      * @return a {@link PrecipiceFuture} representing pending completion of the action
-     * @throws RejectedActionException if the action is rejected
+     * @throws RejectedException if the action is rejected
      */
     <T> PrecipiceFuture<Status, T> submit(ResilientAction<T> action, long millisTimeout);
 

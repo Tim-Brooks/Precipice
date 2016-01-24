@@ -72,18 +72,18 @@ public class ThreadPoolServiceTest {
     @Test
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
-            when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedActionException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
+            when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
             service.submit(TestCallables.success(1), Long.MAX_VALUE);
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
         try {
-            when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedActionException(Rejected.CIRCUIT_OPEN));
+            when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
             service.submit(TestCallables.success(1), Long.MAX_VALUE);
             fail();
-        } catch (RejectedActionException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
     }
@@ -167,7 +167,7 @@ public class ThreadPoolServiceTest {
         assertNull(future.result());
         assertEquals(Status.ERROR, future.getStatus());
     }
-    
+
     @Test
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
         PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
