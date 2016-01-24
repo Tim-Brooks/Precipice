@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.Callable;
@@ -35,40 +36,18 @@ public class CallService implements Controllable {
     }
 
     public <T> T call(Callable<T> callable) throws Exception {
-        Rejected rejected = controller.acquirePermitOrGetRejectedReason();
-        if (rejected != null) {
-            handleRejectedReason(rejected);
-        }
-        long nanoStart = System.nanoTime();
+        Completable<Status, T> completable = controller.acquirePermitAndGetCompletableContext();
+
         try {
             T result = callable.call();
-            metricsAndBreakerFeedback(nanoStart, Status.SUCCESS);
+            completable.complete(Status.SUCCESS, result);
             return result;
         } catch (PrecipiceTimeoutException e) {
-            metricsAndBreakerFeedback(nanoStart, Status.TIMEOUT);
+            completable.completeExceptionally(Status.TIMEOUT, e);
             throw e;
         } catch (Exception e) {
-            metricsAndBreakerFeedback(nanoStart, Status.ERROR);
+            completable.completeExceptionally(Status.ERROR, e);
             throw e;
-        } finally {
-            controller.getSemaphore().releasePermit(1);
         }
-    }
-
-    private void handleRejectedReason(Rejected rejected) {
-        if (rejected == Rejected.CIRCUIT_OPEN) {
-            controller.getActionMetrics().incrementRejectionCount(Rejected.CIRCUIT_OPEN);
-        } else if (rejected == Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED) {
-            controller.getActionMetrics().incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        }
-        throw new RejectedActionException(rejected);
-    }
-
-    private void metricsAndBreakerFeedback(long nanoStart, Status status) {
-        long nanoTime = System.nanoTime();
-        controller.getActionMetrics().incrementMetricCount(status, nanoTime);
-        controller.getCircuitBreaker().informBreakerOfResult(status.isSuccess(), nanoTime);
-        long latency = nanoTime - nanoStart;
-        controller.getLatencyMetrics().recordLatency(status, latency, nanoTime);
     }
 }

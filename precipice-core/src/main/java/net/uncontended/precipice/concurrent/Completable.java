@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Result;
 
-public interface PrecipicePromise<S extends Result, T> extends Completable<S,T> {
+public interface Completable<S extends Result, T> {
 
-    PrecipiceFuture<S, T> future();
+    boolean complete(S status, T result);
+
+    boolean completeExceptionally(S status, Throwable ex);
 }

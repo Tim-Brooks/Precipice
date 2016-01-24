@@ -205,11 +205,12 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
         return status.get();
     }
 
-    public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {
-        internalCallback = fn;
-    }
-
+    @Override
     public long startNanos() {
         return startNanos;
+    }
+
+    public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {
+        internalCallback = fn;
     }
 }

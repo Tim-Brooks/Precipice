@@ -18,9 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.concurrent.NewEventual;
-import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
+import net.uncontended.precipice.concurrent.*;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
@@ -116,6 +114,23 @@ public class Controller<T extends Enum<T> & Result> {
         NewEventual<T, R> promise = new NewEventual<>(nanoTime, externalPromise);
         promise.internalOnComplete(finishingCallback);
         return promise;
+    }
+
+    public <R> Completable<T, R> acquirePermitAndGetCompletableContext() {
+        Rejected rejected = acquirePermitOrGetRejectedReason();
+        long startTime = clock.nanoTime();
+        if (rejected != null) {
+            actionMetrics.incrementRejectionCount(rejected, startTime);
+            throw new RejectedActionException(rejected);
+        }
+
+        return getCompletableContext(startTime);
+    }
+
+    public <R> Completable<T, R> getCompletableContext(long nanoTime) {
+        CompletionContext<T, R> context = new CompletionContext<>(nanoTime);
+        context.internalOnComplete(finishingCallback);
+        return context;
     }
 
     public PrecipiceSemaphore getSemaphore() {
