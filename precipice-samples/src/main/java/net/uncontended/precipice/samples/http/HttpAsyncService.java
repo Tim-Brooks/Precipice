@@ -19,82 +19,56 @@ package net.uncontended.precipice.samples.http;
 
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Request;
 import com.ning.http.client.Response;
-import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.Controllable;
+import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.TimeoutException;
 
 
-public class HttpAsyncService extends AbstractService implements AsyncService {
+public class HttpAsyncService implements Controllable {
 
     private final AsyncHttpClient client;
-    private final ActionMetrics<Status> metrics;
+    private final Controller<Status> controller;
 
-    public HttpAsyncService(String name, ControllerProperties<Status> properties, AsyncHttpClient client) {
-        super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
-                properties.semaphore());
-        this.metrics = properties.actionMetrics();
+    public HttpAsyncService(Controller<Status> controller, AsyncHttpClient client) {
+        this.controller = controller;
         this.client = client;
     }
 
-    @Override
-    public <T> PrecipiceFuture<Status, T> submit(final ResilientAction<T> action, long millisTimeout) {
-        acquirePermitOrGetRejectedReason();
-        final Eventual<Status, T> eventual = new Eventual<>();
+    public PrecipiceFuture<Status, Response> submit(Request request) {
+        final PrecipicePromise<Status, Response> promise = controller.acquirePermitAndGetPromise();
 
-        final ServiceRequest<T> asyncRequest = (ServiceRequest<T>) action;
-        client.executeRequest(asyncRequest.getRequest(), new AsyncCompletionHandler<Void>() {
+        client.executeRequest(request, new AsyncCompletionHandler<Void>() {
             @Override
             public Void onCompleted(Response response) throws Exception {
-                asyncRequest.setResponse(response);
-                try {
-                    T result = asyncRequest.run();
-                    metrics.incrementMetricCount(Status.SUCCESS);
-                    eventual.complete(Status.SUCCESS, result);
-                } catch (PrecipiceTimeoutException e) {
-                    metrics.incrementMetricCount(Status.TIMEOUT);
-                    eventual.completeExceptionally(Status.TIMEOUT, e);
-                } catch (Exception e) {
-                    metrics.incrementMetricCount(Status.ERROR);
-                    eventual.completeExceptionally(Status.ERROR, e);
-                }
-                semaphore.releasePermit(1);
+                promise.complete(Status.SUCCESS, response);
                 return null;
             }
 
             @Override
             public void onThrowable(Throwable t) {
                 if (t instanceof TimeoutException) {
-                    metrics.incrementMetricCount(Status.TIMEOUT);
-                    eventual.completeExceptionally(Status.TIMEOUT, t);
+                    promise.completeExceptionally(Status.TIMEOUT, t);
                 } else {
-                    metrics.incrementMetricCount(Status.ERROR);
-                    eventual.completeExceptionally(Status.ERROR, t);
+                    promise.completeExceptionally(Status.ERROR, t);
                 }
-                semaphore.releasePermit(1);
             }
         });
-        return eventual;
+        return promise.future();
     }
 
     @Override
     public Controller<Status> controller() {
-        return null;
+        return controller;
     }
 
 
-    @Override
-    public void complete(ResilientAction action, PrecipicePromise promise, long millisTimeout) {
-
-    }
-
-    @Override
     public void shutdown() {
-        isShutdown = true;
+        client.close();
     }
 }

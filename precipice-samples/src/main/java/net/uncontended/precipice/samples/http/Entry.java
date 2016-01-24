@@ -20,6 +20,8 @@ package net.uncontended.precipice.samples.http;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilder;
+import com.ning.http.client.Response;
+import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.ControllerProperties;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
@@ -31,20 +33,16 @@ import java.util.concurrent.TimeUnit;
 public class Entry {
     public static void main(String[] args) {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        HttpAsyncService service = new HttpAsyncService("Hello", new ControllerProperties<>(Status.class), asyncHttpClient);
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        HttpAsyncService service = new HttpAsyncService(new Controller<>("Hello", properties), asyncHttpClient);
         Request request = new RequestBuilder().setUrl("http://www.google.com").setRequestTimeout(100).build();
 
-        PrecipiceFuture<Status, Object> f = service.submit(new ServiceRequest<Object>(request) {
-            @Override
-            public Object run() throws Exception {
-                return response;
-            }
-        }, 100L);
+        PrecipiceFuture<Status, Response> f = service.submit(request);
 
         try {
             System.out.println(f.get());
             System.out.println(f.getStatus());
-            ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) service.getActionMetrics();
+            ActionMetrics<Status> actionMetrics = service.controller().getActionMetrics();
             System.out.println(actionMetrics.getMetricCountForTimePeriod(Status.SUCCESS, 100, TimeUnit
                     .SECONDS));
         } catch (InterruptedException | ExecutionException e) {
