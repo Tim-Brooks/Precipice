@@ -44,7 +44,7 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
         }
 
         this.strategy = strategy;
-        services = new MultiService[executorToContext.size()];
+        services = new AsyncService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
         for (Map.Entry<? extends AsyncService, C> entry : executorToContext.entrySet()) {

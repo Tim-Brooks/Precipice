@@ -34,12 +34,4 @@ public final class LoadBalancers {
         PatternController<Status> controller = new PatternController<>(name, properties);
         return new AsyncLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), controller);
     }
-
-    public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext) {
-        return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
-    }
-
-    public static <C> RunPattern<C> runRoundRobin(Map<? extends RunService, C> serviceToContext, ActionMetrics<Status> metrics) {
-        return new RunLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), metrics);
-    }
 }
