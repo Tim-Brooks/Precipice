@@ -26,8 +26,6 @@ public class CompletionContext<S extends Result, T> implements Completable<S, T>
     private final long startTime;
     private PrecipiceFunction<S, PerformingContext> internalCallback;
     private boolean isCompleted = false;
-    private T result;
-    private Throwable error;
 
     public CompletionContext() {
         this(System.nanoTime());
@@ -44,7 +42,7 @@ public class CompletionContext<S extends Result, T> implements Completable<S, T>
 
     @Override
     public boolean complete(S status, T result) {
-        if (!this.isCompleted) {
+        if (!this.isCompleted && internalCallback != null) {
             internalCallback.apply(status, this);
             return true;
         }
@@ -53,7 +51,7 @@ public class CompletionContext<S extends Result, T> implements Completable<S, T>
 
     @Override
     public boolean completeExceptionally(S status, Throwable ex) {
-        if (!this.isCompleted) {
+        if (!this.isCompleted && internalCallback != null) {
             internalCallback.apply(status, this);
             return true;
         }

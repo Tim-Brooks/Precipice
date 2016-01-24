@@ -49,7 +49,7 @@ public class TestCallables {
         };
     }
 
-    public static Callable<String> erred(final RuntimeException exception) {
+    public static Callable<String> erred(final Exception exception) {
         return new Callable<String>() {
             @Override
             public String call() throws Exception {

@@ -125,7 +125,6 @@ public class ThreadPoolServiceTest {
 
         assertEquals("CompleteOnThisThread", promise.future().get());
         assertEquals("Success", internalPromise.future().get());
-
     }
 
     @Test
@@ -170,18 +169,27 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void semaphoreReleasedDespiteCallbackException() throws Exception {
-        PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
+        PrecipiceSemaphore semaphore = new LongSemaphore(1);
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
         properties.semaphore(semaphore);
         service = new ThreadPoolService(1, new Controller<>("name", properties));
 
         CountDownLatch latch = new CountDownLatch(1);
 
-        when(semaphore.acquirePermit(1)).thenReturn(true);
         PrecipiceFuture<Status, String> future = service.submit(TestCallables.blocked(latch), Long.MAX_VALUE);
         future.onSuccess(TestCallbacks.exception(""));
         latch.countDown();
 
-        verify(semaphore).releasePermit(1);
+        for (int i = 0; i <= 10; ++i) {
+            if (semaphore.currentConcurrencyLevel() != 0) {
+                if (i == 10) {
+                    fail("Permits should have been released.");
+                } else {
+                    Thread.sleep(20);
+                }
+            } else {
+                break;
+            }
+        }
     }
 }
