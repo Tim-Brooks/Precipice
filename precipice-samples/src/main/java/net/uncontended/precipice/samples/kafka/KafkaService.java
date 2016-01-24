@@ -34,11 +34,11 @@ public class KafkaService<K, V> extends AbstractService implements AsyncService 
     private final KafkaProducer<K, V> producer;
     private final ActionMetrics<Status> actionMetrics;
 
-    public KafkaService(String name, ServiceProperties properties, KafkaProducer<K, V> producer) {
+    public KafkaService(String name, ControllerProperties<Status> properties, KafkaProducer<K, V> producer) {
         super(name, properties.circuitBreaker(), properties.actionMetrics(), properties.latencyMetrics(),
                 properties.semaphore());
         this.producer = producer;
-        actionMetrics = (ActionMetrics<Status>) properties.actionMetrics();
+        actionMetrics = properties.actionMetrics();
     }
 
     public PrecipiceFuture<Status, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {

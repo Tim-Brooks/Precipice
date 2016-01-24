@@ -84,15 +84,11 @@ public class Client {
                 .trailingPeriodMillis(3000);
         DefaultActionMetrics<Status> actionMetrics = new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS);
         DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
-        ServiceProperties properties = new ServiceProperties();
-        properties.actionMetrics(actionMetrics);
-        properties.circuitBreaker(breaker);
-        properties.concurrencyLevel(20);
-        final AsyncService service = Services.defaultService(name, 5, properties);
-        Map<String, Object> context = new HashMap<>();
-        context.put("host", "127.0.0.1");
-        context.put("port", port);
-        services.put(service, context);
+//        final AsyncService service = Services.defaultService(name, 5, properties);
+//        Map<String, Object> context = new HashMap<>();
+//        context.put("host", "127.0.0.1");
+//        context.put("port", port);
+//        services.put(service, context);
 
         clientMBeans.add(new ClientMBeans(name, actionMetrics, breaker));
     }

@@ -37,16 +37,10 @@ public final class Services {
         return new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
     }
 
-    public static ThreadPoolService submissionService(String name, int poolSize, ServiceProperties properties) {
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-
-        ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
-        controllerProperties.actionMetrics((ActionMetrics<Status>) properties.actionMetrics());
-        controllerProperties.latencyMetrics((LatencyMetrics<Status>) properties.latencyMetrics());
-        controllerProperties.semaphore(properties.semaphore());
-        controllerProperties.circuitBreaker(properties.circuitBreaker());
-
-        return new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
+    public static ThreadPoolService submissionService(String name, int poolSize, ControllerProperties<Status> properties) {
+        long concurrencyLevel = properties.semaphore().maxConcurrencyLevel();
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        return new ThreadPoolService(executor, new Controller<>(name, properties));
     }
 
     public static CallService runService(String name, int concurrencyLevel) {
@@ -55,25 +49,7 @@ public final class Services {
         return new CallService(new Controller<>(name, properties));
     }
 
-    public static CallService runService(String name, ServiceProperties properties) {
-        ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
-        controllerProperties.actionMetrics((ActionMetrics<Status>) properties.actionMetrics());
-        controllerProperties.latencyMetrics((LatencyMetrics<Status>) properties.latencyMetrics());
-        controllerProperties.semaphore(properties.semaphore());
-        controllerProperties.circuitBreaker(properties.circuitBreaker());
-
-        return new CallService(new Controller<>(name, controllerProperties));
-    }
-
-    public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {
-        ServiceProperties properties = new ServiceProperties();
-        properties.concurrencyLevel(concurrencyLevel);
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultService(name, executor, properties);
-    }
-
-    public static MultiService defaultService(String name, int poolSize, ServiceProperties properties) {
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
-        return new DefaultService(name, executor, properties);
+    public static CallService runService(String name, ControllerProperties<Status> properties) {
+        return new CallService(new Controller<>(name, properties));
     }
 }

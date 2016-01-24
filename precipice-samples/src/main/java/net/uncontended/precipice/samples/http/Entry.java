@@ -20,7 +20,7 @@ package net.uncontended.precipice.samples.http;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;
 import com.ning.http.client.RequestBuilder;
-import net.uncontended.precipice.ServiceProperties;
+import net.uncontended.precipice.ControllerProperties;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.ActionMetrics;
@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class Entry {
     public static void main(String[] args) {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        HttpAsyncService service = new HttpAsyncService("Hello", new ServiceProperties(), asyncHttpClient);
+        HttpAsyncService service = new HttpAsyncService("Hello", new ControllerProperties<>(Status.class), asyncHttpClient);
         Request request = new RequestBuilder().setUrl("http://www.google.com").setRequestTimeout(100).build();
 
         PrecipiceFuture<Status, Object> f = service.submit(new ServiceRequest<Object>(request) {
