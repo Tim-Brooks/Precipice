@@ -49,20 +49,20 @@ public final class Services {
         return new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
     }
 
-    public static RunService runService(String name, int concurrencyLevel) {
+    public static CallService runService(String name, int concurrencyLevel) {
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
         properties.semaphore(new LongSemaphore(concurrencyLevel));
-        return new DefaultRunService(new Controller<>(name, properties));
+        return new CallService(new Controller<>(name, properties));
     }
 
-    public static RunService runService(String name, ServiceProperties properties) {
+    public static CallService runService(String name, ServiceProperties properties) {
         ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
         controllerProperties.actionMetrics((ActionMetrics<Status>) properties.actionMetrics());
         controllerProperties.latencyMetrics((LatencyMetrics<Status>) properties.latencyMetrics());
         controllerProperties.semaphore(properties.semaphore());
         controllerProperties.circuitBreaker(properties.circuitBreaker());
 
-        return new DefaultRunService(new Controller<>(name, controllerProperties));
+        return new CallService(new Controller<>(name, controllerProperties));
     }
 
     public static MultiService defaultService(String name, int poolSize, int concurrencyLevel) {

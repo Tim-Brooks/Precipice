@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 public class DefaultService extends AbstractService implements MultiService {
 
     private final ExecutorService service;
-    private final RunService runService;
+    private final CallService runService;
     private final ThreadPoolService threadPoolService;
 
     public DefaultService(String name, ExecutorService service, ServiceProperties properties) {
@@ -44,7 +44,7 @@ public class DefaultService extends AbstractService implements MultiService {
         controllerProperties.semaphore(properties.semaphore());
         Controller<Status> controller = new Controller<>(name, controllerProperties);
 
-        runService = new DefaultRunService(controller);
+        runService = new CallService(controller);
         threadPoolService = new ThreadPoolService(service, controller);
     }
 
@@ -74,14 +74,18 @@ public class DefaultService extends AbstractService implements MultiService {
     }
 
     @Override
-    public <T> T run(ResilientAction<T> action) throws Exception {
-        return runService.run(action);
+    public <T> T run(final ResilientAction<T> action) throws Exception {
+        return runService.call(new Callable<T>() {
+            @Override
+            public T call() throws Exception {
+                return action.run();
+            }
+        });
     }
 
     @Override
     public void shutdown() {
         isShutdown = true;
-        runService.shutdown();
         threadPoolService.controller().shutdown();
         service.shutdown();
     }

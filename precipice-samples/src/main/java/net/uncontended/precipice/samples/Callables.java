@@ -18,6 +18,8 @@
 package net.uncontended.precipice.samples;
 
 
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
@@ -34,6 +36,10 @@ public class Callables {
         return new Timeout(latch);
     }
 
+    public static Callable<Integer> timeoutException() {
+        return new TimeoutException();
+    }
+
 
     private static class Success implements Callable<Integer> {
 
@@ -48,6 +54,14 @@ public class Callables {
         @Override
         public Integer call() throws Exception {
             throw new RuntimeException("Action failed.");
+        }
+    }
+
+    private static class TimeoutException implements Callable<Integer> {
+
+        @Override
+        public Integer call() throws Exception {
+            throw new PrecipiceTimeoutException();
         }
     }
 

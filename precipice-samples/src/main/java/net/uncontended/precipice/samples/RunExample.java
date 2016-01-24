@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.RunService;
+import net.uncontended.precipice.CallService;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
@@ -26,18 +26,18 @@ public class RunExample {
     public static void main(String[] args) {
         String serviceName = "Identity Service";
         int concurrencyLevel = 100;
-        RunService service = Services.runService(serviceName, concurrencyLevel);
+        CallService service = Services.runService(serviceName, concurrencyLevel);
 
         try {
             // Should return 64
-            Integer result = service.run(Actions.successAction());
+            Integer result = service.call(Callables.success());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
             // Throws RuntimeException
-            Integer result = service.run(Actions.errorAction());
+            Integer result = service.call(Callables.error());
         } catch (Exception e) {
             // Should be "Action Failed."
             e.getMessage();
@@ -45,7 +45,7 @@ public class RunExample {
 
         try {
             // Throws RuntimeException
-            Integer result = service.run(Actions.runTimeoutAction());
+            Integer result = service.call(Callables.timeoutException());
         } catch (PrecipiceTimeoutException e) {
             // Should be Action timeout.
             e.getMessage();
