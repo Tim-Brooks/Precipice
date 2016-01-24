@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-public class DefaultRunServiceTest {
+public class CallServiceTest {
 
     @Mock
     private Controller<Status> controller;
