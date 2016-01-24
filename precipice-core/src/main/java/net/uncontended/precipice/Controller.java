@@ -50,30 +50,6 @@ public class Controller<T extends Enum<T> & Result> {
         finishingCallback = new FinishingCallback<>(actionMetrics, circuitBreaker, latencyMetrics, semaphore, clock);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public ActionMetrics<T> getActionMetrics() {
-        return actionMetrics;
-    }
-
-    public LatencyMetrics<T> getLatencyMetrics() {
-        return latencyMetrics;
-    }
-
-    public CircuitBreaker getCircuitBreaker() {
-        return circuitBreaker;
-    }
-
-    public long remainingCapacity() {
-        return semaphore.remainingCapacity();
-    }
-
-    public long pendingCount() {
-        return semaphore.currentConcurrencyLevel();
-    }
-
     public Rejected acquirePermitOrGetRejectedReason() {
         if (isShutdown) {
             throw new IllegalStateException("Service has been shutdown.");
@@ -133,16 +109,40 @@ public class Controller<T extends Enum<T> & Result> {
         return context;
     }
 
+    public void shutdown() {
+        isShutdown = true;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ActionMetrics<T> getActionMetrics() {
+        return actionMetrics;
+    }
+
+    public LatencyMetrics<T> getLatencyMetrics() {
+        return latencyMetrics;
+    }
+
+    public CircuitBreaker getCircuitBreaker() {
+        return circuitBreaker;
+    }
+
+    public long remainingCapacity() {
+        return semaphore.remainingCapacity();
+    }
+
+    public long pendingCount() {
+        return semaphore.currentConcurrencyLevel();
+    }
+
     public PrecipiceSemaphore getSemaphore() {
         return semaphore;
     }
 
     public Clock getClock() {
         return clock;
-    }
-
-    public void shutdown() {
-        isShutdown = true;
     }
 
     private static class FinishingCallback<T extends Enum<T> & Result> implements PrecipiceFunction<T, PerformingContext> {
