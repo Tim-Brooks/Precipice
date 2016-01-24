@@ -43,7 +43,7 @@ public final class TestCallbacks {
         };
     }
 
-    public static <T> PrecipiceFunction<Status, T> exceptionCallback(T type) {
+    public static <T> PrecipiceFunction<Status, T> exception(T type) {
         return new PrecipiceFunction<Status, T>() {
             @Override
             public void apply(Status status, T exception) {

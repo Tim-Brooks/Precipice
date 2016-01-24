@@ -396,7 +396,7 @@ public class DefaultServiceTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         PrecipiceFuture<Status, String> future = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
-        future.onSuccess(TestCallbacks.exceptionCallback(""));
+        future.onSuccess(TestCallbacks.exception(""));
         latch.countDown();
 
         int i = 0;

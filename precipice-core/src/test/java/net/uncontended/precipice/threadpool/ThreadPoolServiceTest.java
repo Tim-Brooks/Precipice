@@ -17,15 +17,10 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.Status;
-import net.uncontended.precipice.concurrent.Eventual;
-import net.uncontended.precipice.concurrent.NewEventual;
-import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.*;
+import net.uncontended.precipice.concurrent.*;
 import net.uncontended.precipice.test_utils.TestCallables;
+import net.uncontended.precipice.test_utils.TestCallbacks;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
@@ -41,8 +36,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ThreadPoolServiceTest {
 
@@ -173,94 +167,21 @@ public class ThreadPoolServiceTest {
         assertNull(future.result());
         assertEquals(Status.ERROR, future.getStatus());
     }
+    
+    @Test
+    public void semaphoreReleasedDespiteCallbackException() throws Exception {
+        PrecipiceSemaphore semaphore = mock(PrecipiceSemaphore.class);
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        properties.semaphore(semaphore);
+        service = new ThreadPoolService(1, new Controller<>("name", properties));
 
+        CountDownLatch latch = new CountDownLatch(1);
 
-//
-//    @Test
-//    public void semaphoreReleasedDespiteCallbackException() throws Exception {
-//        ServiceProperties properties = new ServiceProperties();
-//        properties.concurrencyLevel(1);
-//        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
-//        service = Services.submissionService("Test", 1, properties);
-//        CountDownLatch latch = new CountDownLatch(1);
-//
-//        PrecipiceFuture<Status, String> future = service.submit(TestActions.blockedAction(latch), Long.MAX_VALUE);
-//        future.onSuccess(TestCallbacks.exceptionCallback(""));
-//        latch.countDown();
-//
-//        int i = 0;
-//        while (true) {
-//            try {
-//                service.submit(TestActions.success(0), 100L);
-//                break;
-//            } catch (RejectedActionException e) {
-//                Thread.sleep(5);
-//                if (i == 20) {
-//                    fail("Continue to receive action rejects.");
-//                }
-//            }
-//            ++i;
-//        }
-//    }
-//
-//    @Test
-//    public void circuitBreaker() throws Exception {
-//        BreakerConfigBuilder builder = new BreakerConfigBuilder();
-//        builder.trailingPeriodMillis = 10000;
-//        builder.failureThreshold = 5;
-//        builder.backOffTimeMillis = 50;
-//        // A hack to ensure that health is always refreshed.
-//        builder.healthRefreshMillis = -1;
-//
-//        ActionMetrics<Status> metrics = new DefaultActionMetrics<>(Status.class, 3600, 1, TimeUnit.SECONDS);
-//        CircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
-//        ServiceProperties properties = new ServiceProperties();
-//        properties.actionMetrics(metrics);
-//        properties.circuitBreaker(breaker);
-//        properties.concurrencyLevel(100);
-//        properties.actionMetrics(new DefaultActionMetrics<Status>(Status.class));
-//        service = Services.defaultService("Test", 1, properties);
-//
-//        List<PrecipiceFuture<Status, String>> fs = new ArrayList<>();
-//        for (int i = 0; i < 6; ++i) {
-//            fs.add(service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE));
-//        }
-//
-//        for (PrecipiceFuture<Status, String> f : fs) {
-//            try {
-//                f.get();
-//            } catch (ExecutionException e) {
-//            }
-//        }
-//
-//        Thread.sleep(10);
-//
-//        try {
-//            service.submit(TestActions.success(0), 100);
-//            fail("Should have been rejected due to open circuit.");
-//        } catch (RejectedActionException e) {
-//            assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
-//        }
-//
-//        Thread.sleep(150);
-//
-//        PrecipiceFuture<Status, String> f = service.submit(TestActions.success(0, "Result"), 100);
-//        assertEquals("Result", f.get());
-//
-//        PrecipiceFuture<Status, String> fe = service.submit(TestActions.erredAction(new RuntimeException()), Long.MAX_VALUE);
-//        try {
-//            fe.get();
-//        } catch (ExecutionException e) {
-//        }
-//
-//        Thread.sleep(10);
-//
-//        try {
-//            service.submit(TestActions.success(0), 100);
-//            fail("Should have been rejected due to open circuit.");
-//        } catch (RejectedActionException e) {
-//            assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
-//        }
-//    }
+        when(semaphore.acquirePermit(1)).thenReturn(true);
+        PrecipiceFuture<Status, String> future = service.submit(TestCallables.blocked(latch), Long.MAX_VALUE);
+        future.onSuccess(TestCallbacks.exception(""));
+        latch.countDown();
 
+        verify(semaphore).releasePermit(1);
+    }
 }
