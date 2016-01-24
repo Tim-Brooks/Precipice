@@ -17,10 +17,10 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.AsyncService;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -31,10 +31,10 @@ public class SubmissionExample {
         String serviceName = "Identity Service";
         int poolSize = 5;
         int concurrencyLevel = 100;
-        AsyncService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
+        ThreadPoolService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
 
         int millisTimeout = 10;
-        PrecipiceFuture<Status, Integer> successFuture = service.submit(Actions.successAction(), millisTimeout);
+        PrecipiceFuture<Status, Integer> successFuture = service.submit(Callables.success(), millisTimeout);
 
         try {
             // Should return 64
@@ -44,7 +44,7 @@ public class SubmissionExample {
         }
         assert successFuture.getStatus() == Status.SUCCESS;
 
-        PrecipiceFuture<Status, Integer> errorFuture = service.submit(Actions.errorAction(), millisTimeout);
+        PrecipiceFuture<Status, Integer> errorFuture = service.submit(Callables.error(), millisTimeout);
 
         try {
             // Should throw ExecutionException
@@ -58,7 +58,7 @@ public class SubmissionExample {
         assert errorFuture.getStatus() == Status.ERROR;
 
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipiceFuture<Status, Integer> timeoutFuture = service.submit(Actions.timeoutAction(latch), millisTimeout);
+        PrecipiceFuture<Status, Integer> timeoutFuture = service.submit(Callables.timeout(latch), millisTimeout);
 
         assert timeoutFuture.getStatus() == Status.PENDING;
         try {

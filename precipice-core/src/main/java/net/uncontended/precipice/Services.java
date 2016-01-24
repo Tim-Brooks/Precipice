@@ -20,6 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.concurrent.ExecutorService;
@@ -28,15 +29,15 @@ public final class Services {
 
     private Services() {}
 
-    public static AsyncService submissionService(String name, int poolSize, int concurrencyLevel) {
+    public static ThreadPoolService submissionService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
 
         ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
         controllerProperties.semaphore(new LongSemaphore(concurrencyLevel));
-        return new DefaultAsyncService(executor, new Controller<>(name, controllerProperties));
+        return new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
     }
 
-    public static AsyncService submissionService(String name, int poolSize, ServiceProperties properties) {
+    public static ThreadPoolService submissionService(String name, int poolSize, ServiceProperties properties) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, properties.concurrencyLevel());
 
         ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
@@ -45,7 +46,7 @@ public final class Services {
         controllerProperties.semaphore(properties.semaphore());
         controllerProperties.circuitBreaker(properties.circuitBreaker());
 
-        return new DefaultAsyncService(executor, new Controller<>(name, controllerProperties));
+        return new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
     }
 
     public static RunService runService(String name, int concurrencyLevel) {

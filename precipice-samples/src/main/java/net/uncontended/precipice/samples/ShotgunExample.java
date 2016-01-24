@@ -23,6 +23,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
 import net.uncontended.precipice.pattern.Shotgun;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,20 +38,20 @@ public class ShotgunExample {
 
         int concurrencyLevel = 100;
 
-        AsyncService service1 = Services.submissionService("Service1", 10, concurrencyLevel);
+        ThreadPoolService service1 = Services.submissionService("Service1", 10, concurrencyLevel);
         Map<String, String> context1 = new HashMap<>();
         context1.put("port", "6001");
-        serviceToContext.put(service1, context1);
+//        serviceToContext.put(service1, context1);
 
-        AsyncService service2 = Services.submissionService("Service2", 10, concurrencyLevel);
+        ThreadPoolService service2 = Services.submissionService("Service2", 10, concurrencyLevel);
         Map<String, String> context2 = new HashMap<>();
         context2.put("port", "6002");
-        serviceToContext.put(service2, context2);
+//        serviceToContext.put(service2, context2);
 
-        AsyncService service3 = Services.submissionService("Service1", 10, concurrencyLevel);
+        ThreadPoolService service3 = Services.submissionService("Service1", 10, concurrencyLevel);
         Map<String, String> context3 = new HashMap<>();
         context3.put("port", "6003");
-        serviceToContext.put(service3, context3);
+//        serviceToContext.put(service3, context3);
 
     }
 
