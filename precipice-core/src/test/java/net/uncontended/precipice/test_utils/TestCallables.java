@@ -18,14 +18,15 @@
 package net.uncontended.precipice.test_utils;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
 public class TestCallables {
 
-    public static Callable<String> successAction(final long waitTime) {
-        return successAction(waitTime, "Success");
+    public static Callable<String> success(final long waitTime) {
+        return success(waitTime, "Success");
     }
 
-    public static Callable<String> successAction(final long waitTime, final String result) {
+    public static Callable<String> success(final long waitTime, final String result) {
         return new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -33,6 +34,26 @@ public class TestCallables {
                     Thread.sleep(waitTime);
                 }
                 return result;
+            }
+        };
+    }
+
+    public static Callable<String> blocked(final CountDownLatch latch) {
+        return new Callable<String>() {
+
+            @Override
+            public String call() throws Exception {
+                latch.await();
+                return "Success";
+            }
+        };
+    }
+
+    public static Callable<String> erred(final RuntimeException exception) {
+        return new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                throw exception;
             }
         };
     }

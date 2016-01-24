@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.ResilientAction;
 
 import java.util.concurrent.CountDownLatch;
@@ -60,7 +60,7 @@ public class Actions {
 
         @Override
         public Integer run() throws Exception {
-            throw new ActionTimeoutException("Action timeout.");
+            throw new PrecipiceTimeoutException("Action timeout.");
         }
     }
 

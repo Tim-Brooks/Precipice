@@ -20,7 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 public class DefaultRunService implements RunService {
 
@@ -41,7 +41,7 @@ public class DefaultRunService implements RunService {
             T result = action.run();
             metricsAndBreakerFeedback(nanoStart, Status.SUCCESS);
             return result;
-        } catch (ActionTimeoutException e) {
+        } catch (PrecipiceTimeoutException e) {
             metricsAndBreakerFeedback(nanoStart, Status.TIMEOUT);
             throw e;
         } catch (Exception e) {

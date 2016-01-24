@@ -22,7 +22,7 @@ import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -168,9 +168,9 @@ public class MultiLoadBalancerTest {
 
         try {
             when(strategy.nextExecutorIndex()).thenReturn(1);
-            when(executor2.run(any(ResilientAction.class))).thenThrow(new ActionTimeoutException());
+            when(executor2.run(any(ResilientAction.class))).thenThrow(new PrecipiceTimeoutException());
             balancer.run(action);
-        } catch (ActionTimeoutException e) {
+        } catch (PrecipiceTimeoutException e) {
         }
         verify(metrics).incrementMetricCount(Status.TIMEOUT);
     }

@@ -61,8 +61,14 @@ public class ThreadPoolService implements Controllable {
     }
 
     public <T> void bypassBackPressureAndComplete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
+        // TODO: Avoid multiple calls to system.nanotime()
+        bypassBackPressureAndComplete(callable, promise, millisTimeout, controller.getClock().nanoTime());
+    }
+
+    public <T> void bypassBackPressureAndComplete(Callable<T> callable, PrecipicePromise<Status, T> promise,
+                                                  long millisTimeout, long startNanos) {
         long adjustedTimeout = adjustTimeout(millisTimeout);
-        NewResilientTask<T> task = new NewResilientTask<>(callable, promise, adjustedTimeout, System.nanoTime());
+        NewResilientTask<T> task = new NewResilientTask<>(callable, promise, adjustedTimeout, startNanos);
         service.execute(task);
         timeoutService.scheduleTimeout(task);
     }

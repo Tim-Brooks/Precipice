@@ -25,7 +25,7 @@ import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.TimeoutException;
 
@@ -56,7 +56,7 @@ public class HttpAsyncService extends AbstractService implements AsyncService {
                     T result = asyncRequest.run();
                     metrics.incrementMetricCount(Status.SUCCESS);
                     eventual.complete(Status.SUCCESS, result);
-                } catch (ActionTimeoutException e) {
+                } catch (PrecipiceTimeoutException e) {
                     metrics.incrementMetricCount(Status.TIMEOUT);
                     eventual.completeExceptionally(Status.TIMEOUT, e);
                 } catch (Exception e) {

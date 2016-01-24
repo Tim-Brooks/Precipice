@@ -23,7 +23,7 @@ import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.test_utils.TestActions;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -122,11 +122,11 @@ public class DefaultRunServiceTest {
 
     @Test
     public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
-        ActionTimeoutException exception = new ActionTimeoutException();
+        PrecipiceTimeoutException exception = new PrecipiceTimeoutException();
         try {
             String run = service.run(TestActions.erredAction(exception));
-            fail("Not ActionTimeoutException thrown");
-        } catch (ActionTimeoutException e) {
+            fail("Not PrecipiceTimeoutException thrown");
+        } catch (PrecipiceTimeoutException e) {
         }
 
         ActionMetrics<Status> actionMetrics = (ActionMetrics<Status>) service.getActionMetrics();
@@ -154,8 +154,8 @@ public class DefaultRunServiceTest {
         } catch (IOException e) {
         }
         try {
-            service.run(TestActions.erredAction(new ActionTimeoutException()));
-        } catch (ActionTimeoutException e) {
+            service.run(TestActions.erredAction(new PrecipiceTimeoutException()));
+        } catch (PrecipiceTimeoutException e) {
         }
         service.run(TestActions.successAction(50, "Success"));
 

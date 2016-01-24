@@ -37,6 +37,10 @@ public class NewEventual<S extends Result, T> implements PrecipiceFuture<S, T>, 
     private final AtomicReference<PrecipiceFunction<S, Throwable>> errorCallback = new AtomicReference<>();
     private PrecipiceFunction<S, PerformingContext> internalCallback;
 
+    public NewEventual() {
+        this(System.nanoTime());
+    }
+
     public NewEventual(long startNanos) {
         this(startNanos, null);
     }

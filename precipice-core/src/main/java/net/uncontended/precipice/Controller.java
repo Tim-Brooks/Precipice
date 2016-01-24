@@ -122,6 +122,10 @@ public class Controller<T extends Enum<T> & Result> {
         return semaphore;
     }
 
+    public Clock getClock() {
+        return clock;
+    }
+
     public void shutdown() {
         isShutdown = true;
     }

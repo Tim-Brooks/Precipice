@@ -17,14 +17,14 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 public interface RunService extends Service {
     /**
      * Performs a {@link ResilientAction} that will be run synchronously on the calling
      * thread. The result of the action will be returned.
      * <p/>
-     * If the ResilientAction throws a {@link ActionTimeoutException}, the result of
+     * If the ResilientAction throws a {@link PrecipiceTimeoutException}, the result of
      * the action will be recorded as a timeout in the service's metrics. Any other exception
      * and the result of the action will be recorded as an error.
      *

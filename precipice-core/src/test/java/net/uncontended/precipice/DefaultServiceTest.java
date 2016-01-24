@@ -27,7 +27,7 @@ import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
 import net.uncontended.precipice.test_utils.TestActions;
 import net.uncontended.precipice.test_utils.TestCallbacks;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -177,9 +177,9 @@ public class DefaultServiceTest {
 
         try {
             future.get();
-            fail("Should have thrown ExecutionException from ActionTimeoutException");
+            fail("Should have thrown ExecutionException from PrecipiceTimeoutException");
         } catch (ExecutionException e) {
-            assertTrue(e.getCause() instanceof ActionTimeoutException);
+            assertTrue(e.getCause() instanceof PrecipiceTimeoutException);
         } finally {
             blockingLatch.countDown();
         }
@@ -189,14 +189,14 @@ public class DefaultServiceTest {
 
     @Test
     public void actionTimeoutExceptionWillBeConsideredTimeout() throws Exception {
-        ActionTimeoutException exception = new ActionTimeoutException();
+        PrecipiceTimeoutException exception = new PrecipiceTimeoutException();
         PrecipiceFuture<Status, String> future = service.submit(TestActions.erredAction(exception), 100);
 
         try {
             future.get();
-            fail("Should have thrown ExecutionException from ActionTimeoutException");
+            fail("Should have thrown ExecutionException from PrecipiceTimeoutException");
         } catch (ExecutionException e) {
-            assertTrue(e.getCause() instanceof ActionTimeoutException);
+            assertTrue(e.getCause() instanceof PrecipiceTimeoutException);
         }
         assertEquals(Status.TIMEOUT, future.getStatus());
     }

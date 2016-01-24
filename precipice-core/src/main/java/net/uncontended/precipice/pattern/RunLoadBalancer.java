@@ -20,7 +20,7 @@ package net.uncontended.precipice.pattern;
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.Map;
 
@@ -80,7 +80,7 @@ public class RunLoadBalancer<C> extends AbstractPattern<C> implements RunPattern
                     metrics.incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
                     throw new RejectedActionException(Rejected.ALL_SERVICES_REJECTED);
                 }
-            } catch (ActionTimeoutException e) {
+            } catch (PrecipiceTimeoutException e) {
                 metrics.incrementMetricCount(Status.TIMEOUT);
                 throw e;
             } catch (Exception e) {

@@ -18,7 +18,7 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.RejectedActionException;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 public interface RunPattern<C> extends Pattern {
 
@@ -26,7 +26,7 @@ public interface RunPattern<C> extends Pattern {
      * Performs a {@link ResilientPatternAction} that will be run synchronously on the
      * calling thread. The result of the action will be returned.
      * <p/>
-     * If the ResilientPatternAction throws a {@link ActionTimeoutException}, the result of
+     * If the ResilientPatternAction throws a {@link PrecipiceTimeoutException}, the result of
      * the action will be recorded as a timeout in the service's metrics. Any other exception
      * and the result of the action will be recorded as an error.
      *

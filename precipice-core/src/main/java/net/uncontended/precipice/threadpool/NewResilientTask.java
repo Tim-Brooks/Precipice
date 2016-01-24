@@ -19,7 +19,7 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
 import net.uncontended.precipice.timeout.TimeoutTask;
 
@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 public class NewResilientTask<T> implements Runnable, TimeoutTask {
 
     public final long nanosAbsoluteTimeout;
-    public final long nanosAbsoluteStart;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<Status, T> promise;
     private final Callable<T> callable;
@@ -41,7 +40,6 @@ public class NewResilientTask<T> implements Runnable, TimeoutTask {
         this.callable = callable;
         this.promise = promise;
         this.millisRelativeTimeout = millisRelativeTimeout;
-        this.nanosAbsoluteStart = nanosAbsoluteStart;
         if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
             nanosAbsoluteTimeout = 0;
         } else {
@@ -60,7 +58,7 @@ public class NewResilientTask<T> implements Runnable, TimeoutTask {
             }
         } catch (InterruptedException e) {
             Thread.interrupted();
-        } catch (ActionTimeoutException e) {
+        } catch (PrecipiceTimeoutException e) {
             safeSetTimedOut(e);
         } catch (Throwable e) {
             safeSetErred(e);
@@ -83,7 +81,7 @@ public class NewResilientTask<T> implements Runnable, TimeoutTask {
     @Override
     public void setTimedOut() {
         if (!promise.future().isDone()) {
-            safeSetTimedOut(new ActionTimeoutException());
+            safeSetTimedOut(new PrecipiceTimeoutException());
             if (runner != null) {
                 runner.interrupt();
             }
@@ -111,7 +109,7 @@ public class NewResilientTask<T> implements Runnable, TimeoutTask {
         }
     }
 
-    private void safeSetTimedOut(ActionTimeoutException e) {
+    private void safeSetTimedOut(PrecipiceTimeoutException e) {
         try {
             promise.completeExceptionally(Status.TIMEOUT, e);
         } catch (Throwable t) {

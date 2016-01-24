@@ -19,7 +19,7 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.timeout.ActionTimeoutException;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
 import net.uncontended.precipice.timeout.TimeoutTask;
 
@@ -59,7 +59,7 @@ public class ResilientTask<T> implements Runnable, TimeoutTask {
             }
         } catch (InterruptedException e) {
             Thread.interrupted();
-        } catch (ActionTimeoutException e) {
+        } catch (PrecipiceTimeoutException e) {
             safeSetTimedOut(e);
         } catch (Throwable e) {
             safeSetErred(e);
@@ -82,7 +82,7 @@ public class ResilientTask<T> implements Runnable, TimeoutTask {
     @Override
     public void setTimedOut() {
         if (!promise.future().isDone()) {
-            safeSetTimedOut(new ActionTimeoutException());
+            safeSetTimedOut(new PrecipiceTimeoutException());
             if (runner != null) {
                 runner.interrupt();
             }
@@ -110,7 +110,7 @@ public class ResilientTask<T> implements Runnable, TimeoutTask {
         }
     }
 
-    private void safeSetTimedOut(ActionTimeoutException e) {
+    private void safeSetTimedOut(PrecipiceTimeoutException e) {
         try {
             promise.completeExceptionally(Status.TIMEOUT, e);
         } catch (Throwable t) {

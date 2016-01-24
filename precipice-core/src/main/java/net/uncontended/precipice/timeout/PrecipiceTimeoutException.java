@@ -19,24 +19,24 @@ package net.uncontended.precipice.timeout;
 
 import java.util.concurrent.TimeoutException;
 
-public class ActionTimeoutException extends TimeoutException {
+public class PrecipiceTimeoutException extends TimeoutException {
 
     private Throwable cause;
 
-    public ActionTimeoutException() {
+    public PrecipiceTimeoutException() {
         super();
     }
 
-    public ActionTimeoutException(Throwable cause) {
+    public PrecipiceTimeoutException(Throwable cause) {
         super();
         this.cause = cause;
     }
 
-    public ActionTimeoutException(String message) {
+    public PrecipiceTimeoutException(String message) {
         super(message);
     }
 
-    public ActionTimeoutException(String message, Throwable cause) {
+    public PrecipiceTimeoutException(String message, Throwable cause) {
         super(message);
         this.cause = cause;
     }
