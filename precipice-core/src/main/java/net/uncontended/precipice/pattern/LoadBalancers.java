@@ -29,12 +29,6 @@ public final class LoadBalancers {
 
     private LoadBalancers() {}
 
-    public static <C> MultiPattern<C> multiRoundRobin(String name, PatternControllerProperties<Status> properties,
-                                                      Map<MultiService, C> serviceToContext) {
-        PatternController<Status> controller = new PatternController<>(name, properties);
-        return new MultiLoadBalancer<>(controller, serviceToContext, new RoundRobinStrategy(serviceToContext.size()));
-    }
-
     public static <C> AsyncPattern<C> asyncRoundRobin(String name, Map<? extends AsyncService, C> serviceToContext,
                                                       PatternControllerProperties<Status> properties) {
         PatternController<Status> controller = new PatternController<>(name, properties);
