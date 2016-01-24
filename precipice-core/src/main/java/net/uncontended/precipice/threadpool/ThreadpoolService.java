@@ -40,8 +40,8 @@ public class ThreadPoolService implements Controllable {
 
     public ThreadPoolService(ExecutorService service, Controller<Status> controller) {
         this.controller = controller;
-        timeoutService = TimeoutService.defaultTimeoutService;
         this.service = service;
+        timeoutService = TimeoutService.defaultTimeoutService;
     }
 
     @Override
