@@ -21,8 +21,7 @@ import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.AsyncService;
 
 /**
- * An action that returns a result and may throw an exception. This class
- * exists to be submitted or performed on a {@link AsyncPattern}. It is very
+ * An action that returns a result and may throw an exception. It is very
  * similar to the {@link ResilientAction}. The primary difference is that
  * the AsyncPattern will pass a C context to the {@code run} method. The context
  * is the specific context for the {@link AsyncService} this action

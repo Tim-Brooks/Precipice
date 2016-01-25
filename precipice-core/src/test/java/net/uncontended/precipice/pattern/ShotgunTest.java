@@ -54,151 +54,151 @@ public class ShotgunTest {
 
     private Shotgun<Object> shotgun;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-
-        Map<AsyncService, Object> services = new LinkedHashMap<>();
-        services.put(service1, context1);
-        services.put(service2, context2);
-        services.put(service3, context3);
-        this.shotgun = new Shotgun<>(services, 2, strategy);
-
-        when(strategy.getSubmissionCount()).thenReturn(2);
-    }
-
-    @Test
-    public void actionsSubmittedToServicesAndContextsProvided() throws Exception {
-        int[] indices = {2, 0, 1};
-        when(strategy.executorIndices()).thenReturn(indices);
-        shotgun.submit(patternAction, 100L);
-
-        InOrder inOrder = inOrder(service3, service1);
-        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-        inOrder.verify(service1).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-
-        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
-
-        actions.get(0).run();
-        actions.get(1).run();
-        verify(patternAction, times(2)).run(contextCaptor.capture());
-
-
-        List<Object> contexts = contextCaptor.getAllValues();
-        assertEquals(context3, contexts.get(0));
-        assertEquals(context1, contexts.get(1));
-    }
-
-    @Test
-    public void actionsSubmittedToBackupServicesIfRejected() throws Exception {
-        int[] indices = {2, 0, 1};
-        when(strategy.executorIndices()).thenReturn(indices);
-
-        Mockito.doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
-                (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-        shotgun.submit(patternAction, 100L);
-        InOrder inOrder = inOrder(service3, service1, service2);
-        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-        inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-        inOrder.verify(service2).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-
-        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
-
-        actions.get(0).run();
-        actions.get(1).run();
-        verify(patternAction, times(2)).run(contextCaptor.capture());
-
-
-        List<Object> contexts = contextCaptor.getAllValues();
-        assertEquals(context3, contexts.get(0));
-        assertEquals(context2, contexts.get(1));
-    }
-
-    @Test
-    public void submitSucceedsIfAtLeastOnceServiceAccepts() throws Exception {
-        int[] indices = {2, 0, 1};
-        when(strategy.executorIndices()).thenReturn(indices);
-
-        try {
-            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
-                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
-                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            shotgun.submit(patternAction, 100L);
-            InOrder inOrder = inOrder(service3, service1, service2);
-            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-        } catch (RejectedException e) {
-            fail("Action should have been accepted by one service.");
-        }
-    }
-
-    @Test
-    public void submitFailsIfAllServicesReject() throws Exception {
-        int[] indices = {2, 0, 1};
-        when(strategy.executorIndices()).thenReturn(indices);
-
-        try {
-            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
-                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
-                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service2).complete
-                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-            shotgun.submit(patternAction, 100L);
-            InOrder inOrder = inOrder(service3, service1, service2);
-            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-            fail();
-        } catch (RejectedException e) {
-            assertEquals(Rejected.ALL_SERVICES_REJECTED, e.reason);
-        }
-    }
-
-    @Test
-    public void shotgunSubmitsCorrectNumberOfTimesToRandomlySelectedServices() throws Exception {
-        Set<Object> contextsUsed = new HashSet<>();
-
-        for (int i = 0; i < 25; ++i) {
-            ArgumentCaptor<Object> contextCaptor = ArgumentCaptor.forClass(Object.class);
-            ArgumentCaptor<ResilientAction> actionCaptor = ArgumentCaptor.forClass(ResilientAction.class);
-            AsyncService service1 = mock(AsyncService.class);
-            AsyncService service2 = mock(AsyncService.class);
-            AsyncService service3 = mock(AsyncService.class);
-            ResilientPatternAction<String, Object> patternAction = mock(ResilientPatternAction.class);
-            Map<AsyncService, Object> services = new HashMap<>();
-            services.put(service1, context1);
-            services.put(service2, context2);
-            services.put(service3, context3);
-            Shotgun<Object> shotgun = new Shotgun<>(services, 2);
-
-            shotgun.submit(patternAction, 10);
-
-            verify(service1, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
-            verify(service2, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
-            verify(service3, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
-
-            List<ResilientAction> actions = actionCaptor.getAllValues();
-
-            assertEquals(2, actions.size());
-            for (ResilientAction action : actions) {
-                action.run();
-            }
-            verify(patternAction, times(2)).run(contextCaptor.capture());
-
-            List<Object> contexts = contextCaptor.getAllValues();
-
-            Object contextCaptured1 = contexts.get(0);
-            Object contextCaptured2 = contexts.get(1);
-
-            contextsUsed.add(contextCaptured1);
-            contextsUsed.add(contextCaptured2);
-
-            assertNotSame(contextCaptured1, contextCaptured2);
-        }
-        assertEquals(3, contextsUsed.size());
-    }
+//    @Before
+//    public void setUp() {
+//        MockitoAnnotations.initMocks(this);
+//
+//        Map<AsyncService, Object> services = new LinkedHashMap<>();
+//        services.put(service1, context1);
+//        services.put(service2, context2);
+//        services.put(service3, context3);
+//        this.shotgun = new Shotgun<>(services, 2, strategy);
+//
+//        when(strategy.getSubmissionCount()).thenReturn(2);
+//    }
+//
+//    @Test
+//    public void actionsSubmittedToServicesAndContextsProvided() throws Exception {
+//        int[] indices = {2, 0, 1};
+//        when(strategy.executorIndices()).thenReturn(indices);
+//        shotgun.submit(patternAction, 100L);
+//
+//        InOrder inOrder = inOrder(service3, service1);
+//        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+//        inOrder.verify(service1).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+//
+//        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
+//
+//        actions.get(0).run();
+//        actions.get(1).run();
+//        verify(patternAction, times(2)).run(contextCaptor.capture());
+//
+//
+//        List<Object> contexts = contextCaptor.getAllValues();
+//        assertEquals(context3, contexts.get(0));
+//        assertEquals(context1, contexts.get(1));
+//    }
+//
+//    @Test
+//    public void actionsSubmittedToBackupServicesIfRejected() throws Exception {
+//        int[] indices = {2, 0, 1};
+//        when(strategy.executorIndices()).thenReturn(indices);
+//
+//        Mockito.doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
+//                (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//        shotgun.submit(patternAction, 100L);
+//        InOrder inOrder = inOrder(service3, service1, service2);
+//        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+//        inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//        inOrder.verify(service2).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+//
+//        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
+//
+//        actions.get(0).run();
+//        actions.get(1).run();
+//        verify(patternAction, times(2)).run(contextCaptor.capture());
+//
+//
+//        List<Object> contexts = contextCaptor.getAllValues();
+//        assertEquals(context3, contexts.get(0));
+//        assertEquals(context2, contexts.get(1));
+//    }
+//
+//    @Test
+//    public void submitSucceedsIfAtLeastOnceServiceAccepts() throws Exception {
+//        int[] indices = {2, 0, 1};
+//        when(strategy.executorIndices()).thenReturn(indices);
+//
+//        try {
+//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
+//                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
+//                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//            shotgun.submit(patternAction, 100L);
+//            InOrder inOrder = inOrder(service3, service1, service2);
+//            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//        } catch (RejectedException e) {
+//            fail("Action should have been accepted by one service.");
+//        }
+//    }
+//
+//    @Test
+//    public void submitFailsIfAllServicesReject() throws Exception {
+//        int[] indices = {2, 0, 1};
+//        when(strategy.executorIndices()).thenReturn(indices);
+//
+//        try {
+//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
+//                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
+//                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service2).complete
+//                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
+//            shotgun.submit(patternAction, 100L);
+//            InOrder inOrder = inOrder(service3, service1, service2);
+//            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
+//            fail();
+//        } catch (RejectedException e) {
+//            assertEquals(Rejected.ALL_SERVICES_REJECTED, e.reason);
+//        }
+//    }
+//
+//    @Test
+//    public void shotgunSubmitsCorrectNumberOfTimesToRandomlySelectedServices() throws Exception {
+//        Set<Object> contextsUsed = new HashSet<>();
+//
+//        for (int i = 0; i < 25; ++i) {
+//            ArgumentCaptor<Object> contextCaptor = ArgumentCaptor.forClass(Object.class);
+//            ArgumentCaptor<ResilientAction> actionCaptor = ArgumentCaptor.forClass(ResilientAction.class);
+//            AsyncService service1 = mock(AsyncService.class);
+//            AsyncService service2 = mock(AsyncService.class);
+//            AsyncService service3 = mock(AsyncService.class);
+//            ResilientPatternAction<String, Object> patternAction = mock(ResilientPatternAction.class);
+//            Map<AsyncService, Object> services = new HashMap<>();
+//            services.put(service1, context1);
+//            services.put(service2, context2);
+//            services.put(service3, context3);
+//            Shotgun<Object> shotgun = new Shotgun<>(services, 2);
+//
+//            shotgun.submit(patternAction, 10);
+//
+//            verify(service1, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
+//            verify(service2, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
+//            verify(service3, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
+//
+//            List<ResilientAction> actions = actionCaptor.getAllValues();
+//
+//            assertEquals(2, actions.size());
+//            for (ResilientAction action : actions) {
+//                action.run();
+//            }
+//            verify(patternAction, times(2)).run(contextCaptor.capture());
+//
+//            List<Object> contexts = contextCaptor.getAllValues();
+//
+//            Object contextCaptured1 = contexts.get(0);
+//            Object contextCaptured2 = contexts.get(1);
+//
+//            contextsUsed.add(contextCaptured1);
+//            contextsUsed.add(contextCaptured2);
+//
+//            assertNotSame(contextCaptured1, contextCaptured2);
+//        }
+//        assertEquals(3, contextsUsed.size());
+//    }
 
 }

@@ -21,25 +21,23 @@ import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.utils.MetricCallback;
 
 import java.util.Map;
-import java.util.concurrent.Callable;
 
-public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
+public class AsyncLoadBalancer<C> implements Controllable<Status> {
 
     private final ThreadPoolService[] services;
     private final C[] contexts;
     private final LoadBalancerStrategy strategy;
     private final PrecipiceFunction<Status, PerformingContext> metricCallback;
-    private final PatternController<Status> controller;
+    private final Controller<Status> controller;
 
 
     @SuppressWarnings("unchecked")
     public AsyncLoadBalancer(Map<? extends ThreadPoolService, C> executorToContext, LoadBalancerStrategy strategy,
-                             PatternController<Status> controller) {
+                             Controller<Status> controller) {
         this.controller = controller;
         if (executorToContext.isEmpty()) {
             throw new IllegalArgumentException("Cannot create load balancer with 0 Services.");
@@ -57,16 +55,6 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
         metricCallback = new MetricCallback(controller.getActionMetrics(), controller.getLatencyMetrics());
     }
 
-    public AsyncLoadBalancer(ThreadPoolService[] services, C[] contexts, LoadBalancerStrategy strategy,
-                             PatternController<Status> controller) {
-        this.strategy = strategy;
-        this.services = services;
-        this.contexts = contexts;
-        this.controller = controller;
-        metricCallback = new MetricCallback(controller.getActionMetrics(), controller.getLatencyMetrics());
-    }
-
-    @Override
     public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
         long startTime = System.nanoTime();
         Eventual<Status, T> eventual = new Eventual<>(startTime);
@@ -74,19 +62,12 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
         return eventual;
     }
 
-    @Override
     public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
         long startTime = System.nanoTime();
         Eventual<Status, T> internalEventual = new Eventual<>(startTime, promise);
         internalComplete(action, internalEventual, millisTimeout);
     }
 
-    @Override
-    public ActionMetrics<Status> getActionMetrics() {
-        return controller.getActionMetrics();
-    }
-
-    @Override
     public void shutdown() {
         for (ThreadPoolService e : services) {
             e.shutdown();
@@ -94,34 +75,33 @@ public class AsyncLoadBalancer<C> implements AsyncPattern<C> {
     }
 
     private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<Status, T> eventual, long millisTimeout) {
-//        int firstServiceToTry = strategy.nextExecutorIndex();
-//        final ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-//
-//        eventual.internalOnComplete(metricCallback);
-//
-//        int j = 0;
-//        int serviceCount = services.length;
-//        while (true) {
-//            try {
-//                int serviceIndex = (firstServiceToTry + j) % serviceCount;
-//                actionWithContext.context = contexts[serviceIndex];
-//                ThreadPoolService service = services[serviceIndex];
-//                service.complete(new Callable<Object>() {
-//                    @Override
-//                    public Object call() throws Exception {
-//                        return actionWithContext.run();
-//                    }
-//                }, eventual, millisTimeout);
-//                break;
-//            } catch (RejectedException e) {
-//                ++j;
-//                if (j == serviceCount) {
-//                    Rejected reason = Rejected.ALL_SERVICES_REJECTED;
-//                    controller.getActionMetrics().incrementRejectionCount(reason);
-//                    throw new RejectedException(reason);
-//                }
-//            }
-//        }
+        int firstServiceToTry = strategy.nextExecutorIndex();
+        final ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
+
+        eventual.internalOnComplete(metricCallback);
+
+        int j = 0;
+        int serviceCount = services.length;
+        while (true) {
+            try {
+                int serviceIndex = (firstServiceToTry + j) % serviceCount;
+                actionWithContext.context = contexts[serviceIndex];
+                ThreadPoolService service = services[serviceIndex];
+                service.complete(actionWithContext, eventual, millisTimeout);
+                break;
+            } catch (RejectedException e) {
+                ++j;
+                if (j == serviceCount) {
+                    Rejected reason = Rejected.ALL_SERVICES_REJECTED;
+                    controller.getActionMetrics().incrementRejectionCount(reason);
+                    throw new RejectedException(reason);
+                }
+            }
+        }
     }
 
+    @Override
+    public Controller<Status> controller() {
+        return controller;
+    }
 }

@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.ResilientAction;
+import java.util.concurrent.Callable;
 
-public class ResilientActionWithContext<T, C> implements ResilientAction<T> {
+public class ResilientActionWithContext<T, C> implements Callable<T> {
     public C context;
     private final ResilientPatternAction<T, C> action;
 
@@ -28,7 +28,7 @@ public class ResilientActionWithContext<T, C> implements ResilientAction<T> {
     }
 
     @Override
-    public T run() throws Exception {
+    public T call() throws Exception {
         return action.run(context);
     }
 }

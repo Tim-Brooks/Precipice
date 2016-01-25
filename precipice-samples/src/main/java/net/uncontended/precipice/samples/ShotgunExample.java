@@ -17,7 +17,8 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.AsyncService;
+import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.ControllerProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
@@ -31,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 
 public class ShotgunExample {
 
-    private final Map<AsyncService, Map<String, String>> serviceToContext;
+    private final Map<ThreadPoolService, Map<String, String>> serviceToContext;
 
     public ShotgunExample() {
         serviceToContext = new HashMap<>();
@@ -56,7 +57,8 @@ public class ShotgunExample {
     }
 
     public void shotgunExample() throws InterruptedException {
-        Shotgun<Map<String, String>> shotgun = new Shotgun<>(serviceToContext, 2);
+        Controller<Status> controller = new Controller<>("shotgun", new ControllerProperties<>(Status.class));
+        Shotgun<Map<String, String>> shotgun = new Shotgun<>(serviceToContext, 2, controller);
 
         // Will complete the action to two of the services. If all of the services reject the action,
         // this will throw a RejectedException with Rejected ALL_SERVICES_REJECTED.

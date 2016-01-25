@@ -16,30 +16,30 @@
  */
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.AsyncService;
-import net.uncontended.precipice.RejectedException;
+import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.concurrent.OldEventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
 
 import java.util.Map;
 
-public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
+public class Shotgun<C> {
 
-    private final AsyncService[] services;
+    private final ThreadPoolService[] services;
     private final ShotgunStrategy strategy;
     private final C[] contexts;
+    private final Controller<Status> controller;
 
-    public Shotgun(Map<AsyncService, C> executorToContext, int submissionCount) {
-        this(executorToContext, submissionCount, new ShotgunStrategy(executorToContext.size(), submissionCount));
+    public Shotgun(Map<ThreadPoolService, C> executorToContext, int submissionCount, Controller<Status> controller) {
+        this(executorToContext, submissionCount, controller, new ShotgunStrategy(executorToContext.size(), submissionCount));
     }
 
     @SuppressWarnings("unchecked")
-    public Shotgun(Map<AsyncService, C> executorToContext, int submissionCount, ShotgunStrategy strategy) {
-        super(new DefaultActionMetrics(Status.class));
+    public Shotgun(Map<ThreadPoolService, C> executorToContext, int submissionCount, Controller<Status> controller,
+                   ShotgunStrategy strategy) {
         if (executorToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
         } else if (submissionCount > executorToContext.size()) {
@@ -47,10 +47,11 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
                     "provided.");
         }
 
-        services = new AsyncService[executorToContext.size()];
+        this.controller = controller;
+        services = new ThreadPoolService[executorToContext.size()];
         contexts = (C[]) new Object[executorToContext.size()];
         int i = 0;
-        for (Map.Entry<AsyncService, C> entry : executorToContext.entrySet()) {
+        for (Map.Entry<ThreadPoolService, C> entry : executorToContext.entrySet()) {
             services[i] = entry.getKey();
             contexts[i] = entry.getValue();
             ++i;
@@ -59,18 +60,19 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
         this.strategy = strategy;
     }
 
-    @Override
     public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
-        OldEventual<Status, T> promise = new OldEventual<>();
-        final int[] servicesToTry = strategy.executorIndices();
+        int[] servicesToTry = strategy.executorIndices();
+        PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
 
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
             try {
                 ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
                 actionWithContext.context = contexts[serviceIndex];
-                AsyncService service = services[serviceIndex];
-                service.complete(actionWithContext, promise, millisTimeout);
+                ThreadPoolService service = services[serviceIndex];
+
+                PrecipicePromise<Status, T> servicePromise = service.controller().acquirePermitAndGetPromise(promise);
+                service.bypassBackPressureAndComplete(actionWithContext, servicePromise, millisTimeout);
                 ++submittedCount;
             } catch (RejectedException e) {
             }
@@ -79,20 +81,16 @@ public class Shotgun<C> extends AbstractPattern<C> implements AsyncPattern<C> {
             }
         }
         if (submittedCount == 0) {
-            metrics.incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
+            controller.getSemaphore().releasePermit(1);
+            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
             throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
         }
-        return promise;
+
+        return promise.future();
     }
 
-    @Override
-    public <T> void complete(ResilientPatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-
-    }
-
-    @Override
     public void shutdown() {
-        for (AsyncService service : services) {
+        for (ThreadPoolService service : services) {
             service.shutdown();
         }
 

@@ -26,10 +26,9 @@ import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.pattern.AsyncPattern;
-import net.uncontended.precipice.pattern.LoadBalancers;
-import net.uncontended.precipice.pattern.PatternControllerProperties;
+import net.uncontended.precipice.pattern.AsyncLoadBalancer;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
+import net.uncontended.precipice.pattern.RoundRobinStrategy;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Client {
 
-    private final AsyncPattern<Map<String, Object>> loadBalancer;
+    private final AsyncLoadBalancer<Map<String, Object>> loadBalancer;
     private final OkHttpClient client = new OkHttpClient();
     private final List<ClientMBeans> clientMBeans = new ArrayList<>();
 
@@ -50,11 +49,12 @@ public class Client {
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
 
-        PatternControllerProperties<Status> properties = new PatternControllerProperties<>(Status.class);
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
         properties.actionMetrics(new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS));
-        loadBalancer = LoadBalancers.asyncRoundRobin("lb", services, properties);
+        RoundRobinStrategy strategy = new RoundRobinStrategy(services.size());
+        loadBalancer = new AsyncLoadBalancer<>(services, strategy, new Controller<>("lb", properties));
 
-        clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.getActionMetrics()));
+        clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.controller().getActionMetrics()));
     }
 
     public void run() throws InterruptedException {
