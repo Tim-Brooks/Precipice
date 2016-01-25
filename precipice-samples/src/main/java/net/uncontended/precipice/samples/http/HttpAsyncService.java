@@ -30,7 +30,7 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import java.util.concurrent.TimeoutException;
 
 
-public class HttpAsyncService implements Controllable {
+public class HttpAsyncService implements Controllable<Status> {
 
     private final AsyncHttpClient client;
     private final Controller<Status> controller;

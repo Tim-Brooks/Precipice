@@ -22,7 +22,7 @@ import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.Callable;
 
-public class CallService implements Controllable {
+public class CallService implements Controllable<Status> {
 
     private final Controller<Status> controller;
 

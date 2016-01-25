@@ -28,7 +28,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.TimeoutException;
 
-public class KafkaService<K, V> implements Controllable {
+public class KafkaService<K, V> implements Controllable<Status> {
 
     private final Controller<Status> controller;
     private final KafkaProducer<K, V> producer;

@@ -17,23 +17,43 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.*;
 
-public class ExperimentalLoadBalancer {
+import java.util.List;
 
-    private final PatternController<Status> controller;
-    private final LoadBalancerStrategy strategy = new RoundRobinStrategy(10);
+public class ExperimentalLoadBalancer<T extends Enum<T> & Result, V extends Controllable<T>> implements Controllable<T> {
 
-    public ExperimentalLoadBalancer(PatternController<Status> controller) {
+    private final List<V> children;
+    private final Controller<T> controller;
+    private final LoadBalancerStrategy strategy;
+
+    public ExperimentalLoadBalancer(Controller<T> controller, List<V> children, LoadBalancerStrategy strategy) {
         this.controller = controller;
+        this.children = children;
+        this.strategy = strategy;
     }
 
-    public void thing() {
-        Controller<Status>[] childControllers = controller.getChildControllers();
+    public V next() {
+        int firstServiceToTry = strategy.nextExecutorIndex();
 
+        int j = 0;
+        int serviceCount = children.size();
+        while (j < serviceCount) {
+            int serviceIndex = (firstServiceToTry + j) % serviceCount;
+            V controllable = children.get(serviceIndex);
+            Controller<T> controller = controllable.controller();
+            Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+            if (rejected == null) {
+                return controllable;
+            }
+        }
+        Rejected reason = Rejected.ALL_SERVICES_REJECTED;
+        controller.getActionMetrics().incrementRejectionCount(reason);
+        throw new RejectedException(reason);
+    }
 
-
-
+    @Override
+    public Controller<T> controller() {
+        return controller;
     }
 }

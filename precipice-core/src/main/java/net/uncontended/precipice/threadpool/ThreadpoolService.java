@@ -28,7 +28,7 @@ import net.uncontended.precipice.utils.PrecipiceExecutors;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadPoolService implements Controllable {
+public class ThreadPoolService implements Controllable<Status> {
     private final ExecutorService service;
     private final TimeoutService timeoutService;
     private final Controller<Status> controller;
