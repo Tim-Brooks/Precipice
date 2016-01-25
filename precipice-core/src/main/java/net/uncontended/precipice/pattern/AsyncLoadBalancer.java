@@ -75,7 +75,7 @@ public class AsyncLoadBalancer<C> implements Controllable<Status> {
     }
 
     private <T> void internalComplete(ResilientPatternAction<T, C> action, Eventual<Status, T> eventual, long millisTimeout) {
-        int firstServiceToTry = strategy.nextExecutorIndex();
+        int firstServiceToTry = strategy.nextIndex();
         final ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
 
         eventual.internalOnComplete(metricCallback);

@@ -19,5 +19,5 @@ package net.uncontended.precipice.pattern;
 
 public interface LoadBalancerStrategy {
 
-    int nextExecutorIndex();
+    int nextIndex();
 }

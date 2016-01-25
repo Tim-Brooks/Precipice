@@ -35,7 +35,7 @@ public class RoundRobinStrategy implements LoadBalancerStrategy {
     }
 
     @Override
-    public int nextExecutorIndex() {
+    public int nextIndex() {
         int index = counter.getAndIncrement();
 
         if (index >= FLIP_POINT) {

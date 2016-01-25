@@ -34,7 +34,7 @@ public class ExperimentalLoadBalancer<T extends Enum<T> & Result, V extends Cont
     }
 
     public V next() {
-        int firstServiceToTry = strategy.nextExecutorIndex();
+        int firstServiceToTry = strategy.nextIndex();
 
         int j = 0;
         int serviceCount = children.size();

@@ -17,22 +17,26 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.RejectedException;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
 import java.util.List;
 
-public class Balancer<T extends Enum<T> & Result> {
+public class Balancer<T extends Enum<T> & Result> implements Controllable<T> {
 
     private final Controller<T> controller;
     private final List<Controller<T>> pool;
+    private final LoadBalancerStrategy strategy;
 
-    public Balancer(Controller<T> controller, List<Controller<T>> pool) {
+    public Balancer(Controller<T> controller, List<Controller<T>> pool, LoadBalancerStrategy strategy) {
         this.controller = controller;
         this.pool = pool;
+        this.strategy = strategy;
+    }
+
+    @Override
+    public Controller<T> controller() {
+        return controller;
     }
 
     public <R> PatternPair<T, R> next() {
@@ -50,25 +54,31 @@ public class Balancer<T extends Enum<T> & Result> {
             controller.getSemaphore().releasePermit(1);
             throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
         }
-        
+
         PrecipicePromise<T, R> promise = controller.getPromise(nanoTime);
         return new PatternPair<>(controller, controller.getPromise(nanoTime, promise));
     }
 
     private Controller<T> findNext(long nanoTime) {
-        Controller<T> controller = pool.get(0);
-        Rejected rejected = controller.acquirePermitOrGetRejectedReason();
-        if (rejected != null) {
-            controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
-        } else {
-            return controller;
+        int firstServiceToTry = strategy.nextIndex();
+
+        int serviceCount = pool.size();
+        for (int j = 0; j < serviceCount; ++j) {
+            int serviceIndex = (firstServiceToTry + j) % serviceCount;
+            Controller<T> controller = pool.get(serviceIndex);
+            Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+            if (rejected != null) {
+                controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
+            } else {
+                return controller;
+            }
         }
         return null;
     }
 
-    private static class PatternPair<T extends Enum<T> & Result, R> {
-        private final Controller<T> controller;
-        private final PrecipicePromise<T, R> promise;
+    public static class PatternPair<T extends Enum<T> & Result, R> {
+        public final Controller<T> controller;
+        public final PrecipicePromise<T, R> promise;
 
         private PatternPair(Controller<T> controller, PrecipicePromise<T, R> promise) {
             this.controller = controller;
