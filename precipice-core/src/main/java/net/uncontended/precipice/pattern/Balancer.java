@@ -36,30 +36,43 @@ public class Balancer<T extends Enum<T> & Result> {
     }
 
     public <R> PatternPair<T, R> next() {
-        PrecipicePromise<T, R> promise = controller.acquirePermitAndGetPromise();
+        Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+        if (rejected != null) {
+            long nanoTime = System.nanoTime();
+            controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
+            throw new RejectedException(rejected);
+        }
+
+        long nanoTime = System.nanoTime();
+        Controller<T> childController = findNext(nanoTime);
+        if (childController == null) {
+            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
+            controller.getSemaphore().releasePermit(1);
+            throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
+        }
+        
+        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime);
+        return new PatternPair<>(controller, controller.getPromise(nanoTime, promise));
+    }
+
+    private Controller<T> findNext(long nanoTime) {
         Controller<T> controller = pool.get(0);
         Rejected rejected = controller.acquirePermitOrGetRejectedReason();
         if (rejected != null) {
-            throw new RejectedException(rejected);
+            controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
+        } else {
+            return controller;
         }
-        // TODO: Double:
-        long startTime = System.nanoTime();
-        return new PatternPair<>(controller, startTime, promise);
+        return null;
     }
 
     private static class PatternPair<T extends Enum<T> & Result, R> {
         private final Controller<T> controller;
-        private final long startTime;
-        private final PrecipicePromise<T, R> parent;
+        private final PrecipicePromise<T, R> promise;
 
-        private PatternPair(Controller<T> controller, long startTime, PrecipicePromise<T, R> parent) {
+        private PatternPair(Controller<T> controller, PrecipicePromise<T, R> promise) {
             this.controller = controller;
-            this.startTime = startTime;
-            this.parent = parent;
-        }
-
-        public PrecipicePromise<T, R> promise() {
-            return controller.getPromise(startTime, parent);
+            this.promise = promise;
         }
     }
 }
