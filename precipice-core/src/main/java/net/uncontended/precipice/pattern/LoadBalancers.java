@@ -16,20 +16,17 @@
  */
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.*;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.utils.PrecipiceExecutors;
+import net.uncontended.precipice.Status;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 public final class LoadBalancers {
 
-    private LoadBalancers() {}
+    private LoadBalancers() {
+    }
 
-    public static <C> AsyncPattern<C> asyncRoundRobin(String name, Map<? extends AsyncService, C> serviceToContext,
+    public static <C> AsyncPattern<C> asyncRoundRobin(String name, Map<? extends ThreadPoolService, C> serviceToContext,
                                                       PatternControllerProperties<Status> properties) {
         PatternController<Status> controller = new PatternController<>(name, properties);
         return new AsyncLoadBalancer<>(serviceToContext, new RoundRobinStrategy(serviceToContext.size()), controller);

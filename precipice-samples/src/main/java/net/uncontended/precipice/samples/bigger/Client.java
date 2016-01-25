@@ -18,15 +18,19 @@
 package net.uncontended.precipice.samples.bigger;
 
 import com.squareup.okhttp.*;
-import net.uncontended.precipice.*;
+import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.ControllerProperties;
+import net.uncontended.precipice.RejectedException;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.pattern.AsyncPattern;
 import net.uncontended.precipice.pattern.LoadBalancers;
 import net.uncontended.precipice.pattern.PatternControllerProperties;
 import net.uncontended.precipice.pattern.ResilientPatternAction;
-import net.uncontended.precipice.pattern.AsyncPattern;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +46,7 @@ public class Client {
     private final List<ClientMBeans> clientMBeans = new ArrayList<>();
 
     public Client() {
-        Map<AsyncService, Map<String, Object>> services = new HashMap<>();
+        Map<ThreadPoolService, Map<String, Object>> services = new HashMap<>();
         addServiceToMap(services, "Weather-1", 6001);
         addServiceToMap(services, "Weather-2", 7001);
 
@@ -78,17 +82,21 @@ public class Client {
     }
 
 
-    private void addServiceToMap(Map<AsyncService, Map<String, Object>> services, String name, int port) {
+    private void addServiceToMap(Map<ThreadPoolService, Map<String, Object>> services, String name, int port) {
         BreakerConfigBuilder builder = new BreakerConfigBuilder()
                 .backOffTimeMillis(2000)
                 .trailingPeriodMillis(3000);
         DefaultActionMetrics<Status> actionMetrics = new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS);
         DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
-//        final AsyncService service = Services.defaultService(name, 5, properties);
-//        Map<String, Object> context = new HashMap<>();
-//        context.put("host", "127.0.0.1");
-//        context.put("port", port);
-//        services.put(service, context);
+        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+        properties.actionMetrics(actionMetrics);
+        properties.circuitBreaker(breaker);
+        Controller<Status> controller = new Controller<>(name, properties);
+        final ThreadPoolService service = new ThreadPoolService(5, controller);
+        Map<String, Object> context = new HashMap<>();
+        context.put("host", "127.0.0.1");
+        context.put("port", port);
+        services.put(service, context);
 
         clientMBeans.add(new ClientMBeans(name, actionMetrics, breaker));
     }
