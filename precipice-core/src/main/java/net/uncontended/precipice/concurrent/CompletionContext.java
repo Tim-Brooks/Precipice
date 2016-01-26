@@ -24,6 +24,7 @@ import net.uncontended.precipice.Result;
 public class CompletionContext<S extends Result, T> implements Completable<S, T>, PerformingContext {
 
     private final long startTime;
+    private final Completable<S, T> wrappedCompletable;
     private PrecipiceFunction<S, PerformingContext> internalCallback;
     private boolean isCompleted = false;
 
@@ -32,7 +33,12 @@ public class CompletionContext<S extends Result, T> implements Completable<S, T>
     }
 
     public CompletionContext(long startTime) {
+        this(startTime, null);
+    }
+
+    public CompletionContext(long startTime, Completable<S, T> wrappedCompletable) {
         this.startTime = startTime;
+        this.wrappedCompletable = wrappedCompletable;
     }
 
     @Override
@@ -44,6 +50,9 @@ public class CompletionContext<S extends Result, T> implements Completable<S, T>
     public boolean complete(S status, T result) {
         if (!this.isCompleted && internalCallback != null) {
             internalCallback.apply(status, this);
+            if (wrappedCompletable != null) {
+                wrappedCompletable.complete(status, result);
+            }
             return true;
         }
         return false;
@@ -53,6 +62,9 @@ public class CompletionContext<S extends Result, T> implements Completable<S, T>
     public boolean completeExceptionally(S status, Throwable ex) {
         if (!this.isCompleted && internalCallback != null) {
             internalCallback.apply(status, this);
+            if (wrappedCompletable != null) {
+                wrappedCompletable.completeExceptionally(status, ex);
+            }
             return true;
         }
         return false;

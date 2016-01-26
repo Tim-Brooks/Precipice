@@ -18,6 +18,7 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
+import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
 import java.util.List;
@@ -39,24 +40,29 @@ public class Balancer<T extends Enum<T> & Result> implements Controllable<T> {
         return controller;
     }
 
-    public <R> PatternPair<T, R> next() {
+    public <R> PatternPair<T, R> promisePair() {
+        acquirePermit();
+        long nanoTime = System.nanoTime();
+        Controller<T> childController = findNext(nanoTime);
+        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime);
+        return new PatternPair<>(controller, childController.getPromise(nanoTime, promise));
+    }
+
+    public <R> PatternPair2<T, R> completablePair() {
+        acquirePermit();
+        long nanoTime = System.nanoTime();
+        Controller<T> childController = findNext(nanoTime);
+        Completable<T, R> completable = controller.getCompletableContext(nanoTime);
+        return new PatternPair2<>(controller, childController.getCompletableContext(nanoTime, completable));
+    }
+
+    private void acquirePermit() {
         Rejected rejected = controller.acquirePermitOrGetRejectedReason();
         if (rejected != null) {
             long nanoTime = System.nanoTime();
             controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
             throw new RejectedException(rejected);
         }
-
-        long nanoTime = System.nanoTime();
-        Controller<T> childController = findNext(nanoTime);
-        if (childController == null) {
-            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
-            controller.getSemaphore().releasePermit(1);
-            throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
-        }
-
-        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime);
-        return new PatternPair<>(controller, controller.getPromise(nanoTime, promise));
     }
 
     private Controller<T> findNext(long nanoTime) {
@@ -70,10 +76,12 @@ public class Balancer<T extends Enum<T> & Result> implements Controllable<T> {
             if (rejected != null) {
                 controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
             } else {
+                controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
+                controller.getSemaphore().releasePermit(1);
                 return controller;
             }
         }
-        return null;
+        throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
     }
 
     public static class PatternPair<T extends Enum<T> & Result, R> {
@@ -83,6 +91,16 @@ public class Balancer<T extends Enum<T> & Result> implements Controllable<T> {
         private PatternPair(Controller<T> controller, PrecipicePromise<T, R> promise) {
             this.controller = controller;
             this.promise = promise;
+        }
+    }
+
+    public static class PatternPair2<T extends Enum<T> & Result, R> {
+        public final Controller<T> controller;
+        public final Completable<T, R> completable;
+
+        private PatternPair2(Controller<T> controller, Completable<T, R> completable) {
+            this.controller = controller;
+            this.completable = completable;
         }
     }
 }

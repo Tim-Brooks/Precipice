@@ -86,8 +86,8 @@ public class Controller<T extends Enum<T> & Result> {
         return getPromise(nanoTime, null);
     }
 
-    public <R> PrecipicePromise<T, R> getPromise(long nanoTime, PrecipicePromise<T, R> externalPromise) {
-        Eventual<T, R> promise = new Eventual<>(nanoTime, externalPromise);
+    public <R> PrecipicePromise<T, R> getPromise(long nanoTime, Completable<T, R> externalCompletable) {
+        Eventual<T, R> promise = new Eventual<>(nanoTime, externalCompletable);
         promise.internalOnComplete(finishingCallback);
         return promise;
     }
@@ -104,7 +104,11 @@ public class Controller<T extends Enum<T> & Result> {
     }
 
     public <R> Completable<T, R> getCompletableContext(long nanoTime) {
-        CompletionContext<T, R> context = new CompletionContext<>(nanoTime);
+        return getCompletableContext(nanoTime, null);
+    }
+
+    public <R> Completable<T, R> getCompletableContext(long nanoTime, Completable<T, R> completable) {
+        CompletionContext<T, R> context = new CompletionContext<>(nanoTime, completable);
         context.internalOnComplete(finishingCallback);
         return context;
     }

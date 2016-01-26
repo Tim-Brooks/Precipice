@@ -28,7 +28,7 @@ public class Eventual<S extends Result, T> implements PrecipiceFuture<S, T>, Pre
         PerformingContext {
 
     private final long startNanos;
-    private final PrecipicePromise<S, T> wrappedPromise;
+    private final Completable<S, T> wrappedPromise;
     private volatile T result;
     private volatile Throwable throwable;
     private final CountDownLatch latch = new CountDownLatch(1);
@@ -45,9 +45,9 @@ public class Eventual<S extends Result, T> implements PrecipiceFuture<S, T>, Pre
         this(startNanos, null);
     }
 
-    public Eventual(long startNanos, PrecipicePromise<S, T> promise) {
+    public Eventual(long startNanos, Completable<S, T> completable) {
         this.startNanos = startNanos;
-        wrappedPromise = promise;
+        wrappedPromise = completable;
     }
 
     @Override
