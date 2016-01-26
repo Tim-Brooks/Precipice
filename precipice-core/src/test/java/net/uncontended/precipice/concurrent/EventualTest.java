@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
 
-public class OldEventualTest {
+public class EventualTest {
 
     @Test
     public void testErrorCallback() throws InterruptedException {
@@ -36,7 +36,7 @@ public class OldEventualTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
-        OldEventual<Status, String> eventual = new OldEventual<>();
+        Eventual<Status, String> eventual = new Eventual<>();
 
 
         IOException exception = new IOException();
@@ -78,7 +78,7 @@ public class OldEventualTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
-        OldEventual<Status, String> eventual = new OldEventual<>();
+        Eventual<Status, String> eventual = new Eventual<>();
 
 
         IOException exception = new IOException();
@@ -116,7 +116,7 @@ public class OldEventualTest {
 //        final AtomicReference<String> result = new AtomicReference<>();
 //        final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 //
-//        OldEventual<Status, String> eventual = new OldEventual<>();
+//        Eventual<Status, String> eventual = new Eventual<>();
 //
 //
 //        IOException exception = new IOException();

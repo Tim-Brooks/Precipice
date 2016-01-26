@@ -129,7 +129,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void submittedCallableWillTimeout() throws Exception {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new OldEventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
 
         CountDownLatch latch = new CountDownLatch(1);
         PrecipiceFuture<Status, String> future = service.submit(TestCallables.blocked(latch), 1);
@@ -149,7 +149,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void erredCallableWillReturnException() {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new OldEventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
 
         RuntimeException exception = new RuntimeException();
         PrecipiceFuture<Status, String> future = service.submit(TestCallables.erred(exception), 100);
