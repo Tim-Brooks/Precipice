@@ -26,8 +26,8 @@ import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.pattern.AsyncLoadBalancer;
-import net.uncontended.precipice.pattern.ResilientPatternAction;
+import net.uncontended.precipice.pattern.ThreadPoolLoadBalancer;
+import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.RoundRobinStrategy;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Client {
 
-    private final AsyncLoadBalancer<Map<String, Object>> loadBalancer;
+    private final ThreadPoolLoadBalancer<Map<String, Object>> loadBalancer;
     private final OkHttpClient client = new OkHttpClient();
     private final List<ClientMBeans> clientMBeans = new ArrayList<>();
 
@@ -52,7 +52,7 @@ public class Client {
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
         properties.actionMetrics(new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS));
         RoundRobinStrategy strategy = new RoundRobinStrategy(services.size());
-        loadBalancer = new AsyncLoadBalancer<>(services, strategy, new Controller<>("lb", properties));
+        loadBalancer = new ThreadPoolLoadBalancer<>(services, null);
 
         clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.controller().getActionMetrics()));
     }
@@ -101,7 +101,7 @@ public class Client {
         clientMBeans.add(new ClientMBeans(name, actionMetrics, breaker));
     }
 
-    private class Action implements ResilientPatternAction<String, Map<String, Object>> {
+    private class Action implements PatternAction<String, Map<String, Object>> {
         @Override
         public String run(Map<String, Object> context) throws Exception {
             HttpUrl.Builder builder = new HttpUrl.Builder().scheme("http");

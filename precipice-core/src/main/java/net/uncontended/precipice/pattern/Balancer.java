@@ -23,13 +23,13 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 
 import java.util.List;
 
-public class Balancer<T extends Enum<T> & Result> implements Controllable<T> {
+public class Balancer<T extends Enum<T> & Result, C extends Controllable<T>> implements Controllable<T> {
 
     private final Controller<T> controller;
-    private final List<Controller<T>> pool;
+    private final List<C> pool;
     private final LoadBalancerStrategy strategy;
 
-    public Balancer(Controller<T> controller, List<Controller<T>> pool, LoadBalancerStrategy strategy) {
+    public Balancer(Controller<T> controller, List<C> pool, LoadBalancerStrategy strategy) {
         this.controller = controller;
         this.pool = pool;
         this.strategy = strategy;
@@ -40,20 +40,24 @@ public class Balancer<T extends Enum<T> & Result> implements Controllable<T> {
         return controller;
     }
 
-    public <R> PatternPair<T, R> promisePair() {
-        acquirePermit();
-        long nanoTime = System.nanoTime();
-        Controller<T> childController = findNext(nanoTime);
-        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime);
-        return new PatternPair<>(controller, childController.getPromise(nanoTime, promise));
+    public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair() {
+        return promisePair(null);
     }
 
-    public <R> PatternPair2<T, R> completablePair() {
+    public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
         acquirePermit();
         long nanoTime = System.nanoTime();
-        Controller<T> childController = findNext(nanoTime);
+        C child = findNext(nanoTime);
+        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
+        return new PatternPair<>(child, child.controller().getPromise(nanoTime, promise));
+    }
+
+    public <R> PatternPair<C, Completable<T, R>> completablePair() {
+        acquirePermit();
+        long nanoTime = System.nanoTime();
+        C child = findNext(nanoTime);
         Completable<T, R> completable = controller.getCompletableContext(nanoTime);
-        return new PatternPair2<>(controller, childController.getCompletableContext(nanoTime, completable));
+        return new PatternPair<>(child, child.controller().getCompletableContext(nanoTime, completable));
     }
 
     private void acquirePermit() {
@@ -65,41 +69,32 @@ public class Balancer<T extends Enum<T> & Result> implements Controllable<T> {
         }
     }
 
-    private Controller<T> findNext(long nanoTime) {
+    private C findNext(long nanoTime) {
         int firstServiceToTry = strategy.nextIndex();
 
         int serviceCount = pool.size();
         for (int j = 0; j < serviceCount; ++j) {
             int serviceIndex = (firstServiceToTry + j) % serviceCount;
-            Controller<T> controller = pool.get(serviceIndex);
+            C controllable = pool.get(serviceIndex);
+            Controller<T> controller = controllable.controller();
             Rejected rejected = controller.acquirePermitOrGetRejectedReason();
             if (rejected != null) {
                 controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
             } else {
                 controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
                 controller.getSemaphore().releasePermit(1);
-                return controller;
+                return controllable;
             }
         }
         throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
     }
 
-    public static class PatternPair<T extends Enum<T> & Result, R> {
-        public final Controller<T> controller;
-        public final PrecipicePromise<T, R> promise;
+    public static class PatternPair<C, P> {
+        public final C controllable;
+        public final P completable;
 
-        private PatternPair(Controller<T> controller, PrecipicePromise<T, R> promise) {
-            this.controller = controller;
-            this.promise = promise;
-        }
-    }
-
-    public static class PatternPair2<T extends Enum<T> & Result, R> {
-        public final Controller<T> controller;
-        public final Completable<T, R> completable;
-
-        private PatternPair2(Controller<T> controller, Completable<T, R> completable) {
-            this.controller = controller;
+        private PatternPair(C controllable, P completable) {
+            this.controllable = controllable;
             this.completable = completable;
         }
     }

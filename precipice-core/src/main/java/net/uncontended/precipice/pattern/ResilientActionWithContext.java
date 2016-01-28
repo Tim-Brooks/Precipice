@@ -21,9 +21,9 @@ import java.util.concurrent.Callable;
 
 public class ResilientActionWithContext<T, C> implements Callable<T> {
     public C context;
-    private final ResilientPatternAction<T, C> action;
+    private final PatternAction<T, C> action;
 
-    public ResilientActionWithContext(ResilientPatternAction<T, C> action) {
+    public ResilientActionWithContext(PatternAction<T, C> action) {
         this.action = action;
     }
 

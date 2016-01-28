@@ -22,7 +22,7 @@ import net.uncontended.precipice.ControllerProperties;
 import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.pattern.ResilientPatternAction;
+import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.Shotgun;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 
@@ -62,7 +62,7 @@ public class ShotgunExample {
 
         // Will complete the action to two of the services. If all of the services reject the action,
         // this will throw a RejectedException with Rejected ALL_SERVICES_REJECTED.
-        PrecipiceFuture<Status, String> f = shotgun.submit(new ResilientPatternAction<String, Map<String, String>>() {
+        PrecipiceFuture<Status, String> f = shotgun.submit(new PatternAction<String, Map<String, String>>() {
             @Override
             public String run(Map<String, String> context) throws Exception {
                 return context.get("port");

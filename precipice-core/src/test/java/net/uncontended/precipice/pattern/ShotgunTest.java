@@ -17,19 +17,9 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.ResilientAction;
 import net.uncontended.precipice.AsyncService;
-import net.uncontended.precipice.concurrent.PrecipicePromise;
-import org.junit.Before;
-import org.junit.Test;
 import org.mockito.*;
-
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
 public class ShotgunTest {
@@ -44,7 +34,7 @@ public class ShotgunTest {
     @Mock
     private AsyncService service3;
     @Mock
-    private ResilientPatternAction<String, Object> patternAction;
+    private PatternAction<String, Object> patternAction;
     @Mock
     private ShotgunStrategy strategy;
     @Captor
@@ -167,7 +157,7 @@ public class ShotgunTest {
 //            AsyncService service1 = mock(AsyncService.class);
 //            AsyncService service2 = mock(AsyncService.class);
 //            AsyncService service3 = mock(AsyncService.class);
-//            ResilientPatternAction<String, Object> patternAction = mock(ResilientPatternAction.class);
+//            PatternAction<String, Object> patternAction = mock(PatternAction.class);
 //            Map<AsyncService, Object> services = new HashMap<>();
 //            services.put(service1, context1);
 //            services.put(service2, context2);

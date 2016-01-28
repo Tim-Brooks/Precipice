@@ -82,7 +82,7 @@ public class ControllerTest {
         controller.shutdown();
         try {
             controller.acquirePermitOrGetRejectedReason();
-            fail("Exception should have been thrown due to controller being shutdown.");
+            fail("Exception should have been thrown due to controllable being shutdown.");
         } catch (IllegalStateException e) {
             assertEquals("Service has been shutdown.", e.getMessage());
         }

@@ -30,7 +30,7 @@ import net.uncontended.precipice.AsyncService;
  * @param <T> the result returned by {@code run}
  * @param <C> the context passed to {@code run}
  */
-public interface ResilientPatternAction<T, C> {
+public interface PatternAction<T, C> {
 
     T run(C context) throws Exception;
 }

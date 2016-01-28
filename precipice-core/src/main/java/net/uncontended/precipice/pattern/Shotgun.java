@@ -60,7 +60,7 @@ public class Shotgun<C> {
         this.strategy = strategy;
     }
 
-    public <T> PrecipiceFuture<Status, T> submit(ResilientPatternAction<T, C> action, long millisTimeout) {
+    public <T> PrecipiceFuture<Status, T> submit(PatternAction<T, C> action, long millisTimeout) {
         int[] servicesToTry = strategy.executorIndices();
         PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
 
