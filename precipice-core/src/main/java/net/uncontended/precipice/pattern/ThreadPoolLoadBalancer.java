@@ -50,7 +50,6 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
             ++i;
         }
         this.balancer = balancer;
-        Controller<Status> controller = balancer.controller();
     }
 
     public <T> PrecipiceFuture<Status, T> submit(PatternAction<T, C> action, long millisTimeout) {
@@ -60,7 +59,7 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
     }
 
     public <T> void complete(PatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        Balancer.PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair();
+        Balancer.PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair(promise);
         internalComplete(action, pair, millisTimeout);
     }
 
