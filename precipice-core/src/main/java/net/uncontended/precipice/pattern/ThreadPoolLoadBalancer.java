@@ -53,13 +53,13 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
     }
 
     public <T> PrecipiceFuture<Status, T> submit(PatternAction<T, C> action, long millisTimeout) {
-        Balancer.PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair();
+        PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair();
         internalComplete(action, pair, millisTimeout);
         return pair.completable.future();
     }
 
     public <T> void complete(PatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        Balancer.PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair(promise);
+        PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair(promise);
         internalComplete(action, pair, millisTimeout);
     }
 
@@ -70,7 +70,7 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
     }
 
     private <T> void internalComplete(final PatternAction<T, C> action,
-                                      Balancer.PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair,
+                                      PatternPair<ThreadPoolService, PrecipicePromise<Status, T>> pair,
                                       long millisTimeout) {
         ThreadPoolService service = pair.controllable;
         final C context = contexts.get(service);

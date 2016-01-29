@@ -47,16 +47,20 @@ public class Balancer<T extends Enum<T> & Result, C extends Controllable<T>> imp
     public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
         acquirePermit();
         long nanoTime = System.nanoTime();
-        C child = findNext(nanoTime);
+        C child = nextControllable(nanoTime);
         PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
         return new PatternPair<>(child, child.controller().getPromise(nanoTime, promise));
     }
 
     public <R> PatternPair<C, Completable<T, R>> completablePair() {
+        return completablePair(null);
+    }
+
+    public <R> PatternPair<C, Completable<T, R>> completablePair(Completable<T, R> externalCompletable) {
         acquirePermit();
         long nanoTime = System.nanoTime();
-        C child = findNext(nanoTime);
-        Completable<T, R> completable = controller.getCompletableContext(nanoTime);
+        C child = nextControllable(nanoTime);
+        Completable<T, R> completable = controller.getCompletableContext(nanoTime, externalCompletable);
         return new PatternPair<>(child, child.controller().getCompletableContext(nanoTime, completable));
     }
 
@@ -69,7 +73,7 @@ public class Balancer<T extends Enum<T> & Result, C extends Controllable<T>> imp
         }
     }
 
-    private C findNext(long nanoTime) {
+    private C nextControllable(long nanoTime) {
         int firstServiceToTry = strategy.nextIndex();
 
         int serviceCount = pool.size();
@@ -89,13 +93,4 @@ public class Balancer<T extends Enum<T> & Result, C extends Controllable<T>> imp
         throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
     }
 
-    public static class PatternPair<C, P> {
-        public final C controllable;
-        public final P completable;
-
-        private PatternPair(C controllable, P completable) {
-            this.controllable = controllable;
-            this.completable = completable;
-        }
-    }
 }
