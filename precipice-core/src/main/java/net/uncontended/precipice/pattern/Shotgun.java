@@ -17,80 +17,70 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 public class Shotgun<C> {
 
-    private final ThreadPoolService[] services;
     private final ShotgunStrategy strategy;
-    private final C[] contexts;
     private final Controller<Status> controller;
+    private final NewShotgun<Status, ThreadPoolService> newShotgun;
+    private final Map<ThreadPoolService, C> serviceToContext;
 
-    public Shotgun(Map<ThreadPoolService, C> executorToContext, int submissionCount, Controller<Status> controller) {
-        this(executorToContext, submissionCount, controller, new ShotgunStrategy(executorToContext.size(), submissionCount));
+    public Shotgun(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller) {
+        this(serviceToContext, submissionCount, controller, new ShotgunStrategy(serviceToContext.size(), submissionCount));
     }
 
     @SuppressWarnings("unchecked")
-    public Shotgun(Map<ThreadPoolService, C> executorToContext, int submissionCount, Controller<Status> controller,
+    public Shotgun(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller,
                    ShotgunStrategy strategy) {
-        if (executorToContext.size() == 0) {
+        if (serviceToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create Shotgun with 0 Executors.");
-        } else if (submissionCount > executorToContext.size()) {
+        } else if (submissionCount > serviceToContext.size()) {
             throw new IllegalArgumentException("Submission count cannot be greater than the number of services " +
                     "provided.");
         }
 
+        this.serviceToContext = serviceToContext;
         this.controller = controller;
-        services = new ThreadPoolService[executorToContext.size()];
-        contexts = (C[]) new Object[executorToContext.size()];
-        int i = 0;
-        for (Map.Entry<ThreadPoolService, C> entry : executorToContext.entrySet()) {
-            services[i] = entry.getKey();
-            contexts[i] = entry.getValue();
-            ++i;
+        List<ThreadPoolService> services = new ArrayList<>(serviceToContext.size());
+        for (Map.Entry<ThreadPoolService, C> entry : serviceToContext.entrySet()) {
+            services.add(entry.getKey());
         }
 
+        this.newShotgun = new NewShotgun<>(controller, services, strategy);
         this.strategy = strategy;
     }
 
-    public <T> PrecipiceFuture<Status, T> submit(PatternAction<T, C> action, long millisTimeout) {
-        int[] servicesToTry = strategy.executorIndices();
-        PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
+    public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
+        PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>>[] patternEntries = newShotgun.promisePair();
 
-        int submittedCount = 0;
-        for (int serviceIndex : servicesToTry) {
-            try {
-                ResilientActionWithContext<T, C> actionWithContext = new ResilientActionWithContext<>(action);
-                actionWithContext.context = contexts[serviceIndex];
-                ThreadPoolService service = services[serviceIndex];
-
-                PrecipicePromise<Status, T> servicePromise = service.controller().acquirePermitAndGetPromise(promise);
-                service.bypassBackPressureAndComplete(actionWithContext, servicePromise, millisTimeout);
-                ++submittedCount;
-            } catch (RejectedException e) {
-            }
-            if (submittedCount == strategy.getSubmissionCount()) {
-                break;
+        for (PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> entry : patternEntries) {
+            if (entry != null) {
+                final C context = serviceToContext.get(entry.controllable);
+                Callable<T> callable = new Callable<T>() {
+                    @Override
+                    public T call() throws Exception {
+                        return action.run(context);
+                    }
+                };
+                // TODO: Add executor service getter
+                entry.controllable.bypassBackPressureAndComplete(callable, entry.completable, millisTimeout);
             }
         }
-        if (submittedCount == 0) {
-            controller.getSemaphore().releasePermit(1);
-            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
-            throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
-        }
 
-        return promise.future();
+        return patternEntries[0].completable.future();
     }
 
     public void shutdown() {
-        for (ThreadPoolService service : services) {
+        for (ThreadPoolService service : serviceToContext.keySet()) {
             service.shutdown();
         }
 
