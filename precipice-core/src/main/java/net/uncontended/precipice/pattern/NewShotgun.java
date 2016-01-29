@@ -39,11 +39,11 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
         return controller;
     }
 
-    public <R> PatternEntry<C, PrecipicePromise<T, R>>[] promisePair() {
+    public <R> PatternEntry<C, PrecipicePromise<T, R>> promisePair() {
         return promisePair(null);
     }
 
-    public <R> PatternEntry<C, PrecipicePromise<T, R>>[] promisePair(PrecipicePromise<T, R> externalPromise) {
+    public <R> PatternEntry<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
         long nanoTime = acquirePermit();
         C[] children = controllableArray(nanoTime);
         PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
@@ -52,13 +52,12 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
         int i = 0;
         for (C child : children) {
             if (child != null) {
-                array[i] = new PatternEntry<>(child, child.controller().getPromise(nanoTime, promise));
             } else {
                 break;
             }
             ++i;
         }
-        return (PatternEntry<C, PrecipicePromise<T, R>>[]) array;
+        return null;
     }
 
     private C[] controllableArray(long nanoTime) {

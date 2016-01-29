@@ -63,26 +63,27 @@ public class ThreadPoolShotgun<C> {
     }
 
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
-        PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>>[] patternEntries = newShotgun.promisePair();
+        PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> patternEntries = newShotgun.promisePair();
 
-        for (PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> entry : patternEntries) {
-            if (entry != null) {
-                ThreadPoolService service = entry.controllable;
-                final C context = serviceToContext.get(service);
+//        for (PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> entry : patternEntries) {
+//            if (entry != null) {
+//                ThreadPoolService service = entry.controllable;
+//                final C context = serviceToContext.get(service);
+//
+//                Callable<T> callable = new CallableWithContext<>(action, context);
+//                ExecutorService executor = service.getExecutor();
+//                TimeoutService timeoutService = service.getTimeoutService();
+//
+//                long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
+//                long startNanos = System.nanoTime();
+//                ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, entry.completable, adjustedTimeout, startNanos);
+//                executor.execute(task);
+//                timeoutService.scheduleTimeout(task);
+//            }
+//        }
 
-                Callable<T> callable = new CallableWithContext<>(action, context);
-                ExecutorService executor = service.getExecutor();
-                TimeoutService timeoutService = service.getTimeoutService();
-
-                long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
-                long startNanos = System.nanoTime();
-                ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, entry.completable, adjustedTimeout, startNanos);
-                executor.execute(task);
-                timeoutService.scheduleTimeout(task);
-            }
-        }
-
-        return patternEntries[0].completable.future();
+//        return patternEntries[0].completable.future();
+        return null;
     }
 
     public void shutdown() {

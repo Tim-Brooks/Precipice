@@ -58,7 +58,7 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
     public <T> PrecipiceFuture<Status, T> submit(PatternAction<T, C> action, long millisTimeout) {
         PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair();
         internalComplete(action, pair, millisTimeout);
-        return pair.completable.future();
+        return pair.patternCompletable.future();
     }
 
     public <T> void complete(PatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
@@ -75,17 +75,17 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
     private <T> void internalComplete(final PatternAction<T, C> action,
                                       PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> pair,
                                       long millisTimeout) {
-        ThreadPoolService service = pair.controllable;
-        final C context = contexts.get(service);
-        Callable<T> callable = new CallableWithContext<>(action, context);
-        ExecutorService executor = service.getExecutor();
-        TimeoutService timeoutService = service.getTimeoutService();
-
-        long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
-        long startNanos = System.nanoTime();
-        ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, pair.completable, adjustedTimeout, startNanos);
-        executor.execute(task);
-        timeoutService.scheduleTimeout(task);
+//        ThreadPoolService service = pair.controllables[0];
+//        final C context = contexts.get(service);
+//        Callable<T> callable = new CallableWithContext<>(action, context);
+//        ExecutorService executor = service.getExecutor();
+//        TimeoutService timeoutService = service.getTimeoutService();
+//
+//        long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
+//        long startNanos = System.nanoTime();
+//        ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, pair.completable, adjustedTimeout, startNanos);
+//        executor.execute(task);
+//        timeoutService.scheduleTimeout(task);
     }
 
     @Override

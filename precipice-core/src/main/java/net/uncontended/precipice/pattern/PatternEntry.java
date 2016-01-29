@@ -17,12 +17,39 @@
 
 package net.uncontended.precipice.pattern;
 
-public class PatternEntry<C, P> {
-    public final C controllable;
-    public final P completable;
+import java.util.Iterator;
 
-    PatternEntry(C controllable, P completable) {
-        this.controllable = controllable;
-        this.completable = completable;
+public class PatternEntry<C, P> {
+    public final PairIterator<C, P> iterator = new PairIterator<>();
+    public final P patternCompletable;
+
+    PatternEntry(P patternCompletable) {
+        this.patternCompletable = patternCompletable;
+    }
+
+    public Iterable<NewEntry<C, P>> interable() {
+        return iterator;
+    }
+
+    private static class PairIterator<C, P> implements Iterable<NewEntry<C, P>>, Iterator<NewEntry<C, P>> {
+        private final NewEntry<C, P>[] controllableArray = (NewEntry<C, P>[]) new Object[0];
+        private int i = 0;
+
+        @Override
+        public boolean hasNext() {
+            return controllableArray[i] != null;
+        }
+
+        @Override
+        public NewEntry<C, P> next() {
+            int j = i;
+            ++i;
+            return controllableArray[j];
+        }
+
+        @Override
+        public Iterator<NewEntry<C, P>> iterator() {
+            return this;
+        }
     }
 }
