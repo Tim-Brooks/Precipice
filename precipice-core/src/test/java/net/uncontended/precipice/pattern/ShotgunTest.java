@@ -42,7 +42,7 @@ public class ShotgunTest {
     @Captor
     private ArgumentCaptor<Object> contextCaptor;
 
-    private Shotgun<Object> shotgun;
+    private ThreadPoolShotgun<Object> shotgun;
 
 //    @Before
 //    public void setUp() {
@@ -52,7 +52,7 @@ public class ShotgunTest {
 //        services.put(service1, context1);
 //        services.put(service2, context2);
 //        services.put(service3, context3);
-//        this.shotgun = new Shotgun<>(services, 2, strategy);
+//        this.shotgun = new ThreadPoolShotgun<>(services, 2, strategy);
 //
 //        when(strategy.getSubmissionCount()).thenReturn(2);
 //    }
@@ -162,7 +162,7 @@ public class ShotgunTest {
 //            services.put(service1, context1);
 //            services.put(service2, context2);
 //            services.put(service3, context3);
-//            Shotgun<Object> shotgun = new Shotgun<>(services, 2);
+//            ThreadPoolShotgun<Object> shotgun = new ThreadPoolShotgun<>(services, 2);
 //
 //            shotgun.submit(patternAction, 10);
 //
