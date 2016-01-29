@@ -46,9 +46,36 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
     public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
         acquirePermit();
         long nanoTime = System.nanoTime();
-//        C child = nextControllable(nanoTime);
+        C child = controllableArray(nanoTime);
 //        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
 //        return new PatternPair<>(child, child.controller().getPromise(nanoTime, promise));
+        return null;
+    }
+
+    private C controllableArray(long nanoTime) {
+        int[] servicesToTry = strategy.executorIndices();
+        C[] controllableArray = (C[]) new Object[servicesToTry.length];
+        int submittedCount = 0;
+        for (int serviceIndex : servicesToTry) {
+            C controllable = pool.get(serviceIndex);
+            Controller<T> controller = controllable.controller();
+            Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+            if (rejected == null) {
+                controllableArray[submittedCount] = controllable;
+                ++submittedCount;
+            } else {
+                controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
+            }
+            if (submittedCount == strategy.getSubmissionCount()) {
+                break;
+            }
+        }
+        if (submittedCount == 0) {
+            controller.getSemaphore().releasePermit(1);
+            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
+            throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
+        }
+
         return null;
     }
 

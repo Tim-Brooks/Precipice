@@ -85,8 +85,8 @@ public class Balancer<T extends Enum<T> & Result, C extends Controllable<T>> imp
             if (rejected != null) {
                 controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
             } else {
-                controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
-                controller.getSemaphore().releasePermit(1);
+                this.controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
+                this.controller.getSemaphore().releasePermit(1);
                 return controllable;
             }
         }
