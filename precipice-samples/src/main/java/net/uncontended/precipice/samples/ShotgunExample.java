@@ -64,7 +64,7 @@ public class ShotgunExample {
         // this will throw a RejectedException with Rejected ALL_SERVICES_REJECTED.
         PrecipiceFuture<Status, String> f = shotgun.submit(new PatternAction<String, Map<String, String>>() {
             @Override
-            public String run(Map<String, String> context) throws Exception {
+            public String call(Map<String, String> context) throws Exception {
                 return context.get("port");
             }
         }, 100L);

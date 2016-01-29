@@ -19,16 +19,18 @@ package net.uncontended.precipice.pattern;
 
 import java.util.concurrent.Callable;
 
-public class ResilientActionWithContext<T, C> implements Callable<T> {
-    public C context;
-    private final PatternAction<T, C> action;
+class CallableWithContext<T, C> implements Callable<T> {
 
-    public ResilientActionWithContext(PatternAction<T, C> action) {
+    private final PatternAction<T, C> action;
+    private final C context;
+
+    CallableWithContext(PatternAction<T, C> action, C context) {
         this.action = action;
+        this.context = context;
     }
 
     @Override
     public T call() throws Exception {
-        return action.run(context);
+        return action.call(context);
     }
 }

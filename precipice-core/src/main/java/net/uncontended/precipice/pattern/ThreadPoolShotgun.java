@@ -21,11 +21,14 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
+import net.uncontended.precipice.threadpool.ThreadPoolTask;
+import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 
 public class ThreadPoolShotgun<C> {
 
@@ -64,15 +67,18 @@ public class ThreadPoolShotgun<C> {
 
         for (PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> entry : patternEntries) {
             if (entry != null) {
-                final C context = serviceToContext.get(entry.controllable);
-                Callable<T> callable = new Callable<T>() {
-                    @Override
-                    public T call() throws Exception {
-                        return action.run(context);
-                    }
-                };
-                // TODO: Add executor service getter
-                entry.controllable.bypassBackPressureAndComplete(callable, entry.completable, millisTimeout);
+                ThreadPoolService service = entry.controllable;
+                final C context = serviceToContext.get(service);
+
+                Callable<T> callable = new CallableWithContext<>(action, context);
+                ExecutorService executor = service.getExecutor();
+                TimeoutService timeoutService = service.getTimeoutService();
+
+                long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
+                long startNanos = System.nanoTime();
+                ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, entry.completable, adjustedTimeout, startNanos);
+                executor.execute(task);
+                timeoutService.scheduleTimeout(task);
             }
         }
 

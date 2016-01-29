@@ -32,5 +32,5 @@ import net.uncontended.precipice.AsyncService;
  */
 public interface PatternAction<T, C> {
 
-    T run(C context) throws Exception;
+    T call(C context) throws Exception;
 }

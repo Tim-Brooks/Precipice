@@ -29,7 +29,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 public class ThreadPoolService implements Controllable<Status> {
-    private final ExecutorService service;
+    private final ExecutorService executorService;
     private final TimeoutService timeoutService;
     private final Controller<Status> controller;
 
@@ -38,9 +38,9 @@ public class ThreadPoolService implements Controllable<Status> {
                 controller.getSemaphore().maxConcurrencyLevel()), controller);
     }
 
-    public ThreadPoolService(ExecutorService service, Controller<Status> controller) {
+    public ThreadPoolService(ExecutorService executorService, Controller<Status> controller) {
         this.controller = controller;
-        this.service = service;
+        this.executorService = executorService;
         timeoutService = TimeoutService.defaultTimeoutService;
     }
 
@@ -67,18 +67,23 @@ public class ThreadPoolService implements Controllable<Status> {
 
     public <T> void bypassBackPressureAndComplete(Callable<T> callable, PrecipicePromise<Status, T> promise,
                                                   long millisTimeout, long startNanos) {
-        long adjustedTimeout = adjustTimeout(millisTimeout);
+        long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
         ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, promise, adjustedTimeout, startNanos);
-        service.execute(task);
+        executorService.execute(task);
         timeoutService.scheduleTimeout(task);
+    }
+
+    public ExecutorService getExecutor() {
+        return executorService;
+    }
+
+    public TimeoutService getTimeoutService() {
+        return timeoutService;
     }
 
     public void shutdown() {
         controller.shutdown();
-        service.shutdown();
+        executorService.shutdown();
     }
 
-    private static long adjustTimeout(long millisTimeout) {
-        return millisTimeout > TimeoutService.MAX_TIMEOUT_MILLIS ? TimeoutService.MAX_TIMEOUT_MILLIS : millisTimeout;
-    }
 }

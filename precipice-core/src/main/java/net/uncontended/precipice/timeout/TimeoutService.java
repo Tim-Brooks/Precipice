@@ -46,6 +46,10 @@ public class TimeoutService {
         }
     }
 
+    public static long adjustTimeout(long millisTimeout) {
+        return millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout;
+    }
+
     private void startThread() {
         if (isStarted.compareAndSet(false, true)) {
             timeoutThread.start();

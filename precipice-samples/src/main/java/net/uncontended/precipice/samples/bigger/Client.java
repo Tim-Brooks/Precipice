@@ -103,7 +103,7 @@ public class Client {
 
     private class Action implements PatternAction<String, Map<String, Object>> {
         @Override
-        public String run(Map<String, Object> context) throws Exception {
+        public String call(Map<String, Object> context) throws Exception {
             HttpUrl.Builder builder = new HttpUrl.Builder().scheme("http");
             HttpUrl url = builder.port((int) context.get("port")).host((String) context.get("host")).build();
             Request request = new Request.Builder().url(url).build();

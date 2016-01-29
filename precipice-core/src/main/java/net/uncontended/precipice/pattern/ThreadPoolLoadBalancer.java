@@ -23,10 +23,13 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
+import net.uncontended.precipice.threadpool.ThreadPoolTask;
+import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 
 public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
 
@@ -74,18 +77,20 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
                                       long millisTimeout) {
         ThreadPoolService service = pair.controllable;
         final C context = contexts.get(service);
-        Callable<T> callable = new Callable<T>() {
-            @Override
-            public T call() throws Exception {
-                return action.run(context);
-            }
-        };
-        // TODO: Add executor service getter
-        service.bypassBackPressureAndComplete(callable, pair.completable, millisTimeout);
+        Callable<T> callable = new CallableWithContext<>(action, context);
+        ExecutorService executor = service.getExecutor();
+        TimeoutService timeoutService = service.getTimeoutService();
+
+        long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
+        long startNanos = System.nanoTime();
+        ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, pair.completable, adjustedTimeout, startNanos);
+        executor.execute(task);
+        timeoutService.scheduleTimeout(task);
     }
 
     @Override
     public Controller<Status> controller() {
         return balancer.controller();
     }
+
 }
