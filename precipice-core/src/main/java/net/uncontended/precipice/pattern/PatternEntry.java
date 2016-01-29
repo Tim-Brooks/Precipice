@@ -17,11 +17,11 @@
 
 package net.uncontended.precipice.pattern;
 
-public class PatternPair<C, P> {
+public class PatternEntry<C, P> {
     public final C controllable;
     public final P completable;
 
-    PatternPair(C controllable, P completable) {
+    PatternEntry(C controllable, P completable) {
         this.controllable = controllable;
         this.completable = completable;
     }

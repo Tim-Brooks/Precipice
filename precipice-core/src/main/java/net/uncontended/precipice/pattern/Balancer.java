@@ -40,28 +40,28 @@ public class Balancer<T extends Enum<T> & Result, C extends Controllable<T>> imp
         return controller;
     }
 
-    public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair() {
+    public <R> PatternEntry<C, PrecipicePromise<T, R>> promisePair() {
         return promisePair(null);
     }
 
-    public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
+    public <R> PatternEntry<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
         acquirePermit();
         long nanoTime = System.nanoTime();
         C child = nextControllable(nanoTime);
         PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
-        return new PatternPair<>(child, child.controller().getPromise(nanoTime, promise));
+        return new PatternEntry<>(child, child.controller().getPromise(nanoTime, promise));
     }
 
-    public <R> PatternPair<C, Completable<T, R>> completablePair() {
+    public <R> PatternEntry<C, Completable<T, R>> completablePair() {
         return completablePair(null);
     }
 
-    public <R> PatternPair<C, Completable<T, R>> completablePair(Completable<T, R> externalCompletable) {
+    public <R> PatternEntry<C, Completable<T, R>> completablePair(Completable<T, R> externalCompletable) {
         acquirePermit();
         long nanoTime = System.nanoTime();
         C child = nextControllable(nanoTime);
         Completable<T, R> completable = controller.getCompletableContext(nanoTime, externalCompletable);
-        return new PatternPair<>(child, child.controller().getCompletableContext(nanoTime, completable));
+        return new PatternEntry<>(child, child.controller().getCompletableContext(nanoTime, completable));
     }
 
     private void acquirePermit() {

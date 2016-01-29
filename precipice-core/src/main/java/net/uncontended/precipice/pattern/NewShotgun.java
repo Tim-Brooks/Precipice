@@ -39,20 +39,29 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
         return controller;
     }
 
-    public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair() {
+    public <R> PatternEntry<C, PrecipicePromise<T, R>>[] promisePair() {
         return promisePair(null);
     }
 
-    public <R> PatternPair<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
-        acquirePermit();
-        long nanoTime = System.nanoTime();
-        C child = controllableArray(nanoTime);
-//        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
-//        return new PatternPair<>(child, child.controller().getPromise(nanoTime, promise));
-        return null;
+    public <R> PatternEntry<C, PrecipicePromise<T, R>>[] promisePair(PrecipicePromise<T, R> externalPromise) {
+        long nanoTime = acquirePermit();
+        C[] children = controllableArray(nanoTime);
+        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
+
+        Object[] array = new Object[children.length];
+        int i = 0;
+        for (C child : children) {
+            if (child != null) {
+                array[i] = new PatternEntry<>(child, child.controller().getPromise(nanoTime, promise));
+            } else {
+                break;
+            }
+            ++i;
+        }
+        return (PatternEntry<C, PrecipicePromise<T, R>>[]) array;
     }
 
-    private C controllableArray(long nanoTime) {
+    private C[] controllableArray(long nanoTime) {
         int[] servicesToTry = strategy.executorIndices();
         C[] controllableArray = (C[]) new Object[servicesToTry.length];
         int submittedCount = 0;
@@ -76,15 +85,16 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
             throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
         }
 
-        return null;
+        return controllableArray;
     }
 
-    private void acquirePermit() {
+    private long acquirePermit() {
         Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+        long nanoTime = System.nanoTime();
         if (rejected != null) {
-            long nanoTime = System.nanoTime();
             controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
             throw new RejectedException(rejected);
         }
+        return nanoTime;
     }
 }
