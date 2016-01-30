@@ -20,36 +20,62 @@ package net.uncontended.precipice.pattern;
 import java.util.Iterator;
 
 public class PatternEntry<C, P> {
-    public final PairIterator<C, P> iterator = new PairIterator<>();
-    public final P patternCompletable;
+    final PairIterator<C, P> iterator;
+    private P patternCompletable;
 
-    PatternEntry(P patternCompletable) {
-        this.patternCompletable = patternCompletable;
+    public PatternEntry(NewEntry<C, P>[] entryArray) {
+        this.iterator = new PairIterator<>(entryArray);
     }
 
     public Iterable<NewEntry<C, P>> interable() {
         return iterator;
     }
 
-    private static class PairIterator<C, P> implements Iterable<NewEntry<C, P>>, Iterator<NewEntry<C, P>> {
-        private final NewEntry<C, P>[] controllableArray = (NewEntry<C, P>[]) new Object[0];
-        private int i = 0;
+    void setPatternCompletable(P patternCompletable) {
+        this.patternCompletable = patternCompletable;
+    }
+
+    public P getPatternCompletable() {
+        return patternCompletable;
+    }
+
+    static class PairIterator<C, P> implements Iterable<NewEntry<C, P>>, Iterator<NewEntry<C, P>> {
+        private final NewEntry<C, P>[] entryArray;
+        private int index = 0;
+        private int count = 0;
+
+        PairIterator(NewEntry<C, P>[] entryArray) {
+            this.entryArray = entryArray;
+        }
 
         @Override
         public boolean hasNext() {
-            return controllableArray[i] != null;
+            return index != count;
         }
 
         @Override
         public NewEntry<C, P> next() {
-            int j = i;
-            ++i;
-            return controllableArray[j];
+            int j = index;
+            ++index;
+            return entryArray[j];
         }
 
         @Override
         public Iterator<NewEntry<C, P>> iterator() {
             return this;
+        }
+
+        public void incrementCount() {
+            ++count;
+        }
+
+        public NewEntry<C, P> get(int i) {
+            return entryArray[i];
+        }
+
+        public void reset() {
+            index = 0;
+            count = 0;
         }
     }
 }

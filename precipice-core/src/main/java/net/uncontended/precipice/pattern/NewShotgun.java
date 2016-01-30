@@ -46,18 +46,7 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
     public <R> PatternEntry<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
         long nanoTime = acquirePermit();
         C[] children = controllableArray(nanoTime);
-        PrecipicePromise<T, R> promise = controller.getPromise(nanoTime, externalPromise);
-
-        Object[] array = new Object[children.length];
-        int i = 0;
-        for (C child : children) {
-            if (child != null) {
-            } else {
-                break;
-            }
-            ++i;
-        }
-        return null;
+        return prepIterator(nanoTime, controller.getPromise(nanoTime, externalPromise), children);
     }
 
     private C[] controllableArray(long nanoTime) {
@@ -95,5 +84,31 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
             throw new RejectedException(rejected);
         }
         return nanoTime;
+    }
+
+    private <R> PatternEntry<C, PrecipicePromise<T, R>> prepIterator(long nanoTime, PrecipicePromise<T, R> promise, C[] children) {
+        int size = strategy.getSubmissionCount();
+        NewEntry<C, PrecipicePromise<T, R>>[] objects = (NewEntry<C, PrecipicePromise<T, R>>[]) new Object[size];
+        for (int i = 0; i < size; ++i) {
+            objects[i] = new NewEntry<>();
+        }
+
+        PatternEntry<C, PrecipicePromise<T, R>> entry = new PatternEntry<>(objects);
+        entry.setPatternCompletable(promise);
+        PatternEntry.PairIterator<C, PrecipicePromise<T, R>> iterator = entry.iterator;
+
+        int i = 0;
+        for (C child : children) {
+            if (child != null) {
+                NewEntry<C, PrecipicePromise<T, R>> smallEntry = iterator.get(i);
+                smallEntry.controllable = child;
+                smallEntry.completable = child.controller().getPromise(nanoTime, promise);
+            } else {
+                break;
+            }
+            ++i;
+        }
+
+        return entry;
     }
 }
