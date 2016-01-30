@@ -39,11 +39,11 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
         return controller;
     }
 
-    public <R> PatternEntry<C, PrecipicePromise<T, R>> promisePair() {
+    public <R> PatternResult<C, PrecipicePromise<T, R>> promisePair() {
         return promisePair(null);
     }
 
-    public <R> PatternEntry<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
+    public <R> PatternResult<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
         long nanoTime = acquirePermit();
         C[] children = controllableArray(nanoTime);
         return prepIterator(nanoTime, controller.getPromise(nanoTime, externalPromise), children);
@@ -86,21 +86,21 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
         return nanoTime;
     }
 
-    private <R> PatternEntry<C, PrecipicePromise<T, R>> prepIterator(long nanoTime, PrecipicePromise<T, R> promise, C[] children) {
+    private <R> PatternResult<C, PrecipicePromise<T, R>> prepIterator(long nanoTime, PrecipicePromise<T, R> promise, C[] children) {
         int size = strategy.getSubmissionCount();
-        NewEntry<C, PrecipicePromise<T, R>>[] objects = (NewEntry<C, PrecipicePromise<T, R>>[]) new Object[size];
+        ChildContext<C, PrecipicePromise<T, R>>[] objects = (ChildContext<C, PrecipicePromise<T, R>>[]) new Object[size];
         for (int i = 0; i < size; ++i) {
-            objects[i] = new NewEntry<>();
+            objects[i] = new ChildContext<>();
         }
 
-        PatternEntry<C, PrecipicePromise<T, R>> entry = new PatternEntry<>(objects);
+        PatternResult<C, PrecipicePromise<T, R>> entry = new PatternResult<>(objects);
         entry.setPatternCompletable(promise);
-        PatternEntry.PairIterator<C, PrecipicePromise<T, R>> iterator = entry.iterator;
+        PatternResult.PairIterator<C, PrecipicePromise<T, R>> iterator = entry.iterator;
 
         int i = 0;
         for (C child : children) {
             if (child != null) {
-                NewEntry<C, PrecipicePromise<T, R>> smallEntry = iterator.get(i);
+                ChildContext<C, PrecipicePromise<T, R>> smallEntry = iterator.get(i);
                 smallEntry.controllable = child;
                 smallEntry.completable = child.controller().getPromise(nanoTime, promise);
             } else {

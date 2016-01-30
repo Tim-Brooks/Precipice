@@ -21,14 +21,10 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
-import net.uncontended.precipice.threadpool.ThreadPoolTask;
-import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 
 public class ThreadPoolShotgun<C> {
 
@@ -63,9 +59,9 @@ public class ThreadPoolShotgun<C> {
     }
 
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
-        PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> patternEntries = newShotgun.promisePair();
+        PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> patternEntries = newShotgun.promisePair();
 
-//        for (PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> entry : patternEntries) {
+//        for (PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> entry : patternEntries) {
 //            if (entry != null) {
 //                ThreadPoolService service = entry.controllable;
 //                final C context = serviceToContext.get(service);

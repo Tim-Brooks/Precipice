@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
-public class NewEntry<C, P> {
+public class ChildContext<C, P> {
     public C controllable;
     public P completable;
 }

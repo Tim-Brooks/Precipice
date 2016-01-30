@@ -19,15 +19,15 @@ package net.uncontended.precipice.pattern;
 
 import java.util.Iterator;
 
-public class PatternEntry<C, P> {
+public class PatternResult<C, P> {
     final PairIterator<C, P> iterator;
     private P patternCompletable;
 
-    public PatternEntry(NewEntry<C, P>[] entryArray) {
+    public PatternResult(ChildContext<C, P>[] entryArray) {
         this.iterator = new PairIterator<>(entryArray);
     }
 
-    public Iterable<NewEntry<C, P>> submissions() {
+    public Iterable<ChildContext<C, P>> submissions() {
         return iterator;
     }
 
@@ -39,12 +39,12 @@ public class PatternEntry<C, P> {
         this.patternCompletable = patternCompletable;
     }
 
-    static class PairIterator<C, P> implements Iterable<NewEntry<C, P>>, Iterator<NewEntry<C, P>> {
-        private final NewEntry<C, P>[] entryArray;
+    static class PairIterator<C, P> implements Iterable<ChildContext<C, P>>, Iterator<ChildContext<C, P>> {
+        private final ChildContext<C, P>[] entryArray;
         private int index = 0;
         private int count = 0;
 
-        PairIterator(NewEntry<C, P>[] entryArray) {
+        PairIterator(ChildContext<C, P>[] entryArray) {
             this.entryArray = entryArray;
         }
 
@@ -54,14 +54,14 @@ public class PatternEntry<C, P> {
         }
 
         @Override
-        public NewEntry<C, P> next() {
+        public ChildContext<C, P> next() {
             int j = index;
             ++index;
             return entryArray[j];
         }
 
         @Override
-        public Iterator<NewEntry<C, P>> iterator() {
+        public Iterator<ChildContext<C, P>> iterator() {
             return this;
         }
 
@@ -69,7 +69,7 @@ public class PatternEntry<C, P> {
             ++count;
         }
 
-        public NewEntry<C, P> get(int i) {
+        public ChildContext<C, P> get(int i) {
             return entryArray[i];
         }
 

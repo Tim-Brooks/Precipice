@@ -23,13 +23,9 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
-import net.uncontended.precipice.threadpool.ThreadPoolTask;
-import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 
 public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
 
@@ -56,13 +52,13 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
     }
 
     public <T> PrecipiceFuture<Status, T> submit(PatternAction<T, C> action, long millisTimeout) {
-        PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> entry = balancer.promisePair();
+        PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> entry = balancer.promisePair();
         internalComplete(action, entry, millisTimeout);
         return entry.getPatternCompletable().future();
     }
 
     public <T> void complete(PatternAction<T, C> action, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair(promise);
+        PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> pair = balancer.promisePair(promise);
         internalComplete(action, pair, millisTimeout);
     }
 
@@ -73,7 +69,7 @@ public class ThreadPoolLoadBalancer<C> implements Controllable<Status> {
     }
 
     private <T> void internalComplete(final PatternAction<T, C> action,
-                                      PatternEntry<ThreadPoolService, PrecipicePromise<Status, T>> pair,
+                                      PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> pair,
                                       long millisTimeout) {
 //        ThreadPoolService service = pair.controllables[0];
 //        final C context = contexts.get(service);
