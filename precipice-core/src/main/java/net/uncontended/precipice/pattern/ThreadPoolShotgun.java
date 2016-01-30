@@ -16,19 +16,23 @@
  */
 package net.uncontended.precipice.pattern;
 
+import net.uncontended.precipice.Controllable;
 import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
+import net.uncontended.precipice.threadpool.ThreadPoolTask;
+import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 
-public class ThreadPoolShotgun<C> {
+public class ThreadPoolShotgun<C> implements Controllable<Status> {
 
-    private final ShotgunStrategy strategy;
     private final Controller<Status> controller;
     private final NewShotgun<Status, ThreadPoolService> newShotgun;
     private final Map<ThreadPoolService, C> serviceToContext;
@@ -55,31 +59,32 @@ public class ThreadPoolShotgun<C> {
         }
 
         this.newShotgun = new NewShotgun<>(controller, services, strategy);
-        this.strategy = strategy;
+    }
+
+    public Controller<Status> controller() {
+        return controller;
     }
 
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
-        PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> patternEntries = newShotgun.promisePair();
+        PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> result = newShotgun.promisePair();
 
-//        for (PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> entry : patternEntries) {
-//            if (entry != null) {
-//                ThreadPoolService service = entry.controllable;
-//                final C context = serviceToContext.get(service);
-//
-//                Callable<T> callable = new CallableWithContext<>(action, context);
-//                ExecutorService executor = service.getExecutor();
-//                TimeoutService timeoutService = service.getTimeoutService();
-//
-//                long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
-//                long startNanos = System.nanoTime();
-//                ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, entry.completable, adjustedTimeout, startNanos);
-//                executor.execute(task);
-//                timeoutService.scheduleTimeout(task);
-//            }
-//        }
+        for (ChildContext<ThreadPoolService, PrecipicePromise<Status, T>> entry : result.submissions()) {
+            ThreadPoolService service = entry.controllable;
+            final C context = serviceToContext.get(service);
 
-//        return patternEntries[0].completable.future();
-        return null;
+            Callable<T> callable = new CallableWithContext<>(action, context);
+            ExecutorService executor = service.getExecutor();
+            TimeoutService timeoutService = service.getTimeoutService();
+
+            long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
+            long startNanos = System.nanoTime();
+            ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, entry.completable, adjustedTimeout, startNanos);
+            executor.execute(task);
+            timeoutService.scheduleTimeout(task);
+
+        }
+
+        return result.getPatternCompletable().future();
     }
 
     public void shutdown() {
