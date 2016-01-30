@@ -27,16 +27,16 @@ public class PatternEntry<C, P> {
         this.iterator = new PairIterator<>(entryArray);
     }
 
-    public Iterable<NewEntry<C, P>> interable() {
+    public Iterable<NewEntry<C, P>> submissions() {
         return iterator;
-    }
-
-    void setPatternCompletable(P patternCompletable) {
-        this.patternCompletable = patternCompletable;
     }
 
     public P getPatternCompletable() {
         return patternCompletable;
+    }
+
+    void setPatternCompletable(P patternCompletable) {
+        this.patternCompletable = patternCompletable;
     }
 
     static class PairIterator<C, P> implements Iterable<NewEntry<C, P>>, Iterator<NewEntry<C, P>> {
