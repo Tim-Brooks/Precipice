@@ -18,8 +18,8 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.PrecipicePromise;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> implements Controllable<T> {
@@ -27,6 +27,7 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
     private final Controller<T> controller;
     private final List<C> pool;
     private final ShotgunStrategy strategy;
+    private ThreadLocal<Iterable<Controllable<T>>> local = new ThreadLocal<>();
 
     public NewShotgun(Controller<T> controller, List<C> pool, ShotgunStrategy strategy) {
         this.controller = controller;
@@ -39,15 +40,14 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
         return controller;
     }
 
-    public <R> PatternResult<C, PrecipicePromise<T, R>> promisePair() {
-        return promisePair(null);
+    public Iterable<C> newer() {
+        final long nanoTime = acquirePermit();
+        final C[] children = controllableArray(nanoTime);
+
+
+        return new ControllableIterable<>(nanoTime, children);
     }
 
-    public <R> PatternResult<C, PrecipicePromise<T, R>> promisePair(PrecipicePromise<T, R> externalPromise) {
-        long nanoTime = acquirePermit();
-        C[] children = controllableArray(nanoTime);
-        return prepIterator(nanoTime, controller.getPromise(nanoTime, externalPromise), children);
-    }
 
     private C[] controllableArray(long nanoTime) {
         int[] servicesToTry = strategy.executorIndices();
@@ -86,29 +86,45 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
         return nanoTime;
     }
 
-    private <R> PatternResult<C, PrecipicePromise<T, R>> prepIterator(long nanoTime, PrecipicePromise<T, R> promise, C[] children) {
-        int size = strategy.getSubmissionCount();
-        ChildContext<C, PrecipicePromise<T, R>>[] objects = (ChildContext<C, PrecipicePromise<T, R>>[]) new Object[size];
-        for (int i = 0; i < size; ++i) {
-            objects[i] = new ChildContext<>();
+    private static class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
+
+        private final long nanoTime;
+        private final C[] children;
+        long nanoTime0;
+        private int index = 0;
+        private int count = 0;
+
+        public ControllableIterable(long nanoTime, C[] children) {
+            this.nanoTime = nanoTime;
+            this.children = children;
+            nanoTime0 = nanoTime;
         }
 
-        PatternResult<C, PrecipicePromise<T, R>> entry = new PatternResult<>(objects);
-        entry.setPatternCompletable(promise);
-        PatternResult.PairIterator<C, PrecipicePromise<T, R>> iterator = entry.iterator;
-
-        int i = 0;
-        for (C child : children) {
-            if (child != null) {
-                ChildContext<C, PrecipicePromise<T, R>> smallEntry = iterator.get(i);
-                smallEntry.controllable = child;
-                smallEntry.completable = child.controller().getPromise(nanoTime, promise);
-            } else {
-                break;
-            }
-            ++i;
+        @Override
+        public boolean hasNext() {
+            return index != count;
         }
 
-        return entry;
+        @Override
+        public C next() {
+            int j = index;
+            ++index;
+            return children[j];
+        }
+
+        @Override
+        public Iterator<C> iterator() {
+            return this;
+        }
+
+        public void incrementCount() {
+            ++count;
+        }
+
+        public void reset() {
+            index = 0;
+            count = 0;
+        }
     }
+
 }

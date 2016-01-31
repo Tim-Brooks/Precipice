@@ -66,7 +66,8 @@ public class ThreadPoolShotgun<C> implements Controllable<Status> {
     }
 
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
-        PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> result = newShotgun.promisePair();
+        // TODO: Make not null
+        PatternResult<ThreadPoolService, PrecipicePromise<Status, T>> result = null;
 
         for (ChildContext<ThreadPoolService, PrecipicePromise<Status, T>> entry : result.submissions()) {
             ThreadPoolService service = entry.controllable;
