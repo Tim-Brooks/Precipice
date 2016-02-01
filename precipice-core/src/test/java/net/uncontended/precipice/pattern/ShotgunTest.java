@@ -36,7 +36,7 @@ public class ShotgunTest {
     @Mock
     private PatternAction<String, Object> patternAction;
     @Mock
-    private ShotgunStrategy strategy;
+    private Strategy strategy;
     @Captor
     private ArgumentCaptor<ResilientAction<String>> actionCaptor;
     @Captor

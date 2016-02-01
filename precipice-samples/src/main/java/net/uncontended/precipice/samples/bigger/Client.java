@@ -26,8 +26,9 @@ import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.pattern.NewLoadBalancerStrategy;
 import net.uncontended.precipice.pattern.PatternAction;
-import net.uncontended.precipice.pattern.RoundRobinStrategy;
+import net.uncontended.precipice.pattern.Strategy;
 import net.uncontended.precipice.pattern.ThreadPoolPattern;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 
@@ -51,7 +52,7 @@ public class Client {
 
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
         properties.actionMetrics(new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS));
-        RoundRobinStrategy strategy = new RoundRobinStrategy(services.size());
+        Strategy strategy = new NewLoadBalancerStrategy(services.size());
         loadBalancer = null;
 //        loadBalancer = new ThreadPoolLoadBalancer<>(services, null);
 

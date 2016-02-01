@@ -17,7 +17,23 @@
 
 package net.uncontended.precipice.pattern;
 
-public class ChildContext<C, P> {
-    public C controllable;
-    public P completable;
+import org.junit.Test;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.assertEquals;
+
+public class NewLoadBalancerStrategyTest {
+
+    @Test
+    public void wrappingWorks() {
+        int start = (Integer.MAX_VALUE / 2) - 1;
+        Strategy strategy = new NewLoadBalancerStrategy(3, new AtomicInteger(start));
+
+        assertEquals(start % 3, strategy.nextIndices()[0]);
+        assertEquals((start + 1) % 3, strategy.nextIndices()[0]);
+        assertEquals(0, strategy.nextIndices()[0]);
+        assertEquals(1, strategy.nextIndices()[0]);
+        assertEquals(2, strategy.nextIndices()[0]);
+    }
 }

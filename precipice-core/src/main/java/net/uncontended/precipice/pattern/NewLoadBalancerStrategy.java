@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,30 +19,37 @@ package net.uncontended.precipice.pattern;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class RoundRobinStrategy implements LoadBalancerStrategy {
+public class NewLoadBalancerStrategy implements Strategy {
 
     private static final int FLIP_POINT = Integer.MAX_VALUE / 2;
     private final int size;
     private final AtomicInteger counter;
 
-    public RoundRobinStrategy(int size) {
+    public NewLoadBalancerStrategy(int size) {
         this(size, new AtomicInteger(0));
     }
 
-    public RoundRobinStrategy(int size, AtomicInteger counter) {
+    public NewLoadBalancerStrategy(int size, AtomicInteger counter) {
         this.size = size;
         this.counter = counter;
     }
 
     @Override
-    public int nextIndex() {
+    public int[] nextIndices() {
         int index = counter.getAndIncrement();
 
         if (index >= FLIP_POINT) {
             resetCounter(index);
         }
 
-        return index % size;
+        int[] indices = new int[1];
+        indices[0] = index % size;
+        return indices;
+    }
+
+    @Override
+    public int submissionCount() {
+        return 1;
     }
 
     private void resetCounter(int start) {

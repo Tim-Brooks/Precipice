@@ -25,10 +25,10 @@ import java.util.List;
 public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
 
     private final List<C> pool;
-    private final ShotgunStrategy strategy;
+    private final Strategy strategy;
     private ThreadLocal<ControllableIterable<C>> local = new ThreadLocal<>();
 
-    public Shotgun(List<C> pool, ShotgunStrategy strategy) {
+    public Shotgun(List<C> pool, Strategy strategy) {
         this.pool = pool;
         this.strategy = strategy;
     }

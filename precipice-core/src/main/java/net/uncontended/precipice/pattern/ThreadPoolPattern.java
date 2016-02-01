@@ -41,7 +41,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
 
     @SuppressWarnings("unchecked")
     public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller,
-                             ShotgunStrategy strategy) {
+                             Strategy strategy) {
         if (serviceToContext.size() == 0) {
             throw new IllegalArgumentException("Cannot create ThreadPoolPattern with 0 Executors.");
         } else if (submissionCount > serviceToContext.size()) {
