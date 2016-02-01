@@ -29,21 +29,21 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadPoolShotgun<C> implements Controllable<Status> {
+public class ThreadPoolPattern<C> implements Controllable<Status> {
 
     private final Controller<Status> controller;
     private final Shotgun<Status, ThreadPoolService> shotgun;
     private final Map<ThreadPoolService, C> serviceToContext;
 
-    public ThreadPoolShotgun(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller) {
+    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller) {
         this(serviceToContext, submissionCount, controller, new ShotgunStrategy(serviceToContext.size(), submissionCount));
     }
 
     @SuppressWarnings("unchecked")
-    public ThreadPoolShotgun(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller,
+    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller,
                              ShotgunStrategy strategy) {
         if (serviceToContext.size() == 0) {
-            throw new IllegalArgumentException("Cannot create ThreadPoolShotgun with 0 Executors.");
+            throw new IllegalArgumentException("Cannot create ThreadPoolPattern with 0 Executors.");
         } else if (submissionCount > serviceToContext.size()) {
             throw new IllegalArgumentException("Submission count cannot be greater than the number of services " +
                     "provided.");

@@ -42,7 +42,7 @@ public class ShotgunTest {
     @Captor
     private ArgumentCaptor<Object> contextCaptor;
 
-    private ThreadPoolShotgun<Object> shotgun;
+    private ThreadPoolPattern<Object> shotgun;
 
 //    @Before
 //    public void setUp() {
@@ -52,15 +52,15 @@ public class ShotgunTest {
 //        services.put(service1, context1);
 //        services.put(service2, context2);
 //        services.put(service3, context3);
-//        this.shotgun = new ThreadPoolShotgun<>(services, 2, strategy);
+//        this.shotgun = new ThreadPoolPattern<>(services, 2, strategy);
 //
-//        when(strategy.getSubmissionCount()).thenReturn(2);
+//        when(strategy.submissionCount()).thenReturn(2);
 //    }
 //
 //    @Test
 //    public void actionsSubmittedToServicesAndContextsProvided() throws Exception {
 //        int[] indices = {2, 0, 1};
-//        when(strategy.executorIndices()).thenReturn(indices);
+//        when(strategy.nextIndices()).thenReturn(indices);
 //        shotgun.submit(patternAction, 100L);
 //
 //        InOrder inOrder = inOrder(service3, service1);
@@ -82,7 +82,7 @@ public class ShotgunTest {
 //    @Test
 //    public void actionsSubmittedToBackupServicesIfRejected() throws Exception {
 //        int[] indices = {2, 0, 1};
-//        when(strategy.executorIndices()).thenReturn(indices);
+//        when(strategy.nextIndices()).thenReturn(indices);
 //
 //        Mockito.doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
 //                (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
@@ -107,7 +107,7 @@ public class ShotgunTest {
 //    @Test
 //    public void submitSucceedsIfAtLeastOnceServiceAccepts() throws Exception {
 //        int[] indices = {2, 0, 1};
-//        when(strategy.executorIndices()).thenReturn(indices);
+//        when(strategy.nextIndices()).thenReturn(indices);
 //
 //        try {
 //            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
@@ -127,7 +127,7 @@ public class ShotgunTest {
 //    @Test
 //    public void submitFailsIfAllServicesReject() throws Exception {
 //        int[] indices = {2, 0, 1};
-//        when(strategy.executorIndices()).thenReturn(indices);
+//        when(strategy.nextIndices()).thenReturn(indices);
 //
 //        try {
 //            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
@@ -162,7 +162,7 @@ public class ShotgunTest {
 //            services.put(service1, context1);
 //            services.put(service2, context2);
 //            services.put(service3, context3);
-//            ThreadPoolShotgun<Object> shotgun = new ThreadPoolShotgun<>(services, 2);
+//            ThreadPoolPattern<Object> shotgun = new ThreadPoolPattern<>(services, 2);
 //
 //            shotgun.submit(patternAction, 10);
 //

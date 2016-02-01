@@ -34,7 +34,7 @@ public class ShotgunStrategy {
         }
     }
 
-    public int[] executorIndices() {
+    public int[] nextIndices() {
         int[] orderToTry = new int[serviceCount];
 
         System.arraycopy(serviceIndices, 0, orderToTry, 0, serviceCount);
@@ -43,7 +43,7 @@ public class ShotgunStrategy {
         return orderToTry;
     }
 
-    public int getSubmissionCount() {
+    public int submissionCount() {
         return submissionCount;
     }
 

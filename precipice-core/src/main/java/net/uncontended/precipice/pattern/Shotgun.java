@@ -41,7 +41,7 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
     }
 
     private void addControllables(long nanoTime, ControllableIterable<C> controllableIterable) {
-        int[] servicesToTry = strategy.executorIndices();
+        int[] servicesToTry = strategy.nextIndices();
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
             C controllable = pool.get(serviceIndex);
@@ -53,7 +53,7 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
             } else {
                 controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
             }
-            if (submittedCount == strategy.getSubmissionCount()) {
+            if (submittedCount == strategy.submissionCount()) {
                 break;
             }
         }
@@ -63,7 +63,7 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
         ControllableIterable<C> controllableIterable = local.get();
 
         if (controllableIterable == null) {
-            C[] children = (C[]) new Object[strategy.getSubmissionCount()];
+            C[] children = (C[]) new Object[strategy.submissionCount()];
             controllableIterable = new ControllableIterable<>(children);
             local.set(controllableIterable);
         }
@@ -74,7 +74,7 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
     }
 
     private static class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
-        
+
         private final C[] children;
         private int index = 0;
         private int count = 0;
