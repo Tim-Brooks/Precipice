@@ -22,43 +22,34 @@ import net.uncontended.precipice.*;
 import java.util.Iterator;
 import java.util.List;
 
-public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> implements Controllable<T> {
+public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
 
-    private final Controller<T> controller;
     private final List<C> pool;
     private final ShotgunStrategy strategy;
-    private ThreadLocal<Iterable<Controllable<T>>> local = new ThreadLocal<>();
+    private ThreadLocal<ControllableIterable<C>> local = new ThreadLocal<>();
 
-    public NewShotgun(Controller<T> controller, List<C> pool, ShotgunStrategy strategy) {
-        this.controller = controller;
+    public Shotgun(List<C> pool, ShotgunStrategy strategy) {
         this.pool = pool;
         this.strategy = strategy;
     }
 
-    @Override
-    public Controller<T> controller() {
-        return controller;
+    public Iterable<C> getControllables(long nanoTime) {
+        ControllableIterable<C> controllableIterable = getControllableIterable();
+        controllableIterable.nanoTime = nanoTime;
+        addControllables(nanoTime, controllableIterable);
+
+        return controllableIterable;
     }
 
-    public Iterable<C> newer() {
-        final long nanoTime = acquirePermit();
-        final C[] children = controllableArray(nanoTime);
-
-
-        return new ControllableIterable<>(nanoTime, children);
-    }
-
-
-    private C[] controllableArray(long nanoTime) {
+    private void addControllables(long nanoTime, ControllableIterable<C> controllableIterable) {
         int[] servicesToTry = strategy.executorIndices();
-        C[] controllableArray = (C[]) new Object[servicesToTry.length];
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
             C controllable = pool.get(serviceIndex);
             Controller<T> controller = controllable.controller();
             Rejected rejected = controller.acquirePermitOrGetRejectedReason();
             if (rejected == null) {
-                controllableArray[submittedCount] = controllable;
+                controllableIterable.add(controllable);
                 ++submittedCount;
             } else {
                 controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
@@ -67,37 +58,31 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
                 break;
             }
         }
-        if (submittedCount == 0) {
-            controller.getSemaphore().releasePermit(1);
-            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED);
-            throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
-        }
-
-        return controllableArray;
     }
 
-    private long acquirePermit() {
-        Rejected rejected = controller.acquirePermitOrGetRejectedReason();
-        long nanoTime = System.nanoTime();
-        if (rejected != null) {
-            controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
-            throw new RejectedException(rejected);
+    private ControllableIterable<C> getControllableIterable() {
+        ControllableIterable<C> controllableIterable = local.get();
+
+        if (controllableIterable == null) {
+            C[] children = (C[]) new Object[strategy.getSubmissionCount()];
+            controllableIterable = new ControllableIterable<>(children);
+            local.set(controllableIterable);
         }
-        return nanoTime;
+        controllableIterable.reset();
+
+        return controllableIterable;
+
     }
 
     private static class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
 
-        private final long nanoTime;
+        public long nanoTime;
         private final C[] children;
-        long nanoTime0;
         private int index = 0;
         private int count = 0;
 
-        public ControllableIterable(long nanoTime, C[] children) {
-            this.nanoTime = nanoTime;
+        public ControllableIterable(C[] children) {
             this.children = children;
-            nanoTime0 = nanoTime;
         }
 
         @Override
@@ -117,8 +102,8 @@ public class NewShotgun<T extends Enum<T> & Result, C extends Controllable<T>> i
             return this;
         }
 
-        public void incrementCount() {
-            ++count;
+        public void add(C child) {
+            children[index++] = child;
         }
 
         public void reset() {
