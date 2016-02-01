@@ -19,7 +19,6 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
@@ -33,7 +32,7 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
         this.strategy = strategy;
     }
 
-    public Iterable<C> getControllables(long nanoTime) {
+    public ControllableIterable<C> getControllables(long nanoTime) {
         ControllableIterable<C> controllableIterable = getControllableIterable();
         addControllables(nanoTime, controllableIterable);
 
@@ -71,43 +70,6 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
 
         return controllableIterable;
 
-    }
-
-    private static class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
-
-        private final C[] children;
-        private int index = 0;
-        private int count = 0;
-
-        public ControllableIterable(C[] children) {
-            this.children = children;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return index != count;
-        }
-
-        @Override
-        public C next() {
-            int j = index;
-            ++index;
-            return children[j];
-        }
-
-        @Override
-        public Iterator<C> iterator() {
-            return this;
-        }
-
-        public void add(C child) {
-            children[index++] = child;
-        }
-
-        public void reset() {
-            index = 0;
-            count = 0;
-        }
     }
 
 }

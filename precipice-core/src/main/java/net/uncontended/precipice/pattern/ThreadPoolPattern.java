@@ -66,8 +66,13 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
         long nanoTime = acquirePermit();
 
-        // TODO: Add a someSubmitted? check
-        Iterable<ThreadPoolService> services = shotgun.getControllables(nanoTime);
+        ControllableIterable<ThreadPoolService> services = shotgun.getControllables(nanoTime);
+
+        if (services.isEmpty()) {
+            controller.getSemaphore().releasePermit(1);
+            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
+            throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
+        }
 
         PrecipicePromise<Status, T> promise = controller.getPromise(nanoTime);
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
