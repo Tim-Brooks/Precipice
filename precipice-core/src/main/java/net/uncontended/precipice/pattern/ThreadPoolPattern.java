@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutorService;
 public class ThreadPoolPattern<C> implements Controllable<Status> {
 
     private final Controller<Status> controller;
-    private final Shotgun<Status, ThreadPoolService> shotgun;
+    private final Pattern<Status, ThreadPoolService> pattern;
     private final Map<ThreadPoolService, C> serviceToContext;
 
     public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller) {
@@ -56,7 +56,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
             services.add(entry.getKey());
         }
 
-        this.shotgun = new Shotgun<>(services, strategy);
+        this.pattern = new Pattern<>(services, strategy);
     }
 
     public Controller<Status> controller() {
@@ -66,7 +66,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
         long nanoTime = acquirePermit();
 
-        ControllableIterable<ThreadPoolService> services = shotgun.getControllables(nanoTime);
+        ControllableIterable<ThreadPoolService> services = pattern.getControllables(nanoTime);
 
         if (services.isEmpty()) {
             controller.getSemaphore().releasePermit(1);
