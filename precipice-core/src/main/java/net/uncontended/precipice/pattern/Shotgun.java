@@ -35,7 +35,6 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
 
     public Iterable<C> getControllables(long nanoTime) {
         ControllableIterable<C> controllableIterable = getControllableIterable();
-        controllableIterable.nanoTime = nanoTime;
         addControllables(nanoTime, controllableIterable);
 
         return controllableIterable;
@@ -75,8 +74,7 @@ public class Shotgun<T extends Enum<T> & Result, C extends Controllable<T>> {
     }
 
     private static class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
-
-        public long nanoTime;
+        
         private final C[] children;
         private int index = 0;
         private int count = 0;
