@@ -23,6 +23,7 @@ import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.threadpool.ThreadPoolTask;
@@ -78,6 +79,8 @@ public class ThreadPoolPatternTest {
     @Mock
     private Clock clock;
     @Mock
+    private PrecipiceSemaphore semaphore;
+    @Mock
     private ActionMetrics<Status> metrics;
     @Mock
     private Pattern<Status, ThreadPoolService> pattern;
@@ -113,6 +116,7 @@ public class ThreadPoolPatternTest {
 
         when(controller.getClock()).thenReturn(clock);
         when(controller.getActionMetrics()).thenReturn(metrics);
+        when(controller.getSemaphore()).thenReturn(semaphore);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
 
         when(action.call(context1)).thenReturn("Service1");
@@ -128,6 +132,7 @@ public class ThreadPoolPatternTest {
         Eventual<Status, Object> child2 = new Eventual<>(submitTimeNanos, parent);
         long millisTimeout = 100L;
 
+        when(controller.acquirePermitOrGetRejectedReason()).thenReturn(null);
         when(pattern.getControllables(submitTimeNanos)).thenReturn(iterable);
         when(controller.getPromise(submitTimeNanos)).thenReturn(parent);
         when(controller1.getPromise(submitTimeNanos, parent)).thenReturn(child1);
@@ -169,6 +174,29 @@ public class ThreadPoolPatternTest {
         assertEquals(Status.SUCCESS, future1.getStatus());
         assertEquals("Service3", future2.result());
         assertEquals(Status.SUCCESS, future2.getStatus());
+    }
+
+    @Test
+    public void ifNoServiceReturnedThenAllRejected() throws Exception {
+        ControllableIterable<ThreadPoolService> iterable = prepIterable();
+        long millisTimeout = 100L;
+
+        when(controller.acquirePermitOrGetRejectedReason()).thenReturn(null);
+        when(pattern.getControllables(submitTimeNanos)).thenReturn(iterable);
+
+        try {
+            poolPattern.submit(action, millisTimeout);
+            fail("Should have been rejected");
+        } catch (RejectedException e) {
+            assertEquals(Rejected.ALL_SERVICES_REJECTED, e.reason);
+        }
+
+        verify(semaphore).releasePermit(1);
+        verify(metrics).incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, submitTimeNanos);
+
+        verifyZeroInteractions(service1);
+        verifyZeroInteractions(service2);
+        verifyZeroInteractions(service3);
     }
 
     @Test

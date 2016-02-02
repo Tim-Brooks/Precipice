@@ -56,9 +56,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
         ControllableIterable<ThreadPoolService> services = pattern.getControllables(nanoTime);
 
         if (services.isEmpty()) {
-            controller.getSemaphore().releasePermit(1);
-            controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
-            throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
+            return handleAllReject(nanoTime);
         }
 
         PrecipicePromise<Status, T> promise = controller.getPromise(nanoTime);
@@ -77,6 +75,12 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
         }
 
         return promise.future();
+    }
+
+    private <T> PrecipiceFuture<Status, T> handleAllReject(long nanoTime) {
+        controller.getSemaphore().releasePermit(1);
+        controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
+        throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
     }
 
     private long acquirePermit() {
