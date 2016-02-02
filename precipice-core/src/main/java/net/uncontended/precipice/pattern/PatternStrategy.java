@@ -17,7 +17,8 @@
 
 package net.uncontended.precipice.pattern;
 
-public interface Strategy {
+public interface PatternStrategy {
+
     int[] nextIndices();
 
     int submissionCount();

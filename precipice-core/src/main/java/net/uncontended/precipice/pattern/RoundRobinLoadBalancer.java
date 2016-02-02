@@ -19,17 +19,17 @@ package net.uncontended.precipice.pattern;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class NewLoadBalancerStrategy implements Strategy {
+public class RoundRobinLoadBalancer implements PatternStrategy {
 
     private static final int FLIP_POINT = Integer.MAX_VALUE / 2;
     private final int size;
     private final AtomicInteger counter;
 
-    public NewLoadBalancerStrategy(int size) {
+    public RoundRobinLoadBalancer(int size) {
         this(size, new AtomicInteger(0));
     }
 
-    public NewLoadBalancerStrategy(int size, AtomicInteger counter) {
+    public RoundRobinLoadBalancer(int size, AtomicInteger counter) {
         this.size = size;
         this.counter = counter;
     }

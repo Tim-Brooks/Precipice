@@ -30,10 +30,10 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
 
     private final List<C> pool;
 
-    private final Strategy strategy;
+    private final PatternStrategy strategy;
     private ThreadLocal<SingleReaderSequence<C>> local = new ThreadLocal<>();
 
-    public Pattern(Collection<C> controllables, Strategy strategy) {
+    public Pattern(Collection<C> controllables, PatternStrategy strategy) {
         if (controllables.size() == 0) {
             throw new IllegalArgumentException("Cannot create Pattern with 0 Controllables.");
         } else if (strategy.submissionCount() > controllables.size()) {

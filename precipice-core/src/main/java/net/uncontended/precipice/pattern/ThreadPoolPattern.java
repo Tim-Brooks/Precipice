@@ -34,7 +34,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
     private final Map<ThreadPoolService, C> serviceToContext;
 
 
-    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, Controller<Status> controller, Strategy strategy) {
+    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, Controller<Status> controller, PatternStrategy strategy) {
         this(serviceToContext, controller, new Pattern<>(serviceToContext.keySet(), strategy));
     }
 

@@ -20,13 +20,13 @@ package net.uncontended.precipice.pattern;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class ShotgunStrategy implements Strategy {
+public class Shotgun implements PatternStrategy {
 
     private final int submissionCount;
     private final int serviceCount;
     private final int[] serviceIndices;
 
-    public ShotgunStrategy(int serviceCount, int submissionCount) {
+    public Shotgun(int serviceCount, int submissionCount) {
         this.serviceCount = serviceCount;
         this.submissionCount = submissionCount;
         this.serviceIndices = new int[serviceCount];
