@@ -60,7 +60,7 @@ public class SubmissionExample {
         CountDownLatch latch = new CountDownLatch(1);
         PrecipiceFuture<Status, Integer> timeoutFuture = service.submit(Callables.timeout(latch), millisTimeout);
 
-        assert timeoutFuture.getStatus() == Status.PENDING;
+        assert timeoutFuture.getStatus() == null;
         try {
             // Should return null
             timeoutFuture.get();

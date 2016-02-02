@@ -81,7 +81,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
 
     private long acquirePermit() {
         Rejected rejected = controller.acquirePermitOrGetRejectedReason();
-        long nanoTime = System.nanoTime();
+        long nanoTime =controller.getClock().nanoTime();
         if (rejected != null) {
             controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
             throw new RejectedException(rejected);

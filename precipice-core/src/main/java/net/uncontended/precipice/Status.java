@@ -21,8 +21,7 @@ public enum Status implements Result {
     SUCCESS(false, true),
     ERROR(true, true),
     TIMEOUT(true, true),
-    CANCELLED(false),
-    PENDING(false);
+    CANCELLED(false);
 
     private final boolean isFailed;
     private final boolean trackLatency;

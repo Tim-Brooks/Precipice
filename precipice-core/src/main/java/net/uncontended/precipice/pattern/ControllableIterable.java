@@ -52,7 +52,7 @@ class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
     }
 
     public void add(C child) {
-        children[index++] = child;
+        children[count++] = child;
     }
 
     public void reset() {

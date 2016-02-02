@@ -19,13 +19,31 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
+import net.uncontended.precipice.threadpool.ThreadPoolTask;
+import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.timeout.TimeoutService;
 import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class ThreadPoolPatternTest {
@@ -40,11 +58,38 @@ public class ThreadPoolPatternTest {
     @Mock
     private ThreadPoolService service3;
     @Mock
+    private Controller<Status> controller1;
+    @Mock
+    private Controller<Status> controller2;
+    @Mock
+    private Controller<Status> controller3;
+    @Mock
+    private ExecutorService executor1;
+    @Mock
+    private ExecutorService executor2;
+    @Mock
+    private ExecutorService executor3;
+    @Mock
+    private TimeoutService timeoutService1;
+    @Mock
+    private TimeoutService timeoutService2;
+    @Mock
+    private TimeoutService timeoutService3;
+    @Mock
     private Controller<Status> controller;
     @Mock
+    private Clock clock;
+    @Mock
     private Pattern<Status, ThreadPoolService> pattern;
+    @Mock
+    private PatternAction<String, Object> action;
+    @Captor
+    private ArgumentCaptor<ThreadPoolTask<Status>> task1Captor;
+    @Captor
+    private ArgumentCaptor<ThreadPoolTask<Status>> task2Captor;
 
     private ThreadPoolPattern<Object> poolPattern;
+    private long submitTimeNanos = 10L;
 
     @Before
     public void setUp() {
@@ -55,140 +100,81 @@ public class ThreadPoolPatternTest {
         services.put(service2, context2);
         services.put(service3, context3);
         this.poolPattern = new ThreadPoolPattern<>(services, controller, pattern);
-    }
-//
-//    @Test
-//    public void actionsSubmittedToServicesAndContextsProvided() throws Exception {
-//        int[] indices = {2, 0, 1};
-//        when(strategy.nextIndices()).thenReturn(indices);
-//        shotgun.submit(patternAction, 100L);
-//
-//        InOrder inOrder = inOrder(service3, service1);
-//        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-//        inOrder.verify(service1).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-//
-//        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
-//
-//        actions.get(0).run();
-//        actions.get(1).run();
-//        verify(patternAction, times(2)).run(contextCaptor.capture());
-//
-//
-//        List<Object> contexts = contextCaptor.getAllValues();
-//        assertEquals(context3, contexts.get(0));
-//        assertEquals(context1, contexts.get(1));
-//    }
-//
-//    @Test
-//    public void actionsSubmittedToBackupServicesIfRejected() throws Exception {
-//        int[] indices = {2, 0, 1};
-//        when(strategy.nextIndices()).thenReturn(indices);
-//
-//        Mockito.doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
-//                (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//        shotgun.submit(patternAction, 100L);
-//        InOrder inOrder = inOrder(service3, service1, service2);
-//        inOrder.verify(service3).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-//        inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//        inOrder.verify(service2).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-//
-//        List<ResilientAction<String>> actions = actionCaptor.getAllValues();
-//
-//        actions.get(0).run();
-//        actions.get(1).run();
-//        verify(patternAction, times(2)).run(contextCaptor.capture());
-//
-//
-//        List<Object> contexts = contextCaptor.getAllValues();
-//        assertEquals(context3, contexts.get(0));
-//        assertEquals(context2, contexts.get(1));
-//    }
-//
-//    @Test
-//    public void submitSucceedsIfAtLeastOnceServiceAccepts() throws Exception {
-//        int[] indices = {2, 0, 1};
-//        when(strategy.nextIndices()).thenReturn(indices);
-//
-//        try {
-//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
-//                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
-//                    (any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//            shotgun.submit(patternAction, 100L);
-//            InOrder inOrder = inOrder(service3, service1, service2);
-//            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//        } catch (RejectedException e) {
-//            fail("Action should have been accepted by one service.");
-//        }
-//    }
-//
-//    @Test
-//    public void submitFailsIfAllServicesReject() throws Exception {
-//        int[] indices = {2, 0, 1};
-//        when(strategy.nextIndices()).thenReturn(indices);
-//
-//        try {
-//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service3).complete
-//                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service1).complete
-//                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-//            doThrow(new RejectedException(Rejected.CIRCUIT_OPEN)).when(service2).complete
-//                    (actionCaptor.capture(), any(PrecipicePromise.class), eq(100L));
-//            shotgun.submit(patternAction, 100L);
-//            InOrder inOrder = inOrder(service3, service1, service2);
-//            inOrder.verify(service3).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//            inOrder.verify(service1).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//            inOrder.verify(service2).complete(any(ResilientAction.class), any(PrecipicePromise.class), eq(100L));
-//            fail();
-//        } catch (RejectedException e) {
-//            assertEquals(Rejected.ALL_SERVICES_REJECTED, e.reason);
-//        }
-//    }
-//
-//    @Test
-//    public void shotgunSubmitsCorrectNumberOfTimesToRandomlySelectedServices() throws Exception {
-//        Set<Object> contextsUsed = new HashSet<>();
-//
-//        for (int i = 0; i < 25; ++i) {
-//            ArgumentCaptor<Object> contextCaptor = ArgumentCaptor.forClass(Object.class);
-//            ArgumentCaptor<ResilientAction> actionCaptor = ArgumentCaptor.forClass(ResilientAction.class);
-//            AsyncService service1 = mock(AsyncService.class);
-//            AsyncService service2 = mock(AsyncService.class);
-//            AsyncService service3 = mock(AsyncService.class);
-//            PatternAction<String, Object> patternAction = mock(PatternAction.class);
-//            Map<AsyncService, Object> services = new HashMap<>();
-//            services.put(service1, context1);
-//            services.put(service2, context2);
-//            services.put(service3, context3);
-//            ThreadPoolPattern<Object> shotgun = new ThreadPoolPattern<>(services, 2);
-//
-//            shotgun.submit(patternAction, 10);
-//
-//            verify(service1, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
-//            verify(service2, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
-//            verify(service3, atMost(1)).complete(actionCaptor.capture(), any(PrecipicePromise.class), eq(10L));
-//
-//            List<ResilientAction> actions = actionCaptor.getAllValues();
-//
-//            assertEquals(2, actions.size());
-//            for (ResilientAction action : actions) {
-//                action.run();
-//            }
-//            verify(patternAction, times(2)).run(contextCaptor.capture());
-//
-//            List<Object> contexts = contextCaptor.getAllValues();
-//
-//            Object contextCaptured1 = contexts.get(0);
-//            Object contextCaptured2 = contexts.get(1);
-//
-//            contextsUsed.add(contextCaptured1);
-//            contextsUsed.add(contextCaptured2);
-//
-//            assertNotSame(contextCaptured1, contextCaptured2);
-//        }
-//        assertEquals(3, contextsUsed.size());
-//    }
 
+        when(service1.controller()).thenReturn(controller1);
+        when(service2.controller()).thenReturn(controller2);
+        when(service3.controller()).thenReturn(controller3);
+        when(service1.getExecutor()).thenReturn(executor1);
+        when(service2.getExecutor()).thenReturn(executor2);
+        when(service3.getExecutor()).thenReturn(executor3);
+        when(service1.getTimeoutService()).thenReturn(timeoutService1);
+        when(service2.getTimeoutService()).thenReturn(timeoutService2);
+        when(service3.getTimeoutService()).thenReturn(timeoutService3);
+
+        when(controller.getClock()).thenReturn(clock);
+        when(clock.nanoTime()).thenReturn(submitTimeNanos);
+    }
+
+    @Test
+    public void actionsSubmittedToServices() throws Exception {
+        ControllableIterable<ThreadPoolService> iterable = prepIterable(service1, service3);
+        Eventual<Status, Object> parent = new Eventual<>(submitTimeNanos);
+        Eventual<Status, Object> child1 = new Eventual<>(submitTimeNanos, parent);
+        Eventual<Status, Object> child2 = new Eventual<>(submitTimeNanos, parent);
+        long millisTimeout = 100L;
+
+        when(action.call(context1)).thenReturn("Service1");
+        when(action.call(context2)).thenReturn("Service2");
+        when(action.call(context3)).thenReturn("Service3");
+        when(pattern.getControllables(submitTimeNanos)).thenReturn(iterable);
+        when(controller.getPromise(submitTimeNanos)).thenReturn(parent);
+        when(controller1.getPromise(submitTimeNanos, parent)).thenReturn(child1);
+        when(controller3.getPromise(submitTimeNanos, parent)).thenReturn(child2);
+        PrecipiceFuture<Status, String> f = poolPattern.submit(action, millisTimeout);
+
+        verifyZeroInteractions(service2);
+        verify(controller1).getPromise(submitTimeNanos, parent);
+        verify(controller3).getPromise(submitTimeNanos, parent);
+        verify(executor1).execute(task1Captor.capture());
+        verify(executor3).execute(task2Captor.capture());
+        verify(timeoutService1).scheduleTimeout(task1Captor.capture());
+        verify(timeoutService3).scheduleTimeout(task2Captor.capture());
+
+        ThreadPoolTask<Status> task1 = task1Captor.getAllValues().get(0);
+        ThreadPoolTask<Status> task12 = task1Captor.getAllValues().get(1);
+        ThreadPoolTask<Status> task2 = task2Captor.getAllValues().get(0);
+        ThreadPoolTask<Status> task22 = task2Captor.getAllValues().get(1);
+
+        assertSame(task1, task12);
+        assertSame(task2, task22);
+        assertEquals(millisTimeout, task1.getMillisRelativeTimeout());
+        assertEquals(millisTimeout, task2.getMillisRelativeTimeout());
+
+        long expectedNanoTimeout = submitTimeNanos + TimeUnit.MILLISECONDS.toNanos(millisTimeout);
+        assertEquals(expectedNanoTimeout, task1.nanosAbsoluteTimeout);
+        assertEquals(expectedNanoTimeout, task2.nanosAbsoluteTimeout);
+
+        assertNull(f.getStatus());
+        task1.run();
+        task2.run();
+        assertEquals(Status.SUCCESS, f.getStatus());
+        assertEquals("Service1", f.result());
+
+        PrecipiceFuture<Status, Object> future1 = child1.future();
+        PrecipiceFuture<Status, Object> future2 = child2.future();
+        assertEquals("Service1", future1.result());
+        assertEquals(Status.SUCCESS, future1.getStatus());
+        assertEquals("Service3", future2.result());
+        assertEquals(Status.SUCCESS, future2.getStatus());
+    }
+
+    private ControllableIterable<ThreadPoolService> prepIterable(ThreadPoolService... services) {
+        ThreadPoolService[] emptyArray = new ThreadPoolService[services.length];
+        ControllableIterable<ThreadPoolService> iterable = new ControllableIterable<>(emptyArray);
+
+        for (ThreadPoolService service : services) {
+            iterable.add(service);
+        }
+        return iterable;
+    }
 }
