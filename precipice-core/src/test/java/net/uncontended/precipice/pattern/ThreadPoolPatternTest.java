@@ -18,9 +18,12 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.threadpool.ThreadPoolTask;
 import net.uncontended.precipice.time.Clock;
@@ -75,6 +78,8 @@ public class ThreadPoolPatternTest {
     @Mock
     private Clock clock;
     @Mock
+    private ActionMetrics<Status> metrics;
+    @Mock
     private Pattern<Status, ThreadPoolService> pattern;
     @Mock
     private PatternAction<String, Object> action;
@@ -87,7 +92,7 @@ public class ThreadPoolPatternTest {
     private long submitTimeNanos = 10L;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
         Map<ThreadPoolService, Object> services = new LinkedHashMap<>();
@@ -107,7 +112,12 @@ public class ThreadPoolPatternTest {
         when(service3.getTimeoutService()).thenReturn(timeoutService3);
 
         when(controller.getClock()).thenReturn(clock);
+        when(controller.getActionMetrics()).thenReturn(metrics);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
+
+        when(action.call(context1)).thenReturn("Service1");
+        when(action.call(context2)).thenReturn("Service2");
+        when(action.call(context3)).thenReturn("Service3");
     }
 
     @Test
@@ -118,13 +128,11 @@ public class ThreadPoolPatternTest {
         Eventual<Status, Object> child2 = new Eventual<>(submitTimeNanos, parent);
         long millisTimeout = 100L;
 
-        when(action.call(context1)).thenReturn("Service1");
-        when(action.call(context2)).thenReturn("Service2");
-        when(action.call(context3)).thenReturn("Service3");
         when(pattern.getControllables(submitTimeNanos)).thenReturn(iterable);
         when(controller.getPromise(submitTimeNanos)).thenReturn(parent);
         when(controller1.getPromise(submitTimeNanos, parent)).thenReturn(child1);
         when(controller3.getPromise(submitTimeNanos, parent)).thenReturn(child2);
+
         PrecipiceFuture<Status, String> f = poolPattern.submit(action, millisTimeout);
 
         verifyZeroInteractions(service2);
@@ -161,6 +169,37 @@ public class ThreadPoolPatternTest {
         assertEquals(Status.SUCCESS, future1.getStatus());
         assertEquals("Service3", future2.result());
         assertEquals(Status.SUCCESS, future2.getStatus());
+    }
+
+    @Test
+    public void rejectedActionsHandled() throws Exception {
+        when(controller.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.CIRCUIT_OPEN);
+
+        try {
+            poolPattern.submit(action, 100L);
+            fail("Should have been rejected");
+        } catch (RejectedException e) {
+            assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
+        }
+        verify(metrics).incrementRejectionCount(Rejected.CIRCUIT_OPEN, submitTimeNanos);
+
+        verifyZeroInteractions(service1);
+        verifyZeroInteractions(service2);
+        verifyZeroInteractions(service3);
+
+        when(controller.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+
+        try {
+            poolPattern.submit(action, 100L);
+            fail("Should have been rejected");
+        } catch (RejectedException e) {
+            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+        }
+        verify(metrics).incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, submitTimeNanos);
+
+        verifyZeroInteractions(service1);
+        verifyZeroInteractions(service2);
+        verifyZeroInteractions(service3);
     }
 
     private ControllableIterable<ThreadPoolService> prepIterable(ThreadPoolService... services) {
