@@ -19,14 +19,13 @@ package net.uncontended.precipice.pattern;
 
 import java.util.Iterator;
 
-class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
+class SingleReaderSequence<E> implements Sequence<E>, Iterator<E> {
 
-    private final C[] children;
+    private final E[] children;
     private int index = 0;
-
     private int count = 0;
 
-    public ControllableIterable(C[] children) {
+    public SingleReaderSequence(E[] children) {
         this.children = children;
     }
 
@@ -36,14 +35,14 @@ class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
     }
 
     @Override
-    public C next() {
+    public E next() {
         int j = index;
         ++index;
         return children[j];
     }
 
     @Override
-    public Iterator<C> iterator() {
+    public Iterator<E> iterator() {
         return this;
     }
 
@@ -51,7 +50,7 @@ class ControllableIterable<C> implements Iterable<C>, Iterator<C> {
         return count == 0;
     }
 
-    public void add(C child) {
+    public void add(E child) {
         children[count++] = child;
     }
 

@@ -31,7 +31,7 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
     private final List<C> pool;
 
     private final Strategy strategy;
-    private ThreadLocal<ControllableIterable<C>> local = new ThreadLocal<>();
+    private ThreadLocal<SingleReaderSequence<C>> local = new ThreadLocal<>();
 
     public Pattern(Collection<C> controllables, Strategy strategy) {
         if (controllables.size() == 0) {
@@ -48,18 +48,18 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
         this.strategy = strategy;
     }
 
-    public ControllableIterable<C> getControllables(long nanoTime) {
-        ControllableIterable<C> controllableIterable = getControllableIterable();
-        addControllables(nanoTime, controllableIterable);
+    public Sequence<C> getControllables(long nanoTime) {
+        SingleReaderSequence<C> controllables = getControllableSequence();
+        addControllables(nanoTime, controllables);
 
-        return controllableIterable;
+        return controllables;
     }
 
     public List<C> getAllControllables() {
         return pool;
     }
 
-    private void addControllables(long nanoTime, ControllableIterable<C> controllableIterable) {
+    private void addControllables(long nanoTime, SingleReaderSequence<C> controllables) {
         int[] servicesToTry = strategy.nextIndices();
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
@@ -67,7 +67,7 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
             Controller<T> controller = controllable.controller();
             Rejected rejected = controller.acquirePermitOrGetRejectedReason();
             if (rejected == null) {
-                controllableIterable.add(controllable);
+                controllables.add(controllable);
                 ++submittedCount;
             } else {
                 controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
@@ -78,17 +78,17 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
         }
     }
 
-    private ControllableIterable<C> getControllableIterable() {
-        ControllableIterable<C> controllableIterable = local.get();
+    private SingleReaderSequence<C> getControllableSequence() {
+        SingleReaderSequence<C> controllables = local.get();
 
-        if (controllableIterable == null) {
+        if (controllables == null) {
             C[] children = (C[]) new Object[strategy.submissionCount()];
-            controllableIterable = new ControllableIterable<>(children);
-            local.set(controllableIterable);
+            controllables = new SingleReaderSequence<>(children);
+            local.set(controllables);
         }
-        controllableIterable.reset();
+        controllables.reset();
 
-        return controllableIterable;
+        return controllables;
 
     }
 

@@ -126,7 +126,7 @@ public class ThreadPoolPatternTest {
 
     @Test
     public void actionsSubmittedToServices() throws Exception {
-        ControllableIterable<ThreadPoolService> iterable = prepIterable(service1, service3);
+        SingleReaderSequence<ThreadPoolService> iterable = prepIterable(service1, service3);
         Eventual<Status, Object> parent = new Eventual<>(submitTimeNanos);
         Eventual<Status, Object> child1 = new Eventual<>(submitTimeNanos, parent);
         Eventual<Status, Object> child2 = new Eventual<>(submitTimeNanos, parent);
@@ -178,7 +178,7 @@ public class ThreadPoolPatternTest {
 
     @Test
     public void ifNoServiceReturnedThenAllRejected() throws Exception {
-        ControllableIterable<ThreadPoolService> iterable = prepIterable();
+        SingleReaderSequence<ThreadPoolService> iterable = prepIterable();
         long millisTimeout = 100L;
 
         when(controller.acquirePermitOrGetRejectedReason()).thenReturn(null);
@@ -230,9 +230,9 @@ public class ThreadPoolPatternTest {
         verifyZeroInteractions(service3);
     }
 
-    private ControllableIterable<ThreadPoolService> prepIterable(ThreadPoolService... services) {
+    private SingleReaderSequence<ThreadPoolService> prepIterable(ThreadPoolService... services) {
         ThreadPoolService[] emptyArray = new ThreadPoolService[services.length];
-        ControllableIterable<ThreadPoolService> iterable = new ControllableIterable<>(emptyArray);
+        SingleReaderSequence<ThreadPoolService> iterable = new SingleReaderSequence<>(emptyArray);
 
         for (ThreadPoolService service : services) {
             iterable.add(service);

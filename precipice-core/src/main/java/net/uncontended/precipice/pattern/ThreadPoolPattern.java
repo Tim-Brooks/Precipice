@@ -53,7 +53,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
         long nanoTime = acquirePermit();
 
-        ControllableIterable<ThreadPoolService> services = pattern.getControllables(nanoTime);
+        Sequence<ThreadPoolService> services = pattern.getControllables(nanoTime);
 
         if (services.isEmpty()) {
             return handleAllReject(nanoTime);
