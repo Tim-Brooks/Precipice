@@ -17,17 +17,33 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.*;
+import net.uncontended.precipice.Controllable;
+import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.Result;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
 
     private final List<C> pool;
+
     private final Strategy strategy;
     private ThreadLocal<ControllableIterable<C>> local = new ThreadLocal<>();
 
-    public Pattern(List<C> pool, Strategy strategy) {
+    public Pattern(Collection<C> controllables, Strategy strategy) {
+        if (controllables.size() == 0) {
+            throw new IllegalArgumentException("Cannot create Pattern with 0 Controllables.");
+        } else if (strategy.submissionCount() > controllables.size()) {
+            throw new IllegalArgumentException("Submission count cannot be greater than the number of controllables " +
+                    "provided.");
+        }
+
+
+        List<C> pool = new ArrayList<>(controllables.size());
+        pool.addAll(controllables);
         this.pool = pool;
         this.strategy = strategy;
     }
@@ -37,6 +53,10 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
         addControllables(nanoTime, controllableIterable);
 
         return controllableIterable;
+    }
+
+    public List<C> getAllControllables() {
+        return pool;
     }
 
     private void addControllables(long nanoTime, ControllableIterable<C> controllableIterable) {

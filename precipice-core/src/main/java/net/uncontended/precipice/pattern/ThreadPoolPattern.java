@@ -23,8 +23,6 @@ import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.threadpool.ThreadPoolTask;
 import net.uncontended.precipice.timeout.TimeoutService;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -35,30 +33,19 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
     private final Pattern<Status, ThreadPoolService> pattern;
     private final Map<ThreadPoolService, C> serviceToContext;
 
-    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller) {
-        this(serviceToContext, submissionCount, controller, new ShotgunStrategy(serviceToContext.size(), submissionCount));
+
+    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, Controller<Status> controller, Strategy strategy) {
+        this(serviceToContext, controller, new Pattern<>(serviceToContext.keySet(), strategy));
     }
 
-    @SuppressWarnings("unchecked")
-    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, int submissionCount, Controller<Status> controller,
-                             Strategy strategy) {
-        if (serviceToContext.size() == 0) {
-            throw new IllegalArgumentException("Cannot create ThreadPoolPattern with 0 Executors.");
-        } else if (submissionCount > serviceToContext.size()) {
-            throw new IllegalArgumentException("Submission count cannot be greater than the number of services " +
-                    "provided.");
-        }
-
+    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, Controller<Status> controller,
+                             Pattern<Status, ThreadPoolService> pattern) {
         this.serviceToContext = serviceToContext;
         this.controller = controller;
-        List<ThreadPoolService> services = new ArrayList<>(serviceToContext.size());
-        for (Map.Entry<ThreadPoolService, C> entry : serviceToContext.entrySet()) {
-            services.add(entry.getKey());
-        }
-
-        this.pattern = new Pattern<>(services, strategy);
+        this.pattern = pattern;
     }
 
+    @Override
     public Controller<Status> controller() {
         return controller;
     }

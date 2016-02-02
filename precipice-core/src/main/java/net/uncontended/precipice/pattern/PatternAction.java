@@ -17,19 +17,6 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.ResilientAction;
-import net.uncontended.precipice.AsyncService;
-
-/**
- * An action that returns a result and may throw an exception. It is very
- * similar to the {@link ResilientAction}. The primary difference is that
- * the AsyncPattern will pass a C context to the {@code run} method. The context
- * is the specific context for the {@link AsyncService} this action
- * is being ran on.
- *
- * @param <T> the result returned by {@code run}
- * @param <C> the context passed to {@code run}
- */
 public interface PatternAction<T, C> {
 
     T call(C context) throws Exception;

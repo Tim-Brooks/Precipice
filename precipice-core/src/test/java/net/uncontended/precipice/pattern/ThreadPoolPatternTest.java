@@ -17,45 +17,45 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.ResilientAction;
-import net.uncontended.precipice.AsyncService;
-import org.mockito.*;
+import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.Status;
+import net.uncontended.precipice.threadpool.ThreadPoolService;
+import org.junit.Before;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class ShotgunTest {
+public class ThreadPoolPatternTest {
 
     private Object context1 = new Object();
     private Object context2 = new Object();
     private Object context3 = new Object();
     @Mock
-    private AsyncService service1;
+    private ThreadPoolService service1;
     @Mock
-    private AsyncService service2;
+    private ThreadPoolService service2;
     @Mock
-    private AsyncService service3;
+    private ThreadPoolService service3;
     @Mock
-    private PatternAction<String, Object> patternAction;
+    private Controller<Status> controller;
     @Mock
-    private Strategy strategy;
-    @Captor
-    private ArgumentCaptor<ResilientAction<String>> actionCaptor;
-    @Captor
-    private ArgumentCaptor<Object> contextCaptor;
+    private Pattern<Status, ThreadPoolService> pattern;
 
-    private ThreadPoolPattern<Object> shotgun;
+    private ThreadPoolPattern<Object> poolPattern;
 
-//    @Before
-//    public void setUp() {
-//        MockitoAnnotations.initMocks(this);
-//
-//        Map<AsyncService, Object> services = new LinkedHashMap<>();
-//        services.put(service1, context1);
-//        services.put(service2, context2);
-//        services.put(service3, context3);
-//        this.shotgun = new ThreadPoolPattern<>(services, 2, strategy);
-//
-//        when(strategy.submissionCount()).thenReturn(2);
-//    }
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+
+        Map<ThreadPoolService, Object> services = new LinkedHashMap<>();
+        services.put(service1, context1);
+        services.put(service2, context2);
+        services.put(service3, context3);
+        this.poolPattern = new ThreadPoolPattern<>(services, controller, pattern);
+    }
 //
 //    @Test
 //    public void actionsSubmittedToServicesAndContextsProvided() throws Exception {

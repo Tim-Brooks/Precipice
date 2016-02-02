@@ -23,6 +23,7 @@ import net.uncontended.precipice.Services;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.pattern.PatternAction;
+import net.uncontended.precipice.pattern.ShotgunStrategy;
 import net.uncontended.precipice.pattern.ThreadPoolPattern;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 
@@ -58,7 +59,8 @@ public class ShotgunExample {
 
     public void shotgunExample() throws InterruptedException {
         Controller<Status> controller = new Controller<>("shotgun", new ControllerProperties<>(Status.class));
-        ThreadPoolPattern<Map<String, String>> shotgun = new ThreadPoolPattern<>(serviceToContext, 2, controller);
+        ShotgunStrategy shotgunStrategy = new ShotgunStrategy(2, 2);
+        ThreadPoolPattern<Map<String, String>> shotgun = new ThreadPoolPattern<>(serviceToContext, controller, shotgunStrategy);
 
         // Will complete the action to two of the services. If all of the services reject the action,
         // this will throw a RejectedException with Rejected ALL_SERVICES_REJECTED.
