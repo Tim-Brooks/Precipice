@@ -126,4 +126,33 @@ public class PatternTest {
         assertSame(controllable3, controllableList.get(0));
         assertSame(controllable2, controllableList.get(1));
     }
+
+    @Test
+    public void getOnlyReturnsTheNumberOfControllablesThatAreAvailable() {
+        long nanoTime = 10L;
+        int[] indices = {2, 0, 1};
+        ActionMetrics<Status> metrics = mock(ActionMetrics.class);
+        ActionMetrics<Status> metrics2 = mock(ActionMetrics.class);
+
+        when(strategy.nextIndices()).thenReturn(indices);
+        when(controller3.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        when(controller1.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.CIRCUIT_OPEN);
+        when(controller2.acquirePermitOrGetRejectedReason()).thenReturn(null);
+        when(controller1.getActionMetrics()).thenReturn(metrics);
+        when(controller3.getActionMetrics()).thenReturn(metrics2);
+
+        Sequence<Controllable<Status>> all = pattern.getControllables(nanoTime);
+
+        verify(metrics2).incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
+        verify(metrics).incrementRejectionCount(Rejected.CIRCUIT_OPEN, nanoTime);
+
+        List<Controllable<Status>> controllableList = new ArrayList<>();
+        for (Controllable<Status> item : all) {
+            controllableList.add(item);
+        }
+
+
+        assertEquals(1, controllableList.size());
+        assertSame(controllable2, controllableList.get(0));
+    }
 }
