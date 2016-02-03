@@ -30,7 +30,6 @@ public final class Snapshot {
     public static final String TOTAL_TIMEOUTS = "total-timeouts";
     public static final String TOTAL_ERRORS = "total-errors";
     public static final String TOTAL_MAX_CONCURRENCY = "total-max-concurrency";
-    public static final String TOTAL_QUEUE_FULL = "total-queue-full";
     public static final String TOTAL_CIRCUIT_OPEN = "total-circuit-open";
     public static final String TOTAL_ALL_REJECTED = "total-all-rejected";
     public static final String TOTAL = "total";
@@ -38,7 +37,6 @@ public final class Snapshot {
     public static final String TIMEOUTS = "timeouts";
     public static final String ERRORS = "errors";
     public static final String MAX_CONCURRENCY = "max-concurrency";
-    public static final String QUEUE_FULL = "queue-full";
     public static final String CIRCUIT_OPEN = "circuit-open";
     public static final String ALL_REJECTED = "all-rejected";
     public static final String MAX_1_TOTAL = "max-1-total";
@@ -46,7 +44,6 @@ public final class Snapshot {
     public static final String MAX_1_TIMEOUTS = "max-1-timeouts";
     public static final String MAX_1_ERRORS = "max-1-errors";
     public static final String MAX_1_MAX_CONCURRENCY = "max-1-max-concurrency";
-    public static final String MAX_1_QUEUE_FULL = "max-1-queue-full";
     public static final String MAX_1_CIRCUIT_OPEN = "max-1-circuit-open";
     public static final String MAX_1_ALL_REJECTED = "max-1-all-rejected";
     public static final String MAX_2_TOTAL = "max-2-total";
@@ -54,7 +51,6 @@ public final class Snapshot {
     public static final String MAX_2_TIMEOUTS = "max-2-timeouts";
     public static final String MAX_2_ERRORS = "max-2-errors";
     public static final String MAX_2_MAX_CONCURRENCY = "max-2-max-concurrency";
-    public static final String MAX_2_QUEUE_FULL = "max-2-queue-full";
     public static final String MAX_2_CIRCUIT_OPEN = "max-2-circuit-open";
     public static final String MAX_2_ALL_REJECTED = "max-2-all-rejected";
 
