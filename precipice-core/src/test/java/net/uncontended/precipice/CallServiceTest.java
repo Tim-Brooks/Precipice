@@ -44,8 +44,6 @@ public class CallServiceTest {
 
     private CallService service;
 
-    private final ExecutorService actionRunner = Executors.newCachedThreadPool();
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
