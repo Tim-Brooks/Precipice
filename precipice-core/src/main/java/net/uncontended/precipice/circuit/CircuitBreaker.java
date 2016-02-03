@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.circuit;
 
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
 public interface CircuitBreaker {
@@ -27,9 +28,9 @@ public interface CircuitBreaker {
 
     boolean allowAction(long nanoTime);
 
-    void informBreakerOfResult(boolean successful);
+    void informBreakerOfResult(Result result);
     
-    void informBreakerOfResult(boolean successful, long nanoTime);
+    void informBreakerOfResult(Result result, long nanoTime);
 
     void setActionMetrics(ActionMetrics<?> metrics);
 

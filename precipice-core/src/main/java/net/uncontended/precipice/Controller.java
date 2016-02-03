@@ -170,7 +170,7 @@ public class Controller<T extends Enum<T> & Result> {
         public void apply(T status, PerformingContext context) {
             long endTime = clock.nanoTime();
             actionMetrics.incrementMetricCount(status, endTime);
-            circuitBreaker.informBreakerOfResult(status.isSuccess(), endTime);
+            circuitBreaker.informBreakerOfResult(status, endTime);
             latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
             semaphore.releasePermit(1);
         }

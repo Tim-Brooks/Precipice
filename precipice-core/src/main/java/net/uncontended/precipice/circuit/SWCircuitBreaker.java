@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.circuit;
 
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.metrics.ActionMetrics;
 import net.uncontended.precipice.metrics.BackgroundTask;
 import net.uncontended.precipice.metrics.HealthSnapshot;
@@ -73,13 +74,13 @@ public class SWCircuitBreaker implements CircuitBreaker, BackgroundTask {
     }
 
     @Override
-    public void informBreakerOfResult(boolean successful) {
-        informBreakerOfResult(successful, systemTime.nanoTime());
+    public void informBreakerOfResult(Result result) {
+        informBreakerOfResult(result, systemTime.nanoTime());
     }
 
     @Override
-    public void informBreakerOfResult(boolean successful, long nanoTime) {
-        if (successful) {
+    public void informBreakerOfResult(Result result, long nanoTime) {
+        if (result.isSuccess()) {
             if (state.get() == OPEN) {
                 // This can get stuck in a loop with open and closing
                 state.compareAndSet(OPEN, CLOSED);

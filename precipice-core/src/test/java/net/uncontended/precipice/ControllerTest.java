@@ -121,7 +121,7 @@ public class ControllerTest {
 
         promise.complete(Status.SUCCESS, "hello");
 
-        verify(breaker).informBreakerOfResult(true, 100L);
+        verify(breaker).informBreakerOfResult(Status.SUCCESS, 100L);
         verify(metrics).incrementMetricCount(Status.SUCCESS, 100L);
         verify(latencyMetrics).recordLatency(Status.SUCCESS, 90L, 100L);
         verify(semaphore).releasePermit(1);

@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.circuit;
 
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.metrics.ActionMetrics;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,11 +42,11 @@ public class NoOpCircuitBreaker implements CircuitBreaker {
     }
 
     @Override
-    public void informBreakerOfResult(boolean successful) {
+    public void informBreakerOfResult(Result result) {
     }
 
     @Override
-    public void informBreakerOfResult(boolean successful, long nanoTime) {
+    public void informBreakerOfResult(Result result, long nanoTime) {
 
     }
 
