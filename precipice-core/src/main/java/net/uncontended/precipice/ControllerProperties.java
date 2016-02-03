@@ -39,7 +39,6 @@ public class ControllerProperties<T extends Enum<T> & Result> {
     private LatencyMetrics<T> latencyMetrics;
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private PrecipiceSemaphore semaphore;
-    private int concurrencyLevel = MAX_CONCURRENCY_LEVEL;
     private Clock clock = new SystemTime();
 
     public ControllerProperties(Class<T> type) {
