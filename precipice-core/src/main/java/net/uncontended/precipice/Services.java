@@ -31,7 +31,6 @@ public final class Services {
 
     public static ThreadPoolService submissionService(String name, int poolSize, int concurrencyLevel) {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-
         ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
         controllerProperties.semaphore(new LongSemaphore(concurrencyLevel));
         return new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
