@@ -61,10 +61,17 @@ public class KafkaService<K, V> implements Controllable<Status> {
 
     @Override
     public Controller<Status> controller() {
-        return null;
+        return controller;
     }
 
     public void shutdown() {
-        producer.close();
+        shutdown(true);
+    }
+
+    public void shutdown(boolean shutdownClient) {
+        controller.shutdown();
+        if (shutdownClient) {
+            producer.close();
+        }
     }
 }

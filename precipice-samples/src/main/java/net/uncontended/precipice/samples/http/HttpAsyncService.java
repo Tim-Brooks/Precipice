@@ -69,6 +69,13 @@ public class HttpAsyncService implements Controllable<Status> {
 
 
     public void shutdown() {
-        client.close();
+        shutdown(true);
+    }
+
+    public void shutdown(boolean shutdownClient) {
+        controller.shutdown();
+        if (shutdownClient) {
+            client.close();
+        }
     }
 }
