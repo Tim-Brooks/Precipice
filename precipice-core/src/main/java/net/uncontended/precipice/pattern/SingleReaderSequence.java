@@ -21,12 +21,12 @@ import java.util.Iterator;
 
 class SingleReaderSequence<E> implements Sequence<E>, Iterator<E> {
 
-    private final E[] children;
+    private final Object[] children;
     private int index = 0;
     private int count = 0;
 
-    public SingleReaderSequence(E[] children) {
-        this.children = children;
+    public SingleReaderSequence(int size) {
+        this.children = new Object[size];
     }
 
     @Override
@@ -38,7 +38,7 @@ class SingleReaderSequence<E> implements Sequence<E>, Iterator<E> {
     public E next() {
         int j = index;
         ++index;
-        return children[j];
+        return (E) children[j];
     }
 
     @Override

@@ -82,8 +82,7 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
         SingleReaderSequence<C> controllables = local.get();
 
         if (controllables == null) {
-            C[] children = (C[]) new Object[strategy.submissionCount()];
-            controllables = new SingleReaderSequence<>(children);
+            controllables = new SingleReaderSequence<>(strategy.submissionCount());
             local.set(controllables);
         }
         controllables.reset();

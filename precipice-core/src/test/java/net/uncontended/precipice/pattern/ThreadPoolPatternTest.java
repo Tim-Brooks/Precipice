@@ -231,8 +231,7 @@ public class ThreadPoolPatternTest {
     }
 
     private SingleReaderSequence<ThreadPoolService> prepIterable(ThreadPoolService... services) {
-        ThreadPoolService[] emptyArray = new ThreadPoolService[services.length];
-        SingleReaderSequence<ThreadPoolService> iterable = new SingleReaderSequence<>(emptyArray);
+        SingleReaderSequence<ThreadPoolService> iterable = new SingleReaderSequence<>(services.length);
 
         for (ThreadPoolService service : services) {
             iterable.add(service);
