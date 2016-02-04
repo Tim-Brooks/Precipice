@@ -51,6 +51,8 @@ public interface CountMetrics<T extends Enum<T> & Result> {
 
     Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit);
 
+    Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit, long nanoTime);
+
     MetricCounter<T> totalCountMetricCounter();
 
     Class<T> getMetricType();

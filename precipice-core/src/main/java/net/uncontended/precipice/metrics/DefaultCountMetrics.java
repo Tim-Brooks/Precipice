@@ -29,8 +29,6 @@ public class DefaultCountMetrics<T extends Enum<T> & Result> implements CountMet
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;
     private final CircularBuffer<MetricCounter<T>> buffer;
-    private final int slotsToTrack;
-    private final long millisecondsPerSlot;
     private final Clock systemTime;
     private final Class<T> type;
 
@@ -44,7 +42,7 @@ public class DefaultCountMetrics<T extends Enum<T> & Result> implements CountMet
 
     public DefaultCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
         this.systemTime = systemTime;
-        millisecondsPerSlot = slotUnit.toMillis(resolution);
+        long millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
             throw new IllegalArgumentException(String.format("Too low of resolution. %s milliseconds per slot is the " +
                     "lowest valid resolution", Integer.MAX_VALUE));
@@ -55,7 +53,6 @@ public class DefaultCountMetrics<T extends Enum<T> & Result> implements CountMet
         }
 
         long startTime = systemTime.nanoTime();
-        this.slotsToTrack = slotsToTrack;
 
         this.type = type;
         totalCounter = new MetricCounter<>(this.type);
@@ -174,7 +171,12 @@ public class DefaultCountMetrics<T extends Enum<T> & Result> implements CountMet
 
     @Override
     public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
-        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, systemTime.nanoTime(), noOpCounter);
+        return metricCounterIterable(timePeriod, timeUnit, systemTime.nanoTime());
+    }
+
+    @Override
+    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }
 
     @Override
