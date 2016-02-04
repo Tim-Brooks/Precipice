@@ -18,7 +18,6 @@
 package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.Result;
-import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.MetricCounter;
 
@@ -26,10 +25,10 @@ import java.util.concurrent.TimeUnit;
 
 public class HealthGauge<T extends Enum<T> & Result> {
 
-    private final CountMetrics<T> metrics;
+    private final BPCountMetrics<T> metrics;
     private final Class<T> type;
 
-    public HealthGauge(CountMetrics<T> metrics) {
+    public HealthGauge(BPCountMetrics<T> metrics) {
         this.metrics = metrics;
         type = metrics.getMetricType();
     }
