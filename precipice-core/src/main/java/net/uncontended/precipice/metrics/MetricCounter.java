@@ -21,7 +21,7 @@ import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.concurrent.LongAdder;
 
-public class MetricCounter<T extends Enum<T> & Result> {
+public class MetricCounter<T extends Enum<T>> {
 
     private final LongAdder[] metrics;
     private final LongAdder[] rejectionMetrics;
@@ -58,7 +58,7 @@ public class MetricCounter<T extends Enum<T> & Result> {
         return rejectionMetrics[reason.ordinal()].longValue();
     }
 
-    public static <T extends Enum<T> & Result> MetricCounter<T> noOpCounter(Class<T> clazz) {
+    public static <T extends Enum<T>> MetricCounter<T> noOpCounter(Class<T> clazz) {
         return new MetricCounter<T>(clazz) {
             @Override
             public void incrementMetric(T metric) {

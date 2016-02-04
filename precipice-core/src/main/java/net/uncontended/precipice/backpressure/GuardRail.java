@@ -17,36 +17,40 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.*;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.PerformingContext;
+import net.uncontended.precipice.PrecipiceFunction;
+import net.uncontended.precipice.Result;
+import net.uncontended.precipice.concurrent.Completable;
+import net.uncontended.precipice.concurrent.CompletionContext;
+import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuardRail<T extends Enum<T> & Result> {
+public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>> {
 
-    private final CountMetrics<T> countMetrics;
-    private final LatencyMetrics<T> latencyMetrics;
+    private final BPCountMetrics<Res> resultMetrics;
+    private final BPCountMetrics<Rejected> rejectedMetrics;
+    private final LatencyMetrics<Res> latencyMetrics;
     private final String name;
     private final Clock clock;
-    private final FinishingCallback<T> finishingCallback;
+    private final FinishingCallback<Res, Rejected> finishingCallback;
     private volatile boolean isShutdown = false;
-    private List<BackPressure> backPressureList;
+    private List<BackPressure<Rejected>> backPressureList;
 
-    public GuardRail(String name, ControllerProperties<T> properties) {
-        this(name, properties.actionMetrics(), properties.latencyMetrics(), properties.clock());
-    }
 
-    public GuardRail(String name, CountMetrics<T> countMetrics, LatencyMetrics<T> latencyMetrics, Clock clock) {
-        this.countMetrics = countMetrics;
+    public GuardRail(String name, BPCountMetrics<Res> resultMetrics, BPCountMetrics<Rejected> rejectedMetrics,
+                     LatencyMetrics<Res> latencyMetrics, Clock clock) {
+        this.resultMetrics = resultMetrics;
+        this.rejectedMetrics = rejectedMetrics;
         this.latencyMetrics = latencyMetrics;
         this.name = name;
         this.clock = clock;
         backPressureList = new ArrayList<>();
-        finishingCallback = new FinishingCallback<>(countMetrics, backPressureList, latencyMetrics, clock);
+        finishingCallback = new FinishingCallback<>(resultMetrics, backPressureList, latencyMetrics, clock);
     }
 
     public Rejected acquirePermitOrGetRejectedReason(long nanoTime) {
@@ -65,47 +69,47 @@ public class GuardRail<T extends Enum<T> & Result> {
         return null;
     }
 
-    public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise() {
+    public <R> PrecipicePromise<Res, R> acquirePermitAndGetPromise() {
         return acquirePermitAndGetPromise(null);
     }
 
-    public <R> PrecipicePromise<T, R> acquirePermitAndGetPromise(PrecipicePromise<T, R> externalPromise) {
+    public <R> PrecipicePromise<Res, R> acquirePermitAndGetPromise(PrecipicePromise<Res, R> externalPromise) {
         long startTime = clock.nanoTime();
         Rejected rejected = acquirePermitOrGetRejectedReason(startTime);
         if (rejected != null) {
-            countMetrics.incrementRejectionCount(rejected, startTime);
-            throw new RejectedException(rejected);
+            rejectedMetrics.incrementMetricCount(rejected, startTime);
+            throw new BPRejectedException(rejected);
         }
 
         return getPromise(startTime, externalPromise);
     }
 
-    public <R> PrecipicePromise<T, R> getPromise(long nanoTime) {
+    public <R> PrecipicePromise<Res, R> getPromise(long nanoTime) {
         return getPromise(nanoTime, null);
     }
 
-    public <R> PrecipicePromise<T, R> getPromise(long nanoTime, Completable<T, R> externalCompletable) {
-        Eventual<T, R> promise = new Eventual<>(nanoTime, externalCompletable);
+    public <R> PrecipicePromise<Res, R> getPromise(long nanoTime, Completable<Res, R> externalCompletable) {
+        Eventual<Res, R> promise = new Eventual<>(nanoTime, externalCompletable);
         promise.internalOnComplete(finishingCallback);
         return promise;
     }
 
-    public <R> Completable<T, R> acquirePermitAndGetCompletableContext(long nanoTime) {
+    public <R> Completable<Res, R> acquirePermitAndGetCompletableContext(long nanoTime) {
         Rejected rejected = acquirePermitOrGetRejectedReason(nanoTime);
         if (rejected != null) {
-            countMetrics.incrementRejectionCount(rejected, nanoTime);
-            throw new RejectedException(rejected);
+            rejectedMetrics.incrementMetricCount(rejected, nanoTime);
+            throw new BPRejectedException(rejected);
         }
 
         return getCompletableContext(nanoTime);
     }
 
-    public <R> Completable<T, R> getCompletableContext(long nanoTime) {
+    public <R> Completable<Res, R> getCompletableContext(long nanoTime) {
         return getCompletableContext(nanoTime, null);
     }
 
-    public <R> Completable<T, R> getCompletableContext(long nanoTime, Completable<T, R> completable) {
-        CompletionContext<T, R> context = new CompletionContext<>(nanoTime, completable);
+    public <R> Completable<Res, R> getCompletableContext(long nanoTime, Completable<Res, R> completable) {
+        CompletionContext<Res, R> context = new CompletionContext<>(nanoTime, completable);
         context.internalOnComplete(finishingCallback);
         return context;
     }
@@ -118,11 +122,15 @@ public class GuardRail<T extends Enum<T> & Result> {
         return name;
     }
 
-    public CountMetrics<T> getCountMetrics() {
-        return countMetrics;
+    public BPCountMetrics<Res> getResultMetrics() {
+        return resultMetrics;
     }
 
-    public LatencyMetrics<T> getLatencyMetrics() {
+    public BPCountMetrics<Rejected> getRejectedMetrics() {
+        return rejectedMetrics;
+    }
+
+    public LatencyMetrics<Res> getLatencyMetrics() {
         return latencyMetrics;
     }
 
@@ -130,28 +138,29 @@ public class GuardRail<T extends Enum<T> & Result> {
         return clock;
     }
 
-    private static class FinishingCallback<T extends Enum<T> & Result> implements PrecipiceFunction<T, PerformingContext> {
+    private static class FinishingCallback<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>>
+            implements PrecipiceFunction<Res, PerformingContext> {
 
-        private final CountMetrics<T> countMetrics;
-        private final List<BackPressure> backPressureList;
-        private final LatencyMetrics<T> latencyMetrics;
+        private final BPCountMetrics<Res> resultMetrics;
+        private final List<BackPressure<Rejected>> backPressureList;
+        private final LatencyMetrics<Res> latencyMetrics;
         private final Clock clock;
 
-        private FinishingCallback(CountMetrics<T> countMetrics, List<BackPressure> backPressureList,
-                                  LatencyMetrics<T> latencyMetrics, Clock clock) {
-            this.countMetrics = countMetrics;
+        private FinishingCallback(BPCountMetrics<Res> resultMetrics, List<BackPressure<Rejected>> backPressureList,
+                                  LatencyMetrics<Res> latencyMetrics, Clock clock) {
+            this.resultMetrics = resultMetrics;
             this.backPressureList = backPressureList;
             this.latencyMetrics = latencyMetrics;
             this.clock = clock;
         }
 
         @Override
-        public void apply(T status, PerformingContext context) {
+        public void apply(Res result, PerformingContext context) {
             long endTime = clock.nanoTime();
-            countMetrics.incrementMetricCount(status, endTime);
-            latencyMetrics.recordLatency(status, endTime - context.startNanos(), endTime);
+            resultMetrics.incrementMetricCount(result, endTime);
+            latencyMetrics.recordLatency(result, endTime - context.startNanos(), endTime);
             for (BackPressure backPressure : backPressureList) {
-                backPressure.releasePermit(1, status, endTime);
+                backPressure.releasePermit(1, result, endTime);
             }
         }
     }

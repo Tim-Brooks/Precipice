@@ -34,7 +34,7 @@ public class HealthGauge<T extends Enum<T> & Result> {
         type = metrics.getMetricType();
     }
 
-    public HealthSnapshot thing(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public HealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<MetricCounter<T>> counters = metrics.metricCounterIterable(timePeriod, timeUnit, nanoTime);
 
         long total = 0;

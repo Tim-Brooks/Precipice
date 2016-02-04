@@ -17,13 +17,11 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.Result;
+public class BPRejectedException extends RuntimeException {
 
-public interface BackPressure<Rejected extends Enum<Rejected>> {
+    public final Enum reason;
 
-    Rejected acquirePermit(long number, long nanoTime);
-
-    void releasePermit(long number, long nanoTime);
-
-    void releasePermit(long number, Result status, long nanoTime);
+    public BPRejectedException(Enum reason) {
+        this.reason = reason;
+    }
 }
