@@ -22,12 +22,12 @@ import net.uncontended.precipice.Result;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BackpressureSemaphore implements Backpressure {
+public class BackPressureSemaphore implements BackPressure {
 
     private final AtomicLong permitsRemaining;
     private final int maxConcurrencyLevel;
 
-    public BackpressureSemaphore(int maxConcurrencyLevel) {
+    public BackPressureSemaphore(int maxConcurrencyLevel) {
         this.maxConcurrencyLevel = maxConcurrencyLevel;
         this.permitsRemaining = new AtomicLong(maxConcurrencyLevel);
     }
@@ -47,6 +47,11 @@ public class BackpressureSemaphore implements Backpressure {
     }
 
     @Override
+    public void releasePermit(long rateUnits, long nanoTime) {
+        this.permitsRemaining.getAndIncrement();
+    }
+
+    @Override
     public void releasePermit(long rateUnits, Result result, long nanoTime) {
         this.permitsRemaining.getAndIncrement();
     }
@@ -58,7 +63,7 @@ public class BackpressureSemaphore implements Backpressure {
     public long remainingCapacity() {
         return permitsRemaining.get();
     }
-    
+
     public long currentConcurrencyLevel() {
         return maxConcurrencyLevel - permitsRemaining.get();
     }

@@ -20,9 +20,11 @@ package net.uncontended.precipice.backpressure;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 
-public interface Backpressure {
+public interface BackPressure {
 
     Rejected acquirePermit(long number, long nanoTime);
+
+    void releasePermit(long number, long nanoTime);
 
     void releasePermit(long number, Result status, long nanoTime);
 }

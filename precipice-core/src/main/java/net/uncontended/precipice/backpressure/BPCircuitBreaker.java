@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BPCircuitBreaker implements Backpressure {
+public class BPCircuitBreaker implements BackPressure {
     private static final int CLOSED = 0;
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;
@@ -57,6 +57,9 @@ public class BPCircuitBreaker implements Backpressure {
         }
         return state != FORCED_OPEN ? null : Rejected.CIRCUIT_OPEN;
     }
+
+    @Override
+    public void releasePermit(long number, long nanoTime) {}
 
     @Override
     public void releasePermit(long number, Result result, long nanoTime) {
