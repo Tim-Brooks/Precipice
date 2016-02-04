@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class Summary<T extends Enum<T> & Result> {
     private final long period;
     private final TimeUnit unit;
-    private final ActionMetrics<T> actionMetrics;
+    private final CountMetrics<T> countMetrics;
     private final Service service;
 
     public long pendingCount = 0;
@@ -44,11 +44,11 @@ public class Summary<T extends Enum<T> & Result> {
     public LatencySnapshot totalTimeoutLatency = LatencyMetrics.DEFAULT_SNAPSHOT;
     private final Class<T> metricType;
 
-    Summary(long period, TimeUnit unit, ActionMetrics<T> metrics, Service service) {
+    Summary(long period, TimeUnit unit, CountMetrics<T> metrics, Service service) {
         this.period = period;
         this.unit = unit;
         this.service = service;
-        actionMetrics = metrics;
+        countMetrics = metrics;
         remainingCapacity = service.remainingCapacity();
         metricType = metrics.getMetricType();
         totalMetricCounts = new long[metricType.getEnumConstants().length];
@@ -59,7 +59,7 @@ public class Summary<T extends Enum<T> & Result> {
         pendingCount = service.pendingCount();
         remainingCapacity = service.remainingCapacity();
 
-        MetricCounter<T> totalMetricCounter = actionMetrics.totalCountMetricCounter();
+        MetricCounter<T> totalMetricCounter = countMetrics.totalCountMetricCounter();
 
         for (T t : metricType.getEnumConstants()) {
             int metricIndex = t.ordinal();
@@ -67,7 +67,7 @@ public class Summary<T extends Enum<T> & Result> {
             totalMetricCounts[metricIndex] = totalMetricCounter.getMetricCount(t);
         }
 
-        for (MetricCounter<T> m : actionMetrics.metricCounterIterable(period, unit)) {
+        for (MetricCounter<T> m : countMetrics.metricCounterIterable(period, unit)) {
             for (T t : metricType.getEnumConstants()) {
                 metricCounts[t.ordinal()] += m.getMetricCount(t);
             }

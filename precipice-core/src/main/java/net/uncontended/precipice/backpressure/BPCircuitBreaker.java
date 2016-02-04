@@ -20,7 +20,7 @@ package net.uncontended.precipice.backpressure;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.circuit.BreakerConfig;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 
 import java.util.concurrent.TimeUnit;
@@ -37,7 +37,7 @@ public class BPCircuitBreaker implements Backpressure {
     private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
-    private ActionMetrics<?> actionMetrics;
+    private CountMetrics<?> countMetrics;
 
     public BPCircuitBreaker(BreakerConfig breakerConfig) {
         this.breakerConfig = breakerConfig;
@@ -93,8 +93,8 @@ public class BPCircuitBreaker implements Backpressure {
         this.breakerConfig = breakerConfig;
     }
 
-    public void setActionMetrics(ActionMetrics<?> actionMetrics) {
-        this.actionMetrics = actionMetrics;
+    public void setCountMetrics(CountMetrics<?> countMetrics) {
+        this.countMetrics = countMetrics;
     }
 
     public void forceOpen() {
@@ -109,7 +109,7 @@ public class BPCircuitBreaker implements Backpressure {
         long lastHealthTime = this.lastHealthTime.get();
         if (lastHealthTime + config.healthRefreshMillis < currentTime) {
             if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                HealthSnapshot newHealth = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+                HealthSnapshot newHealth = countMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
                 health = newHealth;
                 return newHealth;
             }

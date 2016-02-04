@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.circuit.CircuitBreaker;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 
 public interface Service {
@@ -30,11 +30,11 @@ public interface Service {
     String getName();
 
     /**
-     * Returns the {@link ActionMetrics} for this service.
+     * Returns the {@link CountMetrics} for this service.
      *
      * @return the metrics backing this service
      */
-    ActionMetrics<?> getActionMetrics();
+    CountMetrics<?> getActionMetrics();
 
     /**
      * Returns the {@link LatencyMetrics} for this service.

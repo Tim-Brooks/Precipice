@@ -25,7 +25,7 @@ import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.ControllerProperties;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -42,8 +42,8 @@ public class Entry {
         try {
             System.out.println(f.get());
             System.out.println(f.getStatus());
-            ActionMetrics<Status> actionMetrics = service.controller().getActionMetrics();
-            System.out.println(actionMetrics.getMetricCountForTimePeriod(Status.SUCCESS, 100, TimeUnit
+            CountMetrics<Status> countMetrics = service.controller().getCountMetrics();
+            System.out.println(countMetrics.getMetricCountForTimePeriod(Status.SUCCESS, 100, TimeUnit
                     .SECONDS));
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();

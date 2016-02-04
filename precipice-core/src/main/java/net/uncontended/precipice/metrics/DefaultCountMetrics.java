@@ -24,7 +24,7 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionMetrics<T> {
+public class DefaultCountMetrics<T extends Enum<T> & Result> implements CountMetrics<T> {
 
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;
@@ -34,15 +34,15 @@ public class DefaultActionMetrics<T extends Enum<T> & Result> implements ActionM
     private final Clock systemTime;
     private final Class<T> type;
 
-    public DefaultActionMetrics(Class<T> type) {
+    public DefaultCountMetrics(Class<T> type) {
         this(type, 3600, 1, TimeUnit.SECONDS);
     }
 
-    public DefaultActionMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+    public DefaultCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
         this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public DefaultActionMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
+    public DefaultCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
         this.systemTime = systemTime;
         millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {

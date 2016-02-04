@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Result;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
@@ -39,7 +39,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
-    private ActionMetrics<?> actionMetrics;
+    private CountMetrics<?> countMetrics;
 
     public DefaultCircuitBreaker(BreakerConfig breakerConfig) {
         this(breakerConfig, new SystemTime());
@@ -113,9 +113,8 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         this.breakerConfig = breakerConfig;
     }
 
-    @Override
-    public void setActionMetrics(ActionMetrics<?> actionMetrics) {
-        this.actionMetrics = actionMetrics;
+    public void setCountMetrics(CountMetrics<?> countMetrics) {
+        this.countMetrics = countMetrics;
     }
 
     @Override
@@ -132,7 +131,7 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
         long lastHealthTime = this.lastHealthTime.get();
         if (lastHealthTime + config.healthRefreshMillis < currentTime) {
             if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                HealthSnapshot newHealth = actionMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+                HealthSnapshot newHealth = countMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
                 health = newHealth;
                 return newHealth;
             }

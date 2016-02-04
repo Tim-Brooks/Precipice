@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Result;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 
 public interface CircuitBreaker {
 
@@ -32,7 +32,7 @@ public interface CircuitBreaker {
     
     void informBreakerOfResult(Result result, long nanoTime);
 
-    void setActionMetrics(ActionMetrics<?> metrics);
+    void setCountMetrics(CountMetrics<?> metrics);
 
     void setBreakerConfig(BreakerConfig breakerConfig);
 

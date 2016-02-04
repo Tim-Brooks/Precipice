@@ -18,8 +18,6 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.LongSemaphore;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.utils.PrecipiceExecutors;
 

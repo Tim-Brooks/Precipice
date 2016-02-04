@@ -22,7 +22,7 @@ import net.uncontended.precipice.Result;
 
 import java.util.concurrent.TimeUnit;
 
-public interface ActionMetrics<T extends Enum<T> & Result> {
+public interface CountMetrics<T extends Enum<T> & Result> {
 
     void incrementMetricCount(T metric);
 

@@ -21,7 +21,7 @@ import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 public class ControllerTest {
 
     @Mock
-    private ActionMetrics<Status> metrics;
+    private CountMetrics<Status> metrics;
     @Mock
     private LatencyMetrics<Status> latencyMetrics;
     @Mock
@@ -130,7 +130,7 @@ public class ControllerTest {
     @Test
     public void acquirePermitAndGetPromiseThrowsIfMaxConcurrencyRejected() {
         controller = new Controller<>("Controller Name", properties);
-        verify(breaker).setActionMetrics(metrics);
+        verify(breaker).setCountMetrics(metrics);
 
         long startTime = 10L;
         when(clock.nanoTime()).thenReturn(startTime);
@@ -152,7 +152,7 @@ public class ControllerTest {
     @Test
     public void acquirePermitAndGetPromiseThrowsIfCircuitOpen() {
         controller = new Controller<>("Controller Name", properties);
-        verify(breaker).setActionMetrics(metrics);
+        verify(breaker).setCountMetrics(metrics);
 
         long startTime = 10L;
 

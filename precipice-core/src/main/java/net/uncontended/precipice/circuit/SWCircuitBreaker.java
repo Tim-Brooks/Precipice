@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Result;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.BackgroundTask;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.time.Clock;
@@ -38,7 +38,7 @@ public class SWCircuitBreaker implements CircuitBreaker, BackgroundTask {
     private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
-    private ActionMetrics<?> actionMetrics;
+    private CountMetrics<?> countMetrics;
 
     public SWCircuitBreaker(BreakerConfig breakerConfig) {
         this(breakerConfig, new SystemTime());
@@ -111,9 +111,8 @@ public class SWCircuitBreaker implements CircuitBreaker, BackgroundTask {
         this.breakerConfig = breakerConfig;
     }
 
-    @Override
-    public void setActionMetrics(ActionMetrics<?> actionMetrics) {
-        this.actionMetrics = actionMetrics;
+    public void setCountMetrics(CountMetrics<?> countMetrics) {
+        this.countMetrics = countMetrics;
     }
 
     @Override
@@ -128,7 +127,7 @@ public class SWCircuitBreaker implements CircuitBreaker, BackgroundTask {
 
     @Override
     public void tick(long currentTime) {
-        health = actionMetrics.healthSnapshot(breakerConfig.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+        health = countMetrics.healthSnapshot(breakerConfig.trailingPeriodMillis, TimeUnit.MILLISECONDS);
     }
 
     private static long currentMillisTime(long nanoTime) {

@@ -31,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-public class DefaultActionMetricsTest {
+public class DefaultCountMetricsTest {
 
     @Mock
     private Clock systemTime;
 
-    private DefaultActionMetrics<Status> metrics;
+    private DefaultCountMetrics<Status> metrics;
 
     @Before
     public void setUp() {
@@ -46,7 +46,7 @@ public class DefaultActionMetricsTest {
     @Test
     public void testMetricsEdgeScenario() {
         when(systemTime.nanoTime()).thenReturn(0L * 1000L * 1000L);
-        metrics = new DefaultActionMetrics<>(Status.class, 1, 1, TimeUnit.SECONDS, systemTime);
+        metrics = new DefaultCountMetrics<>(Status.class, 1, 1, TimeUnit.SECONDS, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
         metrics.incrementMetricCount(Status.SUCCESS);
@@ -67,7 +67,7 @@ public class DefaultActionMetricsTest {
         int slotsToTrack = 2;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new DefaultActionMetrics<>(Status.class, slotsToTrack, 1, unit, systemTime);
+        metrics = new DefaultCountMetrics<>(Status.class, slotsToTrack, 1, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
         metrics.incrementMetricCount(Status.ERROR);
@@ -103,7 +103,7 @@ public class DefaultActionMetricsTest {
         long millisResolution = resolution * 1000;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new DefaultActionMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultCountMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 8) * 1000L * 1000L);
         metrics.incrementMetricCount(Status.ERROR);
@@ -125,7 +125,7 @@ public class DefaultActionMetricsTest {
         long resolution = 1;
         int slotsTracked = 10;
         when(systemTime.nanoTime()).thenReturn(startTime);
-        metrics = new DefaultActionMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultCountMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
 
         metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(0));
         metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(10));
@@ -146,7 +146,7 @@ public class DefaultActionMetricsTest {
         int slotsTracked = 1000;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new DefaultActionMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultCountMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(offsetTime * 1000L * 1000L);
         metrics.incrementMetricCount(Status.SUCCESS);
@@ -163,24 +163,9 @@ public class DefaultActionMetricsTest {
     }
 
     @Test
-    public void testDoesNotThrowExceptionFromTooHighLatency() {
-        TimeUnit unit = TimeUnit.MILLISECONDS;
-//        long resolution = 100;
-//        int slotsTracked = 1000;
-//
-//        long trackableValue = TimeUnit.HOURS.toNanos(1);
-//        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
-//        metrics.incrementMetricAndRecordLatency(Status.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
-//
-//        trackableValue = TimeUnit.MINUTES.toNanos(1);
-//        metrics = new DefaultActionMetrics(slotsTracked, resolution, unit, new AtomicHistogram(trackableValue, 2));
-//        metrics.incrementMetricAndRecordLatency(Status.SUCCESS, TimeUnit.HOURS.toNanos(3), 0L);
-    }
-
-    @Test
     public void concurrentTest() throws Exception {
         when(systemTime.nanoTime()).thenReturn(1500L * 1000L * 1000L);
-        metrics = new DefaultActionMetrics<>(Status.class, 5, 1, TimeUnit.SECONDS, systemTime);
+        metrics = new DefaultCountMetrics<>(Status.class, 5, 1, TimeUnit.SECONDS, systemTime);
 
         long currentTime = 1980L * 1000L * 1000L;
         fireThreads(metrics, currentTime, 10);
@@ -218,7 +203,7 @@ public class DefaultActionMetricsTest {
         assertEquals(4000, metrics.getRejectionCountForTimePeriod(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, 5, TimeUnit.SECONDS));
     }
 
-    private static void fireThreads(final ActionMetrics<Status> metrics, final long nanoTime, int num) throws InterruptedException {
+    private static void fireThreads(final CountMetrics<Status> metrics, final long nanoTime, int num) throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(num);
 
         for (int i = 0; i < num; ++i) {

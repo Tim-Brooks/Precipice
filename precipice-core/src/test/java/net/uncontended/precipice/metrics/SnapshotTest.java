@@ -36,7 +36,7 @@ public class SnapshotTest {
     @Mock
     private Clock systemTime;
 
-    private DefaultActionMetrics<Status> metrics;
+    private DefaultCountMetrics<Status> metrics;
     private static final long offsetTime = 50L;
     private static final long millisResolution = 1000L;
 
@@ -50,7 +50,7 @@ public class SnapshotTest {
         int slotsTracked = 10;
 
         when(systemTime.nanoTime()).thenReturn(startTime);
-        metrics = new DefaultActionMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new DefaultCountMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
         setupMetrics();
     }
 

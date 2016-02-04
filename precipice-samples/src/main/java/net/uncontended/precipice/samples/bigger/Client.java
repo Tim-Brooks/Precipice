@@ -25,7 +25,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
+import net.uncontended.precipice.metrics.DefaultCountMetrics;
 import net.uncontended.precipice.pattern.RoundRobinLoadBalancer;
 import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.PatternStrategy;
@@ -51,12 +51,12 @@ public class Client {
         addServiceToMap(services, "Weather-2", 7001);
 
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        properties.actionMetrics(new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS));
+        properties.actionMetrics(new DefaultCountMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS));
         PatternStrategy strategy = new RoundRobinLoadBalancer(services.size());
         loadBalancer = null;
 //        loadBalancer = new ThreadPoolLoadBalancer<>(services, null);
 
-        clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.controller().getActionMetrics()));
+        clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.controller().getCountMetrics()));
     }
 
     public void run() throws InterruptedException {
@@ -88,7 +88,7 @@ public class Client {
         BreakerConfigBuilder builder = new BreakerConfigBuilder()
                 .backOffTimeMillis(2000)
                 .trailingPeriodMillis(3000);
-        DefaultActionMetrics<Status> actionMetrics = new DefaultActionMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS);
+        DefaultCountMetrics<Status> actionMetrics = new DefaultCountMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS);
         DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
         ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
         properties.actionMetrics(actionMetrics);

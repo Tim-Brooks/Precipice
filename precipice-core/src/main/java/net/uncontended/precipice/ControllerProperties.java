@@ -22,10 +22,9 @@ import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
 import net.uncontended.precipice.concurrent.UnlimitedSemaphore;
-import net.uncontended.precipice.metrics.ActionMetrics;
-import net.uncontended.precipice.metrics.DefaultActionMetrics;
-import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
-import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.*;
+import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.DefaultCountMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -35,7 +34,7 @@ public class ControllerProperties<T extends Enum<T> & Result> {
 
 
     private final Class<T> type;
-    private ActionMetrics<T> metrics;
+    private CountMetrics<T> metrics;
     private LatencyMetrics<T> latencyMetrics;
     private CircuitBreaker breaker = new DefaultCircuitBreaker(new BreakerConfigBuilder().build());
     private PrecipiceSemaphore semaphore;
@@ -43,17 +42,17 @@ public class ControllerProperties<T extends Enum<T> & Result> {
 
     public ControllerProperties(Class<T> type) {
         this.type = type;
-        metrics = new DefaultActionMetrics<>(type);
+        metrics = new DefaultCountMetrics<>(type);
         latencyMetrics = new IntervalLatencyMetrics<>(type);
         semaphore = new UnlimitedSemaphore();
     }
 
-    public ControllerProperties<T> actionMetrics(ActionMetrics<T> metrics) {
+    public ControllerProperties<T> actionMetrics(CountMetrics<T> metrics) {
         this.metrics = metrics;
         return this;
     }
 
-    public ActionMetrics<T> actionMetrics() {
+    public CountMetrics<T> actionMetrics() {
         return metrics;
     }
 

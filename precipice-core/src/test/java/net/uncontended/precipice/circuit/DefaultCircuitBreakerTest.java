@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 public class DefaultCircuitBreakerTest {
 
     @Mock
-    private ActionMetrics<Status> actionMetrics;
+    private CountMetrics<Status> countMetrics;
     @Mock
     private Clock systemTime;
 
@@ -51,7 +51,7 @@ public class DefaultCircuitBreakerTest {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(20)
                 .backOffTimeMillis(5000).build();
         circuitBreaker = new DefaultCircuitBreaker(breakerConfig);
-        circuitBreaker.setActionMetrics(actionMetrics);
+        circuitBreaker.setCountMetrics(countMetrics);
         assertFalse(circuitBreaker.isOpen());
     }
 
@@ -64,16 +64,16 @@ public class DefaultCircuitBreakerTest {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(5).backOffTimeMillis
                 (trailingPeriodInMillis).build();
         circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
-        circuitBreaker.setActionMetrics(actionMetrics);
+        circuitBreaker.setCountMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
 
-        when(actionMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(healthySnapshot);
+        when(countMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(healthySnapshot);
         when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(Status.ERROR);
         assertFalse(circuitBreaker.isOpen());
 
-        when(actionMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failingSnapshot);
+        when(countMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failingSnapshot);
         when(systemTime.nanoTime()).thenReturn(1002L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(Status.ERROR);
         assertTrue(circuitBreaker.isOpen());
@@ -87,11 +87,11 @@ public class DefaultCircuitBreakerTest {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(5).trailingPeriodMillis
                 (trailingPeriodInMillis).build();
         circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
-        circuitBreaker.setActionMetrics(actionMetrics);
+        circuitBreaker.setCountMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
 
-        when(actionMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failureSnapshot);
+        when(countMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failureSnapshot);
         when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(Status.ERROR);
 
@@ -110,9 +110,9 @@ public class DefaultCircuitBreakerTest {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(10).trailingPeriodMillis
                 (1000).build();
         circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
-        circuitBreaker.setActionMetrics(actionMetrics);
+        circuitBreaker.setCountMetrics(countMetrics);
 
-        when(actionMetrics.healthSnapshot(1000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
+        when(countMetrics.healthSnapshot(1000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
         when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(Status.ERROR);
         assertFalse(circuitBreaker.isOpen());
@@ -132,7 +132,7 @@ public class DefaultCircuitBreakerTest {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(20)
                 .backOffTimeMillis(5000).build();
         circuitBreaker = new DefaultCircuitBreaker(breakerConfig);
-        circuitBreaker.setActionMetrics(actionMetrics);
+        circuitBreaker.setCountMetrics(countMetrics);
         assertFalse(circuitBreaker.isOpen());
         assertTrue(circuitBreaker.allowAction());
     }
@@ -146,12 +146,12 @@ public class DefaultCircuitBreakerTest {
         BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).build();
         circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
-        circuitBreaker.setActionMetrics(actionMetrics);
+        circuitBreaker.setCountMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
         assertTrue(circuitBreaker.allowAction());
 
-        when(actionMetrics.healthSnapshot(5000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
+        when(countMetrics.healthSnapshot(5000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
         when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
         circuitBreaker.informBreakerOfResult(Status.ERROR);
 
@@ -173,7 +173,7 @@ public class DefaultCircuitBreakerTest {
                 .trailingPeriodMillis(timePeriodInMillis).backOffTimeMillis(1000).build();
 
         circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
-        circuitBreaker.setActionMetrics(actionMetrics);
+        circuitBreaker.setCountMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
         assertTrue(circuitBreaker.allowAction());

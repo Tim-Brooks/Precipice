@@ -70,7 +70,7 @@ public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
                 controllables.add(controllable);
                 ++submittedCount;
             } else {
-                controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
+                controller.getCountMetrics().incrementRejectionCount(rejected, nanoTime);
             }
             if (submittedCount == strategy.submissionCount()) {
                 break;

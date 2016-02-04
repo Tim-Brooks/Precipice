@@ -79,7 +79,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
 
     private <T> PrecipiceFuture<Status, T> handleAllReject(long nanoTime) {
         controller.getSemaphore().releasePermit(1);
-        controller.getActionMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
+        controller.getCountMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
         throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
     }
 
@@ -87,7 +87,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
         Rejected rejected = controller.acquirePermitOrGetRejectedReason();
         long nanoTime =controller.getClock().nanoTime();
         if (rejected != null) {
-            controller.getActionMetrics().incrementRejectionCount(rejected, nanoTime);
+            controller.getCountMetrics().incrementRejectionCount(rejected, nanoTime);
             throw new RejectedException(rejected);
         }
         return nanoTime;

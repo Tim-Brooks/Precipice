@@ -24,7 +24,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.threadpool.ThreadPoolTask;
 import net.uncontended.precipice.time.Clock;
@@ -81,7 +81,7 @@ public class ThreadPoolPatternTest {
     @Mock
     private PrecipiceSemaphore semaphore;
     @Mock
-    private ActionMetrics<Status> metrics;
+    private CountMetrics<Status> metrics;
     @Mock
     private Pattern<Status, ThreadPoolService> pattern;
     @Mock
@@ -115,7 +115,7 @@ public class ThreadPoolPatternTest {
         when(service3.getTimeoutService()).thenReturn(timeoutService3);
 
         when(controller.getClock()).thenReturn(clock);
-        when(controller.getActionMetrics()).thenReturn(metrics);
+        when(controller.getCountMetrics()).thenReturn(metrics);
         when(controller.getSemaphore()).thenReturn(semaphore);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
 

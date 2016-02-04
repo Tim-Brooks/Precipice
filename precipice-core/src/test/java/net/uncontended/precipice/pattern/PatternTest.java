@@ -21,7 +21,7 @@ import net.uncontended.precipice.Controllable;
 import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -107,13 +107,13 @@ public class PatternTest {
     @Test
     public void getAcquiresPermitsInTheCorrectOrder() {
         int[] indices = {2, 0, 1};
-        ActionMetrics<Status> metrics = mock(ActionMetrics.class);
+        CountMetrics<Status> metrics = mock(CountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
         when(controller3.acquirePermitOrGetRejectedReason()).thenReturn(null);
         when(controller1.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.CIRCUIT_OPEN);
         when(controller2.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller1.getActionMetrics()).thenReturn(metrics);
+        when(controller1.getCountMetrics()).thenReturn(metrics);
 
         Sequence<Controllable<Status>> all = pattern.getControllables(nanoTime);
 
@@ -133,15 +133,15 @@ public class PatternTest {
     @Test
     public void getOnlyReturnsTheNumberOfControllablesThatAreAvailable() {
         int[] indices = {2, 0, 1};
-        ActionMetrics<Status> metrics = mock(ActionMetrics.class);
-        ActionMetrics<Status> metrics2 = mock(ActionMetrics.class);
+        CountMetrics<Status> metrics = mock(CountMetrics.class);
+        CountMetrics<Status> metrics2 = mock(CountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
         when(controller3.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         when(controller1.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.CIRCUIT_OPEN);
         when(controller2.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller1.getActionMetrics()).thenReturn(metrics);
-        when(controller3.getActionMetrics()).thenReturn(metrics2);
+        when(controller1.getCountMetrics()).thenReturn(metrics);
+        when(controller3.getCountMetrics()).thenReturn(metrics2);
 
         Sequence<Controllable<Status>> all = pattern.getControllables(nanoTime);
 

@@ -19,13 +19,10 @@ package net.uncontended.precipice.reporting.registry;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.metrics.ActionMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
 import net.uncontended.precipice.metrics.LatencySnapshot;
 import net.uncontended.precipice.metrics.MetricCounter;
-import net.uncontended.precipice.reporting.registry.MetricRegistry;
-import net.uncontended.precipice.reporting.registry.MetricRegistryCallback;
-import net.uncontended.precipice.reporting.registry.Summary;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -50,7 +47,7 @@ public class MetricRegistryTest {
     @Mock
     private Service service;
     @Mock
-    private ActionMetrics actionMetrics;
+    private CountMetrics countMetrics;
 
     @Mock
     private IntervalLatencyMetrics latencyMetrics;
@@ -61,9 +58,9 @@ public class MetricRegistryTest {
         MockitoAnnotations.initMocks(this);
 
         when(service.getName()).thenReturn(serviceName);
-        when(service.getActionMetrics()).thenReturn(actionMetrics);
+        when(service.getActionMetrics()).thenReturn(countMetrics);
         when(service.getLatencyMetrics()).thenReturn(latencyMetrics);
-        when(actionMetrics.getMetricType()).thenReturn(Status.class);
+        when(countMetrics.getMetricType()).thenReturn(Status.class);
     }
 
     @Test
@@ -108,8 +105,8 @@ public class MetricRegistryTest {
 
         when(service.pendingCount()).thenReturn(pendingN);
         when(service.remainingCapacity()).thenReturn(capacityN);
-        when(actionMetrics.totalCountMetricCounter()).thenReturn(counter);
-        when(actionMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(counters);
+        when(countMetrics.totalCountMetricCounter()).thenReturn(counter);
+        when(countMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(counters);
         when(latencyMetrics.intervalSnapshot(Status.SUCCESS)).thenReturn(successLatencySnapshot);
         when(latencyMetrics.intervalSnapshot(Status.ERROR)).thenReturn(errorLatencySnapshot);
         when(latencyMetrics.intervalSnapshot(Status.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
