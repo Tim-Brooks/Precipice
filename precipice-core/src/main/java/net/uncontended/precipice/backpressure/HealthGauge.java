@@ -18,36 +18,35 @@
 package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.Result;
-import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.MetricCounter;
 
 import java.util.concurrent.TimeUnit;
 
-public class HealthGauge<T extends Enum<T> & Result> {
+public class HealthGauge<Res extends Enum<Res> & Result> {
 
-    private final BPCountMetrics<T> metrics;
-    private final Class<T> type;
+    private final BPCountMetrics<Res> metrics;
+    private final Class<Res> type;
 
-    public HealthGauge(BPCountMetrics<T> metrics) {
+    public HealthGauge(BPCountMetrics<Res> metrics) {
         this.metrics = metrics;
         type = metrics.getMetricType();
     }
 
-    public HealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter<T>> counters = metrics.metricCounterIterable(timePeriod, timeUnit, nanoTime);
+    public BPHealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        Iterable<MetricCounter<Res>> counters = metrics.metricCounterIterable(timePeriod, timeUnit, nanoTime);
 
         long total = 0;
         long failures = 0;
-        for (MetricCounter<T> metricCounter : counters) {
-            for (T t : type.getEnumConstants()) {
-                long metricCount = metricCounter.getMetricCount(t);
+        for (MetricCounter<Res> metricCounter : counters) {
+            for (Res result : type.getEnumConstants()) {
+                long metricCount = metricCounter.getMetricCount(result);
                 total += metricCount;
 
-                if (t.isFailure()) {
+                if (result.isFailure()) {
                     failures += metricCount;
                 }
             }
         }
-        return new HealthSnapshot(total, 0, failures, 0);
+        return new BPHealthSnapshot(total, failures);
     }
 }

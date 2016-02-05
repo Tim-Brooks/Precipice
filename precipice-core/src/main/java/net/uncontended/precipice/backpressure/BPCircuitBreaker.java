@@ -20,8 +20,6 @@ package net.uncontended.precipice.backpressure;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.circuit.BreakerConfig;
-import net.uncontended.precipice.metrics.CountMetrics;
-import net.uncontended.precipice.metrics.HealthSnapshot;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,8 +34,8 @@ public class BPCircuitBreaker implements BackPressure {
     private final AtomicLong lastHealthTime = new AtomicLong(0);
     private volatile long lastTestedTime = 0;
     private volatile BreakerConfig breakerConfig;
-    private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
-    private CountMetrics<?> countMetrics;
+    private volatile BPHealthSnapshot health = new BPHealthSnapshot(0, 0);
+    private HealthGauge<?> healthGauge;
 
     public BPCircuitBreaker(BreakerConfig breakerConfig) {
         this.breakerConfig = breakerConfig;
@@ -59,7 +57,8 @@ public class BPCircuitBreaker implements BackPressure {
     }
 
     @Override
-    public void releasePermit(long number, long nanoTime) {}
+    public void releasePermit(long number, long nanoTime) {
+    }
 
     @Override
     public void releasePermit(long number, Result result, long nanoTime) {
@@ -72,7 +71,7 @@ public class BPCircuitBreaker implements BackPressure {
             if (state.get() == CLOSED) {
                 long currentTime = currentMillisTime(nanoTime);
                 BreakerConfig config = breakerConfig;
-                HealthSnapshot health = getHealthSnapshot(config, currentTime);
+                BPHealthSnapshot health = getHealthSnapshot(config, currentTime);
                 long failures = health.failures;
                 int failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
@@ -96,8 +95,8 @@ public class BPCircuitBreaker implements BackPressure {
         this.breakerConfig = breakerConfig;
     }
 
-    public void setCountMetrics(CountMetrics<?> countMetrics) {
-        this.countMetrics = countMetrics;
+    public void setHealthGauge(HealthGauge<?> healthGauge) {
+        this.healthGauge = healthGauge;
     }
 
     public void forceOpen() {
@@ -108,11 +107,12 @@ public class BPCircuitBreaker implements BackPressure {
         state.set(CLOSED);
     }
 
-    private HealthSnapshot getHealthSnapshot(BreakerConfig config, long currentTime) {
+    private BPHealthSnapshot getHealthSnapshot(BreakerConfig config, long currentTime) {
         long lastHealthTime = this.lastHealthTime.get();
         if (lastHealthTime + config.healthRefreshMillis < currentTime) {
             if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                HealthSnapshot newHealth = countMetrics.healthSnapshot(config.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+                BPHealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS,
+                        currentTime);
                 health = newHealth;
                 return newHealth;
             }
