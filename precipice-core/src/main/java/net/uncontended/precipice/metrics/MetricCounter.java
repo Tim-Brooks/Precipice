@@ -18,8 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Result;
-import net.uncontended.precipice.concurrent.LongAdder;
+import net.uncontended.precipice.concurrent.util.LongAdder;
 
 public class MetricCounter<T extends Enum<T>> {
 

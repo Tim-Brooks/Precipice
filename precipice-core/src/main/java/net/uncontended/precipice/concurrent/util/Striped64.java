@@ -1,4 +1,4 @@
-package net.uncontended.precipice.concurrent;
+package net.uncontended.precipice.concurrent.util;
 
 /*
  * Written by Doug Lea with assistance from members of JCP JSR-166
