@@ -17,43 +17,43 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
-import net.uncontended.precipice.circuit.BreakerConfig;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BPCircuitBreaker implements BackPressure {
+public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPressure {
     private static final int CLOSED = 0;
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;
 
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
+    private final HealthGauge<?> healthGauge;
     private volatile long lastTestedTime = 0;
-    private volatile BreakerConfig breakerConfig;
+    private volatile BPBreakerConfig<Rejected> breakerConfig;
     private volatile BPHealthSnapshot health = new BPHealthSnapshot(0, 0);
-    private HealthGauge<?> healthGauge;
 
-    public BPCircuitBreaker(BreakerConfig breakerConfig) {
+    public BPCircuitBreaker(BPBreakerConfig<Rejected> breakerConfig, HealthGauge<?> healthGauge) {
         this.breakerConfig = breakerConfig;
+        this.healthGauge = healthGauge;
     }
 
     @Override
     public Rejected acquirePermit(long number, long nanoTime) {
+        BPBreakerConfig<Rejected> config = breakerConfig;
         int state = this.state.get();
         if (state == OPEN) {
-            long backOffTimeMillis = breakerConfig.backOffTimeMillis;
+            long backOffTimeMillis = config.backOffTimeMillis;
             long currentTime = currentMillisTime(nanoTime);
             // This potentially allows a couple of tests through. Should think about this decision
             if (currentTime < backOffTimeMillis + lastTestedTime) {
-                return Rejected.CIRCUIT_OPEN;
+                return config.reason;
             }
             lastTestedTime = currentTime;
         }
-        return state != FORCED_OPEN ? null : Rejected.CIRCUIT_OPEN;
+        return state != FORCED_OPEN ? null : config.reason;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class BPCircuitBreaker implements BackPressure {
         } else {
             if (state.get() == CLOSED) {
                 long currentTime = currentMillisTime(nanoTime);
-                BreakerConfig config = breakerConfig;
+                BPBreakerConfig<Rejected> config = breakerConfig;
                 BPHealthSnapshot health = getHealthSnapshot(config, currentTime);
                 long failures = health.failures;
                 int failurePercentage = health.failurePercentage();
@@ -87,16 +87,12 @@ public class BPCircuitBreaker implements BackPressure {
         return state.get() != CLOSED;
     }
 
-    public BreakerConfig getBreakerConfig() {
+    public BPBreakerConfig<Rejected> getBreakerConfig() {
         return breakerConfig;
     }
 
-    public void setBreakerConfig(BreakerConfig breakerConfig) {
+    public void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig) {
         this.breakerConfig = breakerConfig;
-    }
-
-    public void setHealthGauge(HealthGauge<?> healthGauge) {
-        this.healthGauge = healthGauge;
     }
 
     public void forceOpen() {
@@ -107,7 +103,7 @@ public class BPCircuitBreaker implements BackPressure {
         state.set(CLOSED);
     }
 
-    private BPHealthSnapshot getHealthSnapshot(BreakerConfig config, long currentTime) {
+    private BPHealthSnapshot getHealthSnapshot(BPBreakerConfig<Rejected> config, long currentTime) {
         long lastHealthTime = this.lastHealthTime.get();
         if (lastHealthTime + config.healthRefreshMillis < currentTime) {
             if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {

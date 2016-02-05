@@ -15,15 +15,13 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.backpressure;
 
-public interface Result {
+public interface BPSemaphoreInterface extends BackPressure {
 
-    boolean isFailure();
+    long maxConcurrencyLevel();
 
-    boolean isSuccess();
+    long remainingCapacity();
 
-    boolean trackLatency();
-
-    boolean trackMetrics();
+    long currentConcurrencyLevel();
 }

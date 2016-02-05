@@ -17,18 +17,19 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BackPressureSemaphore implements BackPressure {
+public class BackPressureSemaphore<Rejected extends Enum<Rejected>> implements BPSemaphoreInterface {
 
     private final AtomicLong permitsRemaining;
     private final int maxConcurrencyLevel;
+    private final Rejected reason;
 
-    public BackPressureSemaphore(int maxConcurrencyLevel) {
+    public BackPressureSemaphore(Rejected reason, int maxConcurrencyLevel) {
         this.maxConcurrencyLevel = maxConcurrencyLevel;
+        this.reason = reason;
         this.permitsRemaining = new AtomicLong(maxConcurrencyLevel);
     }
 
@@ -41,7 +42,7 @@ public class BackPressureSemaphore implements BackPressure {
                     return null;
                 }
             } else {
-                return Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED;
+                return reason;
             }
         }
     }
@@ -56,14 +57,17 @@ public class BackPressureSemaphore implements BackPressure {
         this.permitsRemaining.getAndIncrement();
     }
 
+    @Override
     public long maxConcurrencyLevel() {
         return maxConcurrencyLevel;
     }
 
+    @Override
     public long remainingCapacity() {
         return permitsRemaining.get();
     }
 
+    @Override
     public long currentConcurrencyLevel() {
         return maxConcurrencyLevel - permitsRemaining.get();
     }
