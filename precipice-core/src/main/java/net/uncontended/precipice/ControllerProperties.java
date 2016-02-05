@@ -32,7 +32,6 @@ public class ControllerProperties<T extends Enum<T> & Result> {
 
     public static int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
 
-
     private final Class<T> type;
     private CountMetrics<T> metrics;
     private LatencyMetrics<T> latencyMetrics;
