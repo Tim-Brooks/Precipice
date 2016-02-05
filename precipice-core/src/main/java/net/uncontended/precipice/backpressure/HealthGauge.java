@@ -39,8 +39,8 @@ public class HealthGauge<Res extends Enum<Res> & Result> {
     public BPHealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         long total = 0;
         long failures = 0;
-        
-        // TODO: Explore combining iterations iterations.
+
+        // TODO: Explore combining iterations.
         for (BPCountMetrics<Res> metrics : metricsArray) {
             Iterable<MetricCounter<Res>> counters = metrics.metricCounterIterable(timePeriod, timeUnit, nanoTime);
 
