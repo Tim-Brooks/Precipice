@@ -17,21 +17,28 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.Services;
+import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.ControllerProperties;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
+import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 public class SubmissionExample {
 
     public static void main(String[] args) throws InterruptedException {
-        String serviceName = "Identity Service";
+        String name = "Identity Service";
         int poolSize = 5;
         int concurrencyLevel = 100;
-        ThreadPoolService service = Services.submissionService(serviceName, poolSize, concurrencyLevel);
+        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
+        ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
+        controllerProperties.semaphore(new LongSemaphore(concurrencyLevel));
+        ThreadPoolService service =  new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
 
         int millisTimeout = 10;
         PrecipiceFuture<Status, Integer> successFuture = service.submit(Callables.success(), millisTimeout);
