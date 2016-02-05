@@ -24,26 +24,35 @@ import java.util.concurrent.TimeUnit;
 
 public class HealthGauge<Res extends Enum<Res> & Result> {
 
-    private final BPCountMetrics<Res> metrics;
+    private final BPCountMetrics<Res>[] metricsArray;
     private final Class<Res> type;
 
-    public HealthGauge(BPCountMetrics<Res> metrics) {
-        this.metrics = metrics;
-        type = metrics.getMetricType();
+    @SafeVarargs
+    public HealthGauge(BPCountMetrics<Res>... metrics) {
+        if (metrics.length == 0) {
+            throw new IllegalArgumentException("Health gauge must include as least one result metrics.");
+        }
+        this.metricsArray = metrics;
+        type = metrics[0].getMetricType();
     }
 
     public BPHealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter<Res>> counters = metrics.metricCounterIterable(timePeriod, timeUnit, nanoTime);
-
         long total = 0;
         long failures = 0;
-        for (MetricCounter<Res> metricCounter : counters) {
-            for (Res result : type.getEnumConstants()) {
-                long metricCount = metricCounter.getMetricCount(result);
-                total += metricCount;
 
-                if (result.isFailure()) {
-                    failures += metricCount;
+
+        // TODO: Explore combining iterations iterations.
+        for (BPCountMetrics<Res> metrics : metricsArray) {
+            Iterable<MetricCounter<Res>> counters = metrics.metricCounterIterable(timePeriod, timeUnit, nanoTime);
+
+            for (MetricCounter<Res> metricCounter : counters) {
+                for (Res result : type.getEnumConstants()) {
+                    long metricCount = metricCounter.getMetricCount(result);
+                    total += metricCount;
+
+                    if (result.isFailure()) {
+                        failures += metricCount;
+                    }
                 }
             }
         }
