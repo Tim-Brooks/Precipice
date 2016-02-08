@@ -27,7 +27,6 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>> {
@@ -43,13 +42,13 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
 
 
     public GuardRail(String name, BPCountMetrics<Res> resultMetrics, BPCountMetrics<Rejected> rejectedMetrics,
-                     LatencyMetrics<Res> latencyMetrics, Clock clock) {
+                     LatencyMetrics<Res> latencyMetrics, List<BackPressure<Rejected>> backPressureList, Clock clock) {
         this.resultMetrics = resultMetrics;
         this.rejectedMetrics = rejectedMetrics;
         this.latencyMetrics = latencyMetrics;
         this.name = name;
         this.clock = clock;
-        backPressureList = new ArrayList<>();
+        this.backPressureList = backPressureList;
         finishingCallback = new FinishingCallback<>(resultMetrics, backPressureList, latencyMetrics, clock);
     }
 
