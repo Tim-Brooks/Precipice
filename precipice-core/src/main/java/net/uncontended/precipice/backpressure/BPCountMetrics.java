@@ -33,7 +33,7 @@ public class BPCountMetrics<T extends Enum<T>> implements BPTotalCountMetrics<T>
     private final Class<T> type;
 
     public BPCountMetrics(Class<T> type) {
-        this(type, 3600, 1, TimeUnit.SECONDS);
+        this(type, (int) TimeUnit.MINUTES.toSeconds(15), 1, TimeUnit.SECONDS);
     }
 
     public BPCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
