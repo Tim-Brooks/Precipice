@@ -42,7 +42,7 @@ public class HealthGauge<Res extends Enum<Res> & Result> {
 
         // TODO: Explore combining iterations.
         for (BPCountMetrics<Res> metrics : metricsArray) {
-            Iterable<MetricCounter<Res>> counters = metrics.metricCounterIterable(timePeriod, timeUnit, nanoTime);
+            Iterable<MetricCounter<Res>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
 
             for (MetricCounter<Res> metricCounter : counters) {
                 for (Res result : type.getEnumConstants()) {

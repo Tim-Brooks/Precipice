@@ -73,15 +73,15 @@ public class BPCountMetrics<T extends Enum<T>> {
         currentMetricCounter.incrementMetric(metric);
     }
 
-    public long getMetricCount(T metric) {
+    public long getTotalMetricCount(T metric) {
         return totalCounter.getMetricCount(metric);
     }
 
-    public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit) {
-        return getMetricCountForTimePeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
+    public long getMetricCount(T metric, long timePeriod, TimeUnit timeUnit) {
+        return getMetricCount(metric, timePeriod, timeUnit, systemTime.nanoTime());
     }
 
-    public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public long getMetricCount(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
@@ -91,11 +91,11 @@ public class BPCountMetrics<T extends Enum<T>> {
         return count;
     }
 
-    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
-        return metricCounterIterable(timePeriod, timeUnit, systemTime.nanoTime());
+    public Iterable<MetricCounter<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
+        return metricCounters(timePeriod, timeUnit, systemTime.nanoTime());
     }
 
-    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public Iterable<MetricCounter<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }
 
@@ -106,6 +106,4 @@ public class BPCountMetrics<T extends Enum<T>> {
     public Class<T> getMetricType() {
         return type;
     }
-
-
 }
