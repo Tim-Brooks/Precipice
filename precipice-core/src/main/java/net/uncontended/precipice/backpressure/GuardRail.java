@@ -31,8 +31,8 @@ import java.util.List;
 
 public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>> {
 
-    private final BPCountMetrics<Res> resultMetrics;
-    private final BPCountMetrics<Rejected> rejectedMetrics;
+    private final BPTotalCountMetrics<Res> resultMetrics;
+    private final BPTotalCountMetrics<Rejected> rejectedMetrics;
     private final LatencyMetrics<Res> latencyMetrics;
     private final String name;
     private final Clock clock;
@@ -41,7 +41,7 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
     private List<BackPressure<Rejected>> backPressureList;
 
 
-    public GuardRail(String name, BPCountMetrics<Res> resultMetrics, BPCountMetrics<Rejected> rejectedMetrics,
+    public GuardRail(String name, BPTotalCountMetrics<Res> resultMetrics, BPTotalCountMetrics<Rejected> rejectedMetrics,
                      LatencyMetrics<Res> latencyMetrics, List<BackPressure<Rejected>> backPressureList, Clock clock) {
         this.resultMetrics = resultMetrics;
         this.rejectedMetrics = rejectedMetrics;
@@ -121,11 +121,11 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
         return name;
     }
 
-    public BPCountMetrics<Res> getResultMetrics() {
+    public BPTotalCountMetrics<Res> getResultMetrics() {
         return resultMetrics;
     }
 
-    public BPCountMetrics<Rejected> getRejectedMetrics() {
+    public BPTotalCountMetrics<Rejected> getRejectedMetrics() {
         return rejectedMetrics;
     }
 
@@ -140,12 +140,12 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
     private static class FinishingCallback<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>>
             implements PrecipiceFunction<Res, PerformingContext> {
 
-        private final BPCountMetrics<Res> resultMetrics;
+        private final BPTotalCountMetrics<Res> resultMetrics;
         private final List<BackPressure<Rejected>> backPressureList;
         private final LatencyMetrics<Res> latencyMetrics;
         private final Clock clock;
 
-        private FinishingCallback(BPCountMetrics<Res> resultMetrics, List<BackPressure<Rejected>> backPressureList,
+        private FinishingCallback(BPTotalCountMetrics<Res> resultMetrics, List<BackPressure<Rejected>> backPressureList,
                                   LatencyMetrics<Res> latencyMetrics, Clock clock) {
             this.resultMetrics = resultMetrics;
             this.backPressureList = backPressureList;

@@ -29,8 +29,8 @@ import java.util.List;
 public class GuardRailBuilder<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>> {
 
     private String name;
-    private BPCountMetrics<Res> resultMetrics;
-    private BPCountMetrics<Rejected> rejectedMetrics;
+    private BPTotalCountMetrics<Res> resultMetrics;
+    private BPTotalCountMetrics<Rejected> rejectedMetrics;
     private List<BackPressure<Rejected>> backPressureList = new ArrayList<>();
     private LatencyMetrics<Res> resultLatency = new NoOpLatencyMetrics<>();
     private Clock clock = new SystemTime();
@@ -45,12 +45,12 @@ public class GuardRailBuilder<Res extends Enum<Res> & Result, Rejected extends E
         return this;
     }
 
-    public GuardRailBuilder resultMetrics(BPCountMetrics<Res> resultMetrics) {
+    public GuardRailBuilder resultMetrics(BPTotalCountMetrics<Res> resultMetrics) {
         this.resultMetrics = resultMetrics;
         return this;
     }
 
-    public GuardRailBuilder rejectedMetrics(BPCountMetrics<Rejected> rejectedMetrics) {
+    public GuardRailBuilder rejectedMetrics(BPTotalCountMetrics<Rejected> rejectedMetrics) {
         this.rejectedMetrics = rejectedMetrics;
         return this;
     }

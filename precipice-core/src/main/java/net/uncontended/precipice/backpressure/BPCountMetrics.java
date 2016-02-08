@@ -24,7 +24,7 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class BPCountMetrics<T extends Enum<T>> {
+public class BPCountMetrics<T extends Enum<T>> implements BPTotalCountMetrics<T> {
 
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;
@@ -60,10 +60,12 @@ public class BPCountMetrics<T extends Enum<T>> {
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
     }
 
+    @Override
     public void incrementMetricCount(T metric) {
         incrementMetricCount(metric, systemTime.nanoTime());
     }
 
+    @Override
     public void incrementMetricCount(T metric, long nanoTime) {
         totalCounter.incrementMetric(metric);
         MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
@@ -73,6 +75,7 @@ public class BPCountMetrics<T extends Enum<T>> {
         currentMetricCounter.incrementMetric(metric);
     }
 
+    @Override
     public long getTotalMetricCount(T metric) {
         return totalCounter.getMetricCount(metric);
     }
@@ -99,10 +102,12 @@ public class BPCountMetrics<T extends Enum<T>> {
         return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }
 
+    @Override
     public MetricCounter<T> totalCountMetricCounter() {
         return totalCounter;
     }
 
+    @Override
     public Class<T> getMetricType() {
         return type;
     }
