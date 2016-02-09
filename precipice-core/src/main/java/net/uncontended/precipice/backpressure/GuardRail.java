@@ -39,7 +39,7 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
     private final FinishingCallback finishingCallback;
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
-    
+
     public GuardRail(String name, BPTotalCountMetrics<Res> resultMetrics, BPTotalCountMetrics<Rejected> rejectedMetrics,
                      LatencyMetrics<Res> latencyMetrics, List<BackPressure<Rejected>> backPressureList, Clock clock) {
         this.resultMetrics = resultMetrics;
