@@ -36,11 +36,10 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
     private final LatencyMetrics<Res> latencyMetrics;
     private final String name;
     private final Clock clock;
-    private final FinishingCallback<Res, Rejected> finishingCallback;
+    private final FinishingCallback finishingCallback;
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
-
-
+    
     public GuardRail(String name, BPTotalCountMetrics<Res> resultMetrics, BPTotalCountMetrics<Rejected> rejectedMetrics,
                      LatencyMetrics<Res> latencyMetrics, List<BackPressure<Rejected>> backPressureList, Clock clock) {
         this.resultMetrics = resultMetrics;
@@ -49,7 +48,7 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
         this.name = name;
         this.clock = clock;
         this.backPressureList = backPressureList;
-        finishingCallback = new FinishingCallback<>(resultMetrics, backPressureList, latencyMetrics, clock);
+        finishingCallback = new FinishingCallback();
     }
 
     public Rejected acquirePermitOrGetRejectedReason(long nanoTime) {
@@ -103,6 +102,14 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
         return getCompletableContext(nanoTime);
     }
 
+    public void release(Res result, long starTime, long nanoTime) {
+        resultMetrics.incrementMetricCount(result, nanoTime);
+        latencyMetrics.recordLatency(result, nanoTime - starTime, nanoTime);
+        for (BackPressure backPressure : backPressureList) {
+            backPressure.releasePermit(1, result, nanoTime);
+        }
+    }
+
     public <R> Completable<Res, R> getCompletableContext(long nanoTime) {
         return getCompletableContext(nanoTime, null);
     }
@@ -137,30 +144,12 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
         return clock;
     }
 
-    private static class FinishingCallback<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>>
-            implements PrecipiceFunction<Res, PerformingContext> {
-
-        private final BPTotalCountMetrics<Res> resultMetrics;
-        private final List<BackPressure<Rejected>> backPressureList;
-        private final LatencyMetrics<Res> latencyMetrics;
-        private final Clock clock;
-
-        private FinishingCallback(BPTotalCountMetrics<Res> resultMetrics, List<BackPressure<Rejected>> backPressureList,
-                                  LatencyMetrics<Res> latencyMetrics, Clock clock) {
-            this.resultMetrics = resultMetrics;
-            this.backPressureList = backPressureList;
-            this.latencyMetrics = latencyMetrics;
-            this.clock = clock;
-        }
+    private class FinishingCallback implements PrecipiceFunction<Res, PerformingContext> {
 
         @Override
         public void apply(Res result, PerformingContext context) {
             long endTime = clock.nanoTime();
-            resultMetrics.incrementMetricCount(result, endTime);
-            latencyMetrics.recordLatency(result, endTime - context.startNanos(), endTime);
-            for (BackPressure backPressure : backPressureList) {
-                backPressure.releasePermit(1, result, endTime);
-            }
+            release(result, context.startNanos(), endTime);
         }
     }
 }
