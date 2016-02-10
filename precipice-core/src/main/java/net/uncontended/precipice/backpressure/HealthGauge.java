@@ -22,13 +22,13 @@ import net.uncontended.precipice.metrics.MetricCounter;
 
 import java.util.concurrent.TimeUnit;
 
-public class HealthGauge<Res extends Enum<Res> & Failable> {
+public class HealthGauge<Result extends Enum<Result> & Failable> {
 
-    private final BPCountMetrics<Res>[] metricsArray;
-    private final Class<Res> type;
+    private final BPCountMetrics<Result>[] metricsArray;
+    private final Class<Result> type;
 
     @SafeVarargs
-    public HealthGauge(BPCountMetrics<Res>... metrics) {
+    public HealthGauge(BPCountMetrics<Result>... metrics) {
         if (metrics.length == 0) {
             throw new IllegalArgumentException("Health gauge must include as least one result metrics.");
         }
@@ -41,11 +41,11 @@ public class HealthGauge<Res extends Enum<Res> & Failable> {
         long failures = 0;
 
         // TODO: Explore combining iterations.
-        for (BPCountMetrics<Res> metrics : metricsArray) {
-            Iterable<MetricCounter<Res>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
+        for (BPCountMetrics<Result> metrics : metricsArray) {
+            Iterable<MetricCounter<Result>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
 
-            for (MetricCounter<Res> metricCounter : counters) {
-                for (Res result : type.getEnumConstants()) {
+            for (MetricCounter<Result> metricCounter : counters) {
+                for (Result result : type.getEnumConstants()) {
                     long metricCount = metricCounter.getMetricCount(result);
                     total += metricCount;
 

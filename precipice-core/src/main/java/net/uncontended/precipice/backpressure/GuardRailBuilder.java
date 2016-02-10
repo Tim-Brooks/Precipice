@@ -27,13 +27,13 @@ import net.uncontended.precipice.time.SystemTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuardRailBuilder<Res extends Enum<Res> & Failable, Rejected extends Enum<Rejected>> {
+public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
     private String name;
-    private BPTotalCountMetrics<Res> resultMetrics;
+    private BPTotalCountMetrics<Result> resultMetrics;
     private BPTotalCountMetrics<Rejected> rejectedMetrics;
     private List<BackPressure<Rejected>> backPressureList = new ArrayList<>();
-    private LatencyMetrics<Res> resultLatency = new NoOpLatencyMetrics<>();
+    private LatencyMetrics<Result> resultLatency = new NoOpLatencyMetrics<>();
     private Clock clock = new SystemTime();
 
     public GuardRailBuilder addBackPressure(BackPressure<Rejected> backPressure) {
@@ -46,7 +46,7 @@ public class GuardRailBuilder<Res extends Enum<Res> & Failable, Rejected extends
         return this;
     }
 
-    public GuardRailBuilder resultMetrics(BPTotalCountMetrics<Res> resultMetrics) {
+    public GuardRailBuilder resultMetrics(BPTotalCountMetrics<Result> resultMetrics) {
         this.resultMetrics = resultMetrics;
         return this;
     }
@@ -56,12 +56,12 @@ public class GuardRailBuilder<Res extends Enum<Res> & Failable, Rejected extends
         return this;
     }
 
-    public GuardRailBuilder resultLatency(LatencyMetrics<Res> resultLatency) {
+    public GuardRailBuilder resultLatency(LatencyMetrics<Result> resultLatency) {
         this.resultLatency = resultLatency;
         return this;
     }
 
-    public GuardRail<Res, Rejected> build() {
+    public GuardRail<Result, Rejected> build() {
         if (name == null) {
             throw new IllegalArgumentException();
         } else if (resultMetrics == null) {
