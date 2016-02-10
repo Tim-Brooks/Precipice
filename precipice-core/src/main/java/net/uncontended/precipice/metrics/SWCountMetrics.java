@@ -21,9 +21,13 @@ import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
+import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Unstable and still in development. At this time, {@link DefaultCountMetrics} should be used.
+ */
 public class SWCountMetrics<T extends Enum<T> & Result> implements CountMetrics<T>, BackgroundTask {
 
     private final MetricCounter<T> totalCounter;

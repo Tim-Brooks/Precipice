@@ -17,10 +17,15 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.timeout.TimeoutService;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Unstable and still in development. At this time, {@link CircularBuffer} should be used.
+ */
 public class SWCircularBuffer<T> {
 
     private final Slot<T>[] buffer;
@@ -148,17 +153,13 @@ public class SWCircularBuffer<T> {
                 long absoluteSlotAndFlag = this.absoluteSlotAndFlag;
                 if (LONG_ZERO > absoluteSlotAndFlag) {
                     if (absoluteSlotAndFlag == absoluteIndex) {
-                        if (localOne == objectOne) {
-                            return localOne;
-                        }
+                        return localOne;
                     } else {
                         return null;
                     }
                 } else {
-                    if (absoluteSlotAndFlag - LONG_ZERO == absoluteIndex && localTwo == objectTwo) {
-                        if (localTwo == objectTwo) {
-                            return localTwo;
-                        }
+                    if (absoluteSlotAndFlag - LONG_ZERO == absoluteIndex) {
+                        return localTwo;
                     } else {
                         return null;
                     }
