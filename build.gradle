@@ -125,7 +125,7 @@ subprojects {
 project(':precipice-core') {
 
     dependencies {
-        compile 'org.hdrhistogram:HdrHistogram:2.1.7'
+        compile 'org.hdrhistogram:HdrHistogram:2.1.8'
     }
 
     task sourcesJar(type: Jar) {
