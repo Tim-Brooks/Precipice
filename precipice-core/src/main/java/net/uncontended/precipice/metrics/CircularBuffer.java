@@ -47,11 +47,9 @@ public class CircularBuffer<T> {
     }
 
     public T getSlot(long nanoTime) {
-        // TODO: What happens if you go backwards in time?
-
         long currentTime = currentMillisTime(nanoTime);
-        int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int relativeSlot = absoluteSlot & mask;
+        long absoluteSlot = currentAbsoluteSlot(currentTime);
+        int relativeSlot = (int) absoluteSlot & mask;
         Slot<T> slot = buffer.get(relativeSlot);
 
         if (slot != null && slot.absoluteSlot == absoluteSlot) {
@@ -63,12 +61,13 @@ public class CircularBuffer<T> {
 
     public T putOrGet(long nanoTime, T object) {
         long currentTime = currentMillisTime(nanoTime);
-        int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int relativeSlot = absoluteSlot & mask;
+        long absoluteSlot = currentAbsoluteSlot(currentTime);
+        int relativeSlot = (int) absoluteSlot & mask;
 
         for (; ; ) {
             Slot<T> slot = buffer.get(relativeSlot);
-            if (slot != null && slot.absoluteSlot == absoluteSlot) {
+            // TODO: Ensure this handles backwards in time.
+            if (slot != null && slot.absoluteSlot >= absoluteSlot) {
                 return slot.object;
             } else {
                 Slot<T> newSlot = new Slot<>(absoluteSlot, object);
@@ -86,9 +85,9 @@ public class CircularBuffer<T> {
     public Iterable<T> collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
         int slots = convertToSlots(timePeriod, timeUnit);
         long currentTime = currentMillisTime(nanoTime);
-        int absoluteSlot = currentAbsoluteSlot(currentTime);
-        int startSlot = 1 + absoluteSlot - slots;
-        int adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
+        long absoluteSlot = currentAbsoluteSlot(currentTime);
+        long startSlot = 1 + absoluteSlot - slots;
+        long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
         return new SlotView(adjustedStartSlot, absoluteSlot, dead);
     }
 
@@ -107,8 +106,8 @@ public class CircularBuffer<T> {
         return (int) longSlots;
     }
 
-    private int currentAbsoluteSlot(long currentTime) {
-        return (int) (currentTime - startTime) / millisecondsPerSlot;
+    private long currentAbsoluteSlot(long currentTime) {
+        return (currentTime - startTime) / millisecondsPerSlot;
     }
 
     private static long currentMillisTime(long nanoTime) {
@@ -132,10 +131,10 @@ public class CircularBuffer<T> {
     private class SlotView implements Iterable<T> {
 
         private final T dead;
-        private final int maxIndex;
-        private int index;
+        private final long maxIndex;
+        private long index;
 
-        private SlotView(int index, int maxIndex, T dead) {
+        private SlotView(long index, long maxIndex, T dead) {
             this.index = index;
             this.maxIndex = maxIndex;
             this.dead = dead;
@@ -154,8 +153,8 @@ public class CircularBuffer<T> {
                     if (!hasNext()) {
                         throw new NoSuchElementException();
                     }
-                    int currentIndex = index++;
-                    int relativeSlot = currentIndex & mask;
+                    long currentIndex = index++;
+                    int relativeSlot = (int) currentIndex & mask;
                     Slot<T> slot = buffer.get(relativeSlot);
                     if (slot != null && slot.absoluteSlot == currentIndex) {
                         return slot.object;
