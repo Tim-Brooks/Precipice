@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.concurrent;
+package net.uncontended.precipice.threadpool.experimental;
 
 import java.util.Comparator;
 import java.util.NavigableSet;

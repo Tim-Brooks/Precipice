@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.concurrent;
+package net.uncontended.precipice.threadpool.experimental;
 
 import org.junit.After;
 import org.junit.Test;
