@@ -19,6 +19,7 @@ package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,14 +32,13 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPr
 
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
-    private final HealthGauge<?> healthGauge;
+    private final HealthGauge healthGauge = new HealthGauge();
     private volatile long lastTestedTime = 0;
     private volatile BPBreakerConfig<Rejected> breakerConfig;
     private volatile BPHealthSnapshot health = new BPHealthSnapshot(0, 0);
 
-    public BPCircuitBreaker(BPBreakerConfig<Rejected> breakerConfig, HealthGauge<?> healthGauge) {
+    public BPCircuitBreaker(BPBreakerConfig<Rejected> breakerConfig) {
         this.breakerConfig = breakerConfig;
-        this.healthGauge = healthGauge;
     }
 
     @Override
@@ -81,6 +81,16 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPr
                     state.compareAndSet(CLOSED, OPEN);
                 }
             }
+        }
+    }
+
+    @Override
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+        BPTotalCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
+        if (resultMetrics instanceof BPCountMetrics) {
+            healthGauge.add((BPCountMetrics<Result>) resultMetrics);
+        } else {
+            throw new IllegalArgumentException("BPCircuitBreaker requires rolling result metrics");
         }
     }
 

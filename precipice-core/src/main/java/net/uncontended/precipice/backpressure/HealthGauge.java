@@ -20,28 +20,46 @@ package net.uncontended.precipice.backpressure;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.MetricCounter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class HealthGauge<Result extends Enum<Result> & Failable> {
+public class HealthGauge {
 
-    private final BPCountMetrics<Result>[] metricsArray;
-    private final Class<Result> type;
-
-    @SafeVarargs
-    public HealthGauge(BPCountMetrics<Result>... metrics) {
-        if (metrics.length == 0) {
-            throw new IllegalArgumentException("Health gauge must include as least one result metrics.");
-        }
-        this.metricsArray = metrics;
-        type = metrics[0].getMetricType();
-    }
+    private final List<InternalGauge<?>> gauges = new ArrayList<>();
 
     public BPHealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         long total = 0;
         long failures = 0;
 
-        // TODO: Explore combining iterations.
-        for (BPCountMetrics<Result> metrics : metricsArray) {
+        for (InternalGauge<?> gauge : gauges) {
+            gauge.refreshHealth(timePeriod, timeUnit, nanoTime);
+            total = total + gauge.total;
+            failures = failures + gauge.failures;
+        }
+        return new BPHealthSnapshot(total, failures);
+    }
+
+    public <Result extends Enum<Result> & Failable> void add(BPCountMetrics<Result> metrics) {
+        gauges.add(new InternalGauge<>(metrics));
+    }
+
+    private class InternalGauge<Result extends Enum<Result> & Failable> {
+
+        private final BPCountMetrics<Result> metrics;
+        private final Class<Result> type;
+        private long total = 0;
+        private long failures = 0;
+
+        private InternalGauge(BPCountMetrics<Result> metrics) {
+            this.metrics = metrics;
+            type = metrics.getMetricType();
+        }
+
+        // TODO: Not threadsafe
+        private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+            total = 0;
+            failures = 0;
             Iterable<MetricCounter<Result>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
 
             for (MetricCounter<Result> metricCounter : counters) {
@@ -55,6 +73,5 @@ public class HealthGauge<Result extends Enum<Result> & Failable> {
                 }
             }
         }
-        return new BPHealthSnapshot(total, failures);
     }
 }

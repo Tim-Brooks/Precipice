@@ -17,9 +17,7 @@
 
 package net.uncontended.precipice.semaphore;
 
-import net.uncontended.precipice.BackPressure;
-
-public interface BPSemaphoreInterface extends BackPressure {
+public interface BPSemaphoreInterface {
 
     long maxConcurrencyLevel();
 

@@ -17,11 +17,13 @@
 
 package net.uncontended.precipice.semaphore;
 
+import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BackPressureSemaphore<Rejected extends Enum<Rejected>> implements BPSemaphoreInterface {
+public class BackPressureSemaphore<Rejected extends Enum<Rejected>> implements BackPressure<Rejected>, BPSemaphoreInterface {
 
     private final AtomicLong permitsRemaining;
     private final int maxConcurrencyLevel;
@@ -55,6 +57,10 @@ public class BackPressureSemaphore<Rejected extends Enum<Rejected>> implements B
     @Override
     public void releasePermit(long rateUnits, Failable result, long nanoTime) {
         this.permitsRemaining.getAndIncrement();
+    }
+
+    @Override
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
     }
 
     @Override
