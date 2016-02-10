@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.utils;
+package net.uncontended.precipice.threadpool.utils;
 
 import net.uncontended.precipice.ControllerProperties;
 

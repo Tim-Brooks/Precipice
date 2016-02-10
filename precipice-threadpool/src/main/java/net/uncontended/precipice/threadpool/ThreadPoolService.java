@@ -22,8 +22,8 @@ import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
 import net.uncontended.precipice.timeout.TimeoutService;
-import net.uncontended.precipice.utils.PrecipiceExecutors;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;

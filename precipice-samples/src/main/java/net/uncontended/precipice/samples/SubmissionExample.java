@@ -23,7 +23,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
-import net.uncontended.precipice.utils.PrecipiceExecutors;
+import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
