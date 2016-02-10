@@ -18,21 +18,15 @@
 package net.uncontended.precipice;
 
 public enum Status implements Result {
-    SUCCESS(false, true),
-    ERROR(true, true),
-    TIMEOUT(true, true),
+    SUCCESS(false),
+    ERROR(true),
+    TIMEOUT(true),
     CANCELLED(false);
 
     private final boolean isFailed;
-    private final boolean trackLatency;
 
     Status(boolean isFailed) {
-        this(isFailed, false);
-    }
-
-    Status(boolean isFailed, boolean trackLatency) {
         this.isFailed = isFailed;
-        this.trackLatency = trackLatency;
     }
 
     @Override
@@ -43,15 +37,5 @@ public enum Status implements Result {
     @Override
     public boolean isSuccess() {
         return this == SUCCESS;
-    }
-
-    @Override
-    public boolean trackLatency() {
-        return trackLatency;
-    }
-
-    @Override
-    public boolean trackMetrics() {
-        return true;
     }
 }
