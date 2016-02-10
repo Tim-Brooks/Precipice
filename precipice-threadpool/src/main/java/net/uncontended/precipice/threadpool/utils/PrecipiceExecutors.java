@@ -17,8 +17,6 @@
 
 package net.uncontended.precipice.threadpool.utils;
 
-import net.uncontended.precipice.ControllerProperties;
-
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -30,9 +28,9 @@ public final class PrecipiceExecutors {
     }
 
     public static ExecutorService threadPoolExecutor(String name, int poolSize, long concurrencyLevel) {
-        if (concurrencyLevel > ControllerProperties.MAX_CONCURRENCY_LEVEL) {
+        if (concurrencyLevel > Integer.MAX_VALUE / 2) {
             throw new IllegalArgumentException("Concurrency Level \"" + concurrencyLevel + "\" is greater than the " +
-                    "allowed maximum: " + ControllerProperties.MAX_CONCURRENCY_LEVEL + '.');
+                    "allowed maximum: " + Integer.MAX_VALUE / 2 + '.');
         }
         return new ThreadPoolExecutor(poolSize, poolSize, Long.MAX_VALUE, TimeUnit.DAYS,
                 new ArrayBlockingQueue<Runnable>((int) concurrencyLevel + 10), new ServiceThreadFactory(name));

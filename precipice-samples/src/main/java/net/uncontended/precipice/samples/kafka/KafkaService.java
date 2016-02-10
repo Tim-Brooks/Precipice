@@ -17,8 +17,9 @@
 
 package net.uncontended.precipice.samples.kafka;
 
-import net.uncontended.precipice.Controllable;
-import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Precipice;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -28,18 +29,18 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.TimeoutException;
 
-public class KafkaService<K, V> implements Controllable<Status> {
+public class KafkaService<K, V> implements Precipice<Status, Rejected> {
 
-    private final Controller<Status> controller;
+    private final GuardRail<Status, Rejected> guardRail;
     private final KafkaProducer<K, V> producer;
 
-    public KafkaService(Controller<Status> controller, KafkaProducer<K, V> producer) {
-        this.controller = controller;
+    public KafkaService(GuardRail<Status, Rejected> guardRail, KafkaProducer<K, V> producer) {
+        this.guardRail = guardRail;
         this.producer = producer;
     }
 
     public PrecipiceFuture<Status, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
-        final PrecipicePromise<Status, RecordMetadata> promise = controller.acquirePermitAndGetPromise();
+        final PrecipicePromise<Status, RecordMetadata> promise = guardRail.acquirePermitAndGetPromise(1L);
 
         producer.send(record, new Callback() {
             @Override
@@ -60,8 +61,8 @@ public class KafkaService<K, V> implements Controllable<Status> {
     }
 
     @Override
-    public Controller<Status> controller() {
-        return controller;
+    public GuardRail<Status, Rejected> guardRail() {
+        return guardRail;
     }
 
     public void shutdown() {
@@ -69,7 +70,7 @@ public class KafkaService<K, V> implements Controllable<Status> {
     }
 
     public void shutdown(boolean shutdownClient) {
-        controller.shutdown();
+        guardRail.shutdown();
         if (shutdownClient) {
             producer.close();
         }

@@ -17,20 +17,16 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.ControllerProperties;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.backpressure.BPCountMetrics;
 import net.uncontended.precipice.backpressure.GuardRailBuilder;
-import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 
 public class SubmissionExample {
 

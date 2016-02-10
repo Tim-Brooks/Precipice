@@ -21,8 +21,9 @@ import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;
 import com.ning.http.client.Response;
-import net.uncontended.precipice.Controllable;
-import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Precipice;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -30,18 +31,18 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import java.util.concurrent.TimeoutException;
 
 
-public class HttpAsyncService implements Controllable<Status> {
+public class HttpAsyncService implements Precipice<Status, Rejected> {
 
     private final AsyncHttpClient client;
-    private final Controller<Status> controller;
+    private final GuardRail<Status, Rejected> guardRail;
 
-    public HttpAsyncService(Controller<Status> controller, AsyncHttpClient client) {
-        this.controller = controller;
+    public HttpAsyncService(GuardRail<Status, Rejected> guardRail, AsyncHttpClient client) {
+        this.guardRail = guardRail;
         this.client = client;
     }
 
     public PrecipiceFuture<Status, Response> submit(Request request) {
-        final PrecipicePromise<Status, Response> promise = controller.acquirePermitAndGetPromise();
+        final PrecipicePromise<Status, Response> promise = guardRail.acquirePermitAndGetPromise(1L);
 
         client.executeRequest(request, new AsyncCompletionHandler<Void>() {
             @Override
@@ -63,8 +64,8 @@ public class HttpAsyncService implements Controllable<Status> {
     }
 
     @Override
-    public Controller<Status> controller() {
-        return controller;
+    public GuardRail<Status, Rejected> guardRail() {
+        return guardRail;
     }
 
 
@@ -73,7 +74,7 @@ public class HttpAsyncService implements Controllable<Status> {
     }
 
     public void shutdown(boolean shutdownClient) {
-        controller.shutdown();
+        guardRail.shutdown();
         if (shutdownClient) {
             client.close();
         }

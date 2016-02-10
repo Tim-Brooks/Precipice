@@ -17,28 +17,6 @@
 
 package net.uncontended.precipice.samples.bigger;
 
-import com.squareup.okhttp.*;
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.ControllerProperties;
-import net.uncontended.precipice.RejectedException;
-import net.uncontended.precipice.Status;
-import net.uncontended.precipice.circuit.BreakerConfigBuilder;
-import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.metrics.DefaultCountMetrics;
-import net.uncontended.precipice.pattern.PatternAction;
-import net.uncontended.precipice.pattern.PatternStrategy;
-import net.uncontended.precipice.pattern.RoundRobinLoadBalancer;
-import net.uncontended.precipice.threadpool.ThreadPoolPattern;
-import net.uncontended.precipice.threadpool.ThreadPoolService;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 public class Client {
 //
 //    private final ThreadPoolPattern<Map<String, Object>> loadBalancer;
