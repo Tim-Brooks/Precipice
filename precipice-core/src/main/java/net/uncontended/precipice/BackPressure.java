@@ -24,4 +24,6 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
     void releasePermit(long number, long nanoTime);
 
     void releasePermit(long number, Failable result, long nanoTime);
+
+    // <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail);
 }
