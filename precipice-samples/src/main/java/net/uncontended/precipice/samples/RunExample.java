@@ -18,10 +18,10 @@
 package net.uncontended.precipice.samples;
 
 import net.uncontended.precipice.CallService;
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.ControllerProperties;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.concurrent.LongSemaphore;
+import net.uncontended.precipice.backpressure.BPCountMetrics;
+import net.uncontended.precipice.backpressure.GuardRailBuilder;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 public class RunExample {
@@ -29,9 +29,11 @@ public class RunExample {
     public static void main(String[] args) {
         String name = "Identity Service";
         int concurrencyLevel = 100;
-        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-        properties.semaphore(new LongSemaphore(concurrencyLevel));
-        CallService service = new CallService(new Controller<>(name, properties));
+        GuardRailBuilder<Status, Rejected> builder = new GuardRailBuilder<>();
+        builder.name(name)
+                .resultMetrics(new BPCountMetrics<>(Status.class))
+                .rejectedMetrics(new BPCountMetrics<>(Rejected.class));
+        CallService service = new CallService(builder.build());
 
         try {
             // Should return 64

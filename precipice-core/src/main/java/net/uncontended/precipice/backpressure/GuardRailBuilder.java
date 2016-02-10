@@ -19,6 +19,7 @@ package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.NoOpLatencyMetrics;
 import net.uncontended.precipice.time.Clock;
@@ -36,27 +37,27 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
     private LatencyMetrics<Result> resultLatency = new NoOpLatencyMetrics<>();
     private Clock clock = new SystemTime();
 
-    public GuardRailBuilder addBackPressure(BackPressure<Rejected> backPressure) {
+    public GuardRailBuilder<Result, Rejected> addBackPressure(BackPressure<Rejected> backPressure) {
         this.backPressureList.add(backPressure);
         return this;
     }
 
-    public GuardRailBuilder name(String name) {
+    public GuardRailBuilder<Result, Rejected> name(String name) {
         this.name = name;
         return this;
     }
 
-    public GuardRailBuilder resultMetrics(BPTotalCountMetrics<Result> resultMetrics) {
+    public GuardRailBuilder<Result, Rejected> resultMetrics(BPTotalCountMetrics<Result> resultMetrics) {
         this.resultMetrics = resultMetrics;
         return this;
     }
 
-    public GuardRailBuilder rejectedMetrics(BPTotalCountMetrics<Rejected> rejectedMetrics) {
+    public GuardRailBuilder<Result, Rejected> rejectedMetrics(BPTotalCountMetrics<Rejected> rejectedMetrics) {
         this.rejectedMetrics = rejectedMetrics;
         return this;
     }
 
-    public GuardRailBuilder resultLatency(LatencyMetrics<Result> resultLatency) {
+    public GuardRailBuilder<Result, Rejected> resultLatency(LatencyMetrics<Result> resultLatency) {
         this.resultLatency = resultLatency;
         return this;
     }

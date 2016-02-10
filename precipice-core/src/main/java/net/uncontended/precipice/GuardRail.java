@@ -15,12 +15,10 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice;
 
-import net.uncontended.precipice.BackPressure;
-import net.uncontended.precipice.PerformingContext;
-import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.backpressure.BPRejectedException;
+import net.uncontended.precipice.backpressure.BPTotalCountMetrics;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.CompletionContext;
 import net.uncontended.precipice.concurrent.Eventual;
@@ -91,6 +89,10 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         Eventual<Result, R> promise = new Eventual<>(nanoTime, externalCompletable);
         promise.internalOnComplete(finishingCallback);
         return promise;
+    }
+
+    public <R> Completable<Result, R> acquirePermitAndGetCompletableContext() {
+        return acquirePermitAndGetCompletableContext(clock.nanoTime());
     }
 
     public <R> Completable<Result, R> acquirePermitAndGetCompletableContext(long nanoTime) {

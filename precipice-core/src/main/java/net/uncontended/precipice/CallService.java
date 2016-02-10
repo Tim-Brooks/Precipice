@@ -22,21 +22,21 @@ import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.Callable;
 
-public class CallService implements Controllable<Status> {
+public class CallService implements Precipice<Status, Rejected> {
 
-    private final Controller<Status> controller;
+    private final GuardRail<Status, Rejected> guardRail;
 
-    public CallService(Controller<Status> controller) {
-        this.controller = controller;
+    public CallService(GuardRail<Status, Rejected> guardRail) {
+        this.guardRail = guardRail;
     }
 
     @Override
-    public Controller<Status> controller() {
-        return controller;
+    public GuardRail<Status, Rejected> guardRail() {
+        return guardRail;
     }
 
     public <T> T call(Callable<T> callable) throws Exception {
-        Completable<Status, T> completable = controller.acquirePermitAndGetCompletableContext();
+        Completable<Status, T> completable = guardRail.acquirePermitAndGetCompletableContext();
 
         try {
             T result = callable.call();

@@ -15,9 +15,15 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.semaphore;
 
-public interface Controllable<T extends Enum<T> & Failable> {
+import net.uncontended.precipice.BackPressure;
 
-    Controller<T> controller();
+public interface BPSemaphoreInterface extends BackPressure {
+
+    long maxConcurrencyLevel();
+
+    long remainingCapacity();
+
+    long currentConcurrencyLevel();
 }

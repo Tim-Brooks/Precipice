@@ -26,8 +26,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
@@ -38,7 +36,7 @@ import static org.mockito.Mockito.when;
 public class CallServiceTest {
 
     @Mock
-    private Controller<Status> controller;
+    private GuardRail<Status, Rejected> guardRail;
     @Mock
     private CompletionContext<Status, Object> context;
 
@@ -47,18 +45,18 @@ public class CallServiceTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        service = new CallService(controller);
+        service = new CallService(guardRail);
     }
 
     @After
     public void tearDown() {
-        service.controller().shutdown();
+        service.guardRail().shutdown();
     }
 
     @Test
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
-            when(controller.acquirePermitAndGetCompletableContext()).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
+            when(guardRail.acquirePermitAndGetCompletableContext()).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
             service.call(TestCallables.success(1));
             fail();
         } catch (RejectedException e) {
@@ -66,7 +64,7 @@ public class CallServiceTest {
         }
 
         try {
-            when(controller.acquirePermitAndGetCompletableContext()).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
+            when(guardRail.acquirePermitAndGetCompletableContext()).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
             service.call(TestCallables.success(1));
             fail();
         } catch (RejectedException e) {
@@ -76,7 +74,7 @@ public class CallServiceTest {
 
     @Test
     public void callableIsExecuted() throws Exception {
-        when(controller.acquirePermitAndGetCompletableContext()).thenReturn(context);
+        when(guardRail.acquirePermitAndGetCompletableContext()).thenReturn(context);
         String expectedResult = "Success";
 
         String result = service.call(TestCallables.success(1));
@@ -88,7 +86,7 @@ public class CallServiceTest {
 
     @Test
     public void callableExceptionIsHandledAppropriately() throws Exception {
-        when(controller.acquirePermitAndGetCompletableContext()).thenReturn(context);
+        when(guardRail.acquirePermitAndGetCompletableContext()).thenReturn(context);
 
         RuntimeException exception = new RuntimeException();
 
@@ -103,7 +101,7 @@ public class CallServiceTest {
 
     @Test
     public void callableTimeoutExceptionIsHandledAppropriately() throws Exception {
-        when(controller.acquirePermitAndGetCompletableContext()).thenReturn(context);
+        when(guardRail.acquirePermitAndGetCompletableContext()).thenReturn(context);
 
         TimeoutException exception = new PrecipiceTimeoutException();
 

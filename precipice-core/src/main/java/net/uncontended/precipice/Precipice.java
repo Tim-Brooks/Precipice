@@ -15,15 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice;
 
-import net.uncontended.precipice.BackPressure;
+public interface Precipice<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-public interface BPSemaphoreInterface extends BackPressure {
-
-    long maxConcurrencyLevel();
-
-    long remainingCapacity();
-
-    long currentConcurrencyLevel();
+    GuardRail<Result, Rejected> guardRail();
 }
