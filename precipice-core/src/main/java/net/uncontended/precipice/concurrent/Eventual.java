@@ -19,12 +19,12 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<S extends Result, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>,
+public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>,
         PerformingContext {
 
     private final long startNanos;

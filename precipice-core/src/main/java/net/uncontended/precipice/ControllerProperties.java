@@ -28,7 +28,7 @@ import net.uncontended.precipice.metrics.DefaultCountMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class ControllerProperties<T extends Enum<T> & Result> {
+public class ControllerProperties<T extends Enum<T> & Failable> {
 
     public static int MAX_CONCURRENCY_LEVEL = Integer.MAX_VALUE / 2;
 

@@ -18,7 +18,7 @@
 package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.BackPressure;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.NoOpLatencyMetrics;
 import net.uncontended.precipice.time.Clock;
@@ -27,7 +27,7 @@ import net.uncontended.precipice.time.SystemTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuardRailBuilder<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>> {
+public class GuardRailBuilder<Res extends Enum<Res> & Failable, Rejected extends Enum<Rejected>> {
 
     private String name;
     private BPTotalCountMetrics<Res> resultMetrics;

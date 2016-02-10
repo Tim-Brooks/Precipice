@@ -17,12 +17,12 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
 
-public class SWLatencyMetrics<T extends Enum<T> & Result> implements BackgroundTask {
+public class SWLatencyMetrics<T extends Enum<T> & Failable> implements BackgroundTask {
 
     private final LatencyBucket[] buckets;
 

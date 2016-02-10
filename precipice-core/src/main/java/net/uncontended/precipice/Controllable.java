@@ -17,6 +17,6 @@
 
 package net.uncontended.precipice;
 
-public interface Controllable<T extends Enum<T> & Result> {
+public interface Controllable<T extends Enum<T> & Failable> {
     Controller<T> controller();
 }

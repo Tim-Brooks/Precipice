@@ -18,13 +18,13 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class DefaultCountMetrics<T extends Enum<T> & Result> implements CountMetrics<T> {
+public class DefaultCountMetrics<T extends Enum<T> & Failable> implements CountMetrics<T> {
 
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;

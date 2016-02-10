@@ -18,7 +18,7 @@
 package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.BackPressure;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -62,7 +62,7 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPr
     }
 
     @Override
-    public void releasePermit(long number, Result result, long nanoTime) {
+    public void releasePermit(long number, Failable result, long nanoTime) {
         if (result.isSuccess()) {
             if (state.get() == OPEN) {
                 // This can get stuck in a loop with open and closing

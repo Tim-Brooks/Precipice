@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
-public class NoOpLatencyMetrics<T extends Enum<T> & Result> implements LatencyMetrics<T> {
+public class NoOpLatencyMetrics<T extends Enum<T> & Failable> implements LatencyMetrics<T> {
 
     @Override
     public void recordLatency(T metric, long nanoLatency) {

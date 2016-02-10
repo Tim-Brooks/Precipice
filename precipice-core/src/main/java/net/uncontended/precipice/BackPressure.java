@@ -23,5 +23,5 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
 
     void releasePermit(long number, long nanoTime);
 
-    void releasePermit(long number, Result status, long nanoTime);
+    void releasePermit(long number, Failable status, long nanoTime);
 }

@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice;
 
-public enum Status implements Result {
+public enum Status implements Failable {
     SUCCESS(false),
     ERROR(true),
     TIMEOUT(true),

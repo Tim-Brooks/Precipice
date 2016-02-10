@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.util.RawCircularBuffer;
 import org.HdrHistogram.*;
 
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Unstable and still in development. At this time, {@link IntervalLatencyMetrics} should be used.
  */
-public class RollingLatencyMetrics<T extends Enum<T> & Result> implements LatencyMetrics<T> {
+public class RollingLatencyMetrics<T extends Enum<T> & Failable> implements LatencyMetrics<T> {
 
     private final long startTime;
 

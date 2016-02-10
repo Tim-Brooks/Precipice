@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
-public interface LatencyMetrics<T extends Enum<T> & Result> {
+public interface LatencyMetrics<T extends Enum<T> & Failable> {
 
     LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 

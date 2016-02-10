@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.circuit;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.time.Clock;
@@ -76,12 +76,12 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
     }
 
     @Override
-    public void informBreakerOfResult(Result result) {
+    public void informBreakerOfResult(Failable result) {
         informBreakerOfResult(result, systemTime.nanoTime());
     }
 
     @Override
-    public void informBreakerOfResult(Result result, long nanoTime) {
+    public void informBreakerOfResult(Failable result, long nanoTime) {
         if (result.isSuccess()) {
             if (state.get() == OPEN) {
                 // This can get stuck in a loop with open and closing

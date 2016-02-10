@@ -23,7 +23,7 @@ import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 
-public class Controller<T extends Enum<T> & Result> {
+public class Controller<T extends Enum<T> & Failable> {
     private final PrecipiceSemaphore semaphore;
     private final CountMetrics<T> countMetrics;
     private final LatencyMetrics<T> latencyMetrics;
@@ -149,7 +149,7 @@ public class Controller<T extends Enum<T> & Result> {
         return clock;
     }
 
-    private static class FinishingCallback<T extends Enum<T> & Result> implements PrecipiceFunction<T, PerformingContext> {
+    private static class FinishingCallback<T extends Enum<T> & Failable> implements PrecipiceFunction<T, PerformingContext> {
 
         private final CountMetrics<T> countMetrics;
         private final CircuitBreaker circuitBreaker;

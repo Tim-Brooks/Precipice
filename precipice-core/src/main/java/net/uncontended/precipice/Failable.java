@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice;
 
-public interface Result {
+public interface Failable {
 
     boolean isFailure();
 

@@ -19,9 +19,9 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
-public class CompletionContext<S extends Result, T> implements Completable<S, T>, PerformingContext {
+public class CompletionContext<S extends Failable, T> implements Completable<S, T>, PerformingContext {
 
     private final long startTime;
     private final Completable<S, T> wrappedCompletable;

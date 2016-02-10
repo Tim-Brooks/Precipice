@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -42,7 +42,7 @@ public class BPUnlimitedSemaphore<Rejected extends Enum<Rejected>> implements BP
     }
 
     @Override
-    public void releasePermit(long number, Result status, long nanoTime) {
+    public void releasePermit(long number, Failable status, long nanoTime) {
         concurrencyLevel.decrementAndGet();
     }
 

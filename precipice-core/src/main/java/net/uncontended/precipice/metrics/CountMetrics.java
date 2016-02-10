@@ -18,11 +18,11 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
 import java.util.concurrent.TimeUnit;
 
-public interface CountMetrics<T extends Enum<T> & Result> {
+public interface CountMetrics<T extends Enum<T> & Failable> {
 
     void incrementMetricCount(T metric);
 

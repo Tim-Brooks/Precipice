@@ -18,12 +18,12 @@
 package net.uncontended.precipice.metrics;
 
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import org.HdrHistogram.*;
 
 import java.util.concurrent.TimeUnit;
 
-public class IntervalLatencyMetrics<T extends Enum<T> & Result> implements LatencyMetrics<T> {
+public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements LatencyMetrics<T> {
 
     private final LatencyBucket[] buckets;
     private final long highestTrackableValue;

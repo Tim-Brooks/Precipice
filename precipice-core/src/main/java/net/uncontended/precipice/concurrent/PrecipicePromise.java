@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
-public interface PrecipicePromise<S extends Result, T> extends Completable<S,T> {
+public interface PrecipicePromise<S extends Failable, T> extends Completable<S,T> {
 
     PrecipiceFuture<S, T> future();
 }

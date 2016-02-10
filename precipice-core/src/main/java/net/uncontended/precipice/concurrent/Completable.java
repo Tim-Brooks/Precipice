@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
-public interface Completable<S extends Result, T> {
+public interface Completable<S extends Failable, T> {
 
     boolean complete(S status, T result);
 

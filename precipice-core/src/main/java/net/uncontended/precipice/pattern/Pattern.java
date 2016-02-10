@@ -20,13 +20,13 @@ package net.uncontended.precipice.pattern;
 import net.uncontended.precipice.Controllable;
 import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class Pattern<T extends Enum<T> & Result, C extends Controllable<T>> {
+public class Pattern<T extends Enum<T> & Failable, C extends Controllable<T>> {
 
     private final List<C> pool;
 

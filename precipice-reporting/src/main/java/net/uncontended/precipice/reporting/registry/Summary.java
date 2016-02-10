@@ -18,12 +18,12 @@ package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.Service;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.*;
 
 import java.util.concurrent.TimeUnit;
 
-public class Summary<T extends Enum<T> & Result> {
+public class Summary<T extends Enum<T> & Failable> {
     private final long period;
     private final TimeUnit unit;
     private final CountMetrics<T> countMetrics;

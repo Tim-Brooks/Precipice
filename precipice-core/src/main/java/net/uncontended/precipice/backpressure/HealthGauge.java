@@ -17,12 +17,12 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.MetricCounter;
 
 import java.util.concurrent.TimeUnit;
 
-public class HealthGauge<Res extends Enum<Res> & Result> {
+public class HealthGauge<Res extends Enum<Res> & Failable> {
 
     private final BPCountMetrics<Res>[] metricsArray;
     private final Class<Res> type;

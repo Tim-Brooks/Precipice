@@ -20,7 +20,7 @@ package net.uncontended.precipice.backpressure;
 import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.CompletionContext;
 import net.uncontended.precipice.concurrent.Eventual;
@@ -30,7 +30,7 @@ import net.uncontended.precipice.time.Clock;
 
 import java.util.List;
 
-public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rejected>> {
+public class GuardRail<Res extends Enum<Res> & Failable, Rejected extends Enum<Rejected>> {
 
     private final BPTotalCountMetrics<Res> resultMetrics;
     private final BPTotalCountMetrics<Rejected> rejectedMetrics;

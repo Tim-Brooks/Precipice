@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.Result;
+import net.uncontended.precipice.Failable;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -53,7 +53,7 @@ public class BackPressureSemaphore<Rejected extends Enum<Rejected>> implements B
     }
 
     @Override
-    public void releasePermit(long rateUnits, Result result, long nanoTime) {
+    public void releasePermit(long rateUnits, Failable result, long nanoTime) {
         this.permitsRemaining.getAndIncrement();
     }
 
