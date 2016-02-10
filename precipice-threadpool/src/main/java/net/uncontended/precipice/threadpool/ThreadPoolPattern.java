@@ -14,13 +14,15 @@
  * limitations under the License.
  *
  */
-package net.uncontended.precipice.pattern;
+package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.threadpool.ThreadPoolService;
-import net.uncontended.precipice.threadpool.ThreadPoolTask;
+import net.uncontended.precipice.pattern.Pattern;
+import net.uncontended.precipice.pattern.PatternAction;
+import net.uncontended.precipice.pattern.PatternStrategy;
+import net.uncontended.precipice.pattern.Sequence;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.Map;
@@ -85,7 +87,7 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
 
     private long acquirePermit() {
         Rejected rejected = controller.acquirePermitOrGetRejectedReason();
-        long nanoTime =controller.getClock().nanoTime();
+        long nanoTime = controller.getClock().nanoTime();
         if (rejected != null) {
             controller.getCountMetrics().incrementRejectionCount(rejected, nanoTime);
             throw new RejectedException(rejected);

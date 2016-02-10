@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
-interface Sequence<E> extends Iterable<E>  {
+public interface Sequence<E> extends Iterable<E>  {
 
     boolean isEmpty();
 }

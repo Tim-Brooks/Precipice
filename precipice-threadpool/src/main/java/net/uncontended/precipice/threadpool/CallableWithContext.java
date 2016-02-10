@@ -15,7 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.pattern;
+package net.uncontended.precipice.threadpool;
+
+import net.uncontended.precipice.pattern.PatternAction;
 
 import java.util.concurrent.Callable;
 

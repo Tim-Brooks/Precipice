@@ -26,10 +26,10 @@ import net.uncontended.precipice.circuit.BreakerConfigBuilder;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.DefaultCountMetrics;
-import net.uncontended.precipice.pattern.RoundRobinLoadBalancer;
 import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.PatternStrategy;
-import net.uncontended.precipice.pattern.ThreadPoolPattern;
+import net.uncontended.precipice.pattern.RoundRobinLoadBalancer;
+import net.uncontended.precipice.threadpool.ThreadPoolPattern;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 
 import java.util.ArrayList;

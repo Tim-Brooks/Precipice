@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class ThreadPoolTask<T> implements Runnable, TimeoutTask {
+class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;

@@ -19,7 +19,7 @@ package net.uncontended.precipice.pattern;
 
 import java.util.Iterator;
 
-class SingleReaderSequence<E> implements Sequence<E>, Iterator<E> {
+public class SingleReaderSequence<E> implements Sequence<E>, Iterator<E> {
 
     private final Object[] children;
     private int index = 0;

@@ -38,7 +38,7 @@ public class SubmissionExample {
         ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
         ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
         controllerProperties.semaphore(new LongSemaphore(concurrencyLevel));
-        ThreadPoolService service =  new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
+        ThreadPoolService service = new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
 
         int millisTimeout = 10;
         PrecipiceFuture<Status, Integer> successFuture = service.submit(Callables.success(), millisTimeout);
