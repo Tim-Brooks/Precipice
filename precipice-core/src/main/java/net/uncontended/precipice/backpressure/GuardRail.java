@@ -67,11 +67,11 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
         return null;
     }
 
-    public <R> PrecipicePromise<Res, R> acquirePermitAndGetPromise() {
+    public <R> Eventual<Res, R> acquirePermitAndGetPromise() {
         return acquirePermitAndGetPromise(null);
     }
 
-    public <R> PrecipicePromise<Res, R> acquirePermitAndGetPromise(PrecipicePromise<Res, R> externalPromise) {
+    public <R> Eventual<Res, R> acquirePermitAndGetPromise(PrecipicePromise<Res, R> externalPromise) {
         long startTime = clock.nanoTime();
         Rejected rejected = acquirePermitOrGetRejectedReason(startTime);
         if (rejected != null) {
@@ -82,11 +82,11 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
         return getPromise(startTime, externalPromise);
     }
 
-    public <R> PrecipicePromise<Res, R> getPromise(long nanoTime) {
+    public <R> Eventual<Res, R> getPromise(long nanoTime) {
         return getPromise(nanoTime, null);
     }
 
-    public <R> PrecipicePromise<Res, R> getPromise(long nanoTime, Completable<Res, R> externalCompletable) {
+    public <R> Eventual<Res, R> getPromise(long nanoTime, Completable<Res, R> externalCompletable) {
         Eventual<Res, R> promise = new Eventual<>(nanoTime, externalCompletable);
         promise.internalOnComplete(finishingCallback);
         return promise;
@@ -110,11 +110,11 @@ public class GuardRail<Res extends Enum<Res> & Result, Rejected extends Enum<Rej
         }
     }
 
-    public <R> Completable<Res, R> getCompletableContext(long nanoTime) {
+    public <R> CompletionContext<Res, R> getCompletableContext(long nanoTime) {
         return getCompletableContext(nanoTime, null);
     }
 
-    public <R> Completable<Res, R> getCompletableContext(long nanoTime, Completable<Res, R> completable) {
+    public <R> CompletionContext<Res, R> getCompletableContext(long nanoTime, Completable<Res, R> completable) {
         CompletionContext<Res, R> context = new CompletionContext<>(nanoTime, completable);
         context.internalOnComplete(finishingCallback);
         return context;
