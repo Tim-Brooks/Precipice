@@ -15,9 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
-
-import net.uncontended.precipice.Result;
+package net.uncontended.precipice;
 
 public interface BackPressure<Rejected extends Enum<Rejected>> {
 

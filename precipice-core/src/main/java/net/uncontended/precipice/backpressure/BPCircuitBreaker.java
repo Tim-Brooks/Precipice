@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.backpressure;
 
+import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Result;
 
 import java.util.concurrent.TimeUnit;
