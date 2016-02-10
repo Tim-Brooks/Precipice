@@ -111,6 +111,12 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         return getCompletableContext(permits, nanoTime);
     }
 
+    public void release(long permits, long nanoTime) {
+        for (BackPressure backPressure : backPressureList) {
+            backPressure.releasePermit(permits, nanoTime);
+        }
+    }
+
     public void release(long units, Result result, long starTime, long nanoTime) {
         resultMetrics.incrementMetricCount(result, nanoTime);
         latencyMetrics.recordLatency(result, nanoTime - starTime, nanoTime);

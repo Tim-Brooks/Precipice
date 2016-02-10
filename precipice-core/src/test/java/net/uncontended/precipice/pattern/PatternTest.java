@@ -17,26 +17,26 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.Controllable;
-import net.uncontended.precipice.Controller;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.backpressure.BPTotalCountMetrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class PatternTest {
@@ -44,19 +44,19 @@ public class PatternTest {
     @Mock
     private PatternStrategy strategy;
     @Mock
-    private Controllable<Status> controllable1;
+    private Precipice<Status, Rejected> precipice1;
     @Mock
-    private Controllable<Status> controllable2;
+    private Precipice<Status, Rejected> precipice2;
     @Mock
-    private Controllable<Status> controllable3;
+    private Precipice<Status, Rejected> precipice3;
     @Mock
-    private Controller<Status> controller1;
+    private GuardRail<Status, Rejected> guardRail1;
     @Mock
-    private Controller<Status> controller2;
+    private GuardRail<Status, Rejected> guardRail2;
     @Mock
-    private Controller<Status> controller3;
+    private GuardRail<Status, Rejected> guardRail3;
 
-    private Pattern<Status, Controllable<Status>> pattern;
+    private Pattern<Status, Rejected, Precipice<Status, Rejected>> pattern;
     private int submissionCount = 2;
     private long nanoTime = 10L;
 
@@ -64,22 +64,22 @@ public class PatternTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        List<Controllable<Status>> controllables = Arrays.asList(controllable1, controllable2, controllable3);
+        List<Precipice<Status, Rejected>> controllables = Arrays.asList(precipice1, precipice2, precipice3);
         pattern = new Pattern<>(controllables, strategy);
 
         when(strategy.submissionCount()).thenReturn(submissionCount);
-        when(controllable1.controller()).thenReturn(controller1);
-        when(controllable2.controller()).thenReturn(controller2);
-        when(controllable3.controller()).thenReturn(controller3);
+        when(precipice1.guardRail()).thenReturn(guardRail1);
+        when(precipice2.guardRail()).thenReturn(guardRail2);
+        when(precipice3.guardRail()).thenReturn(guardRail3);
     }
 
     @Test
     public void getAllReturnsAListOfAllTheChildControllablesInOrder() {
-        List<Controllable<Status>> all = pattern.getAllControllables();
+        List<Precipice<Status, Rejected>> all = pattern.getAllControllables();
         assertEquals(3, all.size());
-        assertEquals(controllable1, all.get(0));
-        assertEquals(controllable2, all.get(1));
-        assertEquals(controllable3, all.get(2));
+        assertEquals(precipice1, all.get(0));
+        assertEquals(precipice2, all.get(1));
+        assertEquals(precipice3, all.get(2));
     }
 
     @Test
@@ -87,75 +87,75 @@ public class PatternTest {
         int[] indices = {0, 1, 2};
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(controller1.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller2.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        Sequence<Controllable<Status>> all = pattern.getControllables(nanoTime);
+        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        Sequence<Precipice<Status, Rejected>> all = pattern.getControllables(1L, nanoTime);
 
-        List<Controllable<Status>> controllableList = new ArrayList<>();
-        for (Controllable<Status> item : all) {
+        List<Precipice<Status, Rejected>> controllableList = new ArrayList<>();
+        for (Precipice<Status, Rejected> item : all) {
             controllableList.add(item);
         }
 
-        verifyZeroInteractions(controllable3);
-        verifyZeroInteractions(controller3);
+        verifyZeroInteractions(precipice3);
+        verifyZeroInteractions(guardRail3);
 
         assertEquals(2, controllableList.size());
-        assertSame(controllable1, controllableList.get(0));
-        assertSame(controllable2, controllableList.get(1));
+        assertSame(precipice1, controllableList.get(0));
+        assertSame(precipice2, controllableList.get(1));
     }
 
     @Test
     public void getAcquiresPermitsInTheCorrectOrder() {
         int[] indices = {2, 0, 1};
-        CountMetrics<Status> metrics = mock(CountMetrics.class);
+        BPTotalCountMetrics<Rejected> metrics = mock(BPTotalCountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(controller3.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller1.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.CIRCUIT_OPEN);
-        when(controller2.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller1.getCountMetrics()).thenReturn(metrics);
+        when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
+        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
 
-        Sequence<Controllable<Status>> all = pattern.getControllables(nanoTime);
+        Sequence<Precipice<Status, Rejected>> all = pattern.getControllables(1L, nanoTime);
 
-        verify(metrics).incrementRejectionCount(Rejected.CIRCUIT_OPEN, nanoTime);
+        verify(metrics).incrementMetricCount(Rejected.CIRCUIT_OPEN, nanoTime);
 
-        List<Controllable<Status>> controllableList = new ArrayList<>();
-        for (Controllable<Status> item : all) {
+        List<Precipice<Status, Rejected>> controllableList = new ArrayList<>();
+        for (Precipice<Status, Rejected> item : all) {
             controllableList.add(item);
         }
 
 
         assertEquals(2, controllableList.size());
-        assertSame(controllable3, controllableList.get(0));
-        assertSame(controllable2, controllableList.get(1));
+        assertSame(precipice3, controllableList.get(0));
+        assertSame(precipice2, controllableList.get(1));
     }
 
     @Test
     public void getOnlyReturnsTheNumberOfControllablesThatAreAvailable() {
         int[] indices = {2, 0, 1};
-        CountMetrics<Status> metrics = mock(CountMetrics.class);
-        CountMetrics<Status> metrics2 = mock(CountMetrics.class);
+        BPTotalCountMetrics<Rejected> metrics = mock(BPTotalCountMetrics.class);
+        BPTotalCountMetrics<Rejected> metrics2 = mock(BPTotalCountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(controller3.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        when(controller1.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.CIRCUIT_OPEN);
-        when(controller2.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller1.getCountMetrics()).thenReturn(metrics);
-        when(controller3.getCountMetrics()).thenReturn(metrics2);
+        when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
+        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
+        when(guardRail3.getRejectedMetrics()).thenReturn(metrics2);
 
-        Sequence<Controllable<Status>> all = pattern.getControllables(nanoTime);
+        Sequence<Precipice<Status, Rejected>> all = pattern.getControllables(1L, nanoTime);
 
-        verify(metrics2).incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
-        verify(metrics).incrementRejectionCount(Rejected.CIRCUIT_OPEN, nanoTime);
+        verify(metrics2).incrementMetricCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
+        verify(metrics).incrementMetricCount(Rejected.CIRCUIT_OPEN, nanoTime);
 
-        List<Controllable<Status>> controllableList = new ArrayList<>();
-        for (Controllable<Status> item : all) {
+        List<Precipice<Status, Rejected>> controllableList = new ArrayList<>();
+        for (Precipice<Status, Rejected> item : all) {
             controllableList.add(item);
         }
 
 
         assertEquals(1, controllableList.size());
-        assertSame(controllable2, controllableList.get(0));
+        assertSame(precipice2, controllableList.get(0));
     }
 
     @Test
@@ -164,17 +164,17 @@ public class PatternTest {
         Executor executor = Executors.newCachedThreadPool();
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(controller3.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller1.acquirePermitOrGetRejectedReason()).thenReturn(null);
-        when(controller2.acquirePermitOrGetRejectedReason()).thenReturn(null);
+        when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
 
-        final Sequence<Controllable<Status>> firstSequence = pattern.getControllables(nanoTime);
+        final Sequence<Precipice<Status, Rejected>> firstSequence = pattern.getControllables(1L, nanoTime);
         for (int i = 0; i < 10; ++i) {
-            Sequence<Controllable<Status>> sequence = pattern.getControllables(nanoTime);
+            Sequence<Precipice<Status, Rejected>> sequence = pattern.getControllables(1L, nanoTime);
             assertSame("Should be the same reference.", firstSequence, sequence);
         }
 
-        final ConcurrentHashMap<Sequence<Controllable<Status>>, AtomicInteger> sequenceMap = new ConcurrentHashMap<>();
+        final ConcurrentHashMap<Sequence<Precipice<Status, Rejected>>, AtomicInteger> sequenceMap = new ConcurrentHashMap<>();
         final CountDownLatch latch = new CountDownLatch(5);
         final CountDownLatch doneLatch = new CountDownLatch(5);
 
@@ -182,7 +182,7 @@ public class PatternTest {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    Sequence<Controllable<Status>> first = pattern.getControllables(nanoTime);
+                    Sequence<Precipice<Status, Rejected>> first = pattern.getControllables(1L, nanoTime);
                     if (sequenceMap.containsKey(first)) {
                         fail("Set should not already contain this sequence.");
                     }
@@ -196,7 +196,7 @@ public class PatternTest {
                     }
 
                     for (int i = 0; i < 10; ++i) {
-                        Sequence<Controllable<Status>> sequence = pattern.getControllables(nanoTime);
+                        Sequence<Precipice<Status, Rejected>> sequence = pattern.getControllables(1L, nanoTime);
                         sequenceMap.get(sequence).incrementAndGet();
                         assertSame("Should be the same reference.", first, sequence);
                     }

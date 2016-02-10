@@ -23,26 +23,26 @@ import java.io.InputStreamReader;
 
 public class BiggerExample {
 
-    public static void main(String[] args) {
-        Servers servers = new Servers();
-        servers.start();
-
-        Client client = new Client();
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Push enter to start requests");
-        try {
-            br.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            client.run();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        servers.stop();
-    }
+//    public static void main(String[] args) {
+//        Servers servers = new Servers();
+//        servers.start();
+//
+//        Client client = new Client();
+//
+//        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+//        System.out.print("Push enter to start requests");
+//        try {
+//            br.readLine();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        try {
+//            client.run();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//
+//        servers.stop();
+//    }
 }

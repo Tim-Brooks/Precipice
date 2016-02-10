@@ -19,7 +19,10 @@ package net.uncontended.precipice.samples;
 
 import net.uncontended.precipice.Controller;
 import net.uncontended.precipice.ControllerProperties;
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.backpressure.BPCountMetrics;
+import net.uncontended.precipice.backpressure.GuardRailBuilder;
 import net.uncontended.precipice.concurrent.LongSemaphore;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
@@ -35,10 +38,12 @@ public class SubmissionExample {
         String name = "Identity Service";
         int poolSize = 5;
         int concurrencyLevel = 100;
-        ExecutorService executor = PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel);
-        ControllerProperties<Status> controllerProperties = new ControllerProperties<>(Status.class);
-        controllerProperties.semaphore(new LongSemaphore(concurrencyLevel));
-        ThreadPoolService service = new ThreadPoolService(executor, new Controller<>(name, controllerProperties));
+        GuardRailBuilder<Status, Rejected> builder = new GuardRailBuilder<>();
+        builder.name(name)
+                .resultMetrics(new BPCountMetrics<>(Status.class))
+                .rejectedMetrics(new BPCountMetrics<>(Rejected.class));
+        ThreadPoolService service = new ThreadPoolService(PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel),
+                builder.build());
 
         int millisTimeout = 10;
         PrecipiceFuture<Status, Integer> successFuture = service.submit(Callables.success(), millisTimeout);

@@ -28,7 +28,6 @@ public class RunExample {
 
     public static void main(String[] args) {
         String name = "Identity Service";
-        int concurrencyLevel = 100;
         GuardRailBuilder<Status, Rejected> builder = new GuardRailBuilder<>();
         builder.name(name)
                 .resultMetrics(new BPCountMetrics<>(Status.class))

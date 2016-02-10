@@ -17,9 +17,7 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.Controllable;
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
@@ -28,40 +26,40 @@ import net.uncontended.precipice.timeout.TimeoutService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadPoolService implements Controllable<Status> {
+public class ThreadPoolService implements Precipice<Status, Rejected> {
     private final ExecutorService executorService;
     private final TimeoutService timeoutService;
-    private final Controller<Status> controller;
+    private final GuardRail<Status, Rejected> guardRail;
 
-    public ThreadPoolService(int poolSize, Controller<Status> controller) {
-        this(PrecipiceExecutors.threadPoolExecutor(controller.getName(), poolSize,
-                controller.getSemaphore().maxConcurrencyLevel()), controller);
+    public ThreadPoolService(int poolSize, int queueSize, GuardRail<Status, Rejected> guardRail) {
+        // TODO: Need to figure out max concurrency
+        this(PrecipiceExecutors.threadPoolExecutor(guardRail.getName(), poolSize, queueSize), guardRail);
     }
 
-    public ThreadPoolService(ExecutorService executorService, Controller<Status> controller) {
-        this.controller = controller;
+    public ThreadPoolService(ExecutorService executorService, GuardRail<Status, Rejected> guardRail) {
+        this.guardRail = guardRail;
         this.executorService = executorService;
         timeoutService = TimeoutService.defaultTimeoutService;
     }
 
     @Override
-    public Controller<Status> controller() {
-        return controller;
+    public GuardRail<Status, Rejected> guardRail() {
+        return guardRail;
     }
 
     public <T> PrecipiceFuture<Status, T> submit(Callable<T> callable, long millisTimeout) {
-        PrecipicePromise<Status, T> promise = controller.acquirePermitAndGetPromise();
+        PrecipicePromise<Status, T> promise = guardRail.acquirePermitAndGetPromise(1L);
         internalComplete(callable, promise, millisTimeout);
         return promise.future();
     }
 
     public <T> void complete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        PrecipicePromise<Status, T> internalPromise = controller.acquirePermitAndGetPromise(promise);
+        PrecipicePromise<Status, T> internalPromise = guardRail.acquirePermitAndGetPromise(1L, promise);
         internalComplete(callable, internalPromise, millisTimeout);
     }
 
     private <T> void internalComplete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        long startNanos = controller.getClock().nanoTime();
+        long startNanos = guardRail.getClock().nanoTime();
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
         ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, promise, adjustedTimeout, startNanos);
         executorService.execute(task);
@@ -77,7 +75,7 @@ public class ThreadPoolService implements Controllable<Status> {
     }
 
     public void shutdown() {
-        controller.shutdown();
+        guardRail.shutdown();
         executorService.shutdown();
     }
 

@@ -29,42 +29,43 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadPoolPattern<C> implements Controllable<Status> {
+public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
 
-    private final Controller<Status> controller;
-    private final Pattern<Status, ThreadPoolService> pattern;
+    private final GuardRail<Status, Rejected> guardRail;
+    private final Pattern<Status, Rejected, ThreadPoolService> pattern;
     private final Map<ThreadPoolService, C> serviceToContext;
 
 
-    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, Controller<Status> controller, PatternStrategy strategy) {
-        this(serviceToContext, controller, new Pattern<>(serviceToContext.keySet(), strategy));
+    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
+                             PatternStrategy strategy) {
+        this(serviceToContext, guardRail, new Pattern<>(serviceToContext.keySet(), strategy));
     }
 
-    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, Controller<Status> controller,
-                             Pattern<Status, ThreadPoolService> pattern) {
+    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
+                             Pattern<Status, Rejected, ThreadPoolService> pattern) {
         this.serviceToContext = serviceToContext;
-        this.controller = controller;
+        this.guardRail = guardRail;
         this.pattern = pattern;
     }
 
     @Override
-    public Controller<Status> controller() {
-        return controller;
+    public GuardRail<Status, Rejected> guardRail() {
+        return guardRail;
     }
 
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
         long nanoTime = acquirePermit();
 
-        Sequence<ThreadPoolService> services = pattern.getControllables(nanoTime);
+        Sequence<ThreadPoolService> services = pattern.getControllables(1L, nanoTime);
 
         if (services.isEmpty()) {
             return handleAllReject(nanoTime);
         }
 
-        PrecipicePromise<Status, T> promise = controller.getPromise(nanoTime);
+        PrecipicePromise<Status, T> promise = guardRail.getPromise(1L, nanoTime);
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
         for (ThreadPoolService service : services) {
-            PrecipicePromise<Status, T> internal = service.controller().getPromise(nanoTime, promise);
+            PrecipicePromise<Status, T> internal = service.guardRail().getPromise(1L, nanoTime, promise);
 
             final C context = serviceToContext.get(service);
             ExecutorService executor = service.getExecutor();
@@ -80,16 +81,16 @@ public class ThreadPoolPattern<C> implements Controllable<Status> {
     }
 
     private <T> PrecipiceFuture<Status, T> handleAllReject(long nanoTime) {
-        controller.getSemaphore().releasePermit(1);
-        controller.getCountMetrics().incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
+        guardRail.release(1L, nanoTime);
+        guardRail.getRejectedMetrics().incrementMetricCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
         throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
     }
 
     private long acquirePermit() {
-        Rejected rejected = controller.acquirePermitOrGetRejectedReason();
-        long nanoTime = controller.getClock().nanoTime();
+        Rejected rejected = guardRail.acquirePermitOrGetRejectedReason(1L);
+        long nanoTime = guardRail.getClock().nanoTime();
         if (rejected != null) {
-            controller.getCountMetrics().incrementRejectionCount(rejected, nanoTime);
+            guardRail.getRejectedMetrics().incrementMetricCount(rejected, nanoTime);
             throw new RejectedException(rejected);
         }
         return nanoTime;

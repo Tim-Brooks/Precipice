@@ -17,16 +17,13 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.Controllable;
-import net.uncontended.precipice.Controller;
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class Pattern<T extends Enum<T> & Failable, C extends Controllable<T>> {
+public class Pattern<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, C extends Precipice<Result, Rejected>> {
 
     private final List<C> pool;
 
@@ -48,9 +45,9 @@ public class Pattern<T extends Enum<T> & Failable, C extends Controllable<T>> {
         this.strategy = strategy;
     }
 
-    public Sequence<C> getControllables(long nanoTime) {
+    public Sequence<C> getControllables(long permits, long nanoTime) {
         SingleReaderSequence<C> controllables = getControllableSequence();
-        addControllables(nanoTime, controllables);
+        addControllables(permits, nanoTime, controllables);
 
         return controllables;
     }
@@ -59,18 +56,18 @@ public class Pattern<T extends Enum<T> & Failable, C extends Controllable<T>> {
         return pool;
     }
 
-    private void addControllables(long nanoTime, SingleReaderSequence<C> controllables) {
+    private void addControllables(long permits, long nanoTime, SingleReaderSequence<C> controllables) {
         int[] servicesToTry = strategy.nextIndices();
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
             C controllable = pool.get(serviceIndex);
-            Controller<T> controller = controllable.controller();
-            Rejected rejected = controller.acquirePermitOrGetRejectedReason();
+            GuardRail<Result, Rejected> guardRail = controllable.guardRail();
+            Rejected rejected = guardRail.acquirePermitOrGetRejectedReason(permits, nanoTime);
             if (rejected == null) {
                 controllables.add(controllable);
                 ++submittedCount;
             } else {
-                controller.getCountMetrics().incrementRejectionCount(rejected, nanoTime);
+                guardRail.getRejectedMetrics().incrementMetricCount(rejected, nanoTime);
             }
             if (submittedCount == strategy.submissionCount()) {
                 break;
