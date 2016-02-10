@@ -23,5 +23,4 @@ public interface Result {
 
     boolean isSuccess();
 
-    boolean trackMetrics();
 }

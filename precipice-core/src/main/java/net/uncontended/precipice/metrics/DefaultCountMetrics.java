@@ -67,14 +67,12 @@ public class DefaultCountMetrics<T extends Enum<T> & Result> implements CountMet
 
     @Override
     public void incrementMetricCount(T metric, long nanoTime) {
-        if (metric.trackMetrics()) {
-            totalCounter.incrementMetric(metric);
-            MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
-            if (currentMetricCounter == null) {
-                currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
-            }
-            currentMetricCounter.incrementMetric(metric);
+        totalCounter.incrementMetric(metric);
+        MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
+        if (currentMetricCounter == null) {
+            currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
         }
+        currentMetricCounter.incrementMetric(metric);
     }
 
     @Override

@@ -21,7 +21,6 @@ import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Result;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
-import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.TimeUnit;
 
@@ -70,11 +69,9 @@ public class SWCountMetrics<T extends Enum<T> & Result> implements CountMetrics<
 
     @Override
     public void incrementMetricCount(T metric, long nanoTime) {
-        if (metric.trackMetrics()) {
-            totalCounter.incrementMetric(metric);
-            MetricCounter<T> currentMetricCounter = buffer.getSlot();
-            currentMetricCounter.incrementMetric(metric);
-        }
+        totalCounter.incrementMetric(metric);
+        MetricCounter<T> currentMetricCounter = buffer.getSlot();
+        currentMetricCounter.incrementMetric(metric);
     }
 
     @Override
