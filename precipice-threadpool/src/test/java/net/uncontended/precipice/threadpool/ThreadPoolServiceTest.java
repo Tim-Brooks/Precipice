@@ -19,7 +19,7 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.concurrent.*;
-import net.uncontended.precipice.test_utils.TestCallables;
+import net.uncontended.precipice.threadpool.test_utils.TestCallable;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
@@ -73,7 +73,7 @@ public class ThreadPoolServiceTest {
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
             when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
-            service.submit(TestCallables.success(1), Long.MAX_VALUE);
+            service.submit(TestCallable.success(1), Long.MAX_VALUE);
             fail();
         } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
@@ -81,7 +81,7 @@ public class ThreadPoolServiceTest {
 
         try {
             when(controller.acquirePermitAndGetPromise()).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
-            service.submit(TestCallables.success(1), Long.MAX_VALUE);
+            service.submit(TestCallable.success(1), Long.MAX_VALUE);
             fail();
         } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
@@ -92,7 +92,7 @@ public class ThreadPoolServiceTest {
     public void callableIsSubmittedAndRan() throws Exception {
         when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
 
-        PrecipiceFuture<Status, String> f = service.submit(TestCallables.success(1), 500);
+        PrecipiceFuture<Status, String> f = service.submit(TestCallable.success(1), 500);
 
         assertEquals("Success", f.get());
         assertEquals(Status.SUCCESS, f.getStatus());
@@ -104,7 +104,7 @@ public class ThreadPoolServiceTest {
 
         when(controller.acquirePermitAndGetPromise(promise)).thenReturn(new Eventual<>(System.nanoTime(), promise));
 
-        service.complete(TestCallables.success(0, "Same Promise"), promise, TimeoutService.NO_TIMEOUT);
+        service.complete(TestCallable.success(0, "Same Promise"), promise, TimeoutService.NO_TIMEOUT);
 
         verify(controller).acquirePermitAndGetPromise(promise);
 
@@ -118,7 +118,7 @@ public class ThreadPoolServiceTest {
         Eventual<Status, String> internalPromise = new Eventual<>(System.nanoTime(), promise);
         when(controller.acquirePermitAndGetPromise(promise)).thenReturn(internalPromise);
 
-        service.complete(TestCallables.blocked(latch), promise, Long.MAX_VALUE);
+        service.complete(TestCallable.blocked(latch), promise, Long.MAX_VALUE);
 
         promise.complete(Status.SUCCESS, "CompleteOnThisThread");
         latch.countDown();
@@ -132,7 +132,7 @@ public class ThreadPoolServiceTest {
         when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
 
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipiceFuture<Status, String> future = service.submit(TestCallables.blocked(latch), 1);
+        PrecipiceFuture<Status, String> future = service.submit(TestCallable.blocked(latch), 1);
 
         try {
             future.get();
@@ -152,7 +152,7 @@ public class ThreadPoolServiceTest {
         when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
 
         RuntimeException exception = new RuntimeException();
-        PrecipiceFuture<Status, String> future = service.submit(TestCallables.erred(exception), 100);
+        PrecipiceFuture<Status, String> future = service.submit(TestCallable.erred(exception), 100);
 
         try {
             future.get();
@@ -176,7 +176,7 @@ public class ThreadPoolServiceTest {
 
         CountDownLatch latch = new CountDownLatch(1);
 
-        PrecipiceFuture<Status, String> future = service.submit(TestCallables.blocked(latch), Long.MAX_VALUE);
+        PrecipiceFuture<Status, String> future = service.submit(TestCallable.blocked(latch), Long.MAX_VALUE);
         future.onSuccess(new PrecipiceFunction<Status, String>() {
             @Override
             public void apply(Status status, String exception) {
