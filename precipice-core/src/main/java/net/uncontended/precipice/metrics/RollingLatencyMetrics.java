@@ -47,9 +47,7 @@ public class RollingLatencyMetrics<T extends Enum<T> & Result> implements Latenc
         this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
         buckets = new LatencyBucket[type.getEnumConstants().length];
         for (int i = 0; i < buckets.length; ++i) {
-            if (type.getEnumConstants()[i].trackLatency()) {
-                buckets[i] = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
-            }
+            buckets[i] = new LatencyBucket(startTime, bucketResolution, highestTrackableValue, numberOfSignificantValueDigits);
         }
     }
 

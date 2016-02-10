@@ -38,9 +38,7 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Result> implements Laten
         this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
         buckets = new LatencyBucket[type.getEnumConstants().length];
         for (int i = 0; i < buckets.length; ++i) {
-            if (type.getEnumConstants()[i].trackLatency()) {
-                buckets[i] = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-            }
+            buckets[i] = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
         }
     }
 
@@ -51,20 +49,15 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Result> implements Laten
 
     @Override
     public void recordLatency(T result, long nanoLatency, long nanoTime) {
-        if (result.trackLatency()) {
-            LatencyBucket bucket = getLatencyBucket(result);
-            bucket.record(nanoLatency);
-        }
+        LatencyBucket bucket = getLatencyBucket(result);
+        bucket.record(nanoLatency);
     }
 
     @Override
     public LatencySnapshot latencySnapshot(T result) {
-        if (result.trackLatency()) {
-            LatencyBucket bucket = getLatencyBucket(result);
-            return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
-        } else {
-            return LatencyMetrics.DEFAULT_SNAPSHOT;
-        }
+        LatencyBucket bucket = getLatencyBucket(result);
+        return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
+
     }
 
     @Override
@@ -88,13 +81,9 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Result> implements Laten
     }
 
     public synchronized LatencySnapshot intervalSnapshot(T result) {
-        if (result.trackLatency()) {
-            LatencyBucket latencyBucket = getLatencyBucket(result);
-            Histogram histogram = latencyBucket.getIntervalHistogram();
-            return createSnapshot(histogram, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
-        } else {
-            return LatencyMetrics.DEFAULT_SNAPSHOT;
-        }
+        LatencyBucket latencyBucket = getLatencyBucket(result);
+        Histogram histogram = latencyBucket.getIntervalHistogram();
+        return createSnapshot(histogram, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
     }
 
     private LatencyBucket getLatencyBucket(T result) {

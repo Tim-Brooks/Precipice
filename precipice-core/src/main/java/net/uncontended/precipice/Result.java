@@ -23,7 +23,5 @@ public interface Result {
 
     boolean isSuccess();
 
-    boolean trackLatency();
-
     boolean trackMetrics();
 }

@@ -31,23 +31,17 @@ public class SWLatencyMetrics<T extends Enum<T> & Result> implements BackgroundT
 
         buckets = new LatencyBucket[metricValues.length];
         for (T metric : metricValues) {
-            if (metric.trackLatency()) {
-                buckets[metric.ordinal()] = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
-            }
+            buckets[metric.ordinal()] = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
         }
     }
 
     public void recordLatency(T metric, long nanoLatency) {
-        if (metric.trackLatency()) {
-            getLatencyBucket(metric).record(nanoLatency);
-        }
+        getLatencyBucket(metric).record(nanoLatency);
 
     }
 
     public void recordLatency(T metric, long nanoLatency, long nanoTime) {
-        if (metric.trackLatency()) {
-            getLatencyBucket(metric).record(nanoLatency);
-        }
+        getLatencyBucket(metric).record(nanoLatency);
     }
 
     public LatencySnapshot latencySnapshot() {
