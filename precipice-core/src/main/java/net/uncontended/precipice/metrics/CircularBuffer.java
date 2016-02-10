@@ -47,6 +47,8 @@ public class CircularBuffer<T> {
     }
 
     public T getSlot(long nanoTime) {
+        // TODO: What happens if you go backwards in time?
+
         long currentTime = currentMillisTime(nanoTime);
         int absoluteSlot = currentAbsoluteSlot(currentTime);
         int relativeSlot = absoluteSlot & mask;

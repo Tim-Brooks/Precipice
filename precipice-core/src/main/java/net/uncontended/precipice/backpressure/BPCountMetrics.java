@@ -67,8 +67,6 @@ public class BPCountMetrics<T extends Enum<T>> implements BPTotalCountMetrics<T>
 
     @Override
     public void incrementMetricCount(T metric, long nanoTime) {
-        // TODO: What happens if you go backwards in time?
-
         totalCounter.incrementMetric(metric);
         MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
