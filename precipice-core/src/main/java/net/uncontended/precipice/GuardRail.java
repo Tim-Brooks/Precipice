@@ -50,75 +50,82 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         finishingCallback = new FinishingCallback();
     }
 
-    public Rejected acquirePermitOrGetRejectedReason(long nanoTime) {
+    public Rejected acquirePermitOrGetRejectedReason(long units) {
+        return acquirePermitOrGetRejectedReason(units, clock.nanoTime());
+    }
+
+    public Rejected acquirePermitOrGetRejectedReason(long units, long nanoTime) {
         if (isShutdown) {
             throw new IllegalStateException("Service has been shutdown.");
         }
 
         for (int i = 0; i < backPressureList.size(); ++i) {
-            Rejected rejected = backPressureList.get(i).acquirePermit(1, nanoTime);
+            BackPressure<Rejected> bp = backPressureList.get(i);
+            Rejected rejected = bp.acquirePermit(units, nanoTime);
             if (rejected != null) {
                 for (int j = 0; j < i; ++j) {
-                    backPressureList.get(j).releasePermit(1, nanoTime);
+                    backPressureList.get(j).releasePermit(units, nanoTime);
                 }
+                return rejected;
             }
         }
         return null;
     }
 
-    public <R> Eventual<Result, R> acquirePermitAndGetPromise() {
-        return acquirePermitAndGetPromise(null);
+    public <R> Eventual<Result, R> acquirePermitAndGetPromise(long permits) {
+        return acquirePermitAndGetPromise(permits, null);
     }
 
-    public <R> Eventual<Result, R> acquirePermitAndGetPromise(PrecipicePromise<Result, R> externalPromise) {
+    public <R> Eventual<Result, R> acquirePermitAndGetPromise(long permits, PrecipicePromise<Result, R> externalPromise) {
         long startTime = clock.nanoTime();
-        Rejected rejected = acquirePermitOrGetRejectedReason(startTime);
+        Rejected rejected = acquirePermitOrGetRejectedReason(permits, startTime);
         if (rejected != null) {
             rejectedMetrics.incrementMetricCount(rejected, startTime);
             throw new BPRejectedException(rejected);
         }
 
-        return getPromise(startTime, externalPromise);
+        return getPromise(permits, startTime, externalPromise);
     }
 
-    public <R> Eventual<Result, R> getPromise(long nanoTime) {
-        return getPromise(nanoTime, null);
+    public <R> Eventual<Result, R> getPromise(long permits, long nanoTime) {
+        return getPromise(permits, nanoTime, null);
     }
 
-    public <R> Eventual<Result, R> getPromise(long nanoTime, Completable<Result, R> externalCompletable) {
-        Eventual<Result, R> promise = new Eventual<>(nanoTime, externalCompletable);
+    public <R> Eventual<Result, R> getPromise(long permits, long nanoTime, Completable<Result, R> externalCompletable) {
+        Eventual<Result, R> promise = new Eventual<>(permits, nanoTime, externalCompletable);
         promise.internalOnComplete(finishingCallback);
         return promise;
     }
 
-    public <R> Completable<Result, R> acquirePermitAndGetCompletableContext() {
-        return acquirePermitAndGetCompletableContext(clock.nanoTime());
+    public <R> Completable<Result, R> acquirePermitAndGetCompletableContext(long permits) {
+        return acquirePermitAndGetCompletableContext(permits, clock.nanoTime());
     }
 
-    public <R> Completable<Result, R> acquirePermitAndGetCompletableContext(long nanoTime) {
+    public <R> Completable<Result, R> acquirePermitAndGetCompletableContext(long permits, long nanoTime) {
         Rejected rejected = acquirePermitOrGetRejectedReason(nanoTime);
         if (rejected != null) {
             rejectedMetrics.incrementMetricCount(rejected, nanoTime);
             throw new BPRejectedException(rejected);
         }
 
-        return getCompletableContext(nanoTime);
+        return getCompletableContext(permits, nanoTime);
     }
 
-    public void release(Result result, long starTime, long nanoTime) {
+    public void release(long units, Result result, long starTime, long nanoTime) {
         resultMetrics.incrementMetricCount(result, nanoTime);
         latencyMetrics.recordLatency(result, nanoTime - starTime, nanoTime);
         for (BackPressure backPressure : backPressureList) {
-            backPressure.releasePermit(1, result, nanoTime);
+            backPressure.releasePermit(units, result, nanoTime);
         }
     }
 
-    public <R> CompletionContext<Result, R> getCompletableContext(long nanoTime) {
-        return getCompletableContext(nanoTime, null);
+    public <R> CompletionContext<Result, R> getCompletableContext(long permits, long nanoTime) {
+        return getCompletableContext(permits, nanoTime, null);
     }
 
-    public <R> CompletionContext<Result, R> getCompletableContext(long nanoTime, Completable<Result, R> completable) {
-        CompletionContext<Result, R> context = new CompletionContext<>(nanoTime, completable);
+    public <R> CompletionContext<Result, R> getCompletableContext(long permits, long nanoTime,
+                                                                  Completable<Result, R> completable) {
+        CompletionContext<Result, R> context = new CompletionContext<>(permits, nanoTime, completable);
         context.internalOnComplete(finishingCallback);
         return context;
     }
@@ -152,7 +159,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         @Override
         public void apply(Result result, PerformingContext context) {
             long endTime = clock.nanoTime();
-            release(result, context.startNanos(), endTime);
+            release(context.permitCount(), result, context.startNanos(), endTime);
         }
     }
 }

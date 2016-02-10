@@ -128,9 +128,9 @@ public class ThreadPoolPatternTest {
     @Test
     public void actionsSubmittedToServices() throws Exception {
         SingleReaderSequence<ThreadPoolService> iterable = prepIterable(service1, service3);
-        Eventual<Status, Object> parent = new Eventual<>(submitTimeNanos);
-        Eventual<Status, Object> child1 = new Eventual<>(submitTimeNanos, parent);
-        Eventual<Status, Object> child2 = new Eventual<>(submitTimeNanos, parent);
+        Eventual<Status, Object> parent = new Eventual<>(1L, submitTimeNanos);
+        Eventual<Status, Object> child1 = new Eventual<>(1L, submitTimeNanos, parent);
+        Eventual<Status, Object> child2 = new Eventual<>(1L, submitTimeNanos, parent);
         long millisTimeout = 100L;
 
         when(controller.acquirePermitOrGetRejectedReason()).thenReturn(null);

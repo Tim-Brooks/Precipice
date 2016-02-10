@@ -62,6 +62,11 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         return this;
     }
 
+    public GuardRailBuilder<Result, Rejected> clock(Clock clock) {
+        this.clock = clock;
+        return this;
+    }
+
     public GuardRail<Result, Rejected> build() {
         if (name == null) {
             throw new IllegalArgumentException();

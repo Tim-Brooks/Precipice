@@ -90,7 +90,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void callableIsSubmittedAndRan() throws Exception {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>(1L));
 
         PrecipiceFuture<Status, String> f = service.submit(TestCallable.success(1), 500);
 
@@ -100,7 +100,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void promisePassedToExecutorWillBeCompleted() throws Exception {
-        PrecipicePromise<Status, String> promise = new Eventual<>();
+        PrecipicePromise<Status, String> promise = new Eventual<>(1L);
 
         when(controller.acquirePermitAndGetPromise(promise)).thenReturn(new Eventual<>(System.nanoTime(), promise));
 
@@ -114,7 +114,7 @@ public class ThreadPoolServiceTest {
     @Test
     public void promiseCanBeCompletedExternallyWithoutImpactingService() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipicePromise<Status, String> promise = new Eventual<>();
+        PrecipicePromise<Status, String> promise = new Eventual<>(1L);
         Eventual<Status, String> internalPromise = new Eventual<>(System.nanoTime(), promise);
         when(controller.acquirePermitAndGetPromise(promise)).thenReturn(internalPromise);
 
@@ -129,7 +129,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void submittedCallableWillTimeout() throws Exception {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>(1L));
 
         CountDownLatch latch = new CountDownLatch(1);
         PrecipiceFuture<Status, String> future = service.submit(TestCallable.blocked(latch), 1);
@@ -149,7 +149,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void erredCallableWillReturnException() {
-        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>());
+        when(controller.acquirePermitAndGetPromise()).thenReturn(new Eventual<Status, Object>(1L));
 
         RuntimeException exception = new RuntimeException();
         PrecipiceFuture<Status, String> future = service.submit(TestCallable.erred(exception), 100);

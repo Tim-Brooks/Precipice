@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Failable;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>,
         PerformingContext {
 
+    private final long permits;
     private final long startNanos;
     private final Completable<S, T> wrappedPromise;
     private volatile T result;
@@ -38,14 +39,23 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     private PrecipiceFunction<S, PerformingContext> internalCallback;
 
     public Eventual() {
-        this(System.nanoTime());
+        this(0L);
     }
 
-    public Eventual(long startNanos) {
-        this(startNanos, null);
+    public Eventual(long permits) {
+        this(permits, System.nanoTime());
+    }
+
+    public Eventual(long permits, long startNanos) {
+        this(permits, startNanos, null);
     }
 
     public Eventual(long startNanos, Completable<S, T> completable) {
+        this(1L, startNanos, completable);
+    }
+
+    public Eventual(long permits, long startNanos, Completable<S, T> completable) {
+        this.permits = permits;
         this.startNanos = startNanos;
         wrappedPromise = completable;
     }
@@ -208,6 +218,11 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     @Override
     public long startNanos() {
         return startNanos;
+    }
+
+    @Override
+    public long permitCount() {
+        return permits;
     }
 
     public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {

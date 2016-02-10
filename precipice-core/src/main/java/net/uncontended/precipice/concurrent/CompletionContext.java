@@ -23,20 +23,30 @@ import net.uncontended.precipice.Failable;
 
 public class CompletionContext<S extends Failable, T> implements Completable<S, T>, PerformingContext {
 
+    private final long permits;
     private final long startTime;
     private final Completable<S, T> wrappedCompletable;
     private PrecipiceFunction<S, PerformingContext> internalCallback;
     private boolean isCompleted = false;
 
     public CompletionContext() {
-        this(System.nanoTime());
+        this(0L);
     }
 
-    public CompletionContext(long startTime) {
-        this(startTime, null);
+    public CompletionContext(long permits) {
+        this(permits, System.nanoTime());
+    }
+
+    public CompletionContext(long permits, long startTime) {
+        this(permits, startTime, null);
     }
 
     public CompletionContext(long startTime, Completable<S, T> wrappedCompletable) {
+        this(1L, startTime, wrappedCompletable);
+    }
+
+    public CompletionContext(long permits, long startTime, Completable<S, T> wrappedCompletable) {
+        this.permits = permits;
         this.startTime = startTime;
         this.wrappedCompletable = wrappedCompletable;
     }
@@ -44,6 +54,11 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
     @Override
     public long startNanos() {
         return startTime;
+    }
+
+    @Override
+    public long permitCount() {
+        return permits;
     }
 
     @Override

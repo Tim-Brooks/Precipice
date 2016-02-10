@@ -18,7 +18,6 @@
 package net.uncontended.precipice.semaphore;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.semaphore.BPSemaphoreInterface;
 
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -56,7 +56,8 @@ public class CallServiceTest {
     @Test
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
-            when(guardRail.acquirePermitAndGetCompletableContext()).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
+            when(guardRail.acquirePermitAndGetCompletableContext(1L)).thenThrow(new RejectedException(Rejected
+                    .MAX_CONCURRENCY_LEVEL_EXCEEDED));
             service.call(TestCallables.success(1));
             fail();
         } catch (RejectedException e) {
@@ -64,7 +65,7 @@ public class CallServiceTest {
         }
 
         try {
-            when(guardRail.acquirePermitAndGetCompletableContext()).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
+            when(guardRail.acquirePermitAndGetCompletableContext(1L)).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
             service.call(TestCallables.success(1));
             fail();
         } catch (RejectedException e) {
@@ -74,7 +75,7 @@ public class CallServiceTest {
 
     @Test
     public void callableIsExecuted() throws Exception {
-        when(guardRail.acquirePermitAndGetCompletableContext()).thenReturn(context);
+        when(guardRail.acquirePermitAndGetCompletableContext(1L)).thenReturn(context);
         String expectedResult = "Success";
 
         String result = service.call(TestCallables.success(1));
@@ -86,7 +87,7 @@ public class CallServiceTest {
 
     @Test
     public void callableExceptionIsHandledAppropriately() throws Exception {
-        when(guardRail.acquirePermitAndGetCompletableContext()).thenReturn(context);
+        when(guardRail.acquirePermitAndGetCompletableContext(1L)).thenReturn(context);
 
         RuntimeException exception = new RuntimeException();
 
@@ -101,7 +102,7 @@ public class CallServiceTest {
 
     @Test
     public void callableTimeoutExceptionIsHandledAppropriately() throws Exception {
-        when(guardRail.acquirePermitAndGetCompletableContext()).thenReturn(context);
+        when(guardRail.acquirePermitAndGetCompletableContext(1L)).thenReturn(context);
 
         TimeoutException exception = new PrecipiceTimeoutException();
 

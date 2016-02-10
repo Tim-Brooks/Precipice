@@ -36,7 +36,7 @@ public class CallService implements Precipice<Status, Rejected> {
     }
 
     public <T> T call(Callable<T> callable) throws Exception {
-        Completable<Status, T> completable = guardRail.acquirePermitAndGetCompletableContext();
+        Completable<Status, T> completable = guardRail.acquirePermitAndGetCompletableContext(1L);
 
         try {
             T result = callable.call();

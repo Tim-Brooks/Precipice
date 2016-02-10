@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPressure {
+public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPressure<Rejected> {
     private static final int CLOSED = 0;
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;

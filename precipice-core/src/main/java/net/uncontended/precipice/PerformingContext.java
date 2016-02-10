@@ -20,4 +20,6 @@ package net.uncontended.precipice;
 public interface PerformingContext {
 
     long startNanos();
+
+    long permitCount();
 }
