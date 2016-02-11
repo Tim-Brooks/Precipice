@@ -30,14 +30,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
+    private static final int PENDING = 0;
+    private static final int DONE = 1;
+    private static final int INTERRUPTING = 2;
+    
     public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<Status, T> promise;
     private final Callable<T> callable;
     private final AtomicInteger state = new AtomicInteger(PENDING);
-    private static final int PENDING = 0;
-    private static final int DONE = 1;
-    private static final int INTERRUPTING = 2;
     private volatile Thread runner;
 
     public ThreadPoolTask(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisRelativeTimeout,
