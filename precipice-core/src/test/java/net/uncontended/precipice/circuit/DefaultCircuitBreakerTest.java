@@ -21,7 +21,6 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.backpressure.*;
-import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -87,58 +86,53 @@ public class DefaultCircuitBreakerTest {
 
         nanoTime = 1002L * 1000L * 1000L;
         when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(failingSnapshot);
-        when(systemTime.nanoTime()).thenReturn(nanoTime);
         circuitBreaker.releasePermit(1, Status.ERROR, nanoTime);
         assertTrue(circuitBreaker.isOpen());
     }
-//
-//    @Test
-//    public void testOpenCircuitClosesAfterSuccess() {
-//        long trailingPeriodInMillis = 1000;
-//        HealthSnapshot failureSnapshot = new HealthSnapshot(1000, 1000, 6, 0);
-//
-//        BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(5).trailingPeriodMillis
-//                (trailingPeriodInMillis).build();
-//        circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
-//        circuitBreaker.setCountMetrics(countMetrics);
-//
-//        assertFalse(circuitBreaker.isOpen());
-//
-//        when(countMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failureSnapshot);
-//        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
-//        circuitBreaker.informBreakerOfResult(Status.ERROR);
-//
-//        assertTrue(circuitBreaker.isOpen());
-//
-//        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
-//        circuitBreaker.informBreakerOfResult(Status.SUCCESS);
-//
-//        assertFalse(circuitBreaker.isOpen());
-//    }
-//
-//    @Test
-//    public void testSettingBreakerConfigChangesConfig() {
-//        HealthSnapshot snapshot = new HealthSnapshot(1000, 1000, 6, 0);
-//
-//        BreakerConfig breakerConfig = new BreakerConfigBuilder().failureThreshold(10).trailingPeriodMillis
-//                (1000).build();
-//        circuitBreaker = new DefaultCircuitBreaker(breakerConfig, systemTime);
-//        circuitBreaker.setCountMetrics(countMetrics);
-//
-//        when(countMetrics.healthSnapshot(1000, TimeUnit.MILLISECONDS)).thenReturn(snapshot);
-//        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
-//        circuitBreaker.informBreakerOfResult(Status.ERROR);
-//        assertFalse(circuitBreaker.isOpen());
-//
-//        BreakerConfig newBreakerConfig = new BreakerConfigBuilder().failureThreshold(5)
-//                .trailingPeriodMillis(2000).build();
-//        circuitBreaker.setBreakerConfig(newBreakerConfig);
-//
-//        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
-//        circuitBreaker.informBreakerOfResult(Status.ERROR);
-//
-//        assertTrue(circuitBreaker.isOpen());
-//    }
+
+    @Test
+    public void testOpenCircuitClosesAfterSuccess() {
+        long trailingPeriodInMillis = 1000;
+        BPHealthSnapshot failureSnapshot = new BPHealthSnapshot(1000, 6);
+
+        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5).trailingPeriodMillis
+                (trailingPeriodInMillis).build();
+        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        circuitBreaker.registerGuardRail(guardRail);
+
+        assertFalse(circuitBreaker.isOpen());
+
+        long nanoTime = 501L * 1000L * 1000L;
+        when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(failureSnapshot);
+        circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
+
+        assertTrue(circuitBreaker.isOpen());
+
+        circuitBreaker.releasePermit(1L, Status.SUCCESS, nanoTime);
+
+        assertFalse(circuitBreaker.isOpen());
+    }
+
+    @Test
+    public void testSettingBreakerConfigChangesConfig() {
+        BPHealthSnapshot snapshot = new BPHealthSnapshot(1000, 6);
+
+        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(10).trailingPeriodMillis(1000).build();
+        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        circuitBreaker.registerGuardRail(guardRail);
+
+        long nanoTime = 501L * 1000L * 1000L;
+        when(healthGauge.getHealth(1000, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(snapshot);
+        circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
+        assertFalse(circuitBreaker.isOpen());
+
+        BPBreakerConfig<Rejected> newBreakerConfig = builder.failureThreshold(5).trailingPeriodMillis(2000).build();
+        circuitBreaker.setBreakerConfig(newBreakerConfig);
+
+        circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
+
+        assertTrue(circuitBreaker.isOpen());
+    }
 //
 //    @Test
 //    public void testActionAllowedIfCircuitClosed() {
