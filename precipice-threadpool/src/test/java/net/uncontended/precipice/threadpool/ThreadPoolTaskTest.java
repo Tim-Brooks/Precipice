@@ -18,30 +18,58 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.test_utils.TestCallable;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class ThreadPoolTaskTest {
 
     @Mock
-    private Eventual<Status, String> eventual;
+    private PrecipicePromise<Status, String> promise;
 
     private ThreadPoolTask<String> task;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
     public void ensureThatTimeoutsAreSetupCorrectly() {
         long millisRelativeTimeout = 10L;
         long nanosStart = 0L;
-        task = new ThreadPoolTask<>(TestCallable.success("Success"), eventual, millisRelativeTimeout, nanosStart);
+        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, millisRelativeTimeout, nanosStart);
 
         assertEquals(millisRelativeTimeout, task.millisRelativeTimeout);
         assertEquals(millisRelativeTimeout, task.getMillisRelativeTimeout());
         assertEquals(nanosStart + TimeUnit.MILLISECONDS.toNanos(millisRelativeTimeout), task.nanosAbsoluteTimeout);
+    }
+
+    @Test
+    public void callableNotRunIfFutureAlreadyComplete() {
+        PrecipiceFuture<Status, String> future = mock(PrecipiceFuture.class);
+        Callable<String> callable = mock(Callable.class);
+
+        task = new ThreadPoolTask<>(callable, promise, 10L, 0L);
+
+        when(promise.future()).thenReturn(future);
+        when(future.isDone()).thenReturn(true);
+
+        task.run();
+
+        verify(promise).future();
+        verifyNoMoreInteractions(promise);
+        verifyZeroInteractions(callable);
     }
 }

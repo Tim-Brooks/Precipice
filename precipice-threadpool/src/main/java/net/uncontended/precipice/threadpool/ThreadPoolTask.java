@@ -26,6 +26,7 @@ import net.uncontended.precipice.timeout.TimeoutTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
@@ -33,6 +34,10 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
     public final long millisRelativeTimeout;
     private final PrecipicePromise<Status, T> promise;
     private final Callable<T> callable;
+    private final AtomicInteger state = new AtomicInteger(PENDING);
+    private static final int PENDING = 0;
+    private static final int DONE = 1;
+    private static final int INTERRUPTING = 2;
     private volatile Thread runner;
 
     public ThreadPoolTask(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisRelativeTimeout,
@@ -55,17 +60,27 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
     @Override
     public void run() {
         try {
-            if (!promise.future().isDone()) {
+            int state = this.state.get();
+            if (state == PENDING && !promise.future().isDone()) {
                 runner = Thread.currentThread();
                 T result = callable.call();
                 safeSetSuccess(result);
+            } else if (state == INTERRUPTING) {
+                waitForInterruption();
             }
         } catch (InterruptedException e) {
-            Thread.interrupted();
         } catch (PrecipiceTimeoutException e) {
             safeSetTimedOut(e);
         } catch (Throwable e) {
             safeSetErred(e);
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    private void waitForInterruption() {
+        while (state.get() == INTERRUPTING) {
+            Thread.yield();
         }
     }
 
@@ -86,9 +101,6 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
     public void setTimedOut() {
         if (!promise.future().isDone()) {
             safeSetTimedOut(new PrecipiceTimeoutException());
-            if (runner != null) {
-                runner.interrupt();
-            }
         }
     }
 
@@ -99,7 +111,13 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     private void safeSetSuccess(T result) {
         try {
-            promise.complete(Status.SUCCESS, result);
+            if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
+                promise.complete(Status.SUCCESS, result);
+                return;
+            }
+            if (state.get() == INTERRUPTING) {
+                waitForInterruption();
+            }
         } catch (Throwable t) {
             Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
@@ -107,7 +125,13 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     private void safeSetErred(Throwable e) {
         try {
-            promise.completeExceptionally(Status.ERROR, e);
+            if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
+                promise.completeExceptionally(Status.ERROR, e);
+                return;
+            }
+            if (state.get() == INTERRUPTING) {
+                waitForInterruption();
+            }
         } catch (Throwable t) {
             Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
@@ -115,7 +139,13 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     private void safeSetTimedOut(PrecipiceTimeoutException e) {
         try {
-            promise.completeExceptionally(Status.TIMEOUT, e);
+            if (state.get() == PENDING && state.compareAndSet(PENDING, INTERRUPTING)) {
+                if (runner != null) {
+                    runner.interrupt();
+                }
+                promise.completeExceptionally(Status.TIMEOUT, e);
+                state.set(DONE);
+            }
         } catch (Throwable t) {
             Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
