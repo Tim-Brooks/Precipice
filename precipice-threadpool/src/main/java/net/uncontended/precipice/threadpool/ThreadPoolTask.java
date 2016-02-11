@@ -48,6 +48,10 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
         }
     }
 
+    public boolean canTimeout() {
+        return millisRelativeTimeout != TimeoutService.NO_TIMEOUT;
+    }
+
     @Override
     public void run() {
         try {

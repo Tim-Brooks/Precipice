@@ -17,7 +17,10 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.*;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Precipice;
+import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
@@ -63,7 +66,9 @@ public class ThreadPoolService implements Precipice<Status, Rejected> {
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
         ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, promise, adjustedTimeout, startNanos);
         executorService.execute(task);
-        timeoutService.scheduleTimeout(task);
+        if (task.canTimeout()) {
+            timeoutService.scheduleTimeout(task);
+        }
     }
 
     public ExecutorService getExecutor() {
