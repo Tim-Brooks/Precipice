@@ -15,13 +15,18 @@
  *
  */
 
-package net.uncontended.precipice.semaphore;
+package net.uncontended.precipice.backpressure;
 
-public interface BPSemaphoreInterface {
+import net.uncontended.precipice.BackPressure;
 
-    long maxConcurrencyLevel();
+public interface BPCircuitBreakerInterface<Rejected extends Enum<Rejected>> extends BackPressure<Rejected> {
+    boolean isOpen();
 
-    long remainingCapacity();
+    BPBreakerConfig<Rejected> getBreakerConfig();
 
-    long currentConcurrencyLevel();
+    void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig);
+
+    void forceOpen();
+
+    void forceClosed();
 }

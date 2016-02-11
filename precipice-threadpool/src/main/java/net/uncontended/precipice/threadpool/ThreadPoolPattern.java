@@ -56,7 +56,7 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
         long nanoTime = acquirePermit();
 
-        Sequence<ThreadPoolService> services = pattern.getControllables(1L, nanoTime);
+        Sequence<ThreadPoolService> services = pattern.getPrecipices(1L, nanoTime);
 
         if (services.isEmpty()) {
             return handleAllReject(nanoTime);

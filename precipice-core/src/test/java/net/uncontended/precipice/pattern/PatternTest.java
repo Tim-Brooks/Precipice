@@ -74,8 +74,8 @@ public class PatternTest {
     }
 
     @Test
-    public void getAllReturnsAListOfAllTheChildControllablesInOrder() {
-        List<Precipice<Status, Rejected>> all = pattern.getAllControllables();
+    public void getAllReturnsAListOfAllTheChildPrecipicesInOrder() {
+        List<Precipice<Status, Rejected>> all = pattern.getAllPrecipices();
         assertEquals(3, all.size());
         assertEquals(precipice1, all.get(0));
         assertEquals(precipice2, all.get(1));
@@ -83,13 +83,13 @@ public class PatternTest {
     }
 
     @Test
-    public void getReturnsCorrectControllables() {
+    public void getReturnsCorrectPrecipices() {
         int[] indices = {0, 1, 2};
 
         when(strategy.nextIndices()).thenReturn(indices);
         when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
         when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
-        Sequence<Precipice<Status, Rejected>> all = pattern.getControllables(1L, nanoTime);
+        Sequence<Precipice<Status, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
 
         List<Precipice<Status, Rejected>> controllableList = new ArrayList<>();
         for (Precipice<Status, Rejected> item : all) {
@@ -115,7 +115,7 @@ public class PatternTest {
         when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
         when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
 
-        Sequence<Precipice<Status, Rejected>> all = pattern.getControllables(1L, nanoTime);
+        Sequence<Precipice<Status, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
 
         verify(metrics).incrementMetricCount(Rejected.CIRCUIT_OPEN, nanoTime);
 
@@ -131,7 +131,7 @@ public class PatternTest {
     }
 
     @Test
-    public void getOnlyReturnsTheNumberOfControllablesThatAreAvailable() {
+    public void getOnlyReturnsTheNumberOfPrecipicesThatAreAvailable() {
         int[] indices = {2, 0, 1};
         BPTotalCountMetrics<Rejected> metrics = mock(BPTotalCountMetrics.class);
         BPTotalCountMetrics<Rejected> metrics2 = mock(BPTotalCountMetrics.class);
@@ -143,7 +143,7 @@ public class PatternTest {
         when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
         when(guardRail3.getRejectedMetrics()).thenReturn(metrics2);
 
-        Sequence<Precipice<Status, Rejected>> all = pattern.getControllables(1L, nanoTime);
+        Sequence<Precipice<Status, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
 
         verify(metrics2).incrementMetricCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
         verify(metrics).incrementMetricCount(Rejected.CIRCUIT_OPEN, nanoTime);
@@ -168,9 +168,9 @@ public class PatternTest {
         when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
         when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
 
-        final Sequence<Precipice<Status, Rejected>> firstSequence = pattern.getControllables(1L, nanoTime);
+        final Sequence<Precipice<Status, Rejected>> firstSequence = pattern.getPrecipices(1L, nanoTime);
         for (int i = 0; i < 10; ++i) {
-            Sequence<Precipice<Status, Rejected>> sequence = pattern.getControllables(1L, nanoTime);
+            Sequence<Precipice<Status, Rejected>> sequence = pattern.getPrecipices(1L, nanoTime);
             assertSame("Should be the same reference.", firstSequence, sequence);
         }
 
@@ -182,7 +182,7 @@ public class PatternTest {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    Sequence<Precipice<Status, Rejected>> first = pattern.getControllables(1L, nanoTime);
+                    Sequence<Precipice<Status, Rejected>> first = pattern.getPrecipices(1L, nanoTime);
                     if (sequenceMap.containsKey(first)) {
                         fail("Set should not already contain this sequence.");
                     }
@@ -196,7 +196,7 @@ public class PatternTest {
                     }
 
                     for (int i = 0; i < 10; ++i) {
-                        Sequence<Precipice<Status, Rejected>> sequence = pattern.getControllables(1L, nanoTime);
+                        Sequence<Precipice<Status, Rejected>> sequence = pattern.getPrecipices(1L, nanoTime);
                         sequenceMap.get(sequence).incrementAndGet();
                         assertSame("Should be the same reference.", first, sequence);
                     }

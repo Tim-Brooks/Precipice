@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,37 +15,52 @@
  *
  */
 
-package net.uncontended.precipice.concurrent;
+package net.uncontended.precipice.semaphore;
+
+import net.uncontended.precipice.BackPressure;
+import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class LongSemaphore implements PrecipiceSemaphore {
+public class LongSemaphore<Rejected extends Enum<Rejected>> implements BackPressure<Rejected>, PrecipiceSemaphore {
 
     private final AtomicLong permitsRemaining;
     private final int maxConcurrencyLevel;
+    private final Rejected reason;
 
-    public LongSemaphore(int maxConcurrencyLevel) {
+    public LongSemaphore(Rejected reason, int maxConcurrencyLevel) {
         this.maxConcurrencyLevel = maxConcurrencyLevel;
+        this.reason = reason;
         this.permitsRemaining = new AtomicLong(maxConcurrencyLevel);
     }
 
     @Override
-    public boolean acquirePermit(long rateUnits) {
+    public Rejected acquirePermit(long units, long nanoTime) {
         for (; ; ) {
             long permitsRemaining = this.permitsRemaining.get();
             if (permitsRemaining > 0) {
                 if (this.permitsRemaining.compareAndSet(permitsRemaining, permitsRemaining - 1)) {
-                    return true;
+                    return null;
                 }
             } else {
-                return false;
+                return reason;
             }
         }
     }
 
     @Override
-    public void releasePermit(long rateUnits) {
+    public void releasePermit(long rateUnits, long nanoTime) {
         this.permitsRemaining.getAndIncrement();
+    }
+
+    @Override
+    public void releasePermit(long rateUnits, Failable result, long nanoTime) {
+        this.permitsRemaining.getAndIncrement();
+    }
+
+    @Override
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
     }
 
     @Override

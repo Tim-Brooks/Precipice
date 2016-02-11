@@ -17,31 +17,6 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.Eventual;
-import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.concurrent.PrecipiceSemaphore;
-import net.uncontended.precipice.metrics.CountMetrics;
-import net.uncontended.precipice.pattern.Pattern;
-import net.uncontended.precipice.pattern.PatternAction;
-import net.uncontended.precipice.pattern.SingleReaderSequence;
-import net.uncontended.precipice.time.Clock;
-import net.uncontended.precipice.timeout.TimeoutService;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
 @SuppressWarnings("unchecked")
 public class ThreadPoolPatternTest {
 
@@ -131,7 +106,7 @@ public class ThreadPoolPatternTest {
 //        long millisTimeout = 100L;
 //
 //        when(controller.acquirePermitOrGetRejectedReason()).thenReturn(null);
-//        when(pattern.getControllables(1L, submitTimeNanos)).thenReturn(iterable);
+//        when(pattern.getPrecipices(1L, submitTimeNanos)).thenReturn(iterable);
 //        when(controller.getPromise(submitTimeNanos)).thenReturn(parent);
 //        when(controller1.getPromise(submitTimeNanos, parent)).thenReturn(child1);
 //        when(controller3.getPromise(submitTimeNanos, parent)).thenReturn(child2);
@@ -180,7 +155,7 @@ public class ThreadPoolPatternTest {
 //        long millisTimeout = 100L;
 //
 //        when(controller.acquirePermitOrGetRejectedReason()).thenReturn(null);
-//        when(pattern.getControllables(1L, submitTimeNanos)).thenReturn(iterable);
+//        when(pattern.getPrecipices(1L, submitTimeNanos)).thenReturn(iterable);
 //
 //        try {
 //            poolPattern.submit(action, millisTimeout);

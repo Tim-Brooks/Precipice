@@ -23,58 +23,50 @@ import net.uncontended.precipice.GuardRail;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BackPressureSemaphore<Rejected extends Enum<Rejected>> implements BackPressure<Rejected>, BPSemaphoreInterface {
+public class UnlimitedSemaphore<Rejected extends Enum<Rejected>> implements BackPressure<Rejected>, PrecipiceSemaphore {
 
-    private final AtomicLong permitsRemaining;
-    private final int maxConcurrencyLevel;
+    private final AtomicLong concurrencyLevel = new AtomicLong(0);
     private final Rejected reason;
 
-    public BackPressureSemaphore(Rejected reason, int maxConcurrencyLevel) {
-        this.maxConcurrencyLevel = maxConcurrencyLevel;
+    public UnlimitedSemaphore(Rejected reason) {
         this.reason = reason;
-        this.permitsRemaining = new AtomicLong(maxConcurrencyLevel);
     }
 
     @Override
-    public Rejected acquirePermit(long units, long nanoTime) {
-        for (; ; ) {
-            long permitsRemaining = this.permitsRemaining.get();
-            if (permitsRemaining > 0) {
-                if (this.permitsRemaining.compareAndSet(permitsRemaining, permitsRemaining - 1)) {
-                    return null;
-                }
-            } else {
-                return reason;
-            }
-        }
+    public Rejected acquirePermit(long number, long nanoTime) {
+        concurrencyLevel.incrementAndGet();
+        return null;
     }
 
     @Override
-    public void releasePermit(long rateUnits, long nanoTime) {
-        this.permitsRemaining.getAndIncrement();
+    public void releasePermit(long number, long nanoTime) {
+        concurrencyLevel.decrementAndGet();
     }
 
+
     @Override
-    public void releasePermit(long rateUnits, Failable result, long nanoTime) {
-        this.permitsRemaining.getAndIncrement();
+    public void releasePermit(long number, Failable status, long nanoTime) {
+        concurrencyLevel.decrementAndGet();
     }
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+        
     }
+
 
     @Override
     public long maxConcurrencyLevel() {
-        return maxConcurrencyLevel;
+        return -1;
     }
 
     @Override
     public long remainingCapacity() {
-        return permitsRemaining.get();
+        return -1;
     }
 
     @Override
     public long currentConcurrencyLevel() {
-        return maxConcurrencyLevel - permitsRemaining.get();
+        return concurrencyLevel.get();
     }
 }

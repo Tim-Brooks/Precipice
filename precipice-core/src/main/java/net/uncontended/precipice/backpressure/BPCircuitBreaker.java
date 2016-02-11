@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 
@@ -25,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPressure<Rejected> {
+public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCircuitBreakerInterface<Rejected> {
     private static final int CLOSED = 0;
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;
@@ -94,22 +93,27 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BackPr
         }
     }
 
+    @Override
     public boolean isOpen() {
         return state.get() != CLOSED;
     }
 
+    @Override
     public BPBreakerConfig<Rejected> getBreakerConfig() {
         return breakerConfig;
     }
 
+    @Override
     public void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig) {
         this.breakerConfig = breakerConfig;
     }
 
+    @Override
     public void forceOpen() {
         state.set(FORCED_OPEN);
     }
 
+    @Override
     public void forceClosed() {
         state.set(CLOSED);
     }

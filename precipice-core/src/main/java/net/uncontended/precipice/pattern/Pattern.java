@@ -30,41 +30,40 @@ public class Pattern<Result extends Enum<Result> & Failable, Rejected extends En
     private final PatternStrategy strategy;
     private ThreadLocal<SingleReaderSequence<C>> local = new ThreadLocal<>();
 
-    public Pattern(Collection<C> controllables, PatternStrategy strategy) {
-        if (controllables.size() == 0) {
-            throw new IllegalArgumentException("Cannot create Pattern with 0 Controllables.");
-        } else if (strategy.submissionCount() > controllables.size()) {
-            throw new IllegalArgumentException("Submission count cannot be greater than the number of controllables " +
-                    "provided.");
+    public Pattern(Collection<C> precipices, PatternStrategy strategy) {
+        if (precipices.size() == 0) {
+            throw new IllegalArgumentException("Cannot create Pattern with 0 Precipices.");
+        } else if (strategy.submissionCount() > precipices.size()) {
+            throw new IllegalArgumentException("Submission count cannot be greater than the number of precipices provided.");
         }
 
 
-        List<C> pool = new ArrayList<>(controllables.size());
-        pool.addAll(controllables);
+        List<C> pool = new ArrayList<>(precipices.size());
+        pool.addAll(precipices);
         this.pool = pool;
         this.strategy = strategy;
     }
 
-    public Sequence<C> getControllables(long permits, long nanoTime) {
-        SingleReaderSequence<C> controllables = getControllableSequence();
-        addControllables(permits, nanoTime, controllables);
+    public Sequence<C> getPrecipices(long permits, long nanoTime) {
+        SingleReaderSequence<C> precipices = getPrecipiceSequence();
+        setupSequence(permits, nanoTime, precipices);
 
-        return controllables;
+        return precipices;
     }
 
-    public List<C> getAllControllables() {
+    public List<C> getAllPrecipices() {
         return pool;
     }
 
-    private void addControllables(long permits, long nanoTime, SingleReaderSequence<C> controllables) {
+    private void setupSequence(long permits, long nanoTime, SingleReaderSequence<C> precipices) {
         int[] servicesToTry = strategy.nextIndices();
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
-            C controllable = pool.get(serviceIndex);
-            GuardRail<Result, Rejected> guardRail = controllable.guardRail();
+            C precipice = pool.get(serviceIndex);
+            GuardRail<Result, Rejected> guardRail = precipice.guardRail();
             Rejected rejected = guardRail.acquirePermitOrGetRejectedReason(permits, nanoTime);
             if (rejected == null) {
-                controllables.add(controllable);
+                precipices.add(precipice);
                 ++submittedCount;
             } else {
                 guardRail.getRejectedMetrics().incrementMetricCount(rejected, nanoTime);
@@ -75,16 +74,16 @@ public class Pattern<Result extends Enum<Result> & Failable, Rejected extends En
         }
     }
 
-    private SingleReaderSequence<C> getControllableSequence() {
-        SingleReaderSequence<C> controllables = local.get();
+    private SingleReaderSequence<C> getPrecipiceSequence() {
+        SingleReaderSequence<C> precipices = local.get();
 
-        if (controllables == null) {
-            controllables = new SingleReaderSequence<>(strategy.submissionCount());
-            local.set(controllables);
+        if (precipices == null) {
+            precipices = new SingleReaderSequence<>(strategy.submissionCount());
+            local.set(precipices);
         }
-        controllables.reset();
+        precipices.reset();
 
-        return controllables;
+        return precipices;
 
     }
 
