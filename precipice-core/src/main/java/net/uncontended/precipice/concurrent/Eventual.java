@@ -145,17 +145,11 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     @Override
     public boolean isCancelled() {
         return false;
-//        return status.get() == Status.CANCELLED;
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         return false;
-//        boolean isCancelled = status.compareAndSet(Status.PENDING, Status.CANCELLED);
-//        if (isCancelled) {
-//            latch.countDown();
-//        }
-//        return isCancelled;
     }
 
     @Override
