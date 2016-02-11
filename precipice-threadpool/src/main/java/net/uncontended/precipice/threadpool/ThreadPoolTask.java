@@ -27,13 +27,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     private static final int PENDING = 0;
     private static final int DONE = 1;
     private static final int INTERRUPTING = 2;
-    
+
     public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;
     private final PrecipicePromise<Status, T> promise;

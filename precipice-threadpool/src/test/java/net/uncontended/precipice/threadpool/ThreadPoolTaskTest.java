@@ -21,6 +21,7 @@ import net.uncontended.precipice.Status;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.test_utils.TestCallable;
+import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -37,12 +38,16 @@ public class ThreadPoolTaskTest {
 
     @Mock
     private PrecipicePromise<Status, String> promise;
+    @Mock
+    private PrecipiceFuture<Status, String> future;
 
     private ThreadPoolTask<String> task;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+
+        when(promise.future()).thenReturn(future);
     }
 
     @Test
@@ -58,12 +63,10 @@ public class ThreadPoolTaskTest {
 
     @Test
     public void callableNotRunIfFutureAlreadyComplete() {
-        PrecipiceFuture<Status, String> future = mock(PrecipiceFuture.class);
         Callable<String> callable = mock(Callable.class);
 
         task = new ThreadPoolTask<>(callable, promise, 10L, 0L);
 
-        when(promise.future()).thenReturn(future);
         when(future.isDone()).thenReturn(true);
 
         task.run();
@@ -71,5 +74,37 @@ public class ThreadPoolTaskTest {
         verify(promise).future();
         verifyNoMoreInteractions(promise);
         verifyZeroInteractions(callable);
+    }
+
+    @Test
+    public void promiseCompletedWithCallableResult() {
+        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+
+        task.run();
+
+        verify(promise).complete(Status.SUCCESS, "Success");
+    }
+
+    @Test
+    public void promiseNotTimedOutIfCompleted() {
+        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+
+        task.run();
+
+        verify(promise).future();
+        verify(promise).complete(Status.SUCCESS, "Success");
+
+        task.setTimedOut();
+
+        verifyNoMoreInteractions(promise);
+    }
+
+    @Test
+    public void promiseTimedOutIfNotCompleted() {
+        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+
+        task.setTimedOut();
+
+        verify(promise).completeExceptionally(same(Status.TIMEOUT), any(PrecipiceTimeoutException.class));
     }
 }

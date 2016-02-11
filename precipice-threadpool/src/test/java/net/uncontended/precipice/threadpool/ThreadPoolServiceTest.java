@@ -17,8 +17,13 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.*;
-import net.uncontended.precipice.concurrent.*;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.RejectedException;
+import net.uncontended.precipice.Status;
+import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.test_utils.TestCallable;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
 import net.uncontended.precipice.time.SystemTime;
@@ -166,35 +171,4 @@ public class ThreadPoolServiceTest {
         assertNull(future.result());
         assertEquals(Status.ERROR, future.getStatus());
     }
-
-//    @Test
-//    public void semaphoreReleasedDespiteCallbackException() throws Exception {
-//        PrecipiceSemaphore semaphore = new LongSemaphore(1);
-//        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-//        properties.semaphore(semaphore);
-//        service = new ThreadPoolService(1, new Controller<>("name", properties));
-//
-//        CountDownLatch latch = new CountDownLatch(1);
-//
-//        PrecipiceFuture<Status, String> future = service.submit(TestCallable.blocked(latch), Long.MAX_VALUE);
-//        future.onSuccess(new PrecipiceFunction<Status, String>() {
-//            @Override
-//            public void apply(Status status, String exception) {
-//                throw new RuntimeException("Boom");
-//            }
-//        });
-//        latch.countDown();
-//
-//        for (int i = 0; i <= 10; ++i) {
-//            if (semaphore.currentConcurrencyLevel() != 0) {
-//                if (i == 10) {
-//                    fail("Permits should have been released.");
-//                } else {
-//                    Thread.sleep(20);
-//                }
-//            } else {
-//                break;
-//            }
-//        }
-//    }
 }
