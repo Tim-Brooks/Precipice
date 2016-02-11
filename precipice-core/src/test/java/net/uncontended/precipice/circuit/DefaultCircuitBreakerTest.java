@@ -42,6 +42,8 @@ public class DefaultCircuitBreakerTest {
     @Mock
     private BPCountMetrics<Status> countMetrics;
     @Mock
+    private HealthGauge healthGauge;
+    @Mock
     private Clock systemTime;
 
     private BPBreakerConfigBuilder<Rejected> builder = new BPBreakerConfigBuilder<>(Rejected.CIRCUIT_OPEN);
@@ -67,26 +69,27 @@ public class DefaultCircuitBreakerTest {
     @Test
     public void testCircuitOpensOnlyWhenFailuresGreaterThanThreshold() {
         long trailingPeriodInMillis = 5000;
-        HealthSnapshot failingSnapshot = new HealthSnapshot(10000, 10000, 6, 0);
-        HealthSnapshot healthySnapshot = new HealthSnapshot(10000, 10000, 5, 0);
+        BPHealthSnapshot failingSnapshot = new BPHealthSnapshot(10000, 6);
+        BPHealthSnapshot healthySnapshot = new BPHealthSnapshot(10000, 5);
 
         BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5)
                 .backOffTimeMillis(trailingPeriodInMillis)
                 .build();
-        circuitBreaker = new BPCircuitBreaker<>(breakerConfig);
+        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
         circuitBreaker.registerGuardRail(guardRail);
 
         assertFalse(circuitBreaker.isOpen());
 
-//        when(countMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(healthySnapshot);
-//        when(systemTime.nanoTime()).thenReturn(501L * 1000L * 1000L);
-//        circuitBreaker.informBreakerOfResult(Status.ERROR);
-//        assertFalse(circuitBreaker.isOpen());
-//
-//        when(countMetrics.healthSnapshot(trailingPeriodInMillis, TimeUnit.MILLISECONDS)).thenReturn(failingSnapshot);
-//        when(systemTime.nanoTime()).thenReturn(1002L * 1000L * 1000L);
-//        circuitBreaker.informBreakerOfResult(Status.ERROR);
-//        assertTrue(circuitBreaker.isOpen());
+        long nanoTime = 501L * 1000L * 1000L;
+        when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(healthySnapshot);
+        circuitBreaker.releasePermit(1, Status.ERROR, nanoTime);
+        assertFalse(circuitBreaker.isOpen());
+
+        nanoTime = 1002L * 1000L * 1000L;
+        when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(failingSnapshot);
+        when(systemTime.nanoTime()).thenReturn(nanoTime);
+        circuitBreaker.releasePermit(1, Status.ERROR, nanoTime);
+        assertTrue(circuitBreaker.isOpen());
     }
 //
 //    @Test

@@ -31,13 +31,18 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
 
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
-    private final HealthGauge healthGauge = new HealthGauge();
+    private final HealthGauge healthGauge;
     private volatile long lastTestedTime = 0;
     private volatile BPBreakerConfig<Rejected> breakerConfig;
     private volatile BPHealthSnapshot health = new BPHealthSnapshot(0, 0);
 
     public BPCircuitBreaker(BPBreakerConfig<Rejected> breakerConfig) {
+        this(breakerConfig, new HealthGauge());
+    }
+
+    public BPCircuitBreaker(BPBreakerConfig<Rejected> breakerConfig, HealthGauge healthGauge) {
         this.breakerConfig = breakerConfig;
+        this.healthGauge = healthGauge;
     }
 
     @Override
@@ -71,7 +76,7 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
             if (state.get() == CLOSED) {
                 long currentTime = currentMillisTime(nanoTime);
                 BPBreakerConfig<Rejected> config = breakerConfig;
-                BPHealthSnapshot health = getHealthSnapshot(config, currentTime);
+                BPHealthSnapshot health = getHealthSnapshot(config, nanoTime);
                 long failures = health.failures;
                 int failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
