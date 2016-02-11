@@ -73,7 +73,7 @@ public class ThreadPoolServiceTest {
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
             when(controller.acquirePermitAndGetPromise(1L)).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
-            service.submit(TestCallable.success(1), Long.MAX_VALUE);
+            service.submit(TestCallable.success(), Long.MAX_VALUE);
             fail();
         } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
@@ -81,7 +81,7 @@ public class ThreadPoolServiceTest {
 
         try {
             when(controller.acquirePermitAndGetPromise(1L)).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
-            service.submit(TestCallable.success(1), Long.MAX_VALUE);
+            service.submit(TestCallable.success(), Long.MAX_VALUE);
             fail();
         } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
@@ -92,7 +92,7 @@ public class ThreadPoolServiceTest {
     public void callableIsSubmittedAndRan() throws Exception {
         when(controller.acquirePermitAndGetPromise(1L)).thenReturn(new Eventual<Status, Object>(1L));
 
-        PrecipiceFuture<Status, String> f = service.submit(TestCallable.success(1), 500);
+        PrecipiceFuture<Status, String> f = service.submit(TestCallable.success(), 500);
 
         assertEquals("Success", f.get());
         assertEquals(Status.SUCCESS, f.getStatus());
@@ -104,7 +104,7 @@ public class ThreadPoolServiceTest {
 
         when(controller.acquirePermitAndGetPromise(1L, promise)).thenReturn(new Eventual<>(System.nanoTime(), promise));
 
-        service.complete(TestCallable.success(0, "Same Promise"), promise, TimeoutService.NO_TIMEOUT);
+        service.complete(TestCallable.success("Same Promise"), promise, TimeoutService.NO_TIMEOUT);
 
         verify(controller).acquirePermitAndGetPromise(1L, promise);
 

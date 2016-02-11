@@ -22,17 +22,14 @@ import java.util.concurrent.CountDownLatch;
 
 public class TestCallable {
 
-    public static Callable<String> success(final long waitTime) {
-        return success(waitTime, "Success");
+    public static Callable<String> success() {
+        return success("Success");
     }
 
-    public static Callable<String> success(final long waitTime, final String result) {
+    public static Callable<String> success(final String result) {
         return new Callable<String>() {
             @Override
             public String call() throws Exception {
-                if (waitTime != 0) {
-                    Thread.sleep(waitTime);
-                }
                 return result;
             }
         };
