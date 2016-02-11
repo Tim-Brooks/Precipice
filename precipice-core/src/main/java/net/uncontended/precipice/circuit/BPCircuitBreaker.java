@@ -15,10 +15,11 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.backpressure.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;

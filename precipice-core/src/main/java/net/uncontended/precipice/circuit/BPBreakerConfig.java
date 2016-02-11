@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-
 package net.uncontended.precipice.circuit;
 
-public class BreakerConfig {
+public class BPBreakerConfig<Rejected extends Enum<Rejected>> {
 
+    public final Rejected reason;
     public final int failurePercentageThreshold;
     public final long failureThreshold;
     public final long trailingPeriodMillis;
@@ -26,8 +26,9 @@ public class BreakerConfig {
     public final long backOffTimeMillis;
     public final long sampleSizeThreshold;
 
-    public BreakerConfig(long failureThreshold, int failurePercentageThreshold, long trailingPeriodMillis,
-                         long healthRefreshMillis, long backOffTimeMillis, long sampleSizeThreshold) {
+    public BPBreakerConfig(Rejected reason, long failureThreshold, int failurePercentageThreshold, long trailingPeriodMillis,
+                           long healthRefreshMillis, long backOffTimeMillis, long sampleSizeThreshold) {
+        this.reason = reason;
         this.failureThreshold = failureThreshold;
         this.failurePercentageThreshold = failurePercentageThreshold;
         this.trailingPeriodMillis = trailingPeriodMillis;
@@ -35,5 +36,4 @@ public class BreakerConfig {
         this.backOffTimeMillis = backOffTimeMillis;
         this.sampleSizeThreshold = sampleSizeThreshold;
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,14 @@
 
 package net.uncontended.precipice.circuit;
 
-import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.BackPressure;
 
-public interface CircuitBreaker {
-
+public interface BPCircuitBreakerInterface<Rejected extends Enum<Rejected>> extends BackPressure<Rejected> {
     boolean isOpen();
 
-    boolean allowAction();
+    BPBreakerConfig<Rejected> getBreakerConfig();
 
-    boolean allowAction(long nanoTime);
-
-    void informBreakerOfResult(Failable result);
-    
-    void informBreakerOfResult(Failable result, long nanoTime);
-
-    void setCountMetrics(CountMetrics<?> metrics);
-
-    void setBreakerConfig(BreakerConfig breakerConfig);
-
-    BreakerConfig getBreakerConfig();
+    void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig);
 
     void forceOpen();
 

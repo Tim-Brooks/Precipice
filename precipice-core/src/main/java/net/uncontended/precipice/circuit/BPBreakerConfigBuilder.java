@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice.circuit;
 
 public class BPBreakerConfigBuilder<Rejected extends Enum<Rejected>> {
     private final Rejected reason;

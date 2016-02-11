@@ -17,8 +17,9 @@
 
 package net.uncontended.precipice.samples.bigger;
 
+import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.circuit.CircuitBreaker;
+import net.uncontended.precipice.circuit.BPCircuitBreaker;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.Snapshot;
 
@@ -90,7 +91,7 @@ public class ClientMBeans {
 
     }
 
-    public ClientMBeans(String name, final CountMetrics<Status> countMetrics, final CircuitBreaker breaker) {
+    public ClientMBeans(String name, final CountMetrics<Status> countMetrics, final BPCircuitBreaker<Rejected> breaker) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {

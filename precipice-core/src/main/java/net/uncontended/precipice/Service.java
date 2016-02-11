@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.circuit.CircuitBreaker;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 
@@ -42,13 +41,6 @@ public interface Service {
      * @return the latency metrics backing this service
      */
     LatencyMetrics<?> getLatencyMetrics();
-
-    /**
-     * Returns the {@link CircuitBreaker} for this service.
-     *
-     * @return the circuit breaker for this service
-     */
-    CircuitBreaker getCircuitBreaker();
 
     /**
      * Returns the remaining action capacity before max concurrency level has been hit.

@@ -18,13 +18,31 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.GuardRail;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class NoOpCircuitBreaker implements CircuitBreaker {
-    private static final BreakerConfig config = new BreakerConfig(Integer.MAX_VALUE, 0, 0, 0, 0, 0);
+public class NoOpCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCircuitBreakerInterface<Rejected> {
     private final AtomicBoolean circuitOpen = new AtomicBoolean(false);
+
+    @Override
+    public Rejected acquirePermit(long number, long nanoTime) {
+        return null;
+    }
+
+    @Override
+    public void releasePermit(long number, long nanoTime) {
+
+    }
+
+    @Override
+    public void releasePermit(long number, Failable result, long nanoTime) {
+
+    }
+
+    @Override
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+    }
 
     @Override
     public boolean isOpen() {
@@ -32,34 +50,12 @@ public class NoOpCircuitBreaker implements CircuitBreaker {
     }
 
     @Override
-    public boolean allowAction() {
-        return !isOpen();
+    public BPBreakerConfig<Rejected> getBreakerConfig() {
+        return null;
     }
 
     @Override
-    public boolean allowAction(long nanoTime) {
-        return !isOpen();
-    }
-
-    @Override
-    public void informBreakerOfResult(Failable result) {
-    }
-
-    @Override
-    public void informBreakerOfResult(Failable result, long nanoTime) {
-
-    }
-
-    @Override
-    public BreakerConfig getBreakerConfig() {
-        return config;
-    }
-
-    @Override
-    public void setBreakerConfig(BreakerConfig breakerConfig) {
-    }
-
-    public void setCountMetrics(CountMetrics<?> metrics) {
+    public void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig) {
     }
 
     @Override
