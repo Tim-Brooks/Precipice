@@ -99,7 +99,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     @Override
     public void setTimedOut() {
-        if (!promise.future().isDone()) {
+        if (state.get() == PENDING) {
             safeSetTimedOut(new PrecipiceTimeoutException());
         }
     }
@@ -139,7 +139,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     private void safeSetTimedOut(PrecipiceTimeoutException e) {
         try {
-            if (state.get() == PENDING && state.compareAndSet(PENDING, INTERRUPTING)) {
+            if (state.compareAndSet(PENDING, INTERRUPTING)) {
                 if (runner != null) {
                     runner.interrupt();
                 }
