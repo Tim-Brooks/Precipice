@@ -50,10 +50,18 @@ public class ThreadPoolService implements Precipice<Status, Rejected> {
         return guardRail;
     }
 
+    public <T> PrecipiceFuture<Status, T> submit(Callable<T> callable) {
+        return submit(callable, TimeoutService.NO_TIMEOUT);
+    }
+
     public <T> PrecipiceFuture<Status, T> submit(Callable<T> callable, long millisTimeout) {
         PrecipicePromise<Status, T> promise = guardRail.acquirePermitAndGetPromise(1L);
         internalComplete(callable, promise, millisTimeout);
         return promise.future();
+    }
+
+    public <T> void complete(Callable<T> callable, PrecipicePromise<Status, T> promise) {
+        complete(callable, promise, TimeoutService.NO_TIMEOUT);
     }
 
     public <T> void complete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
