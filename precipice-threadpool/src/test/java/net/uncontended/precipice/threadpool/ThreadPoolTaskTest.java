@@ -62,7 +62,7 @@ public class ThreadPoolTaskTest {
     }
 
     @Test
-    public void callableNotRunIfFutureAlreadyComplete() {
+    public void callableNotRunIfFutureAlreadyDone() {
         Callable<String> callable = mock(Callable.class);
 
         task = new ThreadPoolTask<>(callable, promise, 10L, 0L);
@@ -106,5 +106,18 @@ public class ThreadPoolTaskTest {
         task.setTimedOut();
 
         verify(promise).completeExceptionally(same(Status.TIMEOUT), any(PrecipiceTimeoutException.class));
+    }
+
+    @Test
+    public void callableNotRunIfTaskInternallyComplete() {
+        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+
+        task.setTimedOut();
+
+        verify(promise).completeExceptionally(same(Status.TIMEOUT), any(PrecipiceTimeoutException.class));
+
+        task.run();
+
+        verifyNoMoreInteractions(promise);
     }
 }
