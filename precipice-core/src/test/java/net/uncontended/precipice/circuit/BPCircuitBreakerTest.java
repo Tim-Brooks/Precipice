@@ -37,7 +37,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class DefaultCircuitBreakerTest {
+public class BPCircuitBreakerTest {
 
     @Mock
     private GuardRail<Status, Rejected> guardRail;
@@ -45,8 +45,6 @@ public class DefaultCircuitBreakerTest {
     private BPCountMetrics<Status> countMetrics;
     @Mock
     private HealthGauge healthGauge;
-    @Mock
-    private Clock systemTime;
 
     private BPBreakerConfigBuilder<Rejected> builder = new BPBreakerConfigBuilder<>(Rejected.CIRCUIT_OPEN);
 
@@ -55,7 +53,6 @@ public class DefaultCircuitBreakerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-
         when(guardRail.getResultMetrics()).thenReturn(countMetrics);
     }
 
