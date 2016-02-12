@@ -30,14 +30,13 @@ import net.uncontended.precipice.timeout.TimeoutService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadPoolService implements Precipice<Status, Rejected> {
+public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Precipice<Status, Rejected> {
     private final ExecutorService executorService;
     private final PromiseFactory<Status, Rejected> promiseFactory;
     private final TimeoutService timeoutService;
     private final GuardRail<Status, Rejected> guardRail;
 
     public ThreadPoolService(int poolSize, int queueSize, GuardRail<Status, Rejected> guardRail) {
-        // TODO: Need to figure out max concurrency
         this(PrecipiceExecutors.threadPoolExecutor(guardRail.getName(), poolSize, queueSize), guardRail);
     }
 

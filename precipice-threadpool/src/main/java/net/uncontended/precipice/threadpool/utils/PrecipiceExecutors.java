@@ -27,12 +27,8 @@ public final class PrecipiceExecutors {
     private PrecipiceExecutors() {
     }
 
-    public static ExecutorService threadPoolExecutor(String name, int poolSize, long concurrencyLevel) {
-        if (concurrencyLevel > Integer.MAX_VALUE / 2) {
-            throw new IllegalArgumentException("Concurrency Level \"" + concurrencyLevel + "\" is greater than the " +
-                    "allowed maximum: " + Integer.MAX_VALUE / 2 + '.');
-        }
+    public static ExecutorService threadPoolExecutor(String name, int poolSize, long queueSize) {
         return new ThreadPoolExecutor(poolSize, poolSize, Long.MAX_VALUE, TimeUnit.DAYS,
-                new ArrayBlockingQueue<Runnable>((int) concurrencyLevel + 10), new ServiceThreadFactory(name));
+                new ArrayBlockingQueue<Runnable>((int) queueSize), new ServiceThreadFactory(name));
     }
 }

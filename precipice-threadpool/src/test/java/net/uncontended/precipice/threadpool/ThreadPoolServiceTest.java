@@ -51,14 +51,14 @@ public class ThreadPoolServiceTest {
     @Mock
     private PromiseFactory<Status, Rejected> promiseFactory;
 
-    private ThreadPoolService service;
+    private ThreadPoolService<Rejected> service;
     private ExecutorService executorService;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         executorService = PrecipiceExecutors.threadPoolExecutor("Test", 1, 100);
-        service = new ThreadPoolService(executorService, guardRail, promiseFactory);
+        service = new ThreadPoolService<>(executorService, guardRail, promiseFactory);
 
         when(guardRail.getClock()).thenReturn(new SystemTime());
     }

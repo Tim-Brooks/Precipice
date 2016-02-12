@@ -17,13 +17,15 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.*;
+import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Precipice;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class Pattern<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, C extends Precipice<Result, Rejected>> {
+public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice<Result, ?>> {
 
     private final List<C> pool;
 
@@ -60,13 +62,11 @@ public class Pattern<Result extends Enum<Result> & Failable, Rejected extends En
         int submittedCount = 0;
         for (int serviceIndex : servicesToTry) {
             C precipice = pool.get(serviceIndex);
-            GuardRail<Result, Rejected> guardRail = precipice.guardRail();
-            Rejected rejected = guardRail.acquirePermits(permits, nanoTime);
+            GuardRail<Result, ?> guardRail = precipice.guardRail();
+            Object rejected = guardRail.acquirePermits(permits, nanoTime);
             if (rejected == null) {
                 precipices.add(precipice);
                 ++submittedCount;
-            } else {
-                guardRail.getRejectedMetrics().incrementMetricCount(rejected, nanoTime);
             }
             if (submittedCount == strategy.submissionCount()) {
                 break;

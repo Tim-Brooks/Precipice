@@ -17,8 +17,6 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.RejectedException;
-import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.backpressure.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -35,18 +33,18 @@ import java.util.concurrent.ExecutorService;
 public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
 
     private final GuardRail<Status, Rejected> guardRail;
-    private final Pattern<Status, Rejected, ThreadPoolService> pattern;
-    private final Map<ThreadPoolService, C> serviceToContext;
+    private final Pattern<Status, ThreadPoolService<?>> pattern;
+    private final Map<ThreadPoolService<?>, C> serviceToContext;
     private final PromiseFactory<Status, Rejected> promiseFactory;
 
 
-    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
+    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
                              PatternStrategy strategy) {
         this(serviceToContext, guardRail, new Pattern<>(serviceToContext.keySet(), strategy));
     }
 
-    public ThreadPoolPattern(Map<ThreadPoolService, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
-                             Pattern<Status, Rejected, ThreadPoolService> pattern) {
+    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
+                             Pattern<Status, ThreadPoolService<?>> pattern) {
         this.serviceToContext = serviceToContext;
         this.guardRail = guardRail;
         this.pattern = pattern;
@@ -61,7 +59,7 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
     public <T> PrecipiceFuture<Status, T> submit(final PatternAction<T, C> action, long millisTimeout) {
         long nanoTime = acquirePermit();
 
-        Sequence<ThreadPoolService> services = pattern.getPrecipices(1L, nanoTime);
+        Sequence<ThreadPoolService<?>> services = pattern.getPrecipices(1L, nanoTime);
 
         if (services.isEmpty()) {
             return handleAllReject(nanoTime);
@@ -69,7 +67,7 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
 
         PrecipicePromise<Status, T> promise = promiseFactory.getPromise(1L, nanoTime);
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
-        for (ThreadPoolService service : services) {
+        for (ThreadPoolService<?> service : services) {
             PrecipicePromise<Status, T> internal = service.getPromiseFactory().getPromise(1L, nanoTime, promise);
 
             final C context = serviceToContext.get(service);

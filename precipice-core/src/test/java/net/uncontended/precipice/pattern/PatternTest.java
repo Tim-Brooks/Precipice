@@ -53,7 +53,7 @@ public class PatternTest {
     @Mock
     private GuardRail<Status, Rejected> guardRail3;
 
-    private Pattern<Status, Rejected, Precipice<Status, Rejected>> pattern;
+    private Pattern<Status, Precipice<Status, Rejected>> pattern;
     private int submissionCount = 2;
     private long nanoTime = 10L;
 
