@@ -52,92 +52,81 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("unchecked")
 public class ThreadPoolPatternTest {
 
-//    private Object context1 = new Object();
-//    private Object context2 = new Object();
-//    private Object context3 = new Object();
-//    @Mock
-//    private ThreadPoolService service1;
-//    @Mock
-//    private ThreadPoolService service2;
-//    @Mock
-//    private ThreadPoolService service3;
-//    @Mock
-//    private GuardRail<Status, ?> guardRail1;
-//    @Mock
-//    private GuardRail<Status, ?> guardRail2;
-//    @Mock
-//    private GuardRail<Status, ?> guardRail3;
-//    @Mock
-//    private PromiseFactory<?> promiseFactory1;
-//    @Mock
-//    private PromiseFactory<?> promiseFactory2;
-//    @Mock
-//    private PromiseFactory<?> promiseFactory3;
-//    @Mock
-//    private ExecutorService executor1;
-//    @Mock
-//    private ExecutorService executor2;
-//    @Mock
-//    private ExecutorService executor3;
-//    @Mock
-//    private TimeoutService timeoutService1;
-//    @Mock
-//    private TimeoutService timeoutService2;
-//    @Mock
-//    private TimeoutService timeoutService3;
-//    @Mock
-//    private GuardRail<Status, Rejected> guardRail;
-//    @Mock
-//    private PromiseFactory<Rejected> promiseFactory;
-//    @Mock
-//    private Clock clock;
-//    @Mock
-//    private PrecipiceSemaphore semaphore;
-//    @Mock
-//    private TotalCountMetrics<Rejected> metrics;
-//    @Mock
-//    private Pattern<Status, ThreadPoolService<?>> pattern;
-//    @Mock
-//    private PatternAction<String, Object> action;
-//    @Captor
-//    private ArgumentCaptor<ThreadPoolTask<Status>> task1Captor;
-//    @Captor
-//    private ArgumentCaptor<ThreadPoolTask<Status>> task2Captor;
-//
-//    private ThreadPoolPattern<Object> poolPattern;
-//    private long submitTimeNanos = 10L;
-//
-//    @Before
-//    public void setUp() throws Exception {
-//        MockitoAnnotations.initMocks(this);
-//
-//        Map<ThreadPoolService<?>, Object> services = new LinkedHashMap<>();
-//        services.put(service1, context1);
-//        services.put(service2, context2);
-//        services.put(service3, context3);
-//        this.poolPattern = new ThreadPoolPattern<>(services, guardRail, pattern, promiseFactory);
-//
-//        when(service1.guardRail()).thenReturn(guardRail1);
-//        when(service2.guardRail()).thenReturn(guardRail2);
-//        when(service3.guardRail()).thenReturn(guardRail3);
-//        when(service1.getPromiseFactory()).thenReturn(promiseFactory1);
-//        when(service2.getPromiseFactory()).thenReturn(promiseFactory2);
-//        when(service3.getPromiseFactory()).thenReturn(promiseFactory3);
-//        when(service1.getExecutor()).thenReturn(executor1);
-//        when(service2.getExecutor()).thenReturn(executor2);
-//        when(service3.getExecutor()).thenReturn(executor3);
-//        when(service1.getTimeoutService()).thenReturn(timeoutService1);
-//        when(service2.getTimeoutService()).thenReturn(timeoutService2);
-//        when(service3.getTimeoutService()).thenReturn(timeoutService3);
-//
-//        when(guardRail.getClock()).thenReturn(clock);
-//        when(guardRail.getRejectedMetrics()).thenReturn(metrics);
-//        when(clock.nanoTime()).thenReturn(submitTimeNanos);
-//
-//        when(action.call(context1)).thenReturn("Service1");
-//        when(action.call(context2)).thenReturn("Service2");
-//        when(action.call(context3)).thenReturn("Service3");
-//    }
+    private Object context1 = new Object();
+    private Object context2 = new Object();
+    private Object context3 = new Object();
+    @Mock
+    private ThreadPoolService service1;
+    @Mock
+    private ThreadPoolService service2;
+    @Mock
+    private ThreadPoolService service3;
+    @Mock
+    private GuardRail<Status, ?> guardRail1;
+    @Mock
+    private GuardRail<Status, ?> guardRail2;
+    @Mock
+    private GuardRail<Status, ?> guardRail3;
+    @Mock
+    private ExecutorService executor1;
+    @Mock
+    private ExecutorService executor2;
+    @Mock
+    private ExecutorService executor3;
+    @Mock
+    private TimeoutService timeoutService1;
+    @Mock
+    private TimeoutService timeoutService2;
+    @Mock
+    private TimeoutService timeoutService3;
+    @Mock
+    private GuardRail<Status, Rejected> guardRail;
+    @Mock
+    private Clock clock;
+    @Mock
+    private PrecipiceSemaphore semaphore;
+    @Mock
+    private TotalCountMetrics<Rejected> metrics;
+    @Mock
+    private Pattern<Status, ThreadPoolService<?>> pattern;
+    @Mock
+    private PatternAction<String, Object> action;
+    @Captor
+    private ArgumentCaptor<ThreadPoolTask<Status>> task1Captor;
+    @Captor
+    private ArgumentCaptor<ThreadPoolTask<Status>> task2Captor;
+
+    private ThreadPoolPattern<Object> poolPattern;
+    private long submitTimeNanos = 10L;
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+
+        Map<ThreadPoolService<?>, Object> services = new LinkedHashMap<>();
+        services.put(service1, context1);
+        services.put(service2, context2);
+        services.put(service3, context3);
+        this.poolPattern = new ThreadPoolPattern<>(services, guardRail, pattern);
+
+        when(service1.guardRail()).thenReturn(guardRail1);
+        when(service2.guardRail()).thenReturn(guardRail2);
+        when(service3.guardRail()).thenReturn(guardRail3);
+        when(service1.getExecutor()).thenReturn(executor1);
+        when(service2.getExecutor()).thenReturn(executor2);
+        when(service3.getExecutor()).thenReturn(executor3);
+        when(service1.getTimeoutService()).thenReturn(timeoutService1);
+        when(service2.getTimeoutService()).thenReturn(timeoutService2);
+        when(service3.getTimeoutService()).thenReturn(timeoutService3);
+
+        when(guardRail.getClock()).thenReturn(clock);
+        when(guardRail.getRejectedMetrics()).thenReturn(metrics);
+        when(clock.nanoTime()).thenReturn(submitTimeNanos);
+
+        when(action.call(context1)).thenReturn("Service1");
+        when(action.call(context2)).thenReturn("Service2");
+        when(action.call(context3)).thenReturn("Service3");
+    }
 //
 //    @Test
 //    public void actionsSubmittedToServices() throws Exception {

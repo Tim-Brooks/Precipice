@@ -181,7 +181,7 @@ public class ThreadPoolServiceTest {
         when(clock.nanoTime()).thenReturn(startNanos);
 
         service.submit(TestCallable.success(), 100);
-        
+
         verify(guardRail).acquirePermits(1L, startNanos);
     }
 }

@@ -17,9 +17,10 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.backpressure.CompletableFactory;
 import net.uncontended.precipice.concurrent.CompletionContext;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.test_utils.TestCallables;
+import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +31,9 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,23 +42,25 @@ public class CallServiceTest {
     @Mock
     private GuardRail<Status, Rejected> guardRail;
     @Mock
-    private CompletableFactory<Status, Rejected> completableFactory;
-    @Mock
     private CompletionContext<Status, Object> context;
+    @Mock
+    private PrecipiceFunction<Status, PerformingContext> releaseFunction;
 
     private CallService service;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        service = new CallService(guardRail, completableFactory);
+        service = new CallService(guardRail);
+
+        when(guardRail.getClock()).thenReturn(new SystemTime());
+        when(guardRail.releaseFunction()).thenReturn(releaseFunction);
     }
 
     @Test
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
-            when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenThrow(new RejectedException(Rejected
-                    .MAX_CONCURRENCY_LEVEL_EXCEEDED));
+            when(guardRail.acquirePermits(eq(1L), anyLong())).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
             service.call(TestCallables.success(1));
             fail();
         } catch (RejectedException e) {
@@ -62,29 +68,28 @@ public class CallServiceTest {
         }
 
         try {
-            when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
+            when(guardRail.acquirePermits(eq(1L), anyLong())).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
             service.call(TestCallables.success(1));
             fail();
         } catch (RejectedException e) {
-            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
+            assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
         }
     }
 
     @Test
     public void callableIsExecuted() throws Exception {
-        when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenReturn(context);
+        when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
         String expectedResult = "Success";
 
         String result = service.call(TestCallables.success(1));
 
-        verify(context).complete(Status.SUCCESS, expectedResult);
-
+        verify(releaseFunction).apply(eq(Status.SUCCESS), any(PerformingContext.class));
         assertEquals(expectedResult, result);
     }
 
     @Test
     public void callableExceptionIsHandledAppropriately() throws Exception {
-        when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenReturn(context);
+        when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
         RuntimeException exception = new RuntimeException();
 
@@ -94,12 +99,12 @@ public class CallServiceTest {
             assertEquals(e, exception);
         }
 
-        verify(context).completeExceptionally(Status.ERROR, exception);
+        verify(releaseFunction).apply(eq(Status.ERROR), any(PerformingContext.class));
     }
 
     @Test
     public void callableTimeoutExceptionIsHandledAppropriately() throws Exception {
-        when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenReturn(context);
+        when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
         TimeoutException exception = new PrecipiceTimeoutException();
 
@@ -109,6 +114,6 @@ public class CallServiceTest {
             assertEquals(e, exception);
         }
 
-        verify(context).completeExceptionally(Status.TIMEOUT, exception);
+        verify(releaseFunction).apply(eq(Status.TIMEOUT), any(PerformingContext.class));
     }
 }

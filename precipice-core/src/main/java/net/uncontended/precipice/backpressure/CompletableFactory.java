@@ -17,43 +17,42 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.CompletionContext;
 
-public class CompletableFactory<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
+public class CompletableFactory {
 
-    private final GuardRail<Result, Rejected> guardRail;
-    private final FinishingCallback<Result> finishingCallback;
-
-    public CompletableFactory(GuardRail<Result, Rejected> guardRail) {
-        this.guardRail = guardRail;
-        finishingCallback = new FinishingCallback<>(guardRail);
+    private CompletableFactory() {
     }
 
-    public <T> Completable<Result, T> acquirePermitsAndGetCompletable(long number) {
-        return acquirePermitsAndGetCompletable(number, guardRail.getClock().nanoTime());
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
+    acquirePermitsAndGetCompletable(GuardRail<Result, Rejected> guardRail, long number) {
+        return acquirePermitsAndGetCompletable(guardRail, number, null);
     }
 
-    public <T> Completable<Result, T> acquirePermitsAndGetCompletable(long number, long nanoTime) {
-        Rejected rejected = guardRail.acquirePermits(number, nanoTime);
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
+    acquirePermitsAndGetCompletable(GuardRail<Result, Rejected> guardRail, long number, Completable<Result, R> externalCompletable) {
+        long startTime = guardRail.getClock().nanoTime();
+        Rejected rejected = guardRail.acquirePermits(number, startTime);
         if (rejected != null) {
             throw new RejectedException(rejected);
         }
-
-        return getCompletable(number, nanoTime);
+        return getCompletable(guardRail, number, startTime, externalCompletable);
     }
 
-    public <T> CompletionContext<Result, T> getCompletable(long permitNumber, long nanoTime) {
-        return getCompletable(permitNumber, nanoTime, null);
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
+    getCompletable(GuardRail<Result, Rejected> guardRail, long permitNumber, long nanoTime) {
+        return getCompletable(guardRail, permitNumber, nanoTime, null);
     }
 
-    public <T> CompletionContext<Result, T> getCompletable(long permitNumber, long nanoTime, Completable<Result, T> completable) {
-        CompletionContext<Result, T> context = new CompletionContext<>(permitNumber, nanoTime, completable);
-        context.internalOnComplete(finishingCallback);
-        return context;
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
+    getCompletable(GuardRail<Result, Rejected> guardRail, long permitNumber, long nanoTime, Completable<Result, R> externalCompletable) {
+        CompletionContext<Result, R> completable = new CompletionContext<>(permitNumber, nanoTime, externalCompletable);
+        completable.internalOnComplete(guardRail.releaseFunction());
+        return completable;
     }
 
 }
