@@ -45,10 +45,15 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
 
     public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
                              Pattern<Status, ThreadPoolService<?>> pattern) {
+        this(serviceToContext, guardRail, pattern, new PromiseFactory<>(guardRail));
+    }
+
+    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
+                             Pattern<Status, ThreadPoolService<?>> pattern, PromiseFactory<Status, Rejected> promiseFactory) {
         this.serviceToContext = serviceToContext;
         this.guardRail = guardRail;
         this.pattern = pattern;
-        this.promiseFactory = new PromiseFactory<>(guardRail);
+        this.promiseFactory = promiseFactory;
     }
 
     @Override
