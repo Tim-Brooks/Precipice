@@ -20,7 +20,7 @@ package net.uncontended.precipice.samples;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.backpressure.GuardRailBuilder;
+import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;

@@ -27,7 +27,7 @@ public class HealthGauge {
 
     private final List<InternalGauge<?>> gauges = new ArrayList<>();
 
-    public BPHealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public HealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         long total = 0;
         long failures = 0;
 
@@ -36,7 +36,7 @@ public class HealthGauge {
             total = total + gauge.total;
             failures = failures + gauge.failures;
         }
-        return new BPHealthSnapshot(total, failures);
+        return new HealthSnapshot(total, failures);
     }
 
     public <Result extends Enum<Result> & Failable> void add(RollingCountMetrics<Result> metrics) {

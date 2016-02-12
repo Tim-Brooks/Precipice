@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.circuit;
 
-public class BPBreakerConfigBuilder<Rejected extends Enum<Rejected>> {
+public class CircuitBreakerConfigBuilder<Rejected extends Enum<Rejected>> {
     private final Rejected reason;
     public long trailingPeriodMillis = 5000;
     public long failureThreshold = Long.MAX_VALUE;
@@ -26,42 +26,42 @@ public class BPBreakerConfigBuilder<Rejected extends Enum<Rejected>> {
     public long backOffTimeMillis = 1000;
     public long sampleSizeThreshold = 10;
 
-    public BPBreakerConfigBuilder(Rejected reason) {
+    public CircuitBreakerConfigBuilder(Rejected reason) {
         this.reason = reason;
     }
 
-    public BPBreakerConfigBuilder<Rejected> trailingPeriodMillis(long trailingPeriodMillis) {
+    public CircuitBreakerConfigBuilder<Rejected> trailingPeriodMillis(long trailingPeriodMillis) {
         this.trailingPeriodMillis = trailingPeriodMillis;
         return this;
     }
 
-    public BPBreakerConfigBuilder<Rejected> failureThreshold(long failureThreshold) {
+    public CircuitBreakerConfigBuilder<Rejected> failureThreshold(long failureThreshold) {
         this.failureThreshold = failureThreshold;
         return this;
     }
 
-    public BPBreakerConfigBuilder<Rejected> failurePercentageThreshold(int failurePercentageThreshold) {
+    public CircuitBreakerConfigBuilder<Rejected> failurePercentageThreshold(int failurePercentageThreshold) {
         this.failurePercentageThreshold = failurePercentageThreshold;
         return this;
     }
 
-    public BPBreakerConfigBuilder<Rejected> backOffTimeMillis(long backOffTimeMillis) {
+    public CircuitBreakerConfigBuilder<Rejected> backOffTimeMillis(long backOffTimeMillis) {
         this.backOffTimeMillis = backOffTimeMillis;
         return this;
     }
 
-    public BPBreakerConfigBuilder<Rejected> healthRefreshMillis(long healthRefreshMillis) {
+    public CircuitBreakerConfigBuilder<Rejected> healthRefreshMillis(long healthRefreshMillis) {
         this.healthRefreshMillis = healthRefreshMillis;
         return this;
     }
 
-    public BPBreakerConfigBuilder<Rejected> sampleSizeThreshold(long sampleSizeThreshold) {
+    public CircuitBreakerConfigBuilder<Rejected> sampleSizeThreshold(long sampleSizeThreshold) {
         this.sampleSizeThreshold = sampleSizeThreshold;
         return this;
     }
 
-    public BPBreakerConfig<Rejected> build() {
-        return new BPBreakerConfig<>(reason, failureThreshold, failurePercentageThreshold, trailingPeriodMillis,
+    public CircuitBreakerConfig<Rejected> build() {
+        return new CircuitBreakerConfig<>(reason, failureThreshold, failurePercentageThreshold, trailingPeriodMillis,
                 healthRefreshMillis, backOffTimeMillis, sampleSizeThreshold);
     }
 

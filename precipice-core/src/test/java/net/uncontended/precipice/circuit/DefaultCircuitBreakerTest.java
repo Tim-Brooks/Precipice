@@ -21,7 +21,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.metrics.BPHealthSnapshot;
+import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.HealthGauge;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +36,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class BPCircuitBreakerTest {
+public class DefaultCircuitBreakerTest {
 
     @Mock
     private GuardRail<Status, Rejected> guardRail;
@@ -45,9 +45,9 @@ public class BPCircuitBreakerTest {
     @Mock
     private HealthGauge healthGauge;
 
-    private BPBreakerConfigBuilder<Rejected> builder = new BPBreakerConfigBuilder<>(Rejected.CIRCUIT_OPEN);
+    private CircuitBreakerConfigBuilder<Rejected> builder = new CircuitBreakerConfigBuilder<>(Rejected.CIRCUIT_OPEN);
 
-    private BPCircuitBreakerInterface<Rejected> circuitBreaker;
+    private CircuitBreaker<Rejected> circuitBreaker;
 
     @Before
     public void setUp() {
@@ -57,9 +57,9 @@ public class BPCircuitBreakerTest {
 
     @Test
     public void testCircuitIsClosedByDefault() {
-        BPBreakerConfigBuilder<Rejected> bp = builder.failureThreshold(20).backOffTimeMillis(5000);
-        BPBreakerConfig<Rejected> config = bp.build();
-        circuitBreaker = new BPCircuitBreaker<>(config);
+        CircuitBreakerConfigBuilder<Rejected> bp = builder.failureThreshold(20).backOffTimeMillis(5000);
+        CircuitBreakerConfig<Rejected> config = bp.build();
+        circuitBreaker = new DefaultCircuitBreaker<>(config);
         circuitBreaker.registerGuardRail(guardRail);
         assertFalse(circuitBreaker.isOpen());
     }
@@ -67,13 +67,13 @@ public class BPCircuitBreakerTest {
     @Test
     public void testCircuitOpensOnlyWhenFailuresGreaterThanThreshold() {
         long trailingPeriodInMillis = 5000;
-        BPHealthSnapshot failingSnapshot = new BPHealthSnapshot(10000, 6);
-        BPHealthSnapshot healthySnapshot = new BPHealthSnapshot(10000, 5);
+        HealthSnapshot failingSnapshot = new HealthSnapshot(10000, 6);
+        HealthSnapshot healthySnapshot = new HealthSnapshot(10000, 5);
 
-        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5)
+        CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5)
                 .backOffTimeMillis(trailingPeriodInMillis)
                 .build();
-        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
         circuitBreaker.registerGuardRail(guardRail);
 
         assertFalse(circuitBreaker.isOpen());
@@ -92,11 +92,11 @@ public class BPCircuitBreakerTest {
     @Test
     public void testOpenCircuitClosesAfterSuccess() {
         long trailingPeriodInMillis = 1000;
-        BPHealthSnapshot failureSnapshot = new BPHealthSnapshot(1000, 6);
+        HealthSnapshot failureSnapshot = new HealthSnapshot(1000, 6);
 
-        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5).trailingPeriodMillis
+        CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5).trailingPeriodMillis
                 (trailingPeriodInMillis).build();
-        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
         circuitBreaker.registerGuardRail(guardRail);
 
         assertFalse(circuitBreaker.isOpen());
@@ -114,10 +114,10 @@ public class BPCircuitBreakerTest {
 
     @Test
     public void testSettingBreakerConfigChangesConfig() {
-        BPHealthSnapshot snapshot = new BPHealthSnapshot(1000, 6);
+        HealthSnapshot snapshot = new HealthSnapshot(1000, 6);
 
-        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(10).trailingPeriodMillis(1000).build();
-        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(10).trailingPeriodMillis(1000).build();
+        circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
         circuitBreaker.registerGuardRail(guardRail);
 
         long nanoTime = 501L * 1000L * 1000L;
@@ -125,7 +125,7 @@ public class BPCircuitBreakerTest {
         circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
         assertFalse(circuitBreaker.isOpen());
 
-        BPBreakerConfig<Rejected> newBreakerConfig = builder.failureThreshold(5).trailingPeriodMillis(2000).build();
+        CircuitBreakerConfig<Rejected> newBreakerConfig = builder.failureThreshold(5).trailingPeriodMillis(2000).build();
         circuitBreaker.setBreakerConfig(newBreakerConfig);
 
         circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
@@ -135,8 +135,8 @@ public class BPCircuitBreakerTest {
 
     @Test
     public void testActionAllowedIfCircuitClosed() {
-        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(10).backOffTimeMillis(1000).build();
-        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(10).backOffTimeMillis(1000).build();
+        circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
         circuitBreaker.registerGuardRail(guardRail);
 
         assertFalse(circuitBreaker.isOpen());
@@ -147,11 +147,11 @@ public class BPCircuitBreakerTest {
     public void testActionAllowedIfPauseTimeHasPassed() {
         int failureThreshold = 10;
         int timePeriodInMillis = 5000;
-        BPHealthSnapshot snapshot = new BPHealthSnapshot(10000, 11);
+        HealthSnapshot snapshot = new HealthSnapshot(10000, 11);
 
-        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(failureThreshold)
+        CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).build();
-        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
         circuitBreaker.registerGuardRail(guardRail);
 
         assertFalse(circuitBreaker.isOpen());
@@ -175,9 +175,9 @@ public class BPCircuitBreakerTest {
         final int failureThreshold = 10;
         int timePeriodInMillis = 5000;
 
-        BPBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(failureThreshold)
+        CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).backOffTimeMillis(1000).build();
-        circuitBreaker = new BPCircuitBreaker<>(breakerConfig, healthGauge);
+        circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
         circuitBreaker.registerGuardRail(guardRail);
 
         assertFalse(circuitBreaker.isOpen());

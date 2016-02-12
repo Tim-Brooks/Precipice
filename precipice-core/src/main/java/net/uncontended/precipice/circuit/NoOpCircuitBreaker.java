@@ -22,7 +22,7 @@ import net.uncontended.precipice.GuardRail;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class NoOpCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCircuitBreakerInterface<Rejected> {
+public class NoOpCircuitBreaker<Rejected extends Enum<Rejected>> implements CircuitBreaker<Rejected> {
     private final AtomicBoolean circuitOpen = new AtomicBoolean(false);
 
     @Override
@@ -50,12 +50,12 @@ public class NoOpCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCi
     }
 
     @Override
-    public BPBreakerConfig<Rejected> getBreakerConfig() {
+    public CircuitBreakerConfig<Rejected> getBreakerConfig() {
         return null;
     }
 
     @Override
-    public void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig) {
+    public void setBreakerConfig(CircuitBreakerConfig<Rejected> breakerConfig) {
     }
 
     @Override

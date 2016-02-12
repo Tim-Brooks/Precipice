@@ -19,7 +19,6 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.backpressure.BPRejectedException;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
-import net.uncontended.precipice.backpressure.GuardRailBuilder;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;

@@ -20,7 +20,7 @@ package net.uncontended.precipice.circuit;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.metrics.BPHealthSnapshot;
+import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.metrics.HealthGauge;
 
@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCircuitBreakerInterface<Rejected> {
+public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements CircuitBreaker<Rejected> {
     private static final int CLOSED = 0;
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;
@@ -37,21 +37,21 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
     private final AtomicLong lastHealthTime = new AtomicLong(0);
     private final HealthGauge healthGauge;
     private volatile long lastTestedTime = 0;
-    private volatile BPBreakerConfig<Rejected> breakerConfig;
-    private volatile BPHealthSnapshot health = new BPHealthSnapshot(0, 0);
+    private volatile CircuitBreakerConfig<Rejected> breakerConfig;
+    private volatile HealthSnapshot health = new HealthSnapshot(0, 0);
 
-    public BPCircuitBreaker(BPBreakerConfig<Rejected> breakerConfig) {
+    public DefaultCircuitBreaker(CircuitBreakerConfig<Rejected> breakerConfig) {
         this(breakerConfig, new HealthGauge());
     }
 
-    public BPCircuitBreaker(BPBreakerConfig<Rejected> breakerConfig, HealthGauge healthGauge) {
+    public DefaultCircuitBreaker(CircuitBreakerConfig<Rejected> breakerConfig, HealthGauge healthGauge) {
         this.breakerConfig = breakerConfig;
         this.healthGauge = healthGauge;
     }
 
     @Override
     public Rejected acquirePermit(long number, long nanoTime) {
-        BPBreakerConfig<Rejected> config = breakerConfig;
+        CircuitBreakerConfig<Rejected> config = breakerConfig;
         int state = this.state.get();
         if (state == OPEN) {
             long backOffTimeMillis = config.backOffTimeMillis;
@@ -79,8 +79,8 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
         } else {
             if (state.get() == CLOSED) {
                 long currentTime = currentMillisTime(nanoTime);
-                BPBreakerConfig<Rejected> config = breakerConfig;
-                BPHealthSnapshot health = getHealthSnapshot(config, nanoTime);
+                CircuitBreakerConfig<Rejected> config = breakerConfig;
+                HealthSnapshot health = getHealthSnapshot(config, nanoTime);
                 long failures = health.failures;
                 int failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
@@ -98,7 +98,7 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
         if (resultMetrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) resultMetrics);
         } else {
-            throw new IllegalArgumentException("BPCircuitBreaker requires rolling result metrics");
+            throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result metrics");
         }
     }
 
@@ -108,12 +108,12 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
     }
 
     @Override
-    public BPBreakerConfig<Rejected> getBreakerConfig() {
+    public CircuitBreakerConfig<Rejected> getBreakerConfig() {
         return breakerConfig;
     }
 
     @Override
-    public void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig) {
+    public void setBreakerConfig(CircuitBreakerConfig<Rejected> breakerConfig) {
         this.breakerConfig = breakerConfig;
     }
 
@@ -127,11 +127,11 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
         state.set(CLOSED);
     }
 
-    private BPHealthSnapshot getHealthSnapshot(BPBreakerConfig<Rejected> config, long currentTime) {
+    private HealthSnapshot getHealthSnapshot(CircuitBreakerConfig<Rejected> config, long currentTime) {
         long lastHealthTime = this.lastHealthTime.get();
         if (lastHealthTime + config.healthRefreshMillis < currentTime) {
             if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                BPHealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS,
+                HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS,
                         currentTime);
                 health = newHealth;
                 return newHealth;

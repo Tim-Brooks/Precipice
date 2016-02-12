@@ -15,18 +15,25 @@
  *
  */
 
-package net.uncontended.precipice.circuit;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.BackPressure;
+public class HealthSnapshot {
 
-public interface BPCircuitBreakerInterface<Rejected extends Enum<Rejected>> extends BackPressure<Rejected> {
-    boolean isOpen();
+    public final long total;
+    public final long failures;
+    public final int failurePercentage;
 
-    BPBreakerConfig<Rejected> getBreakerConfig();
+    public HealthSnapshot(long total, long failures) {
+        this.total = total;
+        this.failures = failures;
+        if (total != 0) {
+            this.failurePercentage = (int) (100 * failures / total);
+        } else {
+            this.failurePercentage = 0;
+        }
+    }
 
-    void setBreakerConfig(BPBreakerConfig<Rejected> breakerConfig);
-
-    void forceOpen();
-
-    void forceClosed();
+    public int failurePercentage() {
+        return failurePercentage;
+    }
 }

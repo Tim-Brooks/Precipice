@@ -15,11 +15,8 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice;
 
-import net.uncontended.precipice.BackPressure;
-import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.NoOpLatencyMetrics;

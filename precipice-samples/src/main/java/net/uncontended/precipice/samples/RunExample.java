@@ -21,7 +21,7 @@ import net.uncontended.precipice.CallService;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.backpressure.GuardRailBuilder;
+import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 public class RunExample {
