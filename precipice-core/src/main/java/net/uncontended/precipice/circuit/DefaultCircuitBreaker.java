@@ -18,11 +18,11 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.OldGuardRail;
-import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.metrics.HealthSnapshot;
-import net.uncontended.precipice.metrics.TotalCountMetrics;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.HealthGauge;
+import net.uncontended.precipice.metrics.HealthSnapshot;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.metrics.TotalCountMetrics;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -93,7 +93,7 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerGuardRail(OldGuardRail<Result, Rejected> guardRail) {
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
         TotalCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
         if (resultMetrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) resultMetrics);

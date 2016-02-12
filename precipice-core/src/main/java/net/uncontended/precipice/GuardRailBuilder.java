@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.NoOpLatencyMetrics;
+import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -65,7 +65,7 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         return this;
     }
 
-    public OldGuardRail<Result, Rejected> build() {
+    public GuardRail<Result, Rejected> build() {
         if (name == null) {
             throw new IllegalArgumentException();
         } else if (resultMetrics == null) {
@@ -74,6 +74,6 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
             throw new IllegalArgumentException();
         }
 
-        return new OldGuardRail<>(name, resultMetrics, rejectedMetrics, resultLatency, backPressureList, clock);
+        return new GuardRail<>(name, resultMetrics, rejectedMetrics, resultLatency, backPressureList, clock);
     }
 }

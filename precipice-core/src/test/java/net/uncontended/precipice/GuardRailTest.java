@@ -46,7 +46,7 @@ public class GuardRailTest {
     @Mock
     private Clock clock;
 
-    private OldGuardRail<Status, Rejected> guardRail;
+    private GuardRail<Status, Rejected> guardRail;
     private GuardRailBuilder<Status, Rejected> builder;
 
     @Before
@@ -68,7 +68,7 @@ public class GuardRailTest {
 
         guardRail.shutdown();
         try {
-            guardRail.acquirePermitOrGetRejectedReason(1L);
+            guardRail.acquirePermits(1L);
             fail("Exception should have been thrown due to controllable being shutdown.");
         } catch (IllegalStateException e) {
             assertEquals("Service has been shutdown.", e.getMessage());
@@ -83,7 +83,7 @@ public class GuardRailTest {
         when(backPressure.acquirePermit(1L, 10L)).thenReturn(null);
         when(backPressure2.acquirePermit(1L, 10L)).thenReturn(null);
 
-        assertNull(guardRail.acquirePermitOrGetRejectedReason(1L, 10L));
+        assertNull(guardRail.acquirePermits(1L, 10L));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class GuardRailTest {
 
         when(backPressure.acquirePermit(1L, 10L)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
 
-        assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, guardRail.acquirePermitOrGetRejectedReason(1L, 10L));
+        assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, guardRail.acquirePermits(1L, 10L));
 
         verifyZeroInteractions(backPressure2);
     }
@@ -104,52 +104,14 @@ public class GuardRailTest {
         when(backPressure.acquirePermit(2L, 22L)).thenReturn(null);
         when(backPressure2.acquirePermit(2L, 22L)).thenReturn(Rejected.CIRCUIT_OPEN);
 
-        assertSame(Rejected.CIRCUIT_OPEN, guardRail.acquirePermitOrGetRejectedReason(2L, 22L));
+        assertSame(Rejected.CIRCUIT_OPEN, guardRail.acquirePermits(2L, 22L));
 
         InOrder inOrder = inOrder(backPressure);
         inOrder.verify(backPressure).acquirePermit(2L, 22L);
         inOrder.verify(backPressure).releasePermit(2L, 22L);
     }
 
-    @Test
-    public void getPromiseReturnsPromiseWithMetricsCallback() {
-        guardRail = builder.build();
-
-        long startTime = 10L;
-
-        PrecipicePromise<Status, String> promise = guardRail.getPromise(1L, startTime);
-
-        long endTime = 100L;
-        when(clock.nanoTime()).thenReturn(endTime);
-
-        promise.complete(Status.SUCCESS, "hello");
-
-        verify(backPressure).releasePermit(1, Status.SUCCESS, endTime);
-        verify(backPressure2).releasePermit(1, Status.SUCCESS, endTime);
-        verify(metrics).incrementMetricCount(Status.SUCCESS, endTime);
-        verify(latencyMetrics).recordLatency(Status.SUCCESS, 90L, endTime);
-    }
-
-    @Test
-    public void acquirePermitAndGetPromiseThrowsIfRejected() {
-        guardRail = builder.build();
-
-        long startTime = 10L;
-        when(clock.nanoTime()).thenReturn(startTime);
-        when(backPressure.acquirePermit(2L, 10L)).thenReturn(Rejected.CIRCUIT_OPEN);
-
-        try {
-            guardRail.acquirePermitAndGetPromise(2L);
-        } catch (BPRejectedException e) {
-            assertSame(Rejected.CIRCUIT_OPEN, e.reason);
-        }
-
-        verify(backPressure).acquirePermit(2L, 10L);
-        verifyNoMoreInteractions(backPressure);
-        verify(rejectedMetrics).incrementMetricCount(Rejected.CIRCUIT_OPEN, startTime);
-        verifyZeroInteractions(latencyMetrics);
-        verifyZeroInteractions(backPressure2);
-    }
+//    acquirePermits
 
     // TODO: Add tests for more scenarios
 

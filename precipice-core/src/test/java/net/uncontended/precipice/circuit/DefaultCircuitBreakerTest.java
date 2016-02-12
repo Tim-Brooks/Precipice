@@ -17,12 +17,12 @@
 
 package net.uncontended.precipice.circuit;
 
-import net.uncontended.precipice.OldGuardRail;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.HealthGauge;
+import net.uncontended.precipice.metrics.HealthSnapshot;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 public class DefaultCircuitBreakerTest {
 
     @Mock
-    private OldGuardRail<Status, Rejected> guardRail;
+    private GuardRail<Status, Rejected> guardRail;
     @Mock
     private RollingCountMetrics<Status> countMetrics;
     @Mock
