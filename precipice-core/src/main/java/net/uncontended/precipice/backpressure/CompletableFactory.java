@@ -46,12 +46,12 @@ public class CompletableFactory<Result extends Enum<Result> & Failable, Rejected
         return getCompletable(number, nanoTime);
     }
 
-    public <T> CompletionContext<Result, T> getCompletable(long permits, long nanoTime) {
-        return getCompletable(permits, nanoTime, null);
+    public <T> CompletionContext<Result, T> getCompletable(long permitNumber, long nanoTime) {
+        return getCompletable(permitNumber, nanoTime, null);
     }
 
-    public <T> CompletionContext<Result, T> getCompletable(long permits, long nanoTime, Completable<Result, T> completable) {
-        CompletionContext<Result, T> context = new CompletionContext<>(permits, nanoTime, completable);
+    public <T> CompletionContext<Result, T> getCompletable(long permitNumber, long nanoTime, Completable<Result, T> completable) {
+        CompletionContext<Result, T> context = new CompletionContext<>(permitNumber, nanoTime, completable);
         context.internalOnComplete(finishingCallback);
         return context;
     }

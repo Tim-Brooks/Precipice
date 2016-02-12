@@ -48,12 +48,12 @@ public class PromiseFactory<Result extends Enum<Result> & Failable, Rejected ext
         return getPromise(number, startTime, externalPromise);
     }
 
-    public <R> Eventual<Result, R> getPromise(long number, long nanoTime) {
-        return getPromise(number, nanoTime, null);
+    public <R> Eventual<Result, R> getPromise(long permitNumber, long nanoTime) {
+        return getPromise(permitNumber, nanoTime, null);
     }
 
-    public <R> Eventual<Result, R> getPromise(long number, long nanoTime, Completable<Result, R> externalCompletable) {
-        Eventual<Result, R> promise = new Eventual<>(number, nanoTime, externalCompletable);
+    public <R> Eventual<Result, R> getPromise(long permitNumber, long nanoTime, Completable<Result, R> externalCompletable) {
+        Eventual<Result, R> promise = new Eventual<>(permitNumber, nanoTime, externalCompletable);
         promise.internalOnComplete(finishingCallback);
         return promise;
     }
