@@ -114,8 +114,6 @@ public class PatternTest {
 
         Sequence<Precipice<Status, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
 
-        verify(metrics).incrementMetricCount(Rejected.CIRCUIT_OPEN, nanoTime);
-
         List<Precipice<Status, Rejected>> controllableList = new ArrayList<>();
         for (Precipice<Status, Rejected> item : all) {
             controllableList.add(item);
@@ -130,20 +128,13 @@ public class PatternTest {
     @Test
     public void getOnlyReturnsTheNumberOfPrecipicesThatAreAvailable() {
         int[] indices = {2, 0, 1};
-        TotalCountMetrics<Rejected> metrics = mock(TotalCountMetrics.class);
-        TotalCountMetrics<Rejected> metrics2 = mock(TotalCountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
-        when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
-        when(guardRail3.getRejectedMetrics()).thenReturn(metrics2);
 
         Sequence<Precipice<Status, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
-
-        verify(metrics2).incrementMetricCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, nanoTime);
-        verify(metrics).incrementMetricCount(Rejected.CIRCUIT_OPEN, nanoTime);
 
         List<Precipice<Status, Rejected>> controllableList = new ArrayList<>();
         for (Precipice<Status, Rejected> item : all) {
