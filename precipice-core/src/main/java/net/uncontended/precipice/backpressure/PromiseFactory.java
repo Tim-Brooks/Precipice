@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.backpressure;
 
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.Completable;
@@ -41,7 +42,7 @@ public class PromiseFactory<Result extends Enum<Result> & Failable, Rejected ext
         long startTime = guardRail.getClock().nanoTime();
         Rejected rejected = guardRail.acquirePermits(number, startTime);
         if (rejected != null) {
-            throw new BPRejectedException(rejected);
+            throw new RejectedException(rejected);
         }
 
         return getPromise(number, startTime, externalPromise);

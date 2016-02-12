@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.backpressure.BPRejectedException;
 import net.uncontended.precipice.backpressure.CompletableFactory;
 import net.uncontended.precipice.concurrent.CompletionContext;
 import net.uncontended.precipice.test_utils.TestCallables;
@@ -54,19 +53,19 @@ public class CallServiceTest {
     @Test
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
-            when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenThrow(new BPRejectedException(Rejected
+            when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenThrow(new RejectedException(Rejected
                     .MAX_CONCURRENCY_LEVEL_EXCEEDED));
             service.call(TestCallables.success(1));
             fail();
-        } catch (BPRejectedException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
         try {
-            when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenThrow(new BPRejectedException(Rejected.CIRCUIT_OPEN));
+            when(completableFactory.acquirePermitsAndGetCompletable(1L)).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
             service.call(TestCallables.success(1));
             fail();
-        } catch (BPRejectedException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
     }

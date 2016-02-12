@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.backpressure;
 
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.Completable;
@@ -39,7 +40,7 @@ public class CompletableFactory<Result extends Enum<Result> & Failable, Rejected
     public <T> Completable<Result, T> acquirePermitsAndGetCompletable(long number, long nanoTime) {
         Rejected rejected = guardRail.acquirePermits(number, nanoTime);
         if (rejected != null) {
-            throw new BPRejectedException(rejected);
+            throw new RejectedException(rejected);
         }
 
         return getCompletable(number, nanoTime);

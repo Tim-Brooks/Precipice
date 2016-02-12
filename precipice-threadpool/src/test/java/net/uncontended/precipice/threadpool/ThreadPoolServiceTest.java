@@ -19,7 +19,7 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.BPRejectedException;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.backpressure.PromiseFactory;
 import net.uncontended.precipice.concurrent.Eventual;
@@ -80,18 +80,18 @@ public class ThreadPoolServiceTest {
     @Test
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
-            when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenThrow(new BPRejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
+            when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
             service.submit(TestCallable.success(), Long.MAX_VALUE);
             fail();
-        } catch (BPRejectedException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
         try {
-            when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenThrow(new BPRejectedException(Rejected.CIRCUIT_OPEN));
+            when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
             service.submit(TestCallable.success(), Long.MAX_VALUE);
             fail();
-        } catch (BPRejectedException e) {
+        } catch (RejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
     }

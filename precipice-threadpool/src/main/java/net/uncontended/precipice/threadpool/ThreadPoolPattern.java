@@ -17,7 +17,7 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.backpressure.BPRejectedException;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.backpressure.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
@@ -88,14 +88,14 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
     private <T> PrecipiceFuture<Status, T> handleAllReject(long nanoTime) {
         guardRail.releasePermits(1L, nanoTime);
         guardRail.getRejectedMetrics().incrementMetricCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
-        throw new BPRejectedException(Rejected.ALL_SERVICES_REJECTED);
+        throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
     }
 
     private long acquirePermit() {
         long nanoTime = guardRail.getClock().nanoTime();
         Rejected rejected = guardRail.acquirePermits(1L, nanoTime);
         if (rejected != null) {
-            throw new BPRejectedException(rejected);
+            throw new RejectedException(rejected);
         }
         return nanoTime;
     }
