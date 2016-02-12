@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.backpressure.BPRejectedException;
-import net.uncontended.precipice.backpressure.BPTotalCountMetrics;
+import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.CompletionContext;
 import net.uncontended.precipice.concurrent.Eventual;
@@ -30,8 +30,8 @@ import java.util.List;
 
 public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private final BPTotalCountMetrics<Result> resultMetrics;
-    private final BPTotalCountMetrics<Rejected> rejectedMetrics;
+    private final TotalCountMetrics<Result> resultMetrics;
+    private final TotalCountMetrics<Rejected> rejectedMetrics;
     private final LatencyMetrics<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
@@ -39,7 +39,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
 
-    public GuardRail(String name, BPTotalCountMetrics<Result> resultMetrics, BPTotalCountMetrics<Rejected> rejectedMetrics,
+    public GuardRail(String name, TotalCountMetrics<Result> resultMetrics, TotalCountMetrics<Rejected> rejectedMetrics,
                      LatencyMetrics<Result> latencyMetrics, List<BackPressure<Rejected>> backPressureList, Clock clock) {
         this.resultMetrics = resultMetrics;
         this.rejectedMetrics = rejectedMetrics;
@@ -144,11 +144,11 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         return name;
     }
 
-    public BPTotalCountMetrics<Result> getResultMetrics() {
+    public TotalCountMetrics<Result> getResultMetrics() {
         return resultMetrics;
     }
 
-    public BPTotalCountMetrics<Rejected> getRejectedMetrics() {
+    public TotalCountMetrics<Rejected> getRejectedMetrics() {
         return rejectedMetrics;
     }
 

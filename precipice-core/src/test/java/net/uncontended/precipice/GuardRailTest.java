@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.backpressure.BPRejectedException;
-import net.uncontended.precipice.backpressure.BPTotalCountMetrics;
+import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.backpressure.GuardRailBuilder;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.metrics.LatencyMetrics;
@@ -35,9 +35,9 @@ import static org.mockito.Mockito.*;
 public class GuardRailTest {
 
     @Mock
-    private BPTotalCountMetrics<Status> metrics;
+    private TotalCountMetrics<Status> metrics;
     @Mock
-    private BPTotalCountMetrics<Rejected> rejectedMetrics;
+    private TotalCountMetrics<Rejected> rejectedMetrics;
     @Mock
     private LatencyMetrics<Status> latencyMetrics;
     @Mock

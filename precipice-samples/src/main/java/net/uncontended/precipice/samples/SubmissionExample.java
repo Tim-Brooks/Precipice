@@ -19,7 +19,7 @@ package net.uncontended.precipice.samples;
 
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.BPCountMetrics;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
 import net.uncontended.precipice.backpressure.GuardRailBuilder;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.threadpool.ThreadPoolService;
@@ -36,8 +36,8 @@ public class SubmissionExample {
         int concurrencyLevel = 100;
         GuardRailBuilder<Status, Rejected> builder = new GuardRailBuilder<>();
         builder.name(name)
-                .resultMetrics(new BPCountMetrics<>(Status.class))
-                .rejectedMetrics(new BPCountMetrics<>(Rejected.class));
+                .resultMetrics(new RollingCountMetrics<>(Status.class))
+                .rejectedMetrics(new RollingCountMetrics<>(Rejected.class));
         ThreadPoolService service = new ThreadPoolService(PrecipiceExecutors.threadPoolExecutor(name, poolSize, concurrencyLevel),
                 builder.build());
 

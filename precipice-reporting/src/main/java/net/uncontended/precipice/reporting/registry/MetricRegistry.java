@@ -16,69 +16,63 @@
 
 package net.uncontended.precipice.reporting.registry;
 
-import net.uncontended.precipice.Service;
-
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Should be considered experimental. Development is not complete. May be moved to precipice-reporting.
  */
 public class MetricRegistry {
 
-    private final long period;
-    private final TimeUnit unit;
-    private final Map<String, Summary<?>> services = new ConcurrentHashMap<>();
-    private volatile MetricRegistryCallback<Map<String, Summary<?>>> callback;
-    private final ScheduledExecutorService executorService;
-
-    public MetricRegistry(long period, TimeUnit unit) {
-        this.unit = unit;
-        this.period = period;
-
-        executorService = Executors.newSingleThreadScheduledExecutor(new RegistryThreadFactory());
-        executorService.scheduleAtFixedRate(new Task(), 0, period, unit);
-    }
-
-    public void register(Service service) {
-        services.put(service.getName(), new Summary<>(period, unit, service.getActionMetrics(), service));
-    }
-
-    public boolean deregister(String name) {
-        return null == services.remove(name);
-    }
-
-    public void setUpdateCallback(MetricRegistryCallback<Map<String, Summary<?>>> callback) {
-        this.callback = callback;
-    }
-
-    public void shutdown() {
-        executorService.shutdown();
-    }
-
-    private class Task implements Runnable {
-
-        @Override
-        public void run() {
-            for (Summary<?> summary : services.values()) {
-                summary.refresh();
-            }
-
-            if (callback != null) {
-                callback.apply(services);
-            }
-        }
-    }
-
-    private static class RegistryThreadFactory implements ThreadFactory {
-        private static final AtomicLong counter = new AtomicLong(0);
-
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r);
-            thread.setName("metric-registry-thread-" + counter.incrementAndGet());
-            return thread;
-        }
-    }
+//    private final long period;
+//    private final TimeUnit unit;
+//    private final Map<String, Summary<?>> services = new ConcurrentHashMap<>();
+//    private volatile MetricRegistryCallback<Map<String, Summary<?>>> callback;
+//    private final ScheduledExecutorService executorService;
+//
+//    public MetricRegistry(long period, TimeUnit unit) {
+//        this.unit = unit;
+//        this.period = period;
+//
+//        executorService = Executors.newSingleThreadScheduledExecutor(new RegistryThreadFactory());
+//        executorService.scheduleAtFixedRate(new Task(), 0, period, unit);
+//    }
+//
+//    public void register(Service service) {
+//        services.put(service.getName(), new Summary<>(period, unit, service.getActionMetrics(), service));
+//    }
+//
+//    public boolean deregister(String name) {
+//        return null == services.remove(name);
+//    }
+//
+//    public void setUpdateCallback(MetricRegistryCallback<Map<String, Summary<?>>> callback) {
+//        this.callback = callback;
+//    }
+//
+//    public void shutdown() {
+//        executorService.shutdown();
+//    }
+//
+//    private class Task implements Runnable {
+//
+//        @Override
+//        public void run() {
+//            for (Summary<?> summary : services.values()) {
+//                summary.refresh();
+//            }
+//
+//            if (callback != null) {
+//                callback.apply(services);
+//            }
+//        }
+//    }
+//
+//    private static class RegistryThreadFactory implements ThreadFactory {
+//        private static final AtomicLong counter = new AtomicLong(0);
+//
+//        @Override
+//        public Thread newThread(Runnable r) {
+//            Thread thread = new Thread(r);
+//            thread.setName("metric-registry-thread-" + counter.incrementAndGet());
+//            return thread;
+//        }
+//    }
 }

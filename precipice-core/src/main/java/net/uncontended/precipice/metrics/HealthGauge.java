@@ -15,10 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.MetricCounter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,18 +39,18 @@ public class HealthGauge {
         return new BPHealthSnapshot(total, failures);
     }
 
-    public <Result extends Enum<Result> & Failable> void add(BPCountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void add(RollingCountMetrics<Result> metrics) {
         gauges.add(new InternalGauge<>(metrics));
     }
 
     private class InternalGauge<Result extends Enum<Result> & Failable> {
 
-        private final BPCountMetrics<Result> metrics;
+        private final RollingCountMetrics<Result> metrics;
         private final Class<Result> type;
         private long total = 0;
         private long failures = 0;
 
-        private InternalGauge(BPCountMetrics<Result> metrics) {
+        private InternalGauge(RollingCountMetrics<Result> metrics) {
             this.metrics = metrics;
             type = metrics.getMetricType();
         }

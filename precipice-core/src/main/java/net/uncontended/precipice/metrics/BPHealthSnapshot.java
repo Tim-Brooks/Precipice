@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,32 +17,23 @@
 
 package net.uncontended.precipice.metrics;
 
-public class HealthSnapshot {
-    public final long total;
-    public final long totalNotRejected;
-    public final long failures;
-    public final long rejections;
+public class BPHealthSnapshot {
 
-    public HealthSnapshot(long total, long totalNotRejected, long failures, long rejections) {
+    public final long total;
+    public final long failures;
+    public final int failurePercentage;
+
+    public BPHealthSnapshot(long total, long failures) {
         this.total = total;
-        this.totalNotRejected = totalNotRejected;
         this.failures = failures;
-        this.rejections = rejections;
+        if (total != 0) {
+            this.failurePercentage = (int) (100 * failures / total);
+        } else {
+            this.failurePercentage = 0;
+        }
     }
 
     public int failurePercentage() {
-        if (totalNotRejected != 0) {
-            return (int) (100 * failures / totalNotRejected);
-        } else {
-            return 0;
-        }
-    }
-
-    public double rejectionPercentage() {
-        if (total != 0) {
-            return (int) (100 * rejections / total);
-        } else {
-            return 0;
-        }
+        return failurePercentage;
     }
 }

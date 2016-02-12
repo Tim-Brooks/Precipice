@@ -15,16 +15,14 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.CircularBuffer;
-import net.uncontended.precipice.metrics.MetricCounter;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class BPCountMetrics<T extends Enum<T>> implements BPTotalCountMetrics<T> {
+public class RollingCountMetrics<T extends Enum<T>> implements TotalCountMetrics<T> {
 
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;
@@ -32,15 +30,15 @@ public class BPCountMetrics<T extends Enum<T>> implements BPTotalCountMetrics<T>
     private final Clock systemTime;
     private final Class<T> type;
 
-    public BPCountMetrics(Class<T> type) {
+    public RollingCountMetrics(Class<T> type) {
         this(type, (int) TimeUnit.MINUTES.toSeconds(15), 1, TimeUnit.SECONDS);
     }
 
-    public BPCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+    public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
         this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public BPCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
+    public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
         this.systemTime = systemTime;
         long millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {

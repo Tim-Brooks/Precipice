@@ -19,7 +19,10 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.backpressure.*;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.metrics.BPHealthSnapshot;
+import net.uncontended.precipice.metrics.TotalCountMetrics;
+import net.uncontended.precipice.metrics.HealthGauge;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,9 +94,9 @@ public class BPCircuitBreaker<Rejected extends Enum<Rejected>> implements BPCirc
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
-        BPTotalCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
-        if (resultMetrics instanceof BPCountMetrics) {
-            healthGauge.add((BPCountMetrics<Result>) resultMetrics);
+        TotalCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
+        if (resultMetrics instanceof RollingCountMetrics) {
+            healthGauge.add((RollingCountMetrics<Result>) resultMetrics);
         } else {
             throw new IllegalArgumentException("BPCircuitBreaker requires rolling result metrics");
         }

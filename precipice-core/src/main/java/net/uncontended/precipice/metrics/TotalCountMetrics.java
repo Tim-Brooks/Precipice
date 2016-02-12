@@ -15,11 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.MetricCounter;
-
-public interface BPTotalCountMetrics<T extends Enum<T>> {
+public interface TotalCountMetrics<T extends Enum<T>> {
     void incrementMetricCount(T metric);
 
     void incrementMetricCount(T metric, long nanoTime);

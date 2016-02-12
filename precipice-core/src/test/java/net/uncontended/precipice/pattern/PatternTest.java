@@ -21,7 +21,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.BPTotalCountMetrics;
+import net.uncontended.precipice.metrics.TotalCountMetrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -107,7 +107,7 @@ public class PatternTest {
     @Test
     public void getAcquiresPermitsInTheCorrectOrder() {
         int[] indices = {2, 0, 1};
-        BPTotalCountMetrics<Rejected> metrics = mock(BPTotalCountMetrics.class);
+        TotalCountMetrics<Rejected> metrics = mock(TotalCountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
         when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
@@ -133,8 +133,8 @@ public class PatternTest {
     @Test
     public void getOnlyReturnsTheNumberOfPrecipicesThatAreAvailable() {
         int[] indices = {2, 0, 1};
-        BPTotalCountMetrics<Rejected> metrics = mock(BPTotalCountMetrics.class);
-        BPTotalCountMetrics<Rejected> metrics2 = mock(BPTotalCountMetrics.class);
+        TotalCountMetrics<Rejected> metrics = mock(TotalCountMetrics.class);
+        TotalCountMetrics<Rejected> metrics2 = mock(TotalCountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
         when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);

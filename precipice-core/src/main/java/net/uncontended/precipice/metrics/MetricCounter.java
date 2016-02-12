@@ -17,26 +17,18 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.concurrent.util.LongAdder;
 
 public class MetricCounter<T extends Enum<T>> {
 
     private final LongAdder[] metrics;
-    private final LongAdder[] rejectionMetrics;
 
     public MetricCounter(Class<T> clazz) {
         T[] metricValues = clazz.getEnumConstants();
 
         metrics = new LongAdder[metricValues.length];
-        // TODO: Only track metrics for relevant statuses
         for (T metric : metricValues) {
             metrics[metric.ordinal()] = new LongAdder();
-        }
-
-        rejectionMetrics = new LongAdder[Rejected.values().length];
-        for (Rejected reason : Rejected.values()) {
-            rejectionMetrics[reason.ordinal()] = new LongAdder();
         }
     }
 
@@ -48,14 +40,6 @@ public class MetricCounter<T extends Enum<T>> {
         return metrics[metric.ordinal()].longValue();
     }
 
-    public void incrementRejection(Rejected reason) {
-        rejectionMetrics[reason.ordinal()].increment();
-
-    }
-
-    public long getRejectionCount(Rejected reason) {
-        return rejectionMetrics[reason.ordinal()].longValue();
-    }
 
     public static <T extends Enum<T>> MetricCounter<T> noOpCounter(Class<T> clazz) {
         return new MetricCounter<T>(clazz) {
@@ -66,10 +50,6 @@ public class MetricCounter<T extends Enum<T>> {
             @Override
             public long getMetricCount(T metric) {
                 return 0L;
-            }
-
-            @Override
-            public void incrementRejection(Rejected rejected) {
             }
         };
     }

@@ -19,8 +19,8 @@ package net.uncontended.precipice.samples.bigger;
 
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
 import net.uncontended.precipice.circuit.BPCircuitBreaker;
-import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.Snapshot;
 
 import javax.management.*;
@@ -33,7 +33,7 @@ public class ClientMBeans {
     private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
     private volatile Map<Object, Object> currentMetrics;
 
-    public ClientMBeans(String name, final CountMetrics<Status> countMetrics) {
+    public ClientMBeans(String name, final RollingCountMetrics<Status> countMetrics) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
@@ -77,7 +77,7 @@ public class ClientMBeans {
                     long lastUpdateTime = lastUpdateTimestamp.get();
                     if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
                         currentMetrics = Snapshot.generate(countMetrics.totalCountMetricCounter(),
-                                countMetrics.metricCounterIterable(1, TimeUnit.SECONDS));
+                                countMetrics.metricCounters(1, TimeUnit.SECONDS));
                     }
 
                     return (long) currentMetrics.get(metric);
@@ -91,7 +91,7 @@ public class ClientMBeans {
 
     }
 
-    public ClientMBeans(String name, final CountMetrics<Status> countMetrics, final BPCircuitBreaker<Rejected> breaker) {
+    public ClientMBeans(String name, final RollingCountMetrics<Status> countMetrics, final BPCircuitBreaker<Rejected> breaker) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
@@ -135,7 +135,7 @@ public class ClientMBeans {
                     long lastUpdateTime = lastUpdateTimestamp.get();
                     if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
                         currentMetrics = Snapshot.generate(countMetrics.totalCountMetricCounter(),
-                                countMetrics.metricCounterIterable(1, TimeUnit.SECONDS));
+                                countMetrics.metricCounters(1, TimeUnit.SECONDS));
                     }
 
                     return (long) currentMetrics.get(metric);

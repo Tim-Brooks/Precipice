@@ -20,7 +20,9 @@ package net.uncontended.precipice.circuit;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.*;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.metrics.BPHealthSnapshot;
+import net.uncontended.precipice.metrics.HealthGauge;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -39,7 +41,7 @@ public class BPCircuitBreakerTest {
     @Mock
     private GuardRail<Status, Rejected> guardRail;
     @Mock
-    private BPCountMetrics<Status> countMetrics;
+    private RollingCountMetrics<Status> countMetrics;
     @Mock
     private HealthGauge healthGauge;
 

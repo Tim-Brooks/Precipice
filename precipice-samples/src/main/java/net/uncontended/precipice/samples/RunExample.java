@@ -20,7 +20,7 @@ package net.uncontended.precipice.samples;
 import net.uncontended.precipice.CallService;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.BPCountMetrics;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
 import net.uncontended.precipice.backpressure.GuardRailBuilder;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
@@ -30,8 +30,8 @@ public class RunExample {
         String name = "Identity Service";
         GuardRailBuilder<Status, Rejected> builder = new GuardRailBuilder<>();
         builder.name(name)
-                .resultMetrics(new BPCountMetrics<>(Status.class))
-                .rejectedMetrics(new BPCountMetrics<>(Rejected.class));
+                .resultMetrics(new RollingCountMetrics<>(Status.class))
+                .rejectedMetrics(new RollingCountMetrics<>(Rejected.class));
         CallService service = new CallService(builder.build());
 
         try {
