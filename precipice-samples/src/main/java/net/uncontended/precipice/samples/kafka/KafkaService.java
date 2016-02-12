@@ -21,7 +21,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.PromiseFactory;
+import net.uncontended.precipice.factories.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import org.apache.kafka.clients.producer.Callback;

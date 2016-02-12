@@ -20,7 +20,7 @@ package net.uncontended.precipice.threadpool;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.PromiseFactory;
+import net.uncontended.precipice.factories.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;

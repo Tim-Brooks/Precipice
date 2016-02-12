@@ -17,7 +17,7 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.backpressure.PromiseFactory;
+import net.uncontended.precipice.factories.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.pattern.Pattern;

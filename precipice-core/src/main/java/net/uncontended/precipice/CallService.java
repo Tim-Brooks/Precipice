@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.backpressure.CompletableFactory;
+import net.uncontended.precipice.factories.CompletableFactory;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 

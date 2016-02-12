@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.backpressure;
+package net.uncontended.precipice.factories;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;

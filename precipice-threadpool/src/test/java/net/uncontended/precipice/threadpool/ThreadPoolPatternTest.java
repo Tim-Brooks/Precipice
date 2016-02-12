@@ -20,9 +20,6 @@ package net.uncontended.precipice.threadpool;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.backpressure.PromiseFactory;
-import net.uncontended.precipice.concurrent.Eventual;
-import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
@@ -31,7 +28,6 @@ import net.uncontended.precipice.semaphore.PrecipiceSemaphore;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.timeout.TimeoutService;
 import org.junit.Before;
-import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -40,13 +36,11 @@ import org.mockito.MockitoAnnotations;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
