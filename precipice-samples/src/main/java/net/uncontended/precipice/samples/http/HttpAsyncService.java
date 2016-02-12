@@ -36,16 +36,14 @@ public class HttpAsyncService implements Precipice<Status, Rejected> {
 
     private final AsyncHttpClient client;
     private final GuardRail<Status, Rejected> guardRail;
-    private final PromiseFactory<Status, Rejected> promiseFactory;
 
     public HttpAsyncService(GuardRail<Status, Rejected> guardRail, AsyncHttpClient client) {
         this.guardRail = guardRail;
         this.client = client;
-        this.promiseFactory = new PromiseFactory<>(guardRail);
     }
 
     public PrecipiceFuture<Status, Response> submit(Request request) {
-        final PrecipicePromise<Status, Response> promise = promiseFactory.acquirePermitsAndGetPromise(1L);
+        final PrecipicePromise<Status, Response> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
 
         client.executeRequest(request, new AsyncCompletionHandler<Void>() {
             @Override

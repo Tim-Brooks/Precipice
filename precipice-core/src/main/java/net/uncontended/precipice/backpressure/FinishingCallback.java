@@ -5,7 +5,8 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
 
-class FinishingCallback<Result extends Enum<Result> & Failable> implements PrecipiceFunction<Result, PerformingContext> {
+class FinishingCallback<Result extends Enum<Result> & Failable> implements PrecipiceFunction<Result,
+        PerformingContext> {
     private final GuardRail<Result, ?> guardRail;
 
     FinishingCallback(GuardRail<Result, ?> guardRail) {

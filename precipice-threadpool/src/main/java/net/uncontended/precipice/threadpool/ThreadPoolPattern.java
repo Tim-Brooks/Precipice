@@ -35,7 +35,6 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
     private final GuardRail<Status, Rejected> guardRail;
     private final Pattern<Status, ThreadPoolService<?>> pattern;
     private final Map<ThreadPoolService<?>, C> serviceToContext;
-    private final PromiseFactory<Status, Rejected> promiseFactory;
 
 
     public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
@@ -45,15 +44,9 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
 
     public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
                              Pattern<Status, ThreadPoolService<?>> pattern) {
-        this(serviceToContext, guardRail, pattern, new PromiseFactory<>(guardRail));
-    }
-
-    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<Status, Rejected> guardRail,
-                             Pattern<Status, ThreadPoolService<?>> pattern, PromiseFactory<Status, Rejected> promiseFactory) {
         this.serviceToContext = serviceToContext;
         this.guardRail = guardRail;
         this.pattern = pattern;
-        this.promiseFactory = promiseFactory;
     }
 
     @Override
@@ -70,10 +63,10 @@ public class ThreadPoolPattern<C> implements Precipice<Status, Rejected> {
             return handleAllReject(nanoTime);
         }
 
-        PrecipicePromise<Status, T> promise = promiseFactory.getPromise(1L, nanoTime);
+        PrecipicePromise<Status, T> promise = PromiseFactory.getPromise(guardRail, 1L, nanoTime);
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
         for (ThreadPoolService<?> service : services) {
-            PrecipicePromise<Status, T> internal = service.getPromiseFactory().getPromise(1L, nanoTime, promise);
+            PrecipicePromise<Status, T> internal = PromiseFactory.getPromise(service.guardRail(), 1L, nanoTime, promise);
 
             final C context = serviceToContext.get(service);
             ExecutorService executor = service.getExecutor();

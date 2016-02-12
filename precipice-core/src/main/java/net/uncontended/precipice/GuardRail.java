@@ -17,8 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.BackPressure;
-import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.time.Clock;
@@ -32,6 +30,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final LatencyMetrics<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
+    private final PrecipiceFunction<Result, PerformingContext> releaseFunction;
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
 
@@ -43,6 +42,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         this.name = name;
         this.clock = clock;
         this.backPressureList = backPressureList;
+        this.releaseFunction = new FinishingCallback();
     }
 
     public Rejected acquirePermits(long number) {
@@ -82,6 +82,10 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         }
     }
 
+    public PrecipiceFunction<Result, PerformingContext> releaseFunction() {
+        return releaseFunction;
+    }
+
     public void shutdown() {
         isShutdown = true;
     }
@@ -108,5 +112,14 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     public Clock getClock() {
         return clock;
+    }
+
+    private class FinishingCallback implements PrecipiceFunction<Result, PerformingContext> {
+
+        @Override
+        public void apply(Result result, PerformingContext context) {
+            long endTime = clock.nanoTime();
+            releasePermits(context.permitCount(), result, context.startNanos(), endTime);
+        }
     }
 }

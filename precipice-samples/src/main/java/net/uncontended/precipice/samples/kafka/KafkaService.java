@@ -17,10 +17,10 @@
 
 package net.uncontended.precipice.samples.kafka;
 
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
-import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.backpressure.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -34,16 +34,14 @@ public class KafkaService<K, V> implements Precipice<Status, Rejected> {
 
     private final GuardRail<Status, Rejected> guardRail;
     private final KafkaProducer<K, V> producer;
-    private final PromiseFactory<Status, Rejected> promiseFactory;
 
     public KafkaService(GuardRail<Status, Rejected> guardRail, KafkaProducer<K, V> producer) {
         this.guardRail = guardRail;
         this.producer = producer;
-        this.promiseFactory = new PromiseFactory<>(guardRail);
     }
 
     public PrecipiceFuture<Status, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
-        final PrecipicePromise<Status, RecordMetadata> promise = promiseFactory.acquirePermitsAndGetPromise(1L);
+        final PrecipicePromise<Status, RecordMetadata> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
 
         producer.send(record, new Callback() {
             @Override

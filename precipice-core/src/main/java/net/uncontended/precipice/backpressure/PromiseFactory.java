@@ -17,44 +17,41 @@
 
 package net.uncontended.precipice.backpressure;
 
-import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
-public class PromiseFactory<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
+public class PromiseFactory {
 
-    private final GuardRail<Result, Rejected> guardRail;
-    private final FinishingCallback<Result> finishingCallback;
+    private PromiseFactory() {}
 
-    public PromiseFactory(GuardRail<Result, Rejected> guardRail) {
-        this.guardRail = guardRail;
-        finishingCallback = new FinishingCallback<>(guardRail);
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
+    acquirePermitsAndGetPromise(GuardRail<Result, Rejected> guardRail, long number) {
+        return acquirePermitsAndGetPromise(guardRail, number, null);
     }
 
-    public <R> Eventual<Result, R> acquirePermitsAndGetPromise(long number) {
-        return acquirePermitsAndGetPromise(number, null);
-    }
-
-    public <R> Eventual<Result, R> acquirePermitsAndGetPromise(long number, PrecipicePromise<Result, R> externalPromise) {
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
+    acquirePermitsAndGetPromise(GuardRail<Result, Rejected> guardRail, long number, PrecipicePromise<Result, R> externalPromise) {
         long startTime = guardRail.getClock().nanoTime();
         Rejected rejected = guardRail.acquirePermits(number, startTime);
         if (rejected != null) {
             throw new RejectedException(rejected);
         }
-
-        return getPromise(number, startTime, externalPromise);
+        return getPromise(guardRail, number, startTime, externalPromise);
     }
 
-    public <R> Eventual<Result, R> getPromise(long permitNumber, long nanoTime) {
-        return getPromise(permitNumber, nanoTime, null);
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
+    getPromise(GuardRail<Result, Rejected> guardRail, long permitNumber, long nanoTime) {
+        return getPromise(guardRail, permitNumber, nanoTime, null);
     }
 
-    public <R> Eventual<Result, R> getPromise(long permitNumber, long nanoTime, Completable<Result, R> externalCompletable) {
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
+    getPromise(GuardRail<Result, Rejected> guardRail, long permitNumber, long nanoTime, Completable<Result, R> externalCompletable) {
         Eventual<Result, R> promise = new Eventual<>(permitNumber, nanoTime, externalCompletable);
-        promise.internalOnComplete(finishingCallback);
+        promise.internalOnComplete(guardRail.releaseFunction());
         return promise;
     }
 }
