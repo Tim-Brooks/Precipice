@@ -46,14 +46,14 @@ public class GuardRailTest {
     @Mock
     private Clock clock;
 
-    private GuardRail<Status, Rejected> guardRail;
+    private OldGuardRail<Status, Rejected> guardRail;
     private GuardRailBuilder<Status, Rejected> builder;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         builder = new GuardRailBuilder<>();
-        builder.name("GuardRail Name");
+        builder.name("OldGuardRail Name");
         builder.resultMetrics(metrics);
         builder.rejectedMetrics(rejectedMetrics);
         builder.resultLatency(latencyMetrics);

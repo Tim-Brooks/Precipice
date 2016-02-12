@@ -17,10 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.Precipice;
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.*;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,8 +84,8 @@ public class PatternTest {
         int[] indices = {0, 1, 2};
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
-        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(null);
+        when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
         Sequence<Precipice<Status, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
 
         List<Precipice<Status, Rejected>> controllableList = new ArrayList<>();
@@ -110,9 +107,9 @@ public class PatternTest {
         TotalCountMetrics<Rejected> metrics = mock(TotalCountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
-        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
-        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);
+        when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
+        when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
 
         Sequence<Precipice<Status, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
@@ -137,9 +134,9 @@ public class PatternTest {
         TotalCountMetrics<Rejected> metrics2 = mock(TotalCountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
-        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
+        when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
+        when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
         when(guardRail3.getRejectedMetrics()).thenReturn(metrics2);
 
@@ -164,9 +161,9 @@ public class PatternTest {
         Executor executor = Executors.newCachedThreadPool();
 
         when(strategy.nextIndices()).thenReturn(indices);
-        when(guardRail3.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
-        when(guardRail1.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
-        when(guardRail2.acquirePermitOrGetRejectedReason(1L, nanoTime)).thenReturn(null);
+        when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);
+        when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(null);
+        when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
 
         final Sequence<Precipice<Status, Rejected>> firstSequence = pattern.getPrecipices(1L, nanoTime);
         for (int i = 0; i < 10; ++i) {

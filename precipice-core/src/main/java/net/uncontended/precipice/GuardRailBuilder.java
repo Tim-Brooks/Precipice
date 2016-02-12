@@ -65,7 +65,7 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         return this;
     }
 
-    public GuardRail<Result, Rejected> build() {
+    public OldGuardRail<Result, Rejected> build() {
         if (name == null) {
             throw new IllegalArgumentException();
         } else if (resultMetrics == null) {
@@ -74,6 +74,6 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
             throw new IllegalArgumentException();
         }
 
-        return new GuardRail<>(name, resultMetrics, rejectedMetrics, resultLatency, backPressureList, clock);
+        return new OldGuardRail<>(name, resultMetrics, rejectedMetrics, resultLatency, backPressureList, clock);
     }
 }

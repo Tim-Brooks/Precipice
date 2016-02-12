@@ -17,10 +17,11 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.RejectedException;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.backpressure.BPRejectedException;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.backpressure.PromiseFactory;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -46,7 +47,9 @@ import static org.mockito.Mockito.when;
 public class ThreadPoolServiceTest {
 
     @Mock
-    private GuardRail<Status, Rejected> controller;
+    private GuardRail<Status, Rejected> guardRail;
+    @Mock
+    private PromiseFactory<Status, Rejected> promiseFactory;
 
     private ThreadPoolService service;
     private ExecutorService executorService;
@@ -55,9 +58,9 @@ public class ThreadPoolServiceTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         executorService = PrecipiceExecutors.threadPoolExecutor("Test", 1, 100);
-        service = new ThreadPoolService(executorService, controller);
+        service = new ThreadPoolService(executorService, guardRail, promiseFactory);
 
-        when(controller.getClock()).thenReturn(new SystemTime());
+        when(guardRail.getClock()).thenReturn(new SystemTime());
     }
 
     @After
@@ -69,7 +72,7 @@ public class ThreadPoolServiceTest {
     public void controllerAndThreadPoolShutdownWhenShutdownCallMade() {
         service.shutdown();
 
-        verify(controller).shutdown();
+        verify(guardRail).shutdown();
 
         assertTrue(executorService.isShutdown());
     }
@@ -77,25 +80,25 @@ public class ThreadPoolServiceTest {
     @Test
     public void exceptionThrownIfControllerRejects() throws Exception {
         try {
-            when(controller.acquirePermitAndGetPromise(1L)).thenThrow(new RejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
+            when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenThrow(new BPRejectedException(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED));
             service.submit(TestCallable.success(), Long.MAX_VALUE);
             fail();
-        } catch (RejectedException e) {
+        } catch (BPRejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
 
         try {
-            when(controller.acquirePermitAndGetPromise(1L)).thenThrow(new RejectedException(Rejected.CIRCUIT_OPEN));
+            when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenThrow(new BPRejectedException(Rejected.CIRCUIT_OPEN));
             service.submit(TestCallable.success(), Long.MAX_VALUE);
             fail();
-        } catch (RejectedException e) {
+        } catch (BPRejectedException e) {
             assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
         }
     }
 
     @Test
     public void callableIsSubmittedAndRan() throws Exception {
-        when(controller.acquirePermitAndGetPromise(1L)).thenReturn(new Eventual<Status, Object>(1L));
+        when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenReturn(new Eventual<Status, Object>(1L));
 
         PrecipiceFuture<Status, String> f = service.submit(TestCallable.success(), 500);
 
@@ -107,11 +110,11 @@ public class ThreadPoolServiceTest {
     public void promisePassedToExecutorWillBeCompleted() throws Exception {
         PrecipicePromise<Status, String> promise = new Eventual<>(1L);
 
-        when(controller.acquirePermitAndGetPromise(1L, promise)).thenReturn(new Eventual<>(System.nanoTime(), promise));
+        when(promiseFactory.acquirePermitsAndGetPromise(1L, promise)).thenReturn(new Eventual<>(System.nanoTime(), promise));
 
         service.complete(TestCallable.success("Same Promise"), promise, TimeoutService.NO_TIMEOUT);
 
-        verify(controller).acquirePermitAndGetPromise(1L, promise);
+        verify(promiseFactory).acquirePermitsAndGetPromise(1L, promise);
 
         assertEquals("Same Promise", promise.future().get());
     }
@@ -121,7 +124,7 @@ public class ThreadPoolServiceTest {
         CountDownLatch latch = new CountDownLatch(1);
         PrecipicePromise<Status, String> promise = new Eventual<>(1L);
         Eventual<Status, String> internalPromise = new Eventual<>(System.nanoTime(), promise);
-        when(controller.acquirePermitAndGetPromise(1L, promise)).thenReturn(internalPromise);
+        when(promiseFactory.acquirePermitsAndGetPromise(1L, promise)).thenReturn(internalPromise);
 
         service.complete(TestCallable.blocked(latch), promise, Long.MAX_VALUE);
 
@@ -134,7 +137,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void submittedCallableWillTimeout() throws Exception {
-        when(controller.acquirePermitAndGetPromise(1L)).thenReturn(new Eventual<Status, Object>(1L));
+        when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenReturn(new Eventual<Status, Object>(1L));
 
         CountDownLatch latch = new CountDownLatch(1);
         PrecipiceFuture<Status, String> future = service.submit(TestCallable.blocked(latch), 1);
@@ -154,7 +157,7 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void erredCallableWillReturnException() {
-        when(controller.acquirePermitAndGetPromise(1L)).thenReturn(new Eventual<Status, Object>(1L));
+        when(promiseFactory.acquirePermitsAndGetPromise(1L)).thenReturn(new Eventual<Status, Object>(1L));
 
         RuntimeException exception = new RuntimeException();
         PrecipiceFuture<Status, String> future = service.submit(TestCallable.erred(exception), 100);

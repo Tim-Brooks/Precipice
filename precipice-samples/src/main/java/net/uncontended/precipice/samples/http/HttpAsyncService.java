@@ -21,10 +21,11 @@ import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;
 import com.ning.http.client.Response;
-import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.backpressure.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
@@ -35,14 +36,16 @@ public class HttpAsyncService implements Precipice<Status, Rejected> {
 
     private final AsyncHttpClient client;
     private final GuardRail<Status, Rejected> guardRail;
+    private final PromiseFactory<Status, Rejected> promiseFactory;
 
     public HttpAsyncService(GuardRail<Status, Rejected> guardRail, AsyncHttpClient client) {
         this.guardRail = guardRail;
         this.client = client;
+        this.promiseFactory = new PromiseFactory<>(guardRail);
     }
 
     public PrecipiceFuture<Status, Response> submit(Request request) {
-        final PrecipicePromise<Status, Response> promise = guardRail.acquirePermitAndGetPromise(1L);
+        final PrecipicePromise<Status, Response> promise = promiseFactory.acquirePermitsAndGetPromise(1L);
 
         client.executeRequest(request, new AsyncCompletionHandler<Void>() {
             @Override

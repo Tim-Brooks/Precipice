@@ -17,10 +17,11 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.backpressure.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
@@ -31,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 
 public class ThreadPoolService implements Precipice<Status, Rejected> {
     private final ExecutorService executorService;
+    private final PromiseFactory<Status, Rejected> promiseFactory;
     private final TimeoutService timeoutService;
     private final GuardRail<Status, Rejected> guardRail;
 
@@ -40,8 +42,14 @@ public class ThreadPoolService implements Precipice<Status, Rejected> {
     }
 
     public ThreadPoolService(ExecutorService executorService, GuardRail<Status, Rejected> guardRail) {
+        this(executorService, guardRail, new PromiseFactory<>(guardRail));
+    }
+
+    public ThreadPoolService(ExecutorService executorService, GuardRail<Status, Rejected> guardRail,
+                             PromiseFactory<Status, Rejected> promiseFactory) {
         this.guardRail = guardRail;
         this.executorService = executorService;
+        this.promiseFactory = promiseFactory;
         timeoutService = TimeoutService.defaultTimeoutService;
     }
 
@@ -55,7 +63,7 @@ public class ThreadPoolService implements Precipice<Status, Rejected> {
     }
 
     public <T> PrecipiceFuture<Status, T> submit(Callable<T> callable, long millisTimeout) {
-        PrecipicePromise<Status, T> promise = guardRail.acquirePermitAndGetPromise(1L);
+        PrecipicePromise<Status, T> promise = promiseFactory.acquirePermitsAndGetPromise(1L);
         internalComplete(callable, promise, millisTimeout);
         return promise.future();
     }
@@ -65,7 +73,7 @@ public class ThreadPoolService implements Precipice<Status, Rejected> {
     }
 
     public <T> void complete(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisTimeout) {
-        PrecipicePromise<Status, T> internalPromise = guardRail.acquirePermitAndGetPromise(1L, promise);
+        PrecipicePromise<Status, T> internalPromise = promiseFactory.acquirePermitsAndGetPromise(1L, promise);
         internalComplete(callable, internalPromise, millisTimeout);
     }
 
@@ -85,6 +93,11 @@ public class ThreadPoolService implements Precipice<Status, Rejected> {
 
     public TimeoutService getTimeoutService() {
         return timeoutService;
+    }
+
+
+    public PromiseFactory<Status, Rejected> getPromiseFactory() {
+        return promiseFactory;
     }
 
     public void shutdown() {

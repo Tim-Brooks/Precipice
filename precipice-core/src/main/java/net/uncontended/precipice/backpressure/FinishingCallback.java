@@ -1,13 +1,14 @@
 package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
 
 class FinishingCallback<Result extends Enum<Result> & Failable> implements PrecipiceFunction<Result, PerformingContext> {
-    private final NewGuardRail<Result, ?> guardRail;
+    private final GuardRail<Result, ?> guardRail;
 
-    FinishingCallback(NewGuardRail<Result, ?> guardRail) {
+    FinishingCallback(GuardRail<Result, ?> guardRail) {
         this.guardRail = guardRail;
     }
 

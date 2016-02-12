@@ -17,13 +17,10 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.backpressure.BPRejectedException;
-import net.uncontended.precipice.metrics.TotalCountMetrics;
-import net.uncontended.precipice.concurrent.Completable;
-import net.uncontended.precipice.concurrent.CompletionContext;
-import net.uncontended.precipice.concurrent.Eventual;
-import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.BackPressure;
+import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.List;
@@ -35,7 +32,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final LatencyMetrics<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
-    private final FinishingCallback finishingCallback;
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
 
@@ -47,24 +43,24 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         this.name = name;
         this.clock = clock;
         this.backPressureList = backPressureList;
-        finishingCallback = new FinishingCallback();
     }
 
-    public Rejected acquirePermitOrGetRejectedReason(long units) {
-        return acquirePermitOrGetRejectedReason(units, clock.nanoTime());
+    public Rejected acquirePermits(long number) {
+        return acquirePermits(number, clock.nanoTime());
     }
 
-    public Rejected acquirePermitOrGetRejectedReason(long units, long nanoTime) {
+    public Rejected acquirePermits(long number, long nanoTime) {
         if (isShutdown) {
             throw new IllegalStateException("Service has been shutdown.");
         }
 
         for (int i = 0; i < backPressureList.size(); ++i) {
             BackPressure<Rejected> bp = backPressureList.get(i);
-            Rejected rejected = bp.acquirePermit(units, nanoTime);
+            Rejected rejected = bp.acquirePermit(number, nanoTime);
             if (rejected != null) {
+                rejectedMetrics.incrementMetricCount(rejected, nanoTime);
                 for (int j = 0; j < i; ++j) {
-                    backPressureList.get(j).releasePermit(units, nanoTime);
+                    backPressureList.get(j).releasePermit(number, nanoTime);
                 }
                 return rejected;
             }
@@ -72,52 +68,13 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         return null;
     }
 
-    public <R> Eventual<Result, R> acquirePermitAndGetPromise(long permits) {
-        return acquirePermitAndGetPromise(permits, null);
-    }
-
-    public <R> Eventual<Result, R> acquirePermitAndGetPromise(long permits, PrecipicePromise<Result, R> externalPromise) {
-        long startTime = clock.nanoTime();
-        Rejected rejected = acquirePermitOrGetRejectedReason(permits, startTime);
-        if (rejected != null) {
-            rejectedMetrics.incrementMetricCount(rejected, startTime);
-            throw new BPRejectedException(rejected);
-        }
-
-        return getPromise(permits, startTime, externalPromise);
-    }
-
-    public <R> Eventual<Result, R> getPromise(long permits, long nanoTime) {
-        return getPromise(permits, nanoTime, null);
-    }
-
-    public <R> Eventual<Result, R> getPromise(long permits, long nanoTime, Completable<Result, R> externalCompletable) {
-        Eventual<Result, R> promise = new Eventual<>(permits, nanoTime, externalCompletable);
-        promise.internalOnComplete(finishingCallback);
-        return promise;
-    }
-
-    public <R> Completable<Result, R> acquirePermitAndGetCompletableContext(long permits) {
-        return acquirePermitAndGetCompletableContext(permits, clock.nanoTime());
-    }
-
-    public <R> Completable<Result, R> acquirePermitAndGetCompletableContext(long permits, long nanoTime) {
-        Rejected rejected = acquirePermitOrGetRejectedReason(nanoTime);
-        if (rejected != null) {
-            rejectedMetrics.incrementMetricCount(rejected, nanoTime);
-            throw new BPRejectedException(rejected);
-        }
-
-        return getCompletableContext(permits, nanoTime);
-    }
-
-    public void release(long permits, long nanoTime) {
+    public void releasePermits(long number, long nanoTime) {
         for (BackPressure backPressure : backPressureList) {
-            backPressure.releasePermit(permits, nanoTime);
+            backPressure.releasePermit(number, nanoTime);
         }
     }
 
-    public void release(long units, Result result, long starTime, long nanoTime) {
+    public void releasePermits(long units, Result result, long starTime, long nanoTime) {
         resultMetrics.incrementMetricCount(result, nanoTime);
         latencyMetrics.recordLatency(result, nanoTime - starTime, nanoTime);
         for (BackPressure backPressure : backPressureList) {
@@ -125,19 +82,12 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         }
     }
 
-    public <R> CompletionContext<Result, R> getCompletableContext(long permits, long nanoTime) {
-        return getCompletableContext(permits, nanoTime, null);
-    }
-
-    public <R> CompletionContext<Result, R> getCompletableContext(long permits, long nanoTime,
-                                                                  Completable<Result, R> completable) {
-        CompletionContext<Result, R> context = new CompletionContext<>(permits, nanoTime, completable);
-        context.internalOnComplete(finishingCallback);
-        return context;
-    }
-
     public void shutdown() {
         isShutdown = true;
+    }
+
+    public boolean isShutdown() {
+        return isShutdown;
     }
 
     public String getName() {
@@ -158,14 +108,5 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     public Clock getClock() {
         return clock;
-    }
-
-    private class FinishingCallback implements PrecipiceFunction<Result, PerformingContext> {
-
-        @Override
-        public void apply(Result result, PerformingContext context) {
-            long endTime = clock.nanoTime();
-            release(context.permitCount(), result, context.startNanos(), endTime);
-        }
     }
 }

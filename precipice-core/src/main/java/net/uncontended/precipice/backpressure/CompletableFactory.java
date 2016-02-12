@@ -18,15 +18,16 @@
 package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.CompletionContext;
 
 public class CompletableFactory<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private final NewGuardRail<Result, Rejected> guardRail;
+    private final GuardRail<Result, Rejected> guardRail;
     private final FinishingCallback<Result> finishingCallback;
 
-    public CompletableFactory(NewGuardRail<Result, Rejected> guardRail) {
+    public CompletableFactory(GuardRail<Result, Rejected> guardRail) {
         this.guardRail = guardRail;
         finishingCallback = new FinishingCallback<>(guardRail);
     }

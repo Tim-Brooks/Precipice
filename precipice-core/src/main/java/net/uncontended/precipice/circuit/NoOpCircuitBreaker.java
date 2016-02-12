@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.OldGuardRail;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +41,7 @@ public class NoOpCircuitBreaker<Rejected extends Enum<Rejected>> implements Circ
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(OldGuardRail<Result, Rejected> guardRail) {
     }
 
     @Override

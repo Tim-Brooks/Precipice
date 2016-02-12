@@ -61,7 +61,7 @@ public class Pattern<Result extends Enum<Result> & Failable, Rejected extends En
         for (int serviceIndex : servicesToTry) {
             C precipice = pool.get(serviceIndex);
             GuardRail<Result, Rejected> guardRail = precipice.guardRail();
-            Rejected rejected = guardRail.acquirePermitOrGetRejectedReason(permits, nanoTime);
+            Rejected rejected = guardRail.acquirePermits(permits, nanoTime);
             if (rejected == null) {
                 precipices.add(precipice);
                 ++submittedCount;

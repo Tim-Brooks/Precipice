@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.backpressure.CompletableFactory;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
@@ -25,9 +26,15 @@ import java.util.concurrent.Callable;
 public class CallService implements Precipice<Status, Rejected> {
 
     private final GuardRail<Status, Rejected> guardRail;
+    private final CompletableFactory<Status, Rejected> completableFactory;
 
     public CallService(GuardRail<Status, Rejected> guardRail) {
+        this(guardRail, new CompletableFactory<>(guardRail));
+    }
+
+    public CallService(GuardRail<Status, Rejected> guardRail, CompletableFactory<Status, Rejected> completableFactory) {
         this.guardRail = guardRail;
+        this.completableFactory = completableFactory;
     }
 
     @Override
@@ -36,7 +43,7 @@ public class CallService implements Precipice<Status, Rejected> {
     }
 
     public <T> T call(Callable<T> callable) throws Exception {
-        Completable<Status, T> completable = guardRail.acquirePermitAndGetCompletableContext(1L);
+        Completable<Status, T> completable = completableFactory.acquirePermitsAndGetCompletable(1L);
 
         try {
             T result = callable.call();

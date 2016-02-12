@@ -30,11 +30,11 @@ public class ThreadPoolPatternTest {
 //    @Mock
 //    private ThreadPoolService service3;
 //    @Mock
-//    private GuardRail<Status, Rejected> controller1;
+//    private OldGuardRail<Status, Rejected> controller1;
 //    @Mock
-//    private GuardRail<Status, Rejected> controller2;
+//    private OldGuardRail<Status, Rejected> controller2;
 //    @Mock
-//    private GuardRail<Status, Rejected> controller3;
+//    private OldGuardRail<Status, Rejected> controller3;
 //    @Mock
 //    private ExecutorService executor1;
 //    @Mock
@@ -48,7 +48,7 @@ public class ThreadPoolPatternTest {
 //    @Mock
 //    private TimeoutService timeoutService3;
 //    @Mock
-//    private GuardRail<Status, Rejected> controller;
+//    private OldGuardRail<Status, Rejected> controller;
 //    @Mock
 //    private Clock clock;
 //    @Mock

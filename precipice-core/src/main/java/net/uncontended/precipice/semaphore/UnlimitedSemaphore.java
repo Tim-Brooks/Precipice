@@ -19,7 +19,7 @@ package net.uncontended.precipice.semaphore;
 
 import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.OldGuardRail;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -50,7 +50,7 @@ public class UnlimitedSemaphore<Rejected extends Enum<Rejected>> implements Back
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(OldGuardRail<Result, Rejected> guardRail) {
         
     }
 

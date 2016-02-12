@@ -18,16 +18,17 @@
 package net.uncontended.precipice.backpressure;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 
 public class PromiseFactory<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private final NewGuardRail<Result, Rejected> guardRail;
+    private final GuardRail<Result, Rejected> guardRail;
     private final FinishingCallback<Result> finishingCallback;
 
-    public PromiseFactory(NewGuardRail<Result, Rejected> guardRail) {
+    public PromiseFactory(GuardRail<Result, Rejected> guardRail) {
         this.guardRail = guardRail;
         finishingCallback = new FinishingCallback<>(guardRail);
     }
