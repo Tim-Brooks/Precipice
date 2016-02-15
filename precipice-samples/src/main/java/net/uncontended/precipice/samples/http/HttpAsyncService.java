@@ -21,43 +21,47 @@ import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Request;
 import com.ning.http.client.Response;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Status;
-import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.factories.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.factories.PromiseFactory;
 
 import java.util.concurrent.TimeoutException;
 
 
-public class HttpAsyncService implements Precipice<Status, Rejected> {
+public class HttpAsyncService implements Precipice<HTTPStatus, Rejected> {
 
     private final AsyncHttpClient client;
-    private final GuardRail<Status, Rejected> guardRail;
+    private final GuardRail<HTTPStatus, Rejected> guardRail;
 
-    public HttpAsyncService(GuardRail<Status, Rejected> guardRail, AsyncHttpClient client) {
+    public HttpAsyncService(GuardRail<HTTPStatus, Rejected> guardRail, AsyncHttpClient client) {
         this.guardRail = guardRail;
         this.client = client;
     }
 
-    public PrecipiceFuture<Status, Response> submit(Request request) {
-        final PrecipicePromise<Status, Response> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
+    public PrecipiceFuture<HTTPStatus, Response> submit(Request request) {
+        final PrecipicePromise<HTTPStatus, Response> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
 
         client.executeRequest(request, new AsyncCompletionHandler<Void>() {
             @Override
             public Void onCompleted(Response response) throws Exception {
-                promise.complete(Status.SUCCESS, response);
+                int httpStatus = response.getStatusCode();
+                if (httpStatus < 200 || httpStatus > 299) {
+                    promise.complete(HTTPStatus.NON_200, response);
+                } else {
+                    promise.complete(HTTPStatus.STATUS_200, response);
+                }
                 return null;
             }
 
             @Override
             public void onThrowable(Throwable t) {
                 if (t instanceof TimeoutException) {
-                    promise.completeExceptionally(Status.TIMEOUT, t);
+                    promise.completeExceptionally(HTTPStatus.TIMEOUT, t);
                 } else {
-                    promise.completeExceptionally(Status.ERROR, t);
+                    promise.completeExceptionally(HTTPStatus.ERROR, t);
                 }
             }
         });
@@ -65,7 +69,7 @@ public class HttpAsyncService implements Precipice<Status, Rejected> {
     }
 
     @Override
-    public GuardRail<Status, Rejected> guardRail() {
+    public GuardRail<HTTPStatus, Rejected> guardRail() {
         return guardRail;
     }
 
