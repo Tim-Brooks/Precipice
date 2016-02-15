@@ -20,8 +20,7 @@ package net.uncontended.precipice;
 public enum Status implements Failable {
     SUCCESS(false),
     ERROR(true),
-    TIMEOUT(true),
-    CANCELLED(false);
+    TIMEOUT(true);
 
     private final boolean isFailed;
 
