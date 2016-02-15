@@ -59,9 +59,9 @@ public class EventualTest {
         assertFalse(eventual.cancel(true));
 
         assertSame(exception, error.get());
-        assertSame(exception, eventual.error());
+        assertSame(exception, eventual.getError());
         assertNull(result.get());
-        assertNull(eventual.result());
+        assertNull(eventual.getResult());
         assertFalse(isTimedOut.get());
         assertFalse(eventual.isCancelled());
 
@@ -102,18 +102,18 @@ public class EventualTest {
         assertFalse(eventual.cancel(true));
 
         assertSame(stringResult, result.get());
-        assertSame(stringResult, eventual.result());
+        assertSame(stringResult, eventual.getResult());
         assertSame(stringResult, eventual.get());
         assertNull(error.get());
-        assertNull(eventual.error());
+        assertNull(eventual.getError());
         assertFalse(isTimedOut.get());
         assertFalse(eventual.isCancelled());
     }
 
     @Test
     public void testCancellation() throws Exception {
-//        final AtomicReference<Throwable> error = new AtomicReference<>();
-//        final AtomicReference<String> result = new AtomicReference<>();
+//        final AtomicReference<Throwable> getError = new AtomicReference<>();
+//        final AtomicReference<String> getResult = new AtomicReference<>();
 //        final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 //
 //        Eventual<Status, String> eventual = new Eventual<>();
@@ -123,14 +123,14 @@ public class EventualTest {
 //        eventual.onError(new PrecipiceFunction<Status, Throwable>() {
 //            @Override
 //            public void apply(Status status, Throwable argument) {
-//                error.set(argument);
+//                getError.set(argument);
 //            }
 //        });
 //
 //        eventual.onSuccess(new PrecipiceFunction<Status, String>() {
 //            @Override
 //            public void apply(Status status, String argument) {
-//                result.set(argument);
+//                getResult.set(argument);
 //            }
 //        });
 //
@@ -138,10 +138,10 @@ public class EventualTest {
 //        assertFalse(eventual.complete(Status.SUCCESS, "NOO"));
 //        assertFalse(eventual.completeExceptionally(Status.ERROR, exception));
 //
-//        assertNull(result.get());
-//        assertNull(eventual.result());
-//        assertNull(error.get());
-//        assertNull(eventual.error());
+//        assertNull(getResult.get());
+//        assertNull(eventual.getResult());
+//        assertNull(getError.get());
+//        assertNull(eventual.getError());
 //        assertFalse(isTimedOut.get());
 //        assertTrue(eventual.isCancelled());
 //

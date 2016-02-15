@@ -33,9 +33,9 @@ public interface PrecipiceFuture<S extends Failable, T> extends Future<T> {
 
     void await(long duration, TimeUnit unit) throws InterruptedException;
 
-    T result();
+    T getResult();
 
-    Throwable error();
+    Throwable getError();
 
     S getStatus();
 }

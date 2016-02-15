@@ -24,10 +24,9 @@ import net.uncontended.precipice.PrecipiceFunction;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>,
-        PerformingContext {
+public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>, PerformingContext {
 
-    private final long permits;
+    private final long permitCount;
     private final long startNanos;
     private final Completable<S, T> wrappedPromise;
     private volatile T result;
@@ -42,20 +41,20 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
         this(0L);
     }
 
-    public Eventual(long permits) {
-        this(permits, System.nanoTime());
+    public Eventual(long permitCount) {
+        this(permitCount, System.nanoTime());
     }
 
-    public Eventual(long permits, long startNanos) {
-        this(permits, startNanos, null);
+    public Eventual(long permitCount, long startNanos) {
+        this(permitCount, startNanos, null);
     }
 
     public Eventual(long startNanos, Completable<S, T> completable) {
         this(1L, startNanos, completable);
     }
 
-    public Eventual(long permits, long startNanos, Completable<S, T> completable) {
-        this.permits = permits;
+    public Eventual(long permitCount, long startNanos, Completable<S, T> completable) {
+        this.permitCount = permitCount;
         this.startNanos = startNanos;
         wrappedPromise = completable;
     }
@@ -158,12 +157,12 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public T result() {
+    public T getResult() {
         return result;
     }
 
     @Override
-    public Throwable error() {
+    public Throwable getError() {
         return throwable;
     }
 
@@ -211,7 +210,7 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
 
     @Override
     public long permitCount() {
-        return permits;
+        return permitCount;
     }
 
     public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {

@@ -164,13 +164,13 @@ public class ThreadPoolPatternTest {
 //        task1.run();
 //        task2.run();
 //        assertEquals(Status.SUCCESS, f.getStatus());
-//        assertEquals("Service1", f.result());
+//        assertEquals("Service1", f.getResult());
 //
 //        PrecipiceFuture<Status, Object> future1 = child1.future();
 //        PrecipiceFuture<Status, Object> future2 = child2.future();
-//        assertEquals("Service1", future1.result());
+//        assertEquals("Service1", future1.getResult());
 //        assertEquals(Status.SUCCESS, future1.getStatus());
-//        assertEquals("Service3", future2.result());
+//        assertEquals("Service3", future2.getResult());
 //        assertEquals(Status.SUCCESS, future2.getStatus());
 //    }
 //

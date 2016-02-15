@@ -148,7 +148,7 @@ public class ThreadPoolServiceTest {
         }
 
         assertEquals(Status.TIMEOUT, future.getStatus());
-        assertTrue(future.error() instanceof PrecipiceTimeoutException);
+        assertTrue(future.getError() instanceof PrecipiceTimeoutException);
 
         latch.countDown();
     }
@@ -168,8 +168,8 @@ public class ThreadPoolServiceTest {
         } catch (ExecutionException e) {
             assertEquals(exception, e.getCause());
         }
-        assertEquals(exception, future.error());
-        assertNull(future.result());
+        assertEquals(exception, future.getError());
+        assertNull(future.getResult());
         assertEquals(Status.ERROR, future.getStatus());
     }
 
