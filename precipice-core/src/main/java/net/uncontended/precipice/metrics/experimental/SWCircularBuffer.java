@@ -15,9 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
-import net.uncontended.precipice.timeout.TimeoutService;
+import net.uncontended.precipice.metrics.CircularBuffer;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

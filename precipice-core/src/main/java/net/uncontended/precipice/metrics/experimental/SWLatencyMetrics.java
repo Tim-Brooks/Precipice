@@ -15,13 +15,20 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.metrics.BackgroundTask;
+import net.uncontended.precipice.metrics.CircularBuffer;
+import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
+import net.uncontended.precipice.metrics.LatencySnapshot;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
 
+/**
+ * Unstable and still in development. At this time, {@link IntervalLatencyMetrics} should be used.
+ */
 public class SWLatencyMetrics<T extends Enum<T> & Failable> implements BackgroundTask {
 
     private final LatencyBucket[] buckets;

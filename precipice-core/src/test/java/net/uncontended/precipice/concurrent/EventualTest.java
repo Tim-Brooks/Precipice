@@ -20,6 +20,7 @@ package net.uncontended.precipice.concurrent;
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Status;
+import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -36,7 +37,7 @@ import static org.mockito.Mockito.verify;
 public class EventualTest {
 
     @Mock
-    private Completable<Status, String> wrappedPromise;
+    private Completable<TestResult, String> wrappedPromise;
 
     @Before
     public void setUp() {
@@ -49,26 +50,26 @@ public class EventualTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
-        Eventual<Status, String> eventual = new Eventual<>();
+        Eventual<TestResult, String> eventual = new Eventual<>();
 
 
         IOException exception = new IOException();
-        eventual.onError(new PrecipiceFunction<Status, Throwable>() {
+        eventual.onError(new PrecipiceFunction<TestResult, Throwable>() {
             @Override
-            public void apply(Status status, Throwable argument) {
+            public void apply(TestResult result, Throwable argument) {
                 error.set(argument);
             }
         });
 
-        eventual.onSuccess(new PrecipiceFunction<Status, String>() {
+        eventual.onSuccess(new PrecipiceFunction<TestResult, String>() {
             @Override
-            public void apply(Status status, String argument) {
+            public void apply(TestResult status, String argument) {
                 result.set(argument);
             }
         });
 
-        assertTrue(eventual.completeExceptionally(Status.ERROR, exception));
-        assertFalse(eventual.complete(Status.SUCCESS, "NOO"));
+        assertTrue(eventual.completeExceptionally(TestResult.ERROR, exception));
+        assertFalse(eventual.complete(TestResult.SUCCESS, "NOO"));
         assertFalse(eventual.cancel(true));
 
         assertSame(exception, error.get());
@@ -91,27 +92,27 @@ public class EventualTest {
         final AtomicReference<String> result = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
-        Eventual<Status, String> eventual = new Eventual<>();
+        Eventual<TestResult, String> eventual = new Eventual<>();
 
 
         IOException exception = new IOException();
-        eventual.onError(new PrecipiceFunction<Status, Throwable>() {
+        eventual.onError(new PrecipiceFunction<TestResult, Throwable>() {
             @Override
-            public void apply(Status status, Throwable argument) {
+            public void apply(TestResult status, Throwable argument) {
                 error.set(argument);
             }
         });
 
-        eventual.onSuccess(new PrecipiceFunction<Status, String>() {
+        eventual.onSuccess(new PrecipiceFunction<TestResult, String>() {
             @Override
-            public void apply(Status status, String argument) {
+            public void apply(TestResult status, String argument) {
                 result.set(argument);
             }
         });
 
         String stringResult = "YESS";
-        assertTrue(eventual.complete(Status.SUCCESS, stringResult));
-        assertFalse(eventual.completeExceptionally(Status.ERROR, exception));
+        assertTrue(eventual.complete(TestResult.SUCCESS, stringResult));
+        assertFalse(eventual.completeExceptionally(TestResult.ERROR, exception));
         assertFalse(eventual.cancel(true));
 
         assertSame(stringResult, result.get());
@@ -125,62 +126,62 @@ public class EventualTest {
 
     @Test
     public void testInternalCallbackIsCalledOnError() throws Exception {
-        Eventual<Status, String> eventual = new Eventual<>();
-        final AtomicReference<Status> statusReference = new AtomicReference<>();
+        Eventual<TestResult, String> eventual = new Eventual<>();
+        final AtomicReference<TestResult> statusReference = new AtomicReference<>();
         final AtomicReference<PerformingContext> context = new AtomicReference<>();
 
-        eventual.internalOnComplete(new PrecipiceFunction<Status, PerformingContext>() {
+        eventual.internalOnComplete(new PrecipiceFunction<TestResult, PerformingContext>() {
             @Override
-            public void apply(Status status, PerformingContext argument) {
+            public void apply(TestResult status, PerformingContext argument) {
                 statusReference.compareAndSet(null, status);
                 context.compareAndSet(null, argument);
 
             }
         });
 
-        eventual.completeExceptionally(Status.ERROR, new RuntimeException());
+        eventual.completeExceptionally(TestResult.ERROR, new RuntimeException());
 
-        assertEquals(Status.ERROR, statusReference.get());
+        assertEquals(TestResult.ERROR, statusReference.get());
         assertSame(eventual, context.get());
     }
 
     @Test
     public void testInternalCallbackIsCalledOnSuccess() throws Exception {
-        Eventual<Status, String> eventual = new Eventual<>();
-        final AtomicReference<Status> statusReference = new AtomicReference<>();
+        Eventual<TestResult, String> eventual = new Eventual<>();
+        final AtomicReference<TestResult> statusReference = new AtomicReference<>();
         final AtomicReference<PerformingContext> context = new AtomicReference<>();
 
-        eventual.internalOnComplete(new PrecipiceFunction<Status, PerformingContext>() {
+        eventual.internalOnComplete(new PrecipiceFunction<TestResult, PerformingContext>() {
             @Override
-            public void apply(Status status, PerformingContext argument) {
+            public void apply(TestResult status, PerformingContext argument) {
                 statusReference.compareAndSet(null, status);
                 context.compareAndSet(null, argument);
 
             }
         });
 
-        eventual.complete(Status.SUCCESS, "");
+        eventual.complete(TestResult.SUCCESS, "");
 
-        assertEquals(Status.SUCCESS, statusReference.get());
+        assertEquals(TestResult.SUCCESS, statusReference.get());
         assertSame(eventual, context.get());
     }
 
     @Test
     public void testWrappedPromiseIsCompletedOnSuccess() throws Exception {
-        Eventual<Status, String> eventual = new Eventual<>(wrappedPromise);
+        Eventual<TestResult, String> eventual = new Eventual<>(wrappedPromise);
 
-        eventual.complete(Status.SUCCESS, "Result");
+        eventual.complete(TestResult.SUCCESS, "Result");
 
-        verify(wrappedPromise).complete(Status.SUCCESS, "Result");
+        verify(wrappedPromise).complete(TestResult.SUCCESS, "Result");
     }
 
     @Test
     public void testWrappedPromiseIsCompletedOnError() throws Exception {
-        Eventual<Status, String> eventual = new Eventual<>(wrappedPromise);
+        Eventual<TestResult, String> eventual = new Eventual<>(wrappedPromise);
 
         RuntimeException ex = new RuntimeException();
-        eventual.completeExceptionally(Status.ERROR, ex);
+        eventual.completeExceptionally(TestResult.ERROR, ex);
 
-        verify(wrappedPromise).completeExceptionally(Status.ERROR, ex);
+        verify(wrappedPromise).completeExceptionally(TestResult.ERROR, ex);
     }
 }

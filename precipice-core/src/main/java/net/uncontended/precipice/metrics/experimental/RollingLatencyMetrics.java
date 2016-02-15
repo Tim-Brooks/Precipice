@@ -15,9 +15,12 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.LatencySnapshot;
 import net.uncontended.precipice.metrics.util.RawCircularBuffer;
 import org.HdrHistogram.*;
 

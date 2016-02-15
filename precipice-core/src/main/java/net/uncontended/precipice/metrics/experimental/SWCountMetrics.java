@@ -15,9 +15,11 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.metrics.BackgroundTask;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
 
 /**
  * Unstable and still in development. At this time, {@link RollingCountMetrics} should be used.

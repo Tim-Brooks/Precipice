@@ -19,10 +19,10 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Status;
 import net.uncontended.precipice.metrics.HealthGauge;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -39,9 +39,9 @@ import static org.mockito.Mockito.when;
 public class DefaultCircuitBreakerTest {
 
     @Mock
-    private GuardRail<Status, Rejected> guardRail;
+    private GuardRail<TestResult, Rejected> guardRail;
     @Mock
-    private RollingCountMetrics<Status> countMetrics;
+    private RollingCountMetrics<TestResult> countMetrics;
     @Mock
     private HealthGauge healthGauge;
 
@@ -80,12 +80,12 @@ public class DefaultCircuitBreakerTest {
 
         long nanoTime = 501L * 1000L * 1000L;
         when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(healthySnapshot);
-        circuitBreaker.releasePermit(1, Status.ERROR, nanoTime);
+        circuitBreaker.releasePermit(1, TestResult.ERROR, nanoTime);
         assertFalse(circuitBreaker.isOpen());
 
         nanoTime = 1002L * 1000L * 1000L;
         when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(failingSnapshot);
-        circuitBreaker.releasePermit(1, Status.ERROR, nanoTime);
+        circuitBreaker.releasePermit(1, TestResult.ERROR, nanoTime);
         assertTrue(circuitBreaker.isOpen());
     }
 
@@ -103,11 +103,11 @@ public class DefaultCircuitBreakerTest {
 
         long nanoTime = 501L * 1000L * 1000L;
         when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(failureSnapshot);
-        circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
+        circuitBreaker.releasePermit(1L, TestResult.ERROR, nanoTime);
 
         assertTrue(circuitBreaker.isOpen());
 
-        circuitBreaker.releasePermit(1L, Status.SUCCESS, nanoTime);
+        circuitBreaker.releasePermit(1L, TestResult.SUCCESS, nanoTime);
 
         assertFalse(circuitBreaker.isOpen());
     }
@@ -122,13 +122,13 @@ public class DefaultCircuitBreakerTest {
 
         long nanoTime = 501L * 1000L * 1000L;
         when(healthGauge.getHealth(1000, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(snapshot);
-        circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
+        circuitBreaker.releasePermit(1L, TestResult.ERROR, nanoTime);
         assertFalse(circuitBreaker.isOpen());
 
         CircuitBreakerConfig<Rejected> newBreakerConfig = builder.failureThreshold(5).trailingPeriodMillis(2000).build();
         circuitBreaker.setBreakerConfig(newBreakerConfig);
 
-        circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
+        circuitBreaker.releasePermit(1L, TestResult.ERROR, nanoTime);
 
         assertTrue(circuitBreaker.isOpen());
     }
@@ -159,7 +159,7 @@ public class DefaultCircuitBreakerTest {
 
         long nanoTime = 1000L * 1000L * 1000L;
         when(healthGauge.getHealth(5000, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(snapshot);
-        circuitBreaker.releasePermit(1L, Status.ERROR, nanoTime);
+        circuitBreaker.releasePermit(1L, TestResult.ERROR, nanoTime);
 
         nanoTime = 1999L * 1000L * 1000L;
         assertEquals(Rejected.CIRCUIT_OPEN, circuitBreaker.acquirePermit(1L, nanoTime));

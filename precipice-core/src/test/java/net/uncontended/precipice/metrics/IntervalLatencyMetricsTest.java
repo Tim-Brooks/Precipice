@@ -16,7 +16,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,20 +26,20 @@ import static org.junit.Assert.assertEquals;
 
 public class IntervalLatencyMetricsTest {
 
-    private IntervalLatencyMetrics metrics;
+    private IntervalLatencyMetrics<TestResult> metrics;
 
     @Before
     public void setup() {
-        metrics = new IntervalLatencyMetrics(Status.class);
+        metrics = new IntervalLatencyMetrics<>(TestResult.class);
     }
 
     @Test
     public void latencyIsStoredInHistogram() {
-        Status[] metricArray = {Status.SUCCESS, Status.ERROR, Status.TIMEOUT};
+        TestResult[] metricArray = {TestResult.SUCCESS, TestResult.ERROR};
 
         ThreadLocalRandom current = ThreadLocalRandom.current();
         for (int i = 1; i <= 100000; ++i) {
-            int n = current.nextInt(3);
+            int n = current.nextInt(2);
             metrics.recordLatency(metricArray[n], i);
         }
 
@@ -58,16 +58,13 @@ public class IntervalLatencyMetricsTest {
     @Test
     public void latencyIsPartitionedByMetric() {
         for (int i = 1; i <= 100000; ++i) {
-            metrics.recordLatency(Status.SUCCESS, i);
+            metrics.recordLatency(TestResult.SUCCESS, i);
         }
         for (int i = 100001; i <= 200000; ++i) {
-            metrics.recordLatency(Status.ERROR, i);
-        }
-        for (int i = 200001; i <= 300000; ++i) {
-            metrics.recordLatency(Status.TIMEOUT, i);
+            metrics.recordLatency(TestResult.ERROR, i);
         }
 
-        LatencySnapshot successSnapshot = metrics.latencySnapshot(Status.SUCCESS);
+        LatencySnapshot successSnapshot = metrics.latencySnapshot(TestResult.SUCCESS);
         assertEquals(100, successSnapshot.latencyMax / 1000);
         assertEquals(50, successSnapshot.latency50 / 1000);
         assertEquals(90, successSnapshot.latency90 / 1000);
@@ -77,7 +74,7 @@ public class IntervalLatencyMetricsTest {
         assertEquals(100, successSnapshot.latency99999 / 1000);
         assertEquals(50, (long) successSnapshot.latencyMean / 1000);
 
-        LatencySnapshot errorSnapshot = metrics.latencySnapshot(Status.ERROR);
+        LatencySnapshot errorSnapshot = metrics.latencySnapshot(TestResult.ERROR);
         assertEquals(200, errorSnapshot.latencyMax / 1000);
         assertEquals(150, errorSnapshot.latency50 / 1000);
         assertEquals(190, errorSnapshot.latency90 / 1000);
@@ -87,40 +84,27 @@ public class IntervalLatencyMetricsTest {
         assertEquals(200, errorSnapshot.latency99999 / 1000);
         assertEquals(150, (long) errorSnapshot.latencyMean / 1000);
 
-        LatencySnapshot timeoutSnapshot = metrics.latencySnapshot(Status.TIMEOUT);
-        assertEquals(301, timeoutSnapshot.latencyMax / 1000);
-        assertEquals(250, timeoutSnapshot.latency50 / 1000);
-        assertEquals(290, timeoutSnapshot.latency90 / 1000);
-        assertEquals(299, timeoutSnapshot.latency99 / 1000);
-        assertEquals(301, timeoutSnapshot.latency999 / 1000);
-        assertEquals(301, timeoutSnapshot.latency9999 / 1000);
-        assertEquals(301, timeoutSnapshot.latency99999 / 1000);
-        assertEquals(250, (long) timeoutSnapshot.latencyMean / 1000);
-
         LatencySnapshot snapshot = metrics.latencySnapshot();
-        assertEquals(301, snapshot.latencyMax / 1000);
-        assertEquals(150, snapshot.latency50 / 1000);
-        assertEquals(270, snapshot.latency90 / 1000);
-        assertEquals(299, snapshot.latency99 / 1000);
-        assertEquals(301, snapshot.latency999 / 1000);
-        assertEquals(301, snapshot.latency9999 / 1000);
-        assertEquals(301, snapshot.latency99999 / 1000);
-        assertEquals(150, (long) snapshot.latencyMean / 1000);
+        assertEquals(200, snapshot.latencyMax / 1000);
+        assertEquals(100, snapshot.latency50 / 1000);
+        assertEquals(180, snapshot.latency90 / 1000);
+        assertEquals(198, snapshot.latency99 / 1000);
+        assertEquals(200, snapshot.latency999 / 1000);
+        assertEquals(200, snapshot.latency9999 / 1000);
+        assertEquals(200, snapshot.latency99999 / 1000);
+        assertEquals(100, (long) snapshot.latencyMean / 1000);
     }
 
     @Test
     public void intervalLatencyIsPartitionedByMetric() {
         for (int i = 1; i <= 100000; ++i) {
-            metrics.recordLatency(Status.SUCCESS, i);
+            metrics.recordLatency(TestResult.SUCCESS, i);
         }
         for (int i = 100001; i <= 200000; ++i) {
-            metrics.recordLatency(Status.ERROR, i);
-        }
-        for (int i = 200001; i <= 300000; ++i) {
-            metrics.recordLatency(Status.TIMEOUT, i);
+            metrics.recordLatency(TestResult.ERROR, i);
         }
 
-        LatencySnapshot successSnapshot = metrics.intervalSnapshot(Status.SUCCESS);
+        LatencySnapshot successSnapshot = metrics.intervalSnapshot(TestResult.SUCCESS);
         assertEquals(100, successSnapshot.latencyMax / 1000);
         assertEquals(50, successSnapshot.latency50 / 1000);
         assertEquals(90, successSnapshot.latency90 / 1000);
@@ -130,7 +114,7 @@ public class IntervalLatencyMetricsTest {
         assertEquals(100, successSnapshot.latency99999 / 1000);
         assertEquals(50, (long) successSnapshot.latencyMean / 1000);
 
-        LatencySnapshot errorSnapshot = metrics.intervalSnapshot(Status.ERROR);
+        LatencySnapshot errorSnapshot = metrics.intervalSnapshot(TestResult.ERROR);
         assertEquals(200, errorSnapshot.latencyMax / 1000);
         assertEquals(150, errorSnapshot.latency50 / 1000);
         assertEquals(190, errorSnapshot.latency90 / 1000);
@@ -139,22 +123,12 @@ public class IntervalLatencyMetricsTest {
         assertEquals(200, errorSnapshot.latency9999 / 1000);
         assertEquals(200, errorSnapshot.latency99999 / 1000);
         assertEquals(150, (long) errorSnapshot.latencyMean / 1000);
-
-        LatencySnapshot timeoutSnapshot = metrics.intervalSnapshot(Status.TIMEOUT);
-        assertEquals(301, timeoutSnapshot.latencyMax / 1000);
-        assertEquals(250, timeoutSnapshot.latency50 / 1000);
-        assertEquals(290, timeoutSnapshot.latency90 / 1000);
-        assertEquals(299, timeoutSnapshot.latency99 / 1000);
-        assertEquals(301, timeoutSnapshot.latency999 / 1000);
-        assertEquals(301, timeoutSnapshot.latency9999 / 1000);
-        assertEquals(301, timeoutSnapshot.latency99999 / 1000);
-        assertEquals(250, (long) timeoutSnapshot.latencyMean / 1000);
     }
 
     @Test
     public void latencyIsRecordedInIntervals() {
-        Status[] metricArray = {Status.SUCCESS, Status.ERROR, Status.TIMEOUT};
-        for (Status m : metricArray) {
+        TestResult[] metricArray = {TestResult.SUCCESS, TestResult.ERROR};
+        for (TestResult m : metricArray) {
 
             for (int i = 1; i <= 100000; ++i) {
                 metrics.recordLatency(m, i);
