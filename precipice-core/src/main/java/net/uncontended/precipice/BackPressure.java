@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.metrics.TotalCountMetrics;
+
 public interface BackPressure<Rejected extends Enum<Rejected>> {
 
     Rejected acquirePermit(long number, long nanoTime);
@@ -25,5 +27,5 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
 
     void releasePermit(long number, Failable result, long nanoTime);
 
-    <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail);
+    <Result extends Enum<Result> & Failable> void registerResultMetrics(TotalCountMetrics<Result> metrics);
 }

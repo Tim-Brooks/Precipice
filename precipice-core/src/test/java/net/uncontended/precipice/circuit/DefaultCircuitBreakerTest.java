@@ -60,7 +60,7 @@ public class DefaultCircuitBreakerTest {
         CircuitBreakerConfigBuilder<Rejected> bp = builder.failureThreshold(20).backOffTimeMillis(5000);
         CircuitBreakerConfig<Rejected> config = bp.build();
         circuitBreaker = new DefaultCircuitBreaker<>(config);
-        circuitBreaker.registerGuardRail(guardRail);
+        circuitBreaker.registerResultMetrics(countMetrics);
         assertFalse(circuitBreaker.isOpen());
     }
 
@@ -74,7 +74,7 @@ public class DefaultCircuitBreakerTest {
                 .backOffTimeMillis(trailingPeriodInMillis)
                 .build();
         circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
-        circuitBreaker.registerGuardRail(guardRail);
+        circuitBreaker.registerResultMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
 
@@ -97,7 +97,7 @@ public class DefaultCircuitBreakerTest {
         CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5).trailingPeriodMillis
                 (trailingPeriodInMillis).build();
         circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
-        circuitBreaker.registerGuardRail(guardRail);
+        circuitBreaker.registerResultMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
 
@@ -118,7 +118,7 @@ public class DefaultCircuitBreakerTest {
 
         CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(10).trailingPeriodMillis(1000).build();
         circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
-        circuitBreaker.registerGuardRail(guardRail);
+        circuitBreaker.registerResultMetrics(countMetrics);
 
         long nanoTime = 501L * 1000L * 1000L;
         when(healthGauge.getHealth(1000, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(snapshot);
@@ -137,7 +137,7 @@ public class DefaultCircuitBreakerTest {
     public void testActionAllowedIfCircuitClosed() {
         CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(10).backOffTimeMillis(1000).build();
         circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
-        circuitBreaker.registerGuardRail(guardRail);
+        circuitBreaker.registerResultMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
         assertNull(circuitBreaker.acquirePermit(1L, 0L));
@@ -152,7 +152,7 @@ public class DefaultCircuitBreakerTest {
         CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).build();
         circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
-        circuitBreaker.registerGuardRail(guardRail);
+        circuitBreaker.registerResultMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
         assertNull(circuitBreaker.acquirePermit(1L, 0L));
@@ -178,7 +178,7 @@ public class DefaultCircuitBreakerTest {
         CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(failureThreshold)
                 .trailingPeriodMillis(timePeriodInMillis).backOffTimeMillis(1000).build();
         circuitBreaker = new DefaultCircuitBreaker<>(breakerConfig, healthGauge);
-        circuitBreaker.registerGuardRail(guardRail);
+        circuitBreaker.registerResultMetrics(countMetrics);
 
         assertFalse(circuitBreaker.isOpen());
         assertNull(circuitBreaker.acquirePermit(1L, 0L));

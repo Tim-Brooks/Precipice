@@ -18,7 +18,6 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.*;
 
 import java.util.concurrent.TimeUnit;
@@ -89,10 +88,9 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
-        TotalCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
-        if (resultMetrics instanceof RollingCountMetrics) {
-            healthGauge.add((RollingCountMetrics<Result>) resultMetrics);
+    public <Result extends Enum<Result> & Failable> void registerResultMetrics(TotalCountMetrics<Result> metrics) {
+        if (metrics instanceof RollingCountMetrics) {
+            healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {
             throw new IllegalArgumentException("SWCircuitBreaker requires rolling result metrics");
         }
