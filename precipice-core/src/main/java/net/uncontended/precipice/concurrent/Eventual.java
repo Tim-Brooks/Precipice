@@ -65,10 +65,7 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
         if (this.status.get() == null) {
             if (this.status.compareAndSet(null, status)) {
                 this.result = result;
-                if (internalCallback != null) {
-                    // TODO: Maybe move this to be different method
-                    internalCallback.apply(status, this);
-                }
+                executeInternalCallback(status);
                 latch.countDown();
                 PrecipiceFunction<S, T> cb = successCallback.get();
                 if (cb != null && successCallback.compareAndSet(cb, null)) {
@@ -88,9 +85,7 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
         if (this.status.get() == null) {
             if (this.status.compareAndSet(null, status)) {
                 throwable = ex;
-                if (internalCallback != null) {
-                    internalCallback.apply(status, this);
-                }
+                executeInternalCallback(status);
                 latch.countDown();
                 PrecipiceFunction<S, Throwable> cb = errorCallback.get();
                 if (cb != null && errorCallback.compareAndSet(cb, null)) {
@@ -221,5 +216,11 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
 
     public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {
         internalCallback = fn;
+    }
+
+    private void executeInternalCallback(S status) {
+        if (internalCallback != null) {
+            internalCallback.apply(status, this);
+        }
     }
 }
