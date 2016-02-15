@@ -20,39 +20,42 @@ package net.uncontended.precipice.samples.kafka;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Status;
-import net.uncontended.precipice.factories.PromiseFactory;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.factories.PromiseFactory;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.errors.NetworkException;
 import org.apache.kafka.common.errors.TimeoutException;
 
-public class KafkaService<K, V> implements Precipice<Status, Rejected> {
+public class KafkaService<K, V> implements Precipice<ProduceStatus, Rejected> {
 
-    private final GuardRail<Status, Rejected> guardRail;
+    private final GuardRail<ProduceStatus, Rejected> guardRail;
     private final KafkaProducer<K, V> producer;
 
-    public KafkaService(GuardRail<Status, Rejected> guardRail, KafkaProducer<K, V> producer) {
+    public KafkaService(GuardRail<ProduceStatus, Rejected> guardRail, KafkaProducer<K, V> producer) {
         this.guardRail = guardRail;
         this.producer = producer;
     }
 
-    public PrecipiceFuture<Status, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
-        final PrecipicePromise<Status, RecordMetadata> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
+    public PrecipiceFuture<ProduceStatus, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
+        final PrecipicePromise<ProduceStatus, RecordMetadata> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
 
         producer.send(record, new Callback() {
             @Override
             public void onCompletion(RecordMetadata metadata, Exception exception) {
                 if (exception == null) {
-                    promise.complete(Status.SUCCESS, metadata);
+                    promise.complete(ProduceStatus.SUCCESS, metadata);
                 } else {
                     if (exception instanceof TimeoutException) {
-                        promise.completeExceptionally(Status.TIMEOUT, exception);
-                    } else {
-                        promise.completeExceptionally(Status.ERROR, exception);
+                        promise.completeExceptionally(ProduceStatus.TIMEOUT, exception);
+                    } else if (exception instanceof NetworkException) {
+                        promise.completeExceptionally(ProduceStatus.NETWORK_EXCEPTION, exception);
+                    }
+                    else {
+                        promise.completeExceptionally(ProduceStatus.OTHER_ERROR, exception);
                     }
                 }
             }
@@ -62,7 +65,7 @@ public class KafkaService<K, V> implements Precipice<Status, Rejected> {
     }
 
     @Override
-    public GuardRail<Status, Rejected> guardRail() {
+    public GuardRail<ProduceStatus, Rejected> guardRail() {
         return guardRail;
     }
 
