@@ -17,112 +17,114 @@
 
 package net.uncontended.precipice.circuit;
 
-import net.uncontended.precipice.metrics.BackgroundTask;
+import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.metrics.*;
 
-public class SWCircuitBreaker implements BackgroundTask {
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-    //    private static final int CLOSED = 0;
-//    private static final int OPEN = 1;
-//    private static final int FORCED_OPEN = 2;
-//
-//    private final Clock systemTime;
-//    private final AtomicInteger state = new AtomicInteger(0);
-//    private volatile long lastTestedTime = 0;
-//    private volatile BreakerConfig breakerConfig;
-//    private volatile HealthSnapshot health = new HealthSnapshot(0, 0, 0, 0);
-//    private CountMetrics<?> countMetrics;
-//
-//    public SWCircuitBreaker(BreakerConfig breakerConfig) {
-//        this(breakerConfig, new SystemTime());
-//    }
-//
-//    public SWCircuitBreaker(BreakerConfig breakerConfig, Clock systemTime) {
-//        this.systemTime = systemTime;
-//        this.breakerConfig = breakerConfig;
-//    }
-//
-//    @Override
-//    public boolean isOpen() {
-//        return state.get() != CLOSED;
-//    }
-//
-//    @Override
-//    public boolean allowAction() {
-//        return allowAction(systemTime.nanoTime());
-//    }
-//
-//    @Override
-//    public boolean allowAction(long nanoTime) {
-//        int state = this.state.get();
-//        if (state == OPEN) {
-//            long backOffTimeMillis = breakerConfig.backOffTimeMillis;
-//            long currentTime = currentMillisTime(nanoTime);
-//            if (currentTime < backOffTimeMillis + lastTestedTime) {
-//                return false;
-//            }
-//            lastTestedTime = currentTime;
-//        }
-//        return state != FORCED_OPEN;
-//    }
-//
-//    @Override
-//    public void informBreakerOfResult(Failable result) {
-//        informBreakerOfResult(result, systemTime.nanoTime());
-//    }
-//
-//    @Override
-//    public void informBreakerOfResult(Failable result, long nanoTime) {
-//        if (result.isSuccess()) {
-//            if (state.get() == OPEN) {
-//                // This can get stuck in a loop with open and closing
-//                state.compareAndSet(OPEN, CLOSED);
-//            }
-//        } else {
-//            if (state.get() == CLOSED) {
-//                long currentTime = currentMillisTime(nanoTime);
-//                BreakerConfig config = breakerConfig;
-//                HealthSnapshot health = this.health;
-//                long failures = health.failures;
-//                int failurePercentage = health.failurePercentage();
-//                if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
-//                        config.sampleSizeThreshold < health.total)) {
-//                    lastTestedTime = currentTime;
-//                    state.compareAndSet(CLOSED, OPEN);
-//                }
-//            }
-//        }
-//    }
-//
-//    @Override
-//    public BreakerConfig getBreakerConfig() {
-//        return breakerConfig;
-//    }
-//
-//    @Override
-//    public void setBreakerConfig(BreakerConfig breakerConfig) {
-//        this.breakerConfig = breakerConfig;
-//    }
-//
-//    public void setCountMetrics(CountMetrics<?> countMetrics) {
-//        this.countMetrics = countMetrics;
-//    }
-//
-//    @Override
-//    public void forceOpen() {
-//        state.set(FORCED_OPEN);
-//    }
-//
-//    @Override
-//    public void forceClosed() {
-//        state.set(CLOSED);
-//    }
-//
-    @Override
-    public void tick(long currentTime) {
-//        health = countMetrics.healthSnapshot(breakerConfig.trailingPeriodMillis, TimeUnit.MILLISECONDS);
+/**
+ * Unstable and still in development. At this time, {@link DefaultCircuitBreaker} should be used.
+ */
+public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements CircuitBreaker<Rejected>, BackgroundTask {
+    private static final int CLOSED = 0;
+    private static final int OPEN = 1;
+    private static final int FORCED_OPEN = 2;
+
+    private final AtomicInteger state = new AtomicInteger(0);
+    private final HealthGauge healthGauge;
+    private volatile long lastTestedTime = 0;
+    private volatile CircuitBreakerConfig<Rejected> breakerConfig;
+    private volatile HealthSnapshot health = new HealthSnapshot(0, 0);
+
+    public SWCircuitBreaker(CircuitBreakerConfig<Rejected> breakerConfig) {
+        this(breakerConfig, new HealthGauge());
     }
-//
-//    private static long currentMillisTime(long nanoTime) {
-//        return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
-//    }
+
+    public SWCircuitBreaker(CircuitBreakerConfig<Rejected> breakerConfig, HealthGauge healthGauge) {
+        this.breakerConfig = breakerConfig;
+        this.healthGauge = healthGauge;
+    }
+
+    @Override
+    public Rejected acquirePermit(long number, long nanoTime) {
+        CircuitBreakerConfig<Rejected> config = breakerConfig;
+        int state = this.state.get();
+        if (state == OPEN) {
+            long backOffTimeMillis = config.backOffTimeMillis;
+            long currentTime = TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
+            if (currentTime < backOffTimeMillis + lastTestedTime) {
+                return config.reason;
+            }
+            lastTestedTime = currentTime;
+        }
+        return state != FORCED_OPEN ? null : config.reason;
+    }
+
+    @Override
+    public void releasePermit(long number, long nanoTime) {
+    }
+
+    @Override
+    public void releasePermit(long number, Failable result, long nanoTime) {
+        if (result.isSuccess()) {
+            if (state.get() == OPEN) {
+                state.compareAndSet(OPEN, CLOSED);
+            }
+        } else {
+            if (state.get() == CLOSED) {
+                long currentTime = TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
+                CircuitBreakerConfig<Rejected> config = breakerConfig;
+                HealthSnapshot health = this.health;
+                long failures = health.failures;
+                int failurePercentage = health.failurePercentage();
+                if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
+                        config.sampleSizeThreshold < health.total)) {
+                    lastTestedTime = currentTime;
+                    state.compareAndSet(CLOSED, OPEN);
+                }
+            }
+        }
+    }
+
+    @Override
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+        TotalCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
+        if (resultMetrics instanceof RollingCountMetrics) {
+            healthGauge.add((RollingCountMetrics<Result>) resultMetrics);
+        } else {
+            throw new IllegalArgumentException("SWCircuitBreaker requires rolling result metrics");
+        }
+    }
+
+    @Override
+    public boolean isOpen() {
+        return state.get() != CLOSED;
+    }
+
+    @Override
+    public CircuitBreakerConfig<Rejected> getBreakerConfig() {
+        return breakerConfig;
+    }
+
+    @Override
+    public void setBreakerConfig(CircuitBreakerConfig<Rejected> breakerConfig) {
+        this.breakerConfig = breakerConfig;
+    }
+
+    @Override
+    public void forceOpen() {
+        state.set(FORCED_OPEN);
+    }
+
+    @Override
+    public void forceClosed() {
+        state.set(CLOSED);
+    }
+
+    @Override
+    public void tick(long nanoTime) {
+        health = healthGauge.getHealth(breakerConfig.trailingPeriodMillis, TimeUnit.MILLISECONDS, nanoTime);
+    }
 }

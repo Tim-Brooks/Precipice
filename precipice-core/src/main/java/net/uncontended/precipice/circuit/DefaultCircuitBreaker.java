@@ -73,7 +73,7 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
     public void releasePermit(long number, Failable result, long nanoTime) {
         if (result.isSuccess()) {
             if (state.get() == OPEN) {
-                // This can get stuck in a loop with open and closing
+                // Explore whether this can get stuck in a loop with open and closing
                 state.compareAndSet(OPEN, CLOSED);
             }
         } else {
