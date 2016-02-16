@@ -18,7 +18,6 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.CompletionContext;
-import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.test_utils.TestCallables;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
@@ -31,9 +30,7 @@ import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,12 +43,12 @@ public class CallServiceTest {
     @Mock
     private PrecipiceFunction<Status, PerformingContext> releaseFunction;
 
-    private CallService service;
+    private CallService<Rejected> service;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        service = new CallService(guardRail);
+        service = new CallService<>(guardRail);
 
         when(guardRail.getClock()).thenReturn(new SystemTime());
         when(guardRail.releaseFunction()).thenReturn(releaseFunction);

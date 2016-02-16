@@ -17,13 +17,13 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.factories.CompletableFactory;
 import net.uncontended.precipice.concurrent.Completable;
+import net.uncontended.precipice.factories.CompletableFactory;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.Callable;
 
-public class CallService implements Precipice<Status, Rejected> {
+public class CallService<Rejected extends Enum<Rejected>> implements Precipice<Status, Rejected> {
 
     private final GuardRail<Status, Rejected> guardRail;
 

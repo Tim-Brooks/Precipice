@@ -61,13 +61,19 @@ if (rejectedReason == null) {
 
 ```
 
-## Roadmap
+If you are interested in integrating your work into a class wrapping this related work there is an **Precipice** interface. This interface has a single method to return the Precipice's guardrail.
 
-1. Revisit all names. As we near a finalize API, any method or class name that can be improved will be improved. The final public API should be determined by the end of August.
-2. Continue to add documentation. This includes Javadoc, examples, and discussion of architecture.
-3. Improved metrics. Currently metrics are pretty basic and only include counts. Some sense of latency seems to make sense. Additionally, it may make sense for patterns to have their own metrics.
-4. Ensure some amount of compatibility with [reactive streams](http://www.reactive-streams.org/).
-5. Improved performance of submitting to the default services.
+There is an generic CallService for wrapping Callables with the Guardrail protections. This will wire up all acquiring and releasing of permits for you.
+
+```java
+CallService<RejectedType> callService = new CallService<>(guardRail);
+
+try {
+	Request req = callService.call(() -> client.submitHttpClient());
+} catch (RejectedException e) {
+	
+} 
+```
 
 ## License
 
