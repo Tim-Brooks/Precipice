@@ -71,7 +71,7 @@ CallService<RejectedType> callService = new CallService<>(guardRail);
 try {
 	Request req = callService.call(() -> client.submitHttpClient());
 } catch (RejectedException e) {
-	
+	// Handle exception
 } 
 ```
 
