@@ -23,31 +23,31 @@ import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.Callable;
 
-public class CallService<Rejected extends Enum<Rejected>> implements Precipice<Status, Rejected> {
+public class CallService<Rejected extends Enum<Rejected>> implements Precipice<TimeoutableResult, Rejected> {
 
-    private final GuardRail<Status, Rejected> guardRail;
+    private final GuardRail<TimeoutableResult, Rejected> guardRail;
 
-    public CallService(GuardRail<Status, Rejected> guardRail) {
+    public CallService(GuardRail<TimeoutableResult, Rejected> guardRail) {
         this.guardRail = guardRail;
     }
 
     @Override
-    public GuardRail<Status, Rejected> guardRail() {
+    public GuardRail<TimeoutableResult, Rejected> guardRail() {
         return guardRail;
     }
 
     public <T> T call(Callable<T> callable) throws Exception {
-        Completable<Status, T> completable = CompletableFactory.acquirePermitsAndGetCompletable(guardRail, 1L);
+        Completable<TimeoutableResult, T> completable = CompletableFactory.acquirePermitsAndGetCompletable(guardRail, 1L);
 
         try {
             T result = callable.call();
-            completable.complete(Status.SUCCESS, result);
+            completable.complete(TimeoutableResult.SUCCESS, result);
             return result;
         } catch (PrecipiceTimeoutException e) {
-            completable.completeExceptionally(Status.TIMEOUT, e);
+            completable.completeExceptionally(TimeoutableResult.TIMEOUT, e);
             throw e;
         } catch (Exception e) {
-            completable.completeExceptionally(Status.ERROR, e);
+            completable.completeExceptionally(TimeoutableResult.ERROR, e);
             throw e;
         }
     }

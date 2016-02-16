@@ -19,7 +19,7 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.TimeoutableResult;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
@@ -56,11 +56,11 @@ public class ThreadPoolPatternTest {
     @Mock
     private ThreadPoolService service3;
     @Mock
-    private GuardRail<Status, ?> guardRail1;
+    private GuardRail<TimeoutableResult, ?> guardRail1;
     @Mock
-    private GuardRail<Status, ?> guardRail2;
+    private GuardRail<TimeoutableResult, ?> guardRail2;
     @Mock
-    private GuardRail<Status, ?> guardRail3;
+    private GuardRail<TimeoutableResult, ?> guardRail3;
     @Mock
     private ExecutorService executor1;
     @Mock
@@ -74,7 +74,7 @@ public class ThreadPoolPatternTest {
     @Mock
     private TimeoutService timeoutService3;
     @Mock
-    private GuardRail<Status, Rejected> guardRail;
+    private GuardRail<TimeoutableResult, Rejected> guardRail;
     @Mock
     private Clock clock;
     @Mock
@@ -82,13 +82,13 @@ public class ThreadPoolPatternTest {
     @Mock
     private TotalCountMetrics<Rejected> metrics;
     @Mock
-    private Pattern<Status, ThreadPoolService<?>> pattern;
+    private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock
     private PatternAction<String, Object> action;
     @Captor
-    private ArgumentCaptor<ThreadPoolTask<Status>> task1Captor;
+    private ArgumentCaptor<ThreadPoolTask<TimeoutableResult>> task1Captor;
     @Captor
-    private ArgumentCaptor<ThreadPoolTask<Status>> task2Captor;
+    private ArgumentCaptor<ThreadPoolTask<TimeoutableResult>> task2Captor;
 
     private ThreadPoolPattern<Object> poolPattern;
     private long submitTimeNanos = 10L;
@@ -125,9 +125,9 @@ public class ThreadPoolPatternTest {
 //    @Test
 //    public void actionsSubmittedToServices() throws Exception {
 //        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable(service1, service3);
-//        Eventual<Status, Object> parent = new Eventual<>(1L, submitTimeNanos);
-//        Eventual<Status, Object> child1 = new Eventual<>(1L, submitTimeNanos, parent);
-//        Eventual<Status, Object> child2 = new Eventual<>(1L, submitTimeNanos, parent);
+//        Eventual<TimeoutableResult, Object> parent = new Eventual<>(1L, submitTimeNanos);
+//        Eventual<TimeoutableResult, Object> child1 = new Eventual<>(1L, submitTimeNanos, parent);
+//        Eventual<TimeoutableResult, Object> child2 = new Eventual<>(1L, submitTimeNanos, parent);
 //        long millisTimeout = 100L;
 //
 //        when(guardRail.acquirePermits(1L)).thenReturn(null);
@@ -136,7 +136,7 @@ public class ThreadPoolPatternTest {
 //        when(promiseFactory1.getPromise(guardRail, 1L, submitTimeNanos, parent)).thenReturn(child1);
 //        when(promiseFactory3.getPromise(guardRail, 1L, submitTimeNanos, parent)).thenReturn(child2);
 //
-//        PrecipiceFuture<Status, String> f = poolPattern.submit(action, millisTimeout);
+//        PrecipiceFuture<TimeoutableResult, String> f = poolPattern.submit(action, millisTimeout);
 //
 //        verifyZeroInteractions(service2);
 //        verify(promiseFactory1).getPromise(guardRail, 1L, submitTimeNanos, parent);
@@ -146,10 +146,10 @@ public class ThreadPoolPatternTest {
 //        verify(timeoutService1).scheduleTimeout(task1Captor.capture());
 //        verify(timeoutService3).scheduleTimeout(task2Captor.capture());
 //
-//        ThreadPoolTask<Status> task1 = task1Captor.getAllValues().get(0);
-//        ThreadPoolTask<Status> task12 = task1Captor.getAllValues().get(1);
-//        ThreadPoolTask<Status> task2 = task2Captor.getAllValues().get(0);
-//        ThreadPoolTask<Status> task22 = task2Captor.getAllValues().get(1);
+//        ThreadPoolTask<TimeoutableResult> task1 = task1Captor.getAllValues().get(0);
+//        ThreadPoolTask<TimeoutableResult> task12 = task1Captor.getAllValues().get(1);
+//        ThreadPoolTask<TimeoutableResult> task2 = task2Captor.getAllValues().get(0);
+//        ThreadPoolTask<TimeoutableResult> task22 = task2Captor.getAllValues().get(1);
 //
 //        assertSame(task1, task12);
 //        assertSame(task2, task22);
@@ -163,15 +163,15 @@ public class ThreadPoolPatternTest {
 //        assertNull(f.getStatus());
 //        task1.run();
 //        task2.run();
-//        assertEquals(Status.SUCCESS, f.getStatus());
+//        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
 //        assertEquals("Service1", f.getResult());
 //
-//        PrecipiceFuture<Status, Object> future1 = child1.future();
-//        PrecipiceFuture<Status, Object> future2 = child2.future();
+//        PrecipiceFuture<TimeoutableResult, Object> future1 = child1.future();
+//        PrecipiceFuture<TimeoutableResult, Object> future2 = child2.future();
 //        assertEquals("Service1", future1.getResult());
-//        assertEquals(Status.SUCCESS, future1.getStatus());
+//        assertEquals(TimeoutableResult.SUCCESS, future1.getStatus());
 //        assertEquals("Service3", future2.getResult());
-//        assertEquals(Status.SUCCESS, future2.getStatus());
+//        assertEquals(TimeoutableResult.SUCCESS, future2.getStatus());
 //    }
 //
 //    @Test

@@ -37,11 +37,11 @@ import static org.mockito.Mockito.when;
 public class CallServiceTest {
 
     @Mock
-    private GuardRail<Status, Rejected> guardRail;
+    private GuardRail<TimeoutableResult, Rejected> guardRail;
     @Mock
-    private CompletionContext<Status, Object> context;
+    private CompletionContext<TimeoutableResult, Object> context;
     @Mock
-    private PrecipiceFunction<Status, PerformingContext> releaseFunction;
+    private PrecipiceFunction<TimeoutableResult, PerformingContext> releaseFunction;
 
     private CallService<Rejected> service;
 
@@ -80,7 +80,7 @@ public class CallServiceTest {
 
         String result = service.call(TestCallables.success(1));
 
-        verify(releaseFunction).apply(eq(Status.SUCCESS), any(PerformingContext.class));
+        verify(releaseFunction).apply(eq(TimeoutableResult.SUCCESS), any(PerformingContext.class));
         assertEquals(expectedResult, result);
     }
 
@@ -96,7 +96,7 @@ public class CallServiceTest {
             assertEquals(e, exception);
         }
 
-        verify(releaseFunction).apply(eq(Status.ERROR), any(PerformingContext.class));
+        verify(releaseFunction).apply(eq(TimeoutableResult.ERROR), any(PerformingContext.class));
     }
 
     @Test
@@ -111,6 +111,6 @@ public class CallServiceTest {
             assertEquals(e, exception);
         }
 
-        verify(releaseFunction).apply(eq(Status.TIMEOUT), any(PerformingContext.class));
+        verify(releaseFunction).apply(eq(TimeoutableResult.TIMEOUT), any(PerformingContext.class));
     }
 }

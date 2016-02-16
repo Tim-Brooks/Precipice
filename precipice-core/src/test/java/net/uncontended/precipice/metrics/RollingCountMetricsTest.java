@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.TimeoutableResult;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class RollingCountMetricsTest {
     @Mock
     private Clock systemTime;
 
-    private RollingCountMetrics<Status> metrics;
+    private RollingCountMetrics<TimeoutableResult> metrics;
 
     @Before
     public void setUp() {
@@ -45,18 +45,18 @@ public class RollingCountMetricsTest {
     @Test
     public void testMetricsEdgeScenario() {
         when(systemTime.nanoTime()).thenReturn(0L * 1000L * 1000L);
-        metrics = new RollingCountMetrics<>(Status.class, 1, 1, TimeUnit.SECONDS, systemTime);
+        metrics = new RollingCountMetrics<>(TimeoutableResult.class, 1, 1, TimeUnit.SECONDS, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
-        metrics.incrementMetricCount(Status.SUCCESS);
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS);
         when(systemTime.nanoTime()).thenReturn(2L * 1000L * 1000L);
-        metrics.incrementMetricCount(Status.SUCCESS);
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS);
 
         when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCount(Status.SUCCESS, 1, TimeUnit.SECONDS));
+        assertEquals(2, metrics.getMetricCount(TimeoutableResult.SUCCESS, 1, TimeUnit.SECONDS));
 
         when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCount(Status.SUCCESS, 1, TimeUnit.SECONDS));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.SUCCESS, 1, TimeUnit.SECONDS));
     }
 
     @Test
@@ -66,30 +66,30 @@ public class RollingCountMetricsTest {
         int slotsToTrack = 2;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new RollingCountMetrics<>(Status.class, slotsToTrack, 1, unit, systemTime);
+        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsToTrack, 1, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
-        metrics.incrementMetricCount(Status.ERROR);
+        metrics.incrementMetricCount(TimeoutableResult.ERROR);
         when(systemTime.nanoTime()).thenReturn(2L * 1000L * 1000L);
-        metrics.incrementMetricCount(Status.ERROR);
+        metrics.incrementMetricCount(TimeoutableResult.ERROR);
 
         when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCount(Status.ERROR, 1, unit));
+        assertEquals(2, metrics.getMetricCount(TimeoutableResult.ERROR, 1, unit));
 
         when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCount(Status.ERROR, 2, unit));
+        assertEquals(2, metrics.getMetricCount(TimeoutableResult.ERROR, 2, unit));
 
         when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCount(Status.ERROR, 1, unit));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.ERROR, 1, unit));
 
         when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(2, metrics.getMetricCount(Status.ERROR, 2, unit));
+        assertEquals(2, metrics.getMetricCount(TimeoutableResult.ERROR, 2, unit));
 
         when(systemTime.nanoTime()).thenReturn(2000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCount(Status.ERROR, 1, unit));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.ERROR, 1, unit));
 
         when(systemTime.nanoTime()).thenReturn(2000L * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCount(Status.ERROR, 2, unit));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.ERROR, 2, unit));
     }
 
     @Test
@@ -102,19 +102,19 @@ public class RollingCountMetricsTest {
         long millisResolution = resolution * 1000;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new RollingCountMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsTracked, resolution, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 8) * 1000L * 1000L);
-        metrics.incrementMetricCount(Status.ERROR);
+        metrics.incrementMetricCount(TimeoutableResult.ERROR);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 20) * 1000L * 1000L);
-        metrics.incrementMetricCount(Status.SUCCESS);
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + millisResolution * 21) * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCount(Status.ERROR, resolution, unit));
-        assertEquals(0, metrics.getMetricCount(Status.SUCCESS, resolution, unit));
-        assertEquals(1, metrics.getMetricCount(Status.SUCCESS, resolution * 2, unit));
-        assertEquals(1, metrics.getTotalMetricCount(Status.ERROR));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.ERROR, resolution, unit));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.SUCCESS, resolution, unit));
+        assertEquals(1, metrics.getMetricCount(TimeoutableResult.SUCCESS, resolution * 2, unit));
+        assertEquals(1, metrics.getTotalMetricCount(TimeoutableResult.ERROR));
     }
 
     @Test
@@ -124,16 +124,16 @@ public class RollingCountMetricsTest {
         long resolution = 1;
         int slotsTracked = 10;
         when(systemTime.nanoTime()).thenReturn(startTime);
-        metrics = new RollingCountMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsTracked, resolution, unit, systemTime);
 
-        metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(0));
-        metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(10));
-        metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(20));
-        metrics.incrementMetricCount(Status.SUCCESS, TimeUnit.SECONDS.toNanos(30));
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS, TimeUnit.SECONDS.toNanos(0));
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS, TimeUnit.SECONDS.toNanos(10));
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS, TimeUnit.SECONDS.toNanos(20));
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS, TimeUnit.SECONDS.toNanos(30));
 
         long currentTime = TimeUnit.SECONDS.toNanos(30);
-        assertEquals(1, metrics.getMetricCount(Status.SUCCESS, 10, TimeUnit.SECONDS), currentTime);
-        assertEquals(4, metrics.getTotalMetricCount(Status.SUCCESS));
+        assertEquals(1, metrics.getMetricCount(TimeoutableResult.SUCCESS, 10, TimeUnit.SECONDS), currentTime);
+        assertEquals(4, metrics.getTotalMetricCount(TimeoutableResult.SUCCESS));
     }
 
     @Test
@@ -145,26 +145,26 @@ public class RollingCountMetricsTest {
         int slotsTracked = 1000;
 
         when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
-        metrics = new RollingCountMetrics<>(Status.class, slotsTracked, resolution, unit, systemTime);
+        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsTracked, resolution, unit, systemTime);
 
         when(systemTime.nanoTime()).thenReturn(offsetTime * 1000L * 1000L);
-        metrics.incrementMetricCount(Status.SUCCESS);
+        metrics.incrementMetricCount(TimeoutableResult.SUCCESS);
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + resolution) * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCount(Status.SUCCESS, resolution, unit));
-        assertEquals(1, metrics.getMetricCount(Status.SUCCESS, resolution * 2, unit));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.SUCCESS, resolution, unit));
+        assertEquals(1, metrics.getMetricCount(TimeoutableResult.SUCCESS, resolution * 2, unit));
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * (slotsTracked - 1)) * 1000L * 1000L);
-        assertEquals(1, metrics.getMetricCount(Status.SUCCESS, slotsTracked * resolution, unit));
+        assertEquals(1, metrics.getMetricCount(TimeoutableResult.SUCCESS, slotsTracked * resolution, unit));
 
         when(systemTime.nanoTime()).thenReturn((offsetTime + resolution * slotsTracked) * 1000L * 1000L);
-        assertEquals(0, metrics.getMetricCount(Status.SUCCESS, slotsTracked * resolution, unit));
+        assertEquals(0, metrics.getMetricCount(TimeoutableResult.SUCCESS, slotsTracked * resolution, unit));
     }
 
     @Test
     public void concurrentTest() throws Exception {
         when(systemTime.nanoTime()).thenReturn(1500L * 1000L * 1000L);
-        metrics = new RollingCountMetrics<>(Status.class, 5, 1, TimeUnit.SECONDS, systemTime);
+        metrics = new RollingCountMetrics<>(TimeoutableResult.class, 5, 1, TimeUnit.SECONDS, systemTime);
 
         long currentTime = 1980L * 1000L * 1000L;
         fireThreads(metrics, currentTime, 10);
@@ -182,21 +182,21 @@ public class RollingCountMetricsTest {
         fireThreads(metrics, currentTime, 10);
 
         when(systemTime.nanoTime()).thenReturn(6000L * 1000L * 1000L);
-        assertEquals(5000, metrics.getMetricCount(Status.SUCCESS, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getMetricCount(Status.ERROR, 5, TimeUnit.SECONDS));
-        assertEquals(5000, metrics.getMetricCount(Status.TIMEOUT, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCount(TimeoutableResult.SUCCESS, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCount(TimeoutableResult.ERROR, 5, TimeUnit.SECONDS));
+        assertEquals(5000, metrics.getMetricCount(TimeoutableResult.TIMEOUT, 5, TimeUnit.SECONDS));
 
-        assertEquals(1000, metrics.getMetricCount(Status.SUCCESS, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getMetricCount(Status.ERROR, 1, TimeUnit.SECONDS));
-        assertEquals(1000, metrics.getMetricCount(Status.TIMEOUT, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCount(TimeoutableResult.SUCCESS, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCount(TimeoutableResult.ERROR, 1, TimeUnit.SECONDS));
+        assertEquals(1000, metrics.getMetricCount(TimeoutableResult.TIMEOUT, 1, TimeUnit.SECONDS));
 
         when(systemTime.nanoTime()).thenReturn(6500L * 1000L * 1000L);
-        assertEquals(4000, metrics.getMetricCount(Status.SUCCESS, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getMetricCount(Status.ERROR, 5, TimeUnit.SECONDS));
-        assertEquals(4000, metrics.getMetricCount(Status.TIMEOUT, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCount(TimeoutableResult.SUCCESS, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCount(TimeoutableResult.ERROR, 5, TimeUnit.SECONDS));
+        assertEquals(4000, metrics.getMetricCount(TimeoutableResult.TIMEOUT, 5, TimeUnit.SECONDS));
     }
 
-    private static void fireThreads(final RollingCountMetrics<Status> metrics, final long nanoTime, int num) throws
+    private static void fireThreads(final RollingCountMetrics<TimeoutableResult> metrics, final long nanoTime, int num) throws
             InterruptedException {
         final CountDownLatch latch = new CountDownLatch(num);
 
@@ -205,9 +205,9 @@ public class RollingCountMetricsTest {
                 @Override
                 public void run() {
                     for (int j = 0; j < 100; ++j) {
-                        metrics.incrementMetricCount(Status.SUCCESS, nanoTime);
-                        metrics.incrementMetricCount(Status.ERROR, nanoTime);
-                        metrics.incrementMetricCount(Status.TIMEOUT, nanoTime);
+                        metrics.incrementMetricCount(TimeoutableResult.SUCCESS, nanoTime);
+                        metrics.incrementMetricCount(TimeoutableResult.ERROR, nanoTime);
+                        metrics.incrementMetricCount(TimeoutableResult.TIMEOUT, nanoTime);
                     }
                     latch.countDown();
                 }

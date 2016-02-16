@@ -19,7 +19,6 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.PerformingContext;
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Status;
 import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;
 import org.junit.Test;

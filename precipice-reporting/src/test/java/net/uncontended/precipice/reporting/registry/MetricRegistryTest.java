@@ -26,7 +26,7 @@ public class MetricRegistryTest {
 //    private CountMetrics countMetrics;
 //
 //    @Mock
-//    private IntervalLatencyMetrics<Status> latencyMetrics;
+//    private IntervalLatencyMetrics<TimeoutableResult> latencyMetrics;
 //    private MetricRegistry registry;
 //
 //    @Before
@@ -36,7 +36,7 @@ public class MetricRegistryTest {
 //        when(service.getName()).thenReturn(serviceName);
 //        when(service.getActionMetrics()).thenReturn(countMetrics);
 //        when(service.getLatencyMetrics()).thenReturn(latencyMetrics);
-//        when(countMetrics.getMetricType()).thenReturn(Status.class);
+//        when(countMetrics.getMetricType()).thenReturn(TimeoutableResult.class);
 //    }
 //
 //    @Test
@@ -53,17 +53,17 @@ public class MetricRegistryTest {
 //        long circuitOpenN = random.nextInt(50);
 //        long allRejectedN = random.nextInt(50);
 //
-//        MetricCounter<Status> counter = new MetricCounter<>(Status.class);
-//        incrementCounts(counter, Status.SUCCESS, successN);
-//        incrementCounts(counter, Status.ERROR, errorN);
-//        incrementCounts(counter, Status.TIMEOUT, timeoutN);
-//        List<MetricCounter<Status>> counters = new ArrayList<>();
+//        MetricCounter<TimeoutableResult> counter = new MetricCounter<>(TimeoutableResult.class);
+//        incrementCounts(counter, TimeoutableResult.SUCCESS, successN);
+//        incrementCounts(counter, TimeoutableResult.ERROR, errorN);
+//        incrementCounts(counter, TimeoutableResult.TIMEOUT, timeoutN);
+//        List<MetricCounter<TimeoutableResult>> counters = new ArrayList<>();
 //        int bucketCount = random.nextInt(10);
 //        for (int i = 0; i < bucketCount; ++i) {
-//            MetricCounter<Status> mc = new MetricCounter<>(Status.class);
-//            incrementCounts(mc, Status.SUCCESS, successN);
-//            incrementCounts(mc, Status.ERROR, errorN);
-//            incrementCounts(mc, Status.TIMEOUT, timeoutN);
+//            MetricCounter<TimeoutableResult> mc = new MetricCounter<>(TimeoutableResult.class);
+//            incrementCounts(mc, TimeoutableResult.SUCCESS, successN);
+//            incrementCounts(mc, TimeoutableResult.ERROR, errorN);
+//            incrementCounts(mc, TimeoutableResult.TIMEOUT, timeoutN);
 //            counters.add(mc);
 //        }
 //        LatencySnapshot successLatencySnapshot = generateSnapshot(random);
@@ -77,12 +77,12 @@ public class MetricRegistryTest {
 //        when(service.remainingCapacity()).thenReturn(capacityN);
 //        when(countMetrics.totalCountMetricCounter()).thenReturn(counter);
 //        when(countMetrics.metricCounterIterable(50, TimeUnit.MILLISECONDS)).thenReturn(counters);
-//        when(latencyMetrics.intervalSnapshot(Status.SUCCESS)).thenReturn(successLatencySnapshot);
-//        when(latencyMetrics.intervalSnapshot(Status.ERROR)).thenReturn(errorLatencySnapshot);
-//        when(latencyMetrics.intervalSnapshot(Status.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
-//        when(latencyMetrics.latencySnapshot(Status.SUCCESS)).thenReturn(totalSuccessLatencySnapshot);
-//        when(latencyMetrics.latencySnapshot(Status.ERROR)).thenReturn(totalErrorLatencySnapshot);
-//        when(latencyMetrics.latencySnapshot(Status.TIMEOUT)).thenReturn(totalTimeoutLatencySnapshot);
+//        when(latencyMetrics.intervalSnapshot(TimeoutableResult.SUCCESS)).thenReturn(successLatencySnapshot);
+//        when(latencyMetrics.intervalSnapshot(TimeoutableResult.ERROR)).thenReturn(errorLatencySnapshot);
+//        when(latencyMetrics.intervalSnapshot(TimeoutableResult.TIMEOUT)).thenReturn(timeoutLatencySnapshot);
+//        when(latencyMetrics.latencySnapshot(TimeoutableResult.SUCCESS)).thenReturn(totalSuccessLatencySnapshot);
+//        when(latencyMetrics.latencySnapshot(TimeoutableResult.ERROR)).thenReturn(totalErrorLatencySnapshot);
+//        when(latencyMetrics.latencySnapshot(TimeoutableResult.TIMEOUT)).thenReturn(totalTimeoutLatencySnapshot);
 //
 //        registry = new MetricRegistry(50, TimeUnit.MILLISECONDS);
 //
@@ -121,7 +121,7 @@ public class MetricRegistryTest {
 //                startTime + 10000L);
 //    }
 //
-//    private static void incrementCounts(MetricCounter<Status> counter, Status metric, long n) {
+//    private static void incrementCounts(MetricCounter<TimeoutableResult> counter, TimeoutableResult metric, long n) {
 //        for (long i = 0; i < n; ++i) {
 //            counter.incrementMetric(metric);
 //        }

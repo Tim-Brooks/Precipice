@@ -17,14 +17,14 @@
 
 package net.uncontended.precipice;
 
-public enum Status implements Failable {
+public enum TimeoutableResult implements Failable {
     SUCCESS(false),
     ERROR(true),
     TIMEOUT(true);
 
     private final boolean isFailed;
 
-    Status(boolean isFailed) {
+    TimeoutableResult(boolean isFailed) {
         this.isFailed = isFailed;
     }
 
@@ -35,6 +35,6 @@ public enum Status implements Failable {
 
     @Override
     public boolean isSuccess() {
-        return this == SUCCESS;
+        return !isFailed;
     }
 }

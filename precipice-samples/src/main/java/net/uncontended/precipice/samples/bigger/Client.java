@@ -28,8 +28,8 @@ public class Client {
 //        addServiceToMap(services, "Weather-1", 6001);
 //        addServiceToMap(services, "Weather-2", 7001);
 //
-//        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
-//        properties.actionMetrics(new DefaultCountMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS));
+//        ControllerProperties<TimeoutableResult> properties = new ControllerProperties<>(TimeoutableResult.class);
+//        properties.actionMetrics(new DefaultCountMetrics<>(TimeoutableResult.class, 20, 500, TimeUnit.MILLISECONDS));
 //        PatternStrategy strategy = new RoundRobinLoadBalancer(services.size());
 //        loadBalancer = null;
 ////        loadBalancer = new ThreadPoolLoadBalancer<>(services, null);
@@ -42,9 +42,9 @@ public class Client {
 //            Thread.sleep(20);
 //
 //            try {
-//                PrecipiceFuture<Status, String> f = loadBalancer.submit(new Action(), 20L);
+//                PrecipiceFuture<TimeoutableResult, String> f = loadBalancer.submit(new Action(), 20L);
 //                String result = f.get();
-//                Status status = f.getStatus();
+//                TimeoutableResult status = f.getStatus();
 //
 //
 //                System.out.println(result);
@@ -66,12 +66,12 @@ public class Client {
 //        BreakerConfigBuilder builder = new BreakerConfigBuilder()
 //                .backOffTimeMillis(2000)
 //                .trailingPeriodMillis(3000);
-//        DefaultCountMetrics<Status> actionMetrics = new DefaultCountMetrics<>(Status.class, 20, 500, TimeUnit.MILLISECONDS);
+//        DefaultCountMetrics<TimeoutableResult> actionMetrics = new DefaultCountMetrics<>(TimeoutableResult.class, 20, 500, TimeUnit.MILLISECONDS);
 //        DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
-//        ControllerProperties<Status> properties = new ControllerProperties<>(Status.class);
+//        ControllerProperties<TimeoutableResult> properties = new ControllerProperties<>(TimeoutableResult.class);
 //        properties.actionMetrics(actionMetrics);
 //        properties.circuitBreaker(breaker);
-//        Controller<Status> controller = new Controller<>(name, properties);
+//        Controller<TimeoutableResult> controller = new Controller<>(name, properties);
 //        final ThreadPoolService service = new ThreadPoolService(5, controller);
 //        Map<String, Object> context = new HashMap<>();
 //        context.put("host", "127.0.0.1");

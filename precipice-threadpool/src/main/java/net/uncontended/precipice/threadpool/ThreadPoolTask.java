@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.TimeoutableResult;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
@@ -27,7 +27,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
@@ -37,12 +36,12 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;
-    private final PrecipicePromise<Status, T> promise;
+    private final PrecipicePromise<TimeoutableResult, T> promise;
     private final Callable<T> callable;
     private final AtomicInteger state = new AtomicInteger(PENDING);
     private volatile Thread runner;
 
-    public ThreadPoolTask(Callable<T> callable, PrecipicePromise<Status, T> promise, long millisRelativeTimeout,
+    public ThreadPoolTask(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise, long millisRelativeTimeout,
                           long nanosAbsoluteStart) {
         this.callable = callable;
         this.promise = promise;
@@ -114,7 +113,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
     private void safeSetSuccess(T result) {
         try {
             if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
-                promise.complete(Status.SUCCESS, result);
+                promise.complete(TimeoutableResult.SUCCESS, result);
                 return;
             }
             if (state.get() == INTERRUPTING) {
@@ -128,7 +127,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
     private void safeSetErred(Throwable e) {
         try {
             if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
-                promise.completeExceptionally(Status.ERROR, e);
+                promise.completeExceptionally(TimeoutableResult.ERROR, e);
                 return;
             }
             if (state.get() == INTERRUPTING) {
@@ -145,7 +144,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
                 if (runner != null) {
                     runner.interrupt();
                 }
-                promise.completeExceptionally(Status.TIMEOUT, e);
+                promise.completeExceptionally(TimeoutableResult.TIMEOUT, e);
                 state.set(DONE);
             }
         } catch (Throwable t) {

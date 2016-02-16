@@ -20,7 +20,7 @@ package net.uncontended.precipice.threadpool;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.RejectedException;
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.TimeoutableResult;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 public class ThreadPoolServiceTest {
 
     @Mock
-    private GuardRail<Status, Rejected> guardRail;
+    private GuardRail<TimeoutableResult, Rejected> guardRail;
 
     private ThreadPoolService<Rejected> service;
     private ExecutorService executorService;
@@ -102,15 +102,15 @@ public class ThreadPoolServiceTest {
     public void callableIsSubmittedAndRan() throws Exception {
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
-        PrecipiceFuture<Status, String> f = service.submit(TestCallable.success(), TimeoutService.MAX_TIMEOUT_MILLIS);
+        PrecipiceFuture<TimeoutableResult, String> f = service.submit(TestCallable.success(), TimeoutService.MAX_TIMEOUT_MILLIS);
 
         assertEquals("Success", f.get());
-        assertEquals(Status.SUCCESS, f.getStatus());
+        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
     }
 
     @Test
     public void promisePassedToExecutorWillBeCompleted() throws Exception {
-        PrecipicePromise<Status, String> promise = new Eventual<>(1L);
+        PrecipicePromise<TimeoutableResult, String> promise = new Eventual<>(1L);
 
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
@@ -121,8 +121,8 @@ public class ThreadPoolServiceTest {
 
     @Test
     public void promiseCanBeCompletedExternallyWithoutImpactingService() throws Exception {
-        PrecipicePromise<Status, String> promise = mock(PrecipicePromise.class);
-        PrecipiceFuture<Status, String> future = mock(PrecipiceFuture.class);
+        PrecipicePromise<TimeoutableResult, String> promise = mock(PrecipicePromise.class);
+        PrecipiceFuture<TimeoutableResult, String> future = mock(PrecipiceFuture.class);
 
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
         when(promise.future()).thenReturn(future);
@@ -130,7 +130,7 @@ public class ThreadPoolServiceTest {
 
         service.complete(TestCallable.success("Success"), promise, Long.MAX_VALUE);
 
-        verify(promise).complete(Status.SUCCESS, "Success");
+        verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
     }
 
     @Test
@@ -138,7 +138,7 @@ public class ThreadPoolServiceTest {
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
         CountDownLatch latch = new CountDownLatch(1);
-        PrecipiceFuture<Status, String> future = service.submit(TestCallable.blocked(latch), 1);
+        PrecipiceFuture<TimeoutableResult, String> future = service.submit(TestCallable.blocked(latch), 1);
 
         try {
             future.get();
@@ -147,7 +147,7 @@ public class ThreadPoolServiceTest {
             assertTrue(e.getCause() instanceof PrecipiceTimeoutException);
         }
 
-        assertEquals(Status.TIMEOUT, future.getStatus());
+        assertEquals(TimeoutableResult.TIMEOUT, future.getStatus());
         assertTrue(future.getError() instanceof PrecipiceTimeoutException);
 
         latch.countDown();
@@ -158,7 +158,7 @@ public class ThreadPoolServiceTest {
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
         RuntimeException exception = new RuntimeException();
-        PrecipiceFuture<Status, String> future = service.submit(TestCallable.erred(exception), 100);
+        PrecipiceFuture<TimeoutableResult, String> future = service.submit(TestCallable.erred(exception), 100);
 
         try {
             future.get();
@@ -170,7 +170,7 @@ public class ThreadPoolServiceTest {
         }
         assertEquals(exception, future.getError());
         assertNull(future.getResult());
-        assertEquals(Status.ERROR, future.getStatus());
+        assertEquals(TimeoutableResult.ERROR, future.getStatus());
     }
 
     @Test

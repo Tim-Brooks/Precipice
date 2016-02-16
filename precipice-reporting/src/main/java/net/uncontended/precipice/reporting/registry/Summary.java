@@ -70,17 +70,17 @@ public class Summary<T extends Enum<T> & Failable> {
 //
 //        LatencyMetrics latencyMetrics = service.getLatencyMetrics();
 //
-//        if (metricType.isInstance(Status.class)) {
+//        if (metricType.isInstance(TimeoutableResult.class)) {
 //            if (latencyMetrics instanceof IntervalLatencyMetrics) {
-//                IntervalLatencyMetrics<Status> intervalMetrics = (IntervalLatencyMetrics<Status>) latencyMetrics;
-//                successLatency = intervalMetrics.intervalSnapshot(Status.SUCCESS);
-//                errorLatency = intervalMetrics.intervalSnapshot(Status.ERROR);
-//                timeoutLatency = intervalMetrics.intervalSnapshot(Status.TIMEOUT);
+//                IntervalLatencyMetrics<TimeoutableResult> intervalMetrics = (IntervalLatencyMetrics<TimeoutableResult>) latencyMetrics;
+//                successLatency = intervalMetrics.intervalSnapshot(TimeoutableResult.SUCCESS);
+//                errorLatency = intervalMetrics.intervalSnapshot(TimeoutableResult.ERROR);
+//                timeoutLatency = intervalMetrics.intervalSnapshot(TimeoutableResult.TIMEOUT);
 //            }
 //
-//            totalSuccessLatency = latencyMetrics.latencySnapshot(Status.SUCCESS);
-//            totalErrorLatency = latencyMetrics.latencySnapshot(Status.ERROR);
-//            totalTimeoutLatency = latencyMetrics.latencySnapshot(Status.TIMEOUT);
+//            totalSuccessLatency = latencyMetrics.latencySnapshot(TimeoutableResult.SUCCESS);
+//            totalErrorLatency = latencyMetrics.latencySnapshot(TimeoutableResult.ERROR);
+//            totalTimeoutLatency = latencyMetrics.latencySnapshot(TimeoutableResult.TIMEOUT);
 //        }
 //    }
 }

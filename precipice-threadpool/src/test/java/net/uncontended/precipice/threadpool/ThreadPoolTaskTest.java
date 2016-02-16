@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.TimeoutableResult;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.test_utils.TestCallable;
@@ -37,9 +37,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class ThreadPoolTaskTest {
 
     @Mock
-    private PrecipicePromise<Status, String> promise;
+    private PrecipicePromise<TimeoutableResult, String> promise;
     @Mock
-    private PrecipiceFuture<Status, String> future;
+    private PrecipiceFuture<TimeoutableResult, String> future;
 
     private ThreadPoolTask<String> task;
 
@@ -82,7 +82,7 @@ public class ThreadPoolTaskTest {
 
         task.run();
 
-        verify(promise).complete(Status.SUCCESS, "Success");
+        verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
     }
 
     @Test
@@ -92,7 +92,7 @@ public class ThreadPoolTaskTest {
         task.run();
 
         verify(promise).future();
-        verify(promise).complete(Status.SUCCESS, "Success");
+        verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
 
         task.setTimedOut();
 
@@ -105,7 +105,7 @@ public class ThreadPoolTaskTest {
 
         task.setTimedOut();
 
-        verify(promise).completeExceptionally(same(Status.TIMEOUT), any(PrecipiceTimeoutException.class));
+        verify(promise).completeExceptionally(same(TimeoutableResult.TIMEOUT), any(PrecipiceTimeoutException.class));
     }
 
     @Test
@@ -114,7 +114,7 @@ public class ThreadPoolTaskTest {
 
         task.setTimedOut();
 
-        verify(promise).completeExceptionally(same(Status.TIMEOUT), any(PrecipiceTimeoutException.class));
+        verify(promise).completeExceptionally(same(TimeoutableResult.TIMEOUT), any(PrecipiceTimeoutException.class));
 
         task.run();
 

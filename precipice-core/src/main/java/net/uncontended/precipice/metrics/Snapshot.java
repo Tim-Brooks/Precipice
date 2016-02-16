@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Status;
+import net.uncontended.precipice.TimeoutableResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +47,7 @@ public final class Snapshot {
     private Snapshot() {
     }
 
-    public static Map<Object, Object> generate(MetricCounter<Status> totalCounter, Iterable<MetricCounter<Status>> slots) {
+    public static Map<Object, Object> generate(MetricCounter<TimeoutableResult> totalCounter, Iterable<MetricCounter<TimeoutableResult>> slots) {
 
         long total = 0;
         long successes = 0;
@@ -71,10 +71,10 @@ public final class Snapshot {
         long previousSuccesses = 0;
         long previousTimeouts = 0;
         long previousErrors = 0;
-        for (MetricCounter<Status> metricCounter : slots) {
-            long slotSuccesses = metricCounter.getMetricCount(Status.SUCCESS);
-            long slotErrors = metricCounter.getMetricCount(Status.ERROR);
-            long slotTimeouts = metricCounter.getMetricCount(Status.TIMEOUT);
+        for (MetricCounter<TimeoutableResult> metricCounter : slots) {
+            long slotSuccesses = metricCounter.getMetricCount(TimeoutableResult.SUCCESS);
+            long slotErrors = metricCounter.getMetricCount(TimeoutableResult.ERROR);
+            long slotTimeouts = metricCounter.getMetricCount(TimeoutableResult.TIMEOUT);
             long slotTotal = slotSuccesses + slotErrors + slotTimeouts;
 
             total = total + slotTotal;
@@ -123,10 +123,10 @@ public final class Snapshot {
         return metricsMap;
     }
 
-    private static void putTotalCounts(MetricCounter<Status> totalCounter, Map<Object, Object> metricsMap) {
-        long totalSuccesses = totalCounter.getMetricCount(Status.SUCCESS);
-        long totalTimeouts = totalCounter.getMetricCount(Status.TIMEOUT);
-        long totalErrors = totalCounter.getMetricCount(Status.ERROR);
+    private static void putTotalCounts(MetricCounter<TimeoutableResult> totalCounter, Map<Object, Object> metricsMap) {
+        long totalSuccesses = totalCounter.getMetricCount(TimeoutableResult.SUCCESS);
+        long totalTimeouts = totalCounter.getMetricCount(TimeoutableResult.TIMEOUT);
+        long totalErrors = totalCounter.getMetricCount(TimeoutableResult.ERROR);
 
         metricsMap.put(TOTAL_TOTAL, totalSuccesses + totalTimeouts + totalErrors);
         metricsMap.put(TOTAL_SUCCESSES, totalSuccesses);
