@@ -68,14 +68,25 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         return null;
     }
 
+    public void releasePermitsWithoutResult(long number) {
+        releasePermitsWithoutResult(number, clock.nanoTime());
+    }
     public void releasePermitsWithoutResult(long number, long nanoTime) {
         for (BackPressure backPressure : backPressureList) {
             backPressure.releasePermit(number, nanoTime);
         }
     }
 
+    public void releasePermits(PerformingContext context, Result result) {
+        releasePermits(context.permitCount(), result, context.startNanos(), clock.nanoTime());
+    }
+
     public void releasePermits(PerformingContext context, Result result, long nanoTime) {
         releasePermits(context.permitCount(), result, context.startNanos(), nanoTime);
+    }
+
+    public void releasePermits(long number, Result result, long startNanos) {
+        releasePermits(number, result, startNanos, clock.nanoTime());
     }
 
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
