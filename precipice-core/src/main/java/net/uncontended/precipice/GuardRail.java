@@ -43,6 +43,10 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         this.clock = clock;
         this.backPressureList = backPressureList;
         this.releaseFunction = new FinishingCallback();
+
+        for (BackPressure<Rejected> bp : backPressureList) {
+            bp.registerResultMetrics(resultMetrics);
+        }
     }
 
     public Rejected acquirePermits(long number) {

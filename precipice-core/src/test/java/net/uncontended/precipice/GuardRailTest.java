@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
 public class GuardRailTest {
 
     @Mock
-    private TotalCountMetrics<TestResult> metrics;
+    private TotalCountMetrics<TestResult> resultMetrics;
     @Mock
     private TotalCountMetrics<Rejected> rejectedMetrics;
     @Mock
@@ -54,12 +54,20 @@ public class GuardRailTest {
         MockitoAnnotations.initMocks(this);
         builder = new GuardRailBuilder<>();
         builder.name("OldGuardRail Name");
-        builder.resultMetrics(metrics);
+        builder.resultMetrics(resultMetrics);
         builder.rejectedMetrics(rejectedMetrics);
         builder.resultLatency(latencyMetrics);
         builder.addBackPressure(backPressure);
         builder.addBackPressure(backPressure2);
         builder.clock(clock);
+    }
+
+    @Test
+    public void backPressureMechanismsAreSetupWithMetrics() {
+        builder.build();
+
+        verify(backPressure).registerResultMetrics(resultMetrics);
+        verify(backPressure2).registerResultMetrics(resultMetrics);
     }
 
     @Test
@@ -94,7 +102,8 @@ public class GuardRailTest {
 
         assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, guardRail.acquirePermits(1L, 10L));
 
-        verifyZeroInteractions(backPressure2);
+        verify(backPressure2).registerResultMetrics(resultMetrics);
+        verifyNoMoreInteractions(backPressure2);
     }
 
     @Test
@@ -129,7 +138,7 @@ public class GuardRailTest {
 
         guardRail.releasePermits(2L, result, 10L, 100L);
 
-        verify(metrics).incrementMetricCount(result, 100L);
+        verify(resultMetrics).incrementMetricCount(result, 100L);
         verify(latencyMetrics).recordLatency(result, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
@@ -146,7 +155,7 @@ public class GuardRailTest {
 
         guardRail.releasePermits(context, result, 100L);
 
-        verify(metrics).incrementMetricCount(result, 100L);
+        verify(resultMetrics).incrementMetricCount(result, 100L);
         verify(latencyMetrics).recordLatency(result, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
@@ -166,7 +175,7 @@ public class GuardRailTest {
         TestResult result = TestResult.ERROR;
         fn.apply(result, context);
 
-        verify(metrics).incrementMetricCount(result, 110L);
+        verify(resultMetrics).incrementMetricCount(result, 110L);
         verify(latencyMetrics).recordLatency(result, 100L, 110L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
