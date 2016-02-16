@@ -45,18 +45,14 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
         this(permitCount, System.nanoTime());
     }
 
-    public Eventual(Completable<S, T> completable) {
-        this(1L, System.nanoTime(), completable);
-    }
-
     public Eventual(long permitCount, long startNanos) {
         this(permitCount, startNanos, null);
     }
 
-    public Eventual(long startNanos, Completable<S, T> completable) {
-        this(1L, startNanos, completable);
+    public Eventual(Completable<S, T> completable) {
+        this(0L, System.nanoTime(), completable);
     }
-
+    
     public Eventual(long permitCount, long startNanos, Completable<S, T> completable) {
         this.permitCount = permitCount;
         this.startNanos = startNanos;

@@ -17,8 +17,10 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.metrics.TotalCountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.test_utils.TestResult;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,11 +34,11 @@ import static org.mockito.Mockito.*;
 public class GuardRailTest {
 
     @Mock
-    private TotalCountMetrics<Status> metrics;
+    private TotalCountMetrics<TestResult> metrics;
     @Mock
     private TotalCountMetrics<Rejected> rejectedMetrics;
     @Mock
-    private LatencyMetrics<Status> latencyMetrics;
+    private LatencyMetrics<TestResult> latencyMetrics;
     @Mock
     private BackPressure<Rejected> backPressure;
     @Mock
@@ -44,8 +46,8 @@ public class GuardRailTest {
     @Mock
     private Clock clock;
 
-    private GuardRail<Status, Rejected> guardRail;
-    private GuardRailBuilder<Status, Rejected> builder;
+    private GuardRail<TestResult, Rejected> guardRail;
+    private GuardRailBuilder<TestResult, Rejected> builder;
 
     @Before
     public void setUp() {
@@ -109,8 +111,66 @@ public class GuardRailTest {
         inOrder.verify(backPressure).releasePermit(2L, 22L);
     }
 
-//    acquirePermits
+    @Test
+    public void releaseCausesBackPressureReleasesToBeCalled() {
+        guardRail = builder.build();
 
-    // TODO: Add tests for more scenarios
+        guardRail.releasePermitsWithoutResult(2L, 100L);
 
+        InOrder inOrder = inOrder(backPressure, backPressure2);
+        inOrder.verify(backPressure).releasePermit(2L, 100L);
+        inOrder.verify(backPressure2).releasePermit(2L, 100L);
+    }
+
+    @Test
+    public void releaseWithResultIncrementsMetricsAndCausesBackPressureReleasesToBeCalled() {
+        guardRail = builder.build();
+        TestResult result  = TestResult.SUCCESS;
+
+        guardRail.releasePermits(2L, result, 10L, 100L);
+
+        verify(metrics).incrementMetricCount(result, 100L);
+        verify(latencyMetrics).recordLatency(result, 90L, 100L);
+
+        InOrder inOrder = inOrder(backPressure, backPressure2);
+        inOrder.verify(backPressure).releasePermit(2L, result, 100L);
+        inOrder.verify(backPressure2).releasePermit(2L, result, 100L);
+    }
+
+    @Test
+    public void releaseWithContextIncrementsMetricsAndCausesBackPressureReleasesToBeCalled() {
+        guardRail = builder.build();
+        TestResult result  = TestResult.SUCCESS;
+
+        Eventual<TestResult, String> context = new Eventual<>(2L, 10L);
+
+        guardRail.releasePermits(context, result, 100L);
+
+        verify(metrics).incrementMetricCount(result, 100L);
+        verify(latencyMetrics).recordLatency(result, 90L, 100L);
+
+        InOrder inOrder = inOrder(backPressure, backPressure2);
+        inOrder.verify(backPressure).releasePermit(2L, result, 100L);
+        inOrder.verify(backPressure2).releasePermit(2L, result, 100L);
+    }
+
+    @Test
+    public void releaseFunctionReleasesPermitsAndIncrementsMetrics() {
+        guardRail = builder.build();
+        when(clock.nanoTime()).thenReturn(110L);
+
+        Eventual<TestResult, String> context = new Eventual<>(2L, 10L);
+
+        PrecipiceFunction<TestResult, PerformingContext> fn = guardRail.releaseFunction();
+
+        TestResult result = TestResult.ERROR;
+        fn.apply(result, context);
+
+        verify(metrics).incrementMetricCount(result, 110L);
+        verify(latencyMetrics).recordLatency(result, 100L, 110L);
+
+        InOrder inOrder = inOrder(backPressure, backPressure2);
+        inOrder.verify(backPressure).releasePermit(2L, result, 110L);
+        inOrder.verify(backPressure2).releasePermit(2L, result, 110L);
+    }
 }
