@@ -22,7 +22,7 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingCountMetrics<T extends Enum<T>> implements TotalCountMetrics<T> {
+public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
 
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;
@@ -65,24 +65,24 @@ public class RollingCountMetrics<T extends Enum<T>> implements TotalCountMetrics
 
     @Override
     public void incrementMetricCount(T metric, long nanoTime) {
-        totalCounter.incrementMetric(metric);
+        totalCounter.incrementMetricCount(metric);
         MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
         }
-        currentMetricCounter.incrementMetric(metric);
+        currentMetricCounter.incrementMetricCount(metric);
     }
 
     @Override
-    public long getTotalMetricCount(T metric) {
+    public long getMetricCount(T metric) {
         return totalCounter.getMetricCount(metric);
     }
 
-    public long getMetricCount(T metric, long timePeriod, TimeUnit timeUnit) {
-        return getMetricCount(metric, timePeriod, timeUnit, systemTime.nanoTime());
+    public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
+        return getMetricCountForPeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
     }
 
-    public long getMetricCount(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
@@ -98,11 +98,6 @@ public class RollingCountMetrics<T extends Enum<T>> implements TotalCountMetrics
 
     public Iterable<MetricCounter<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
-    }
-
-    @Override
-    public MetricCounter<T> totalCountMetricCounter() {
-        return totalCounter;
     }
 
     @Override

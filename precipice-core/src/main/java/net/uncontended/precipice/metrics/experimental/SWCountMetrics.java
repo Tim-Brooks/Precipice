@@ -84,8 +84,8 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //    }
 //
 //    @Override
-//    public long getMetricCount(T metric) {
-//        return totalCounter.getMetricCount(metric);
+//    public long getMetricCountForPeriod(T metric) {
+//        return totalCounter.getMetricCountForPeriod(metric);
 //    }
 //
 //    @Override
@@ -99,7 +99,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //        long count = 0;
 //        for (MetricCounter<T> metricCounter : slots) {
-//            count += metricCounter.getMetricCount(metric);
+//            count += metricCounter.getMetricCountForPeriod(metric);
 //        }
 //        return count;
 //    }
@@ -141,7 +141,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //        long rejections = 0;
 //        for (MetricCounter<T> metricCounter : counters) {
 //            for (T t : type.getEnumConstants()) {
-//                long metricCount = metricCounter.getMetricCount(t);
+//                long metricCount = metricCounter.getMetricCountForPeriod(t);
 //                total += metricCount;
 //
 //                if (t.isFailure()) {

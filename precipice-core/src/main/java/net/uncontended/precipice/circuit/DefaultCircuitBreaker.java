@@ -21,7 +21,7 @@ import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.HealthGauge;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.metrics.TotalCountMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,7 +92,7 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerResultMetrics(TotalCountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {

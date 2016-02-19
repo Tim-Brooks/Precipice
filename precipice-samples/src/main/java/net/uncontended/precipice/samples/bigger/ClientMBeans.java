@@ -76,8 +76,7 @@ public class ClientMBeans {
                     long currentTime = System.currentTimeMillis();
                     long lastUpdateTime = lastUpdateTimestamp.get();
                     if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
-                        currentMetrics = Snapshot.generate(countMetrics.totalCountMetricCounter(),
-                                countMetrics.metricCounters(1, TimeUnit.SECONDS));
+                        currentMetrics = Snapshot.generate(countMetrics, countMetrics.metricCounters(1, TimeUnit.SECONDS));
                     }
 
                     return (long) currentMetrics.get(metric);
@@ -134,8 +133,7 @@ public class ClientMBeans {
                     long currentTime = System.currentTimeMillis();
                     long lastUpdateTime = lastUpdateTimestamp.get();
                     if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
-                        currentMetrics = Snapshot.generate(countMetrics.totalCountMetricCounter(),
-                                countMetrics.metricCounters(1, TimeUnit.SECONDS));
+                        currentMetrics = Snapshot.generate(countMetrics, countMetrics.metricCounters(1, TimeUnit.SECONDS));
                     }
 
                     return (long) currentMetrics.get(metric);

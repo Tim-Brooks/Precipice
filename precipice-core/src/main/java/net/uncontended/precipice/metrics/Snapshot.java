@@ -47,7 +47,7 @@ public final class Snapshot {
     private Snapshot() {
     }
 
-    public static Map<Object, Object> generate(MetricCounter<TimeoutableResult> totalCounter, Iterable<MetricCounter<TimeoutableResult>> slots) {
+    public static Map<Object, Object> generate(CountMetrics<TimeoutableResult> totalCounter, Iterable<MetricCounter<TimeoutableResult>> slots) {
 
         long total = 0;
         long successes = 0;
@@ -123,7 +123,7 @@ public final class Snapshot {
         return metricsMap;
     }
 
-    private static void putTotalCounts(MetricCounter<TimeoutableResult> totalCounter, Map<Object, Object> metricsMap) {
+    private static void putTotalCounts(CountMetrics<TimeoutableResult> totalCounter, Map<Object, Object> metricsMap) {
         long totalSuccesses = totalCounter.getMetricCount(TimeoutableResult.SUCCESS);
         long totalTimeouts = totalCounter.getMetricCount(TimeoutableResult.TIMEOUT);
         long totalErrors = totalCounter.getMetricCount(TimeoutableResult.ERROR);

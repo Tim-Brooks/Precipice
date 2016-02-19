@@ -18,15 +18,15 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.metrics.TotalCountMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.List;
 
 public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private final TotalCountMetrics<Result> resultMetrics;
-    private final TotalCountMetrics<Rejected> rejectedMetrics;
+    private final CountMetrics<Result> resultMetrics;
+    private final CountMetrics<Rejected> rejectedMetrics;
     private final LatencyMetrics<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
@@ -34,7 +34,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
 
-    public GuardRail(String name, TotalCountMetrics<Result> resultMetrics, TotalCountMetrics<Rejected> rejectedMetrics,
+    public GuardRail(String name, CountMetrics<Result> resultMetrics, CountMetrics<Rejected> rejectedMetrics,
                      LatencyMetrics<Result> latencyMetrics, List<BackPressure<Rejected>> backPressureList, Clock clock) {
         this.resultMetrics = resultMetrics;
         this.rejectedMetrics = rejectedMetrics;
@@ -117,11 +117,11 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         return name;
     }
 
-    public TotalCountMetrics<Result> getResultMetrics() {
+    public CountMetrics<Result> getResultMetrics() {
         return resultMetrics;
     }
 
-    public TotalCountMetrics<Rejected> getRejectedMetrics() {
+    public CountMetrics<Rejected> getRejectedMetrics() {
         return rejectedMetrics;
     }
 

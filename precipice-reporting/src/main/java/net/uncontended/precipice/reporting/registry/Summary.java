@@ -59,12 +59,12 @@ public class Summary<T extends Enum<T> & Failable> {
 //        for (T t : metricType.getEnumConstants()) {
 //            int metricIndex = t.ordinal();
 //            metricCounts[metricIndex] = 0;
-//            totalMetricCounts[metricIndex] = totalMetricCounter.getMetricCount(t);
+//            totalMetricCounts[metricIndex] = totalMetricCounter.getMetricCountForPeriod(t);
 //        }
 //
 //        for (MetricCounter<T> m : countMetrics.metricCounters(period, unit)) {
 //            for (T t : metricType.getEnumConstants()) {
-//                metricCounts[t.ordinal()] += m.getMetricCount(t);
+//                metricCounts[t.ordinal()] += m.getMetricCountForPeriod(t);
 //            }
 //        }
 //

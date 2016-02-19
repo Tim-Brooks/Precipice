@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.TotalCountMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +41,7 @@ public class NoOpCircuitBreaker<Rejected extends Enum<Rejected>> implements Circ
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerResultMetrics(TotalCountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
     }
 
     @Override

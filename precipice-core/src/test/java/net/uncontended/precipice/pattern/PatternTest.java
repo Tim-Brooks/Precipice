@@ -18,7 +18,7 @@
 package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.metrics.TotalCountMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -104,7 +104,7 @@ public class PatternTest {
     @Test
     public void getAcquiresPermitsInTheCorrectOrder() {
         int[] indices = {2, 0, 1};
-        TotalCountMetrics<Rejected> metrics = mock(TotalCountMetrics.class);
+        CountMetrics<Rejected> metrics = mock(CountMetrics.class);
 
         when(strategy.nextIndices()).thenReturn(indices);
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);

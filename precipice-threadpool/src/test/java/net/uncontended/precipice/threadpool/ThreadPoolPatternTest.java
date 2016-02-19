@@ -20,7 +20,7 @@ package net.uncontended.precipice.threadpool;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Rejected;
 import net.uncontended.precipice.TimeoutableResult;
-import net.uncontended.precipice.metrics.TotalCountMetrics;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.SingleReaderSequence;
@@ -80,7 +80,7 @@ public class ThreadPoolPatternTest {
     @Mock
     private PrecipiceSemaphore semaphore;
     @Mock
-    private TotalCountMetrics<Rejected> metrics;
+    private CountMetrics<Rejected> metrics;
     @Mock
     private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock

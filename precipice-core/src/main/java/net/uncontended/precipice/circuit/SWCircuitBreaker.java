@@ -88,7 +88,7 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerResultMetrics(TotalCountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {
