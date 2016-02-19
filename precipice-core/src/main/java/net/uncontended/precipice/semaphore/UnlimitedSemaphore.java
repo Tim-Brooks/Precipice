@@ -26,11 +26,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class UnlimitedSemaphore<Rejected extends Enum<Rejected>> implements BackPressure<Rejected>, PrecipiceSemaphore {
 
     private final AtomicLong concurrencyLevel = new AtomicLong(0);
-    private final Rejected reason;
-
-    public UnlimitedSemaphore(Rejected reason) {
-        this.reason = reason;
-    }
 
     @Override
     public Rejected acquirePermit(long number, long nanoTime) {
@@ -51,7 +46,6 @@ public class UnlimitedSemaphore<Rejected extends Enum<Rejected>> implements Back
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
-
     }
 
 

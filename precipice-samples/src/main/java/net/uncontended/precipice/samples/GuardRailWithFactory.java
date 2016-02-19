@@ -17,9 +17,10 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.GuardRailBuilder;
+import net.uncontended.precipice.NoRejections;
+import net.uncontended.precipice.Result;
 import net.uncontended.precipice.concurrent.CompletionContext;
 import net.uncontended.precipice.factories.CompletableFactory;
 import net.uncontended.precipice.metrics.CountMetrics;
@@ -34,15 +35,15 @@ public class GuardRailWithFactory {
 
     public static void main(String[] args) {
         CountMetrics<Result> resultMetrics = new MetricCounter<>(Result.class);
-        CountMetrics<RejectedReason> rejectedMetrics = new MetricCounter<>(RejectedReason.class);
+        CountMetrics<NoRejections> rejectedMetrics = MetricCounter.noOpCounter(NoRejections.class);
 
-        GuardRailBuilder<Result, RejectedReason> builder = new GuardRailBuilder<>();
+        GuardRailBuilder<Result, NoRejections> builder = new GuardRailBuilder<>();
         builder.name("Example")
                 .resultMetrics(resultMetrics)
                 .rejectedMetrics(rejectedMetrics)
-                .addBackPressure(new UnlimitedSemaphore<>(RejectedReason.MAX_CONCURRENCY));
+                .addBackPressure(new UnlimitedSemaphore<NoRejections>());
 
-        GuardRail<Result, RejectedReason> guardRail = builder.build();
+        GuardRail<Result, NoRejections> guardRail = builder.build();
 
         CompletionContext<Result, String> completable = CompletableFactory.acquirePermitsAndGetCompletable(guardRail, 1L);
 
@@ -51,7 +52,7 @@ public class GuardRailWithFactory {
             URLConnection urlConnection = url.openConnection();
             completable.complete(Result.SUCCESS, readToString(urlConnection.getInputStream()));
         } catch (Exception ex) {
-            completable.completeExceptionally(Result.EXCEPTION, ex);
+            completable.completeExceptionally(Result.ERROR, ex);
         }
     }
 
@@ -59,22 +60,4 @@ public class GuardRailWithFactory {
         return "Http Response";
     }
 
-    public enum Result implements Failable {
-        SUCCESS,
-        EXCEPTION;
-
-        @Override
-        public boolean isFailure() {
-            return this == EXCEPTION;
-        }
-
-        @Override
-        public boolean isSuccess() {
-            return this == SUCCESS;
-        }
-    }
-
-    public enum RejectedReason {
-        MAX_CONCURRENCY
-    }
 }
