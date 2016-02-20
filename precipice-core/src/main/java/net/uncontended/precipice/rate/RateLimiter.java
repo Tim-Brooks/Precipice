@@ -41,18 +41,26 @@ public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressur
 
     @Override
     public Rejected acquirePermit(long number, long nanoTime) {
+        adjustTime(nanoTime);
+
         for (; ; ) {
-            long currentCount = count.incrementAndGet();
-            if (currentCount > allowedPerPeriod) {
-                long localRolloverTime = rolloverTime.get();
-                if (localRolloverTime > nanoTime) {
-                    return rejectedReason;
-                } else if (count.compareAndSet(currentCount, 0) &&
-                        rolloverTime.compareAndSet(localRolloverTime, nanoTime + nanoDuration)) {
-                    return null;
-                }
-            } else {
+            long currentCount = count.get();
+            long proposedCount = currentCount + number;
+            if (proposedCount > allowedPerPeriod) {
+                return rejectedReason;
+            } else if (count.compareAndSet(currentCount, proposedCount)) {
                 return null;
+            }
+        }
+    }
+
+    private void adjustTime(long nanoTime) {
+        for (; ; ) {
+            long localRolloverTime = rolloverTime.get();
+            if (localRolloverTime > nanoTime) {
+                return;
+            } else if (rolloverTime.compareAndSet(localRolloverTime, nanoTime + nanoDuration)) {
+                count.set(0);
             }
         }
     }
