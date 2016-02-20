@@ -27,9 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressure<Rejected> {
 
     private final Rejected rejectedReason;
-    private final long duration;
     private final long allowedPerPeriod;
-    private final TimeUnit timeUnit;
     private final AtomicLong count = new AtomicLong(0);
     private final AtomicLong rolloverTime;
     private final long nanoDuration;
@@ -37,8 +35,6 @@ public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressur
     public RateLimiter(Rejected rejectedReason, long allowedPerPeriod, long duration, TimeUnit timeUnit) {
         this.rejectedReason = rejectedReason;
         this.allowedPerPeriod = allowedPerPeriod;
-        this.duration = duration;
-        this.timeUnit = timeUnit;
         this.nanoDuration = timeUnit.toNanos(duration);
         this.rolloverTime = new AtomicLong(System.nanoTime() + nanoDuration);
     }
