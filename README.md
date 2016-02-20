@@ -67,12 +67,12 @@ try {
 ### Using the CallService
 
 Sometimes you might want to combine the usage of a GuardRail with specialized logic. The Precipice interface exists
-to for this purpose. The CallService is an example of this.
+to for this purpose. The CallService is an example of a Precipice implementation.
 
 The CallService wraps Callables with the GuardRail protections. It will wire up all acquiring and releasing of permits for you.
 
 ```java
-CallService<RejectedType> callService = new CallService<>(guardRail);
+CallService<Unrejectable> callService = new CallService<>(guardRail);
 
 try {
 	Request req = callService.call(() -> client.submitHttpClient());
