@@ -19,28 +19,37 @@ package net.uncontended.precipice.factories;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.RejectedException;
+import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.Eventual;
-import net.uncontended.precipice.concurrent.PrecipicePromise;
 
-public class PromiseFactory {
+public class Asynchronous {
 
-    private PromiseFactory() {}
+    private Asynchronous() {}
 
     public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
-    acquirePermitsAndGetPromise(GuardRail<Result, Rejected> guardRail, long number) {
-        return acquirePermitsAndGetPromise(guardRail, number, null);
+    acquireSinglePermitAndPromise(GuardRail<Result, Rejected> guardRail) {
+        return acquirePermitsAndPromise(guardRail, 1L, null);
     }
 
     public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
-    acquirePermitsAndGetPromise(GuardRail<Result, Rejected> guardRail, long number, PrecipicePromise<Result, R> externalPromise) {
+    acquireSinglePermitAndPromise(GuardRail<Result, Rejected> guardRail, Completable<Result, R> externalCompletable) {
+        return acquirePermitsAndPromise(guardRail, 1L, externalCompletable);
+    }
+
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
+    acquirePermitsAndPromise(GuardRail<Result, Rejected> guardRail, long number) {
+        return acquirePermitsAndPromise(guardRail, number, null);
+    }
+
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
+    acquirePermitsAndPromise(GuardRail<Result, Rejected> guardRail, long number, Completable<Result, R> externalCompletable) {
         long startTime = guardRail.getClock().nanoTime();
         Rejected rejected = guardRail.acquirePermits(number, startTime);
         if (rejected != null) {
             throw new RejectedException(rejected);
         }
-        return getPromise(guardRail, number, startTime, externalPromise);
+        return getPromise(guardRail, number, startTime, externalCompletable);
     }
 
     public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>

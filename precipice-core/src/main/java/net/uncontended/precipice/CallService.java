@@ -18,7 +18,8 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.Completable;
-import net.uncontended.precipice.factories.CompletableFactory;
+import net.uncontended.precipice.factories.Synchronous;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 
 import java.util.concurrent.Callable;
@@ -37,7 +38,11 @@ public class CallService<Rejected extends Enum<Rejected>> implements Precipice<T
     }
 
     public <T> T call(Callable<T> callable) throws Exception {
-        Completable<TimeoutableResult, T> completable = CompletableFactory.acquirePermitsAndGetCompletable(guardRail, 1L);
+        return call(callable, 1L);
+    }
+
+    public <T> T call(Callable<T> callable, long permitNumber) throws Exception {
+        Completable<TimeoutableResult, T> completable = Synchronous.acquirePermitsAndCompletable(guardRail, permitNumber);
 
         try {
             T result = callable.call();

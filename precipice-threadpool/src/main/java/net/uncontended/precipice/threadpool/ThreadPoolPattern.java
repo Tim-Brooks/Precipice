@@ -16,10 +16,13 @@
  */
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.*;
-import net.uncontended.precipice.factories.PromiseFactory;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Precipice;
+import net.uncontended.precipice.rejected.RejectedException;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.factories.Asynchronous;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.PatternStrategy;
@@ -30,19 +33,20 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Rejected> {
+public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, PatternRejected> {
 
-    private final GuardRail<TimeoutableResult, Rejected> guardRail;
+    private final GuardRail<TimeoutableResult, PatternRejected> guardRail;
     private final Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     private final Map<ThreadPoolService<?>, C> serviceToContext;
 
 
-    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<TimeoutableResult, Rejected> guardRail,
-                             PatternStrategy strategy) {
+    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<TimeoutableResult,
+            PatternRejected> guardRail, PatternStrategy strategy) {
         this(serviceToContext, guardRail, new Pattern<>(serviceToContext.keySet(), strategy));
     }
 
-    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<TimeoutableResult, Rejected> guardRail,
+    public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext,
+                             GuardRail<TimeoutableResult, PatternRejected> guardRail,
                              Pattern<TimeoutableResult, ThreadPoolService<?>> pattern) {
         this.serviceToContext = serviceToContext;
         this.guardRail = guardRail;
@@ -50,7 +54,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Reject
     }
 
     @Override
-    public GuardRail<TimeoutableResult, Rejected> guardRail() {
+    public GuardRail<TimeoutableResult, PatternRejected> guardRail() {
         return guardRail;
     }
 
@@ -63,10 +67,10 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Reject
             return handleAllReject(nanoTime);
         }
 
-        PrecipicePromise<TimeoutableResult, T> promise = PromiseFactory.getPromise(guardRail, 1L, nanoTime);
+        PrecipicePromise<TimeoutableResult, T> promise = Asynchronous.getPromise(guardRail, 1L, nanoTime);
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
         for (ThreadPoolService<?> service : services) {
-            PrecipicePromise<TimeoutableResult, T> internal = PromiseFactory.getPromise(service.guardRail(), 1L, nanoTime, promise);
+            PrecipicePromise<TimeoutableResult, T> internal = Asynchronous.getPromise(service.guardRail(), 1L, nanoTime, promise);
 
             final C context = serviceToContext.get(service);
             ExecutorService executor = service.getExecutor();
@@ -83,13 +87,13 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Reject
 
     private <T> PrecipiceFuture<TimeoutableResult, T> handleAllReject(long nanoTime) {
         guardRail.releasePermitsWithoutResult(1L, nanoTime);
-        guardRail.getRejectedMetrics().incrementMetricCount(Rejected.ALL_SERVICES_REJECTED, nanoTime);
-        throw new RejectedException(Rejected.ALL_SERVICES_REJECTED);
+        guardRail.getRejectedMetrics().incrementMetricCount(PatternRejected.ALL_REJECTED, nanoTime);
+        throw new RejectedException(PatternRejected.ALL_REJECTED);
     }
 
     private long acquirePermit() {
         long nanoTime = guardRail.getClock().nanoTime();
-        Rejected rejected = guardRail.acquirePermits(1L, nanoTime);
+        PatternRejected rejected = guardRail.acquirePermits(1L, nanoTime);
         if (rejected != null) {
             throw new RejectedException(rejected);
         }

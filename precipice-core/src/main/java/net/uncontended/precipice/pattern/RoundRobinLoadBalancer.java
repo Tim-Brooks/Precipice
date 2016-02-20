@@ -48,7 +48,7 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
     }
 
     @Override
-    public int submissionCount() {
+    public int attemptCount() {
         return 1;
     }
 

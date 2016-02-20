@@ -18,13 +18,13 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.PerformingContext;
+import net.uncontended.precipice.ExecutionContext;
 import net.uncontended.precipice.PrecipiceFunction;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>, PerformingContext {
+public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>, ExecutionContext {
 
     private final long permitCount;
     private final long startNanos;
@@ -35,7 +35,7 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     private final AtomicReference<S> status = new AtomicReference<>(null);
     private final AtomicReference<PrecipiceFunction<S, T>> successCallback = new AtomicReference<>();
     private final AtomicReference<PrecipiceFunction<S, Throwable>> errorCallback = new AtomicReference<>();
-    private PrecipiceFunction<S, PerformingContext> internalCallback;
+    private PrecipiceFunction<S, ExecutionContext> internalCallback;
 
     public Eventual() {
         this(0L);
@@ -213,7 +213,7 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
         return permitCount;
     }
 
-    public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {
+    public void internalOnComplete(PrecipiceFunction<S, ExecutionContext> fn) {
         internalCallback = fn;
     }
 

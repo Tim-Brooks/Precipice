@@ -19,6 +19,7 @@ package net.uncontended.precipice.samples;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.semaphore.LongSemaphore;
 
 import java.io.InputStream;

@@ -15,11 +15,10 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.rejected;
 
-public interface PerformingContext {
-
-    long startNanos();
-
-    long permitCount();
+public enum Rejected {
+    CIRCUIT_OPEN,
+    MAX_CONCURRENCY_LEVEL_EXCEEDED,
+    RATE_LIMIT_EXCEEDED
 }

@@ -23,10 +23,10 @@ import com.ning.http.client.Request;
 import com.ning.http.client.Response;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
-import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.factories.PromiseFactory;
+import net.uncontended.precipice.factories.Asynchronous;
 
 import java.util.concurrent.TimeoutException;
 
@@ -42,7 +42,7 @@ public class HttpAsyncService implements Precipice<HTTPStatus, Rejected> {
     }
 
     public PrecipiceFuture<HTTPStatus, Response> submit(Request request) {
-        final PrecipicePromise<HTTPStatus, Response> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
+        final PrecipicePromise<HTTPStatus, Response> promise = Asynchronous.acquirePermitsAndPromise(guardRail, 1L);
 
         client.executeRequest(request, new AsyncCompletionHandler<Void>() {
             @Override

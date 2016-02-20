@@ -17,8 +17,9 @@
 
 package net.uncontended.precipice;
 
-public enum Rejected {
-    CIRCUIT_OPEN,
-    MAX_CONCURRENCY_LEVEL_EXCEEDED,
-    ALL_SERVICES_REJECTED
+public interface ExecutionContext {
+
+    long startNanos();
+
+    long permitCount();
 }

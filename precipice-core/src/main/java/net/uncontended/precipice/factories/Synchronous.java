@@ -19,22 +19,32 @@ package net.uncontended.precipice.factories;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.RejectedException;
+import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.concurrent.CompletionContext;
 
-public class CompletableFactory {
+public class Synchronous {
 
-    private CompletableFactory() {
+    private Synchronous() {
     }
 
     public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
-    acquirePermitsAndGetCompletable(GuardRail<Result, Rejected> guardRail, long number) {
-        return acquirePermitsAndGetCompletable(guardRail, number, null);
+    acquireSinglePermitAndCompletable(GuardRail<Result, Rejected> guardRail) {
+        return acquirePermitsAndCompletable(guardRail, 1L, null);
     }
 
     public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
-    acquirePermitsAndGetCompletable(GuardRail<Result, Rejected> guardRail, long number, Completable<Result, R> externalCompletable) {
+    acquireSinglePermitAndCompletable(GuardRail<Result, Rejected> guardRail, Completable<Result, R> externalCompletable) {
+        return acquirePermitsAndCompletable(guardRail, 1L, externalCompletable);
+    }
+
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
+    acquirePermitsAndCompletable(GuardRail<Result, Rejected> guardRail, long number) {
+        return acquirePermitsAndCompletable(guardRail, number, null);
+    }
+
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> CompletionContext<Result, R>
+    acquirePermitsAndCompletable(GuardRail<Result, Rejected> guardRail, long number, Completable<Result, R> externalCompletable) {
         long startTime = guardRail.getClock().nanoTime();
         Rejected rejected = guardRail.acquirePermits(number, startTime);
         if (rejected != null) {

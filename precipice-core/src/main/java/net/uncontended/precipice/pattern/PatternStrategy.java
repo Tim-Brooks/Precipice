@@ -21,5 +21,5 @@ public interface PatternStrategy {
 
     int[] nextIndices();
 
-    int submissionCount();
+    int attemptCount();
 }

@@ -54,6 +54,9 @@ public class MetricCounter<T extends Enum<T>> implements CountMetrics<T> {
         return clazz;
     }
 
+    public static <T extends Enum<T>> MetricCounter<T> newCounter(Class<T> clazz) {
+        return new MetricCounter<>(clazz);
+    }
 
     public static <T extends Enum<T>> MetricCounter<T> noOpCounter(Class<T> clazz) {
         return new MetricCounter<T>(clazz) {

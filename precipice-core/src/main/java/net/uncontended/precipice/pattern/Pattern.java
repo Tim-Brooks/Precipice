@@ -35,11 +35,10 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     public Pattern(Collection<C> precipices, PatternStrategy strategy) {
         if (precipices.size() == 0) {
             throw new IllegalArgumentException("Cannot create Pattern with 0 Precipices.");
-        } else if (strategy.submissionCount() > precipices.size()) {
-            throw new IllegalArgumentException("Submission count cannot be greater than the number of precipices provided.");
+        } else if (strategy.attemptCount() > precipices.size()) {
+            throw new IllegalArgumentException("Attempt count cannot be greater than the number of precipices.");
         }
-
-
+        
         List<C> pool = new ArrayList<>(precipices.size());
         pool.addAll(precipices);
         this.pool = pool;
@@ -68,7 +67,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
                 precipices.add(precipice);
                 ++submittedCount;
             }
-            if (submittedCount == strategy.submissionCount()) {
+            if (submittedCount == strategy.attemptCount()) {
                 break;
             }
         }
@@ -78,7 +77,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
         SingleReaderSequence<C> precipices = local.get();
 
         if (precipices == null) {
-            precipices = new SingleReaderSequence<>(strategy.submissionCount());
+            precipices = new SingleReaderSequence<>(strategy.attemptCount());
             local.set(precipices);
         }
         precipices.reset();

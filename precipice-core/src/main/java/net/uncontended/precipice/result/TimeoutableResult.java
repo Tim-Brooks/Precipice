@@ -15,25 +15,22 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.result;
 
-public enum Result implements Failable {
-    SUCCESS(false),
-    ERROR(true);
+import net.uncontended.precipice.Failable;
 
-    private final boolean isFailed;
-
-    Result(boolean isFailed) {
-        this.isFailed = isFailed;
-    }
+public enum TimeoutableResult implements Failable {
+    SUCCESS,
+    ERROR,
+    TIMEOUT;
 
     @Override
     public boolean isFailure() {
-        return isFailed;
+        return this != SUCCESS;
     }
 
     @Override
     public boolean isSuccess() {
-        return !isFailed;
+        return this == SUCCESS;
     }
 }

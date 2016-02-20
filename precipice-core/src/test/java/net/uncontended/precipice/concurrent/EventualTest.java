@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.PerformingContext;
+import net.uncontended.precipice.ExecutionContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;
@@ -127,11 +127,11 @@ public class EventualTest {
     public void testInternalCallbackIsCalledOnError() throws Exception {
         Eventual<TestResult, String> eventual = new Eventual<>();
         final AtomicReference<TestResult> statusReference = new AtomicReference<>();
-        final AtomicReference<PerformingContext> context = new AtomicReference<>();
+        final AtomicReference<ExecutionContext> context = new AtomicReference<>();
 
-        eventual.internalOnComplete(new PrecipiceFunction<TestResult, PerformingContext>() {
+        eventual.internalOnComplete(new PrecipiceFunction<TestResult, ExecutionContext>() {
             @Override
-            public void apply(TestResult status, PerformingContext argument) {
+            public void apply(TestResult status, ExecutionContext argument) {
                 statusReference.compareAndSet(null, status);
                 context.compareAndSet(null, argument);
 
@@ -148,11 +148,11 @@ public class EventualTest {
     public void testInternalCallbackIsCalledOnSuccess() throws Exception {
         Eventual<TestResult, String> eventual = new Eventual<>();
         final AtomicReference<TestResult> statusReference = new AtomicReference<>();
-        final AtomicReference<PerformingContext> context = new AtomicReference<>();
+        final AtomicReference<ExecutionContext> context = new AtomicReference<>();
 
-        eventual.internalOnComplete(new PrecipiceFunction<TestResult, PerformingContext>() {
+        eventual.internalOnComplete(new PrecipiceFunction<TestResult, ExecutionContext>() {
             @Override
-            public void apply(TestResult status, PerformingContext argument) {
+            public void apply(TestResult status, ExecutionContext argument) {
                 statusReference.compareAndSet(null, status);
                 context.compareAndSet(null, argument);
 

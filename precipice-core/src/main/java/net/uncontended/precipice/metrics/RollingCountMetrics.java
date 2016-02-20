@@ -53,7 +53,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         long startTime = systemTime.nanoTime();
 
         this.type = type;
-        totalCounter = new MetricCounter<>(this.type);
+        totalCounter = MetricCounter.newCounter(this.type);
         noOpCounter = MetricCounter.noOpCounter(type);
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
     }
@@ -68,7 +68,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         totalCounter.incrementMetricCount(metric);
         MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
-            currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
+            currentMetricCounter = buffer.putOrGet(nanoTime, MetricCounter.newCounter(type));
         }
         currentMetricCounter.incrementMetricCount(metric);
     }

@@ -18,6 +18,9 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.CompletionContext;
+import net.uncontended.precipice.rejected.Rejected;
+import net.uncontended.precipice.rejected.RejectedException;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.test_utils.TestCallables;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
@@ -41,7 +44,7 @@ public class CallServiceTest {
     @Mock
     private CompletionContext<TimeoutableResult, Object> context;
     @Mock
-    private PrecipiceFunction<TimeoutableResult, PerformingContext> releaseFunction;
+    private PrecipiceFunction<TimeoutableResult, ExecutionContext> releaseFunction;
 
     private CallService<Rejected> service;
 
@@ -80,7 +83,7 @@ public class CallServiceTest {
 
         String result = service.call(TestCallables.success(1));
 
-        verify(releaseFunction).apply(eq(TimeoutableResult.SUCCESS), any(PerformingContext.class));
+        verify(releaseFunction).apply(eq(TimeoutableResult.SUCCESS), any(ExecutionContext.class));
         assertEquals(expectedResult, result);
     }
 
@@ -96,7 +99,7 @@ public class CallServiceTest {
             assertEquals(e, exception);
         }
 
-        verify(releaseFunction).apply(eq(TimeoutableResult.ERROR), any(PerformingContext.class));
+        verify(releaseFunction).apply(eq(TimeoutableResult.ERROR), any(ExecutionContext.class));
     }
 
     @Test
@@ -111,6 +114,6 @@ public class CallServiceTest {
             assertEquals(e, exception);
         }
 
-        verify(releaseFunction).apply(eq(TimeoutableResult.TIMEOUT), any(PerformingContext.class));
+        verify(releaseFunction).apply(eq(TimeoutableResult.TIMEOUT), any(ExecutionContext.class));
     }
 }

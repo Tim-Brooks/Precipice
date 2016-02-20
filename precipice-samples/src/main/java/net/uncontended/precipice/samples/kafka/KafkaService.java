@@ -19,10 +19,10 @@ package net.uncontended.precipice.samples.kafka;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
-import net.uncontended.precipice.Rejected;
+import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.factories.PromiseFactory;
+import net.uncontended.precipice.factories.Asynchronous;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -41,7 +41,7 @@ public class KafkaService<K, V> implements Precipice<ProduceStatus, Rejected> {
     }
 
     public PrecipiceFuture<ProduceStatus, RecordMetadata> sendRecordAction(ProducerRecord<K, V> record) {
-        final PrecipicePromise<ProduceStatus, RecordMetadata> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
+        final PrecipicePromise<ProduceStatus, RecordMetadata> promise = Asynchronous.acquirePermitsAndPromise(guardRail, 1L);
 
         producer.send(record, new Callback() {
             @Override

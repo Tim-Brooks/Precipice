@@ -19,8 +19,8 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
-import net.uncontended.precipice.TimeoutableResult;
-import net.uncontended.precipice.factories.PromiseFactory;
+import net.uncontended.precipice.result.TimeoutableResult;
+import net.uncontended.precipice.factories.Asynchronous;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
@@ -54,7 +54,7 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
     }
 
     public <T> PrecipiceFuture<TimeoutableResult, T> submit(Callable<T> callable, long millisTimeout) {
-        PrecipicePromise<TimeoutableResult, T> promise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L);
+        PrecipicePromise<TimeoutableResult, T> promise = Asynchronous.acquirePermitsAndPromise(guardRail, 1L);
         internalComplete(callable, promise, millisTimeout);
         return promise.future();
     }
@@ -64,7 +64,7 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
     }
 
     public <T> void complete(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise, long millisTimeout) {
-        PrecipicePromise<TimeoutableResult, T> internalPromise = PromiseFactory.acquirePermitsAndGetPromise(guardRail, 1L, promise);
+        PrecipicePromise<TimeoutableResult, T> internalPromise = Asynchronous.acquirePermitsAndPromise(guardRail, 1L, promise);
         internalComplete(callable, internalPromise, millisTimeout);
     }
 

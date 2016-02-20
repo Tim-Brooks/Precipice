@@ -17,16 +17,14 @@
 
 package net.uncontended.precipice.samples.bigger;
 
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.TimeoutableResult;
-import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.rejected.Rejected;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.metrics.Snapshot;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
 
 import javax.management.*;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ClientMBeans {
@@ -39,47 +37,47 @@ public class ClientMBeans {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
                 @Override
                 public long getTotal() {
-                    return getMetrics(Snapshot.TOTAL);
+                    return 0;
                 }
 
                 @Override
                 public long getSuccesses() {
-                    return getMetrics(Snapshot.SUCCESSES);
+                    return 0;
                 }
 
                 @Override
                 public long getErrors() {
-                    return getMetrics(Snapshot.ERRORS);
+                    return 0;
                 }
 
                 @Override
                 public long getTimeouts() {
-                    return getMetrics(Snapshot.TIMEOUTS);
+                    return 0;
                 }
 
                 @Override
                 public long getMaxConcurrency() {
-                    return getMetrics(Snapshot.MAX_CONCURRENCY);
+                    return 0;
                 }
 
                 @Override
                 public long getAllRejected() {
-                    return getMetrics(Snapshot.ALL_REJECTED);
+                    return 0;
                 }
 
                 @Override
                 public long getCircuitOpen() {
-                    return getMetrics(Snapshot.CIRCUIT_OPEN);
+                    return 0;
                 }
 
                 private long getMetrics(String metric) {
-                    long currentTime = System.currentTimeMillis();
-                    long lastUpdateTime = lastUpdateTimestamp.get();
-                    if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
-                        currentMetrics = Snapshot.generate(countMetrics, countMetrics.metricCounters(1, TimeUnit.SECONDS));
-                    }
+//                    long currentTime = System.currentTimeMillis();
+//                    long lastUpdateTime = lastUpdateTimestamp.get();
+//                    if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
+//                        currentMetrics = Snapshot.generate(countMetrics, countMetrics.metricCounters(1, TimeUnit.SECONDS));
+//                    }
 
-                    return (long) currentMetrics.get(metric);
+                    return 0L;
                 }
             }, new ObjectName(String.format("net.uncontended.precipice:type=Service,name=%s", name)));
 
@@ -96,47 +94,47 @@ public class ClientMBeans {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
                 @Override
                 public long getTotal() {
-                    return getMetrics(Snapshot.TOTAL);
+                    return 0;
                 }
 
                 @Override
                 public long getSuccesses() {
-                    return getMetrics(Snapshot.SUCCESSES);
+                    return 0;
                 }
 
                 @Override
                 public long getErrors() {
-                    return getMetrics(Snapshot.ERRORS);
+                    return 0;
                 }
 
                 @Override
                 public long getTimeouts() {
-                    return getMetrics(Snapshot.TIMEOUTS);
+                    return 0;
                 }
 
                 @Override
                 public long getMaxConcurrency() {
-                    return getMetrics(Snapshot.MAX_CONCURRENCY);
+                    return 0;
                 }
 
                 @Override
                 public long getAllRejected() {
-                    return getMetrics(Snapshot.ALL_REJECTED);
+                    return 0;
                 }
 
                 @Override
                 public long getCircuitOpen() {
-                    return getMetrics(Snapshot.CIRCUIT_OPEN);
+                    return 0;
                 }
 
                 private long getMetrics(String metric) {
-                    long currentTime = System.currentTimeMillis();
-                    long lastUpdateTime = lastUpdateTimestamp.get();
-                    if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
-                        currentMetrics = Snapshot.generate(countMetrics, countMetrics.metricCounters(1, TimeUnit.SECONDS));
-                    }
+//                    long currentTime = System.currentTimeMillis();
+//                    long lastUpdateTime = lastUpdateTimestamp.get();
+//                    if (currentTime - 1000 > lastUpdateTime && lastUpdateTimestamp.compareAndSet(lastUpdateTime, currentTime)) {
+//                        currentMetrics = Snapshot.generate(countMetrics, countMetrics.metricCounters(1, TimeUnit.SECONDS));
+//                    }
 
-                    return (long) currentMetrics.get(metric);
+                    return (long) 0;
                 }
             }, new ObjectName(String.format("net.uncontended.precipice:type=Service,name=%s", name)));
 

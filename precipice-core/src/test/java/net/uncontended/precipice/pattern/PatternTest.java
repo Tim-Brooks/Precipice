@@ -19,6 +19,8 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.*;
 import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.rejected.Rejected;
+import net.uncontended.precipice.result.TimeoutableResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -64,7 +66,7 @@ public class PatternTest {
         List<Precipice<TimeoutableResult, Rejected>> controllables = Arrays.asList(precipice1, precipice2, precipice3);
         pattern = new Pattern<>(controllables, strategy);
 
-        when(strategy.submissionCount()).thenReturn(submissionCount);
+        when(strategy.attemptCount()).thenReturn(submissionCount);
         when(precipice1.guardRail()).thenReturn(guardRail1);
         when(precipice2.guardRail()).thenReturn(guardRail2);
         when(precipice3.guardRail()).thenReturn(guardRail3);

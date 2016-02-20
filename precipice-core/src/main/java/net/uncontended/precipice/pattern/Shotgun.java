@@ -46,7 +46,7 @@ public class Shotgun implements PatternStrategy {
     }
 
     @Override
-    public int submissionCount() {
+    public int attemptCount() {
         return submissionCount;
     }
 

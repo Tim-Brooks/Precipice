@@ -18,9 +18,9 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.RejectedException;
-import net.uncontended.precipice.TimeoutableResult;
+import net.uncontended.precipice.rejected.Rejected;
+import net.uncontended.precipice.rejected.RejectedException;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;

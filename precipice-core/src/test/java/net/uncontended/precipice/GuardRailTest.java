@@ -20,6 +20,7 @@ package net.uncontended.precipice;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -170,7 +171,7 @@ public class GuardRailTest {
 
         Eventual<TestResult, String> context = new Eventual<>(2L, 10L);
 
-        PrecipiceFunction<TestResult, PerformingContext> fn = guardRail.releaseFunction();
+        PrecipiceFunction<TestResult, ExecutionContext> fn = guardRail.releaseFunction();
 
         TestResult result = TestResult.ERROR;
         fn.apply(result, context);

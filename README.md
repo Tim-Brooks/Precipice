@@ -1,19 +1,19 @@
 # Precipice
 
-Precipice is a library that provides the building blocks to manage access to services that your application utilizes. A service can be a number of different things. A service could be a in-process logger performing file IO. Or a service could be something remote, like a different HTTP server. 
-
-Generally, a service is an self-contained unit of functionality that can fail. When one of your services fails, Precipice provides you the tools to handle and isolate that failure within your application.
+Precipice is a library that helps you moniter and manage the execution of tasks that can fail. This could be anything from a network request to an external system or specific procedures internal to your application.
 
 ## Design
 
-The abstraction of Precipice is the concept of a **guardrail**. A guardrail protects the portion of your application that may fail upon execution. There is a single implementation of this class that can be used for numerous cases. A GuardRail has two primary features:
+The core abstraction of Precipice is the concept of a **guardrail**. If you would like to execute a task, you request permits from the guardrail. The decision about whether permits are available is determined based on user configurable metrics and backpressure mechanisms.
 
-1. Metrics about the successes and failures of the execution.
-2. A mechanism to provide backpressure when the execution is failing.
+Specifically a guardrail has:
 
-Using the a GuardRail to protect your application is quite straightforward. You build one with the metrics that you are interested in collecting and the backpressure mechanisms you are interested in using. Some examples would be semaphores, circuit breakers, or rate limiters.
+1. Metrics about the successes and failures of executions.
+2. Metrics about attempts to acquire permits for execution that have been rejected.
+3. Optional latency metrics about the results of exeuctions.
+4. Zero or more back pressure mechanisms informed by these metrics.
 
-When you are interested in executing the protected area of code, you acquire a permit from the guardrail. When the action is complete, you release the permit.
+There is also a Precipice interface that has a single method to return a guard rail. This allows the creation of specialized implementations. For example, the precipice-threadpool package includes an implementation that surrounds the usage of threadpool with a guardrail.
 
 ## Version
 
@@ -31,39 +31,45 @@ The latest release is available on Maven Central:
 
 ## Usage
 
-GuardRails can be created using the builder. A name, metrics for tracking results, and metrics for tracking rejections are required. Latency metrics and back pressure mechanisms are optional. You must specific types for results and rejections. Both of these types must be enumerations. The result type must implement an interface that indicates if it is a success or failure.
+### Creating a GuardRail
+
+GuardRails can be created using the builder. A name, metrics for tracking results, and metrics for tracking rejections are required. Latency metrics and back pressure mechanisms are optional.
+
+As a note, you must specify enumerated types to define possible results or rejections. There are a number of common options provided. Or you can implement your own.
 
 ```java
 String name = "Identity Service";
 GuardRailBuilder builder = new GuardRailBuilder<>();
 builder.name(name);
-builder.resultMetrics(new RollingCountMetrics<>(Status.class));
-builder.rejectedMetrics(new RollingCountMetrics<>(Rejected.class));
+builder.resultMetrics(new RollingCountMetrics<>(SimpleResult.class));
+builder.rejectedMetrics(new RollingCountMetrics<>(Unrejectable.class));
 
 GuardRail guardRail = builder.build();
 ```
 
-An action can be performed as follows.
+### Using a GuardRail
+
+The simplest way to use the GuardRail is by using on of the factories for completion contexts that is provided. These factories implement the logic for acquiring permits and the logic of releasing permits on completion of the context.
 
 ```java
-long nanoStartTime = System.nanoTime();
-Rejected rejectedReason = guardRail.acquirePermits(1, nanoStartTime);
-if (rejectedReason == null) {
-	try {
-		Request req = client.submitHttpClient();
-		long endNanoTime = System.nanoTime();
-		guardRail.releasePermits(1, Status.SUCCESS, nanoStartTime, endNanoTime);
-	} catch (Exception e) {
-		long endNanoTime = System.nanoTime();
-		guardRail.releasePermits(1, Status.ERROR, nanoStartTime, endNanoTime);
-	}
-}
+GuardRail<SimpleResult, Unrejectable> guardRail = builder.build();
+CompletionContext<SimpleResult, String> completable = Synchronous.acquirePermitsAndCompletable(guardRail, 1L);
 
+try {
+    URL url = new URL("http://www.google.com");
+    URLConnection urlConnection = url.openConnection();
+    completable.complete(SimpleResult.SUCCESS, readToString(urlConnection.getInputStream()));
+  } catch (Exception ex) {
+    completable.completeExceptionally(SimpleResult.ERROR, ex);
+  }
 ```
 
-If you are interested in integrating your work into a class wrapping this related work there is an **Precipice** interface. This interface has a single method to return the Precipice's guardrail.
+### Using the CallService
 
-There is an generic CallService for wrapping Callables with the Guardrail protections. This will wire up all acquiring and releasing of permits for you.
+Sometimes you might want to combine the usage of a GuardRail with specialized logic. The Precipice interface exists
+to for this purpose. The CallService is an example of this.
+
+The CallService wraps Callables with the GuardRail protections. It will wire up all acquiring and releasing of permits for you.
 
 ```java
 CallService<RejectedType> callService = new CallService<>(guardRail);

@@ -17,16 +17,16 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.PerformingContext;
+import net.uncontended.precipice.ExecutionContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.Failable;
 
-public class CompletionContext<S extends Failable, T> implements Completable<S, T>, PerformingContext {
+public class CompletionContext<S extends Failable, T> implements Completable<S, T>, ExecutionContext {
 
     private final long permits;
     private final long startTime;
     private final Completable<S, T> wrappedCompletable;
-    private PrecipiceFunction<S, PerformingContext> internalCallback;
+    private PrecipiceFunction<S, ExecutionContext> internalCallback;
     private boolean isCompleted = false;
 
     public CompletionContext() {
@@ -85,7 +85,7 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
         return false;
     }
 
-    public void internalOnComplete(PrecipiceFunction<S, PerformingContext> fn) {
+    public void internalOnComplete(PrecipiceFunction<S, ExecutionContext> fn) {
         internalCallback = fn;
     }
 }

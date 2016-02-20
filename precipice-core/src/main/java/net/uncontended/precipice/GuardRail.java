@@ -30,7 +30,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final LatencyMetrics<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
-    private final PrecipiceFunction<Result, PerformingContext> releaseFunction;
+    private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
 
@@ -81,11 +81,11 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         }
     }
 
-    public void releasePermits(PerformingContext context, Result result) {
+    public void releasePermits(ExecutionContext context, Result result) {
         releasePermits(context.permitCount(), result, context.startNanos(), clock.nanoTime());
     }
 
-    public void releasePermits(PerformingContext context, Result result, long nanoTime) {
+    public void releasePermits(ExecutionContext context, Result result, long nanoTime) {
         releasePermits(context.permitCount(), result, context.startNanos(), nanoTime);
     }
 
@@ -101,7 +101,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         }
     }
 
-    public PrecipiceFunction<Result, PerformingContext> releaseFunction() {
+    public PrecipiceFunction<Result, ExecutionContext> releaseFunction() {
         return releaseFunction;
     }
 
@@ -133,10 +133,10 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         return clock;
     }
 
-    private class FinishingCallback implements PrecipiceFunction<Result, PerformingContext> {
+    private class FinishingCallback implements PrecipiceFunction<Result, ExecutionContext> {
 
         @Override
-        public void apply(Result result, PerformingContext context) {
+        public void apply(Result result, ExecutionContext context) {
             long endTime = clock.nanoTime();
             releasePermits(context, result, endTime);
         }

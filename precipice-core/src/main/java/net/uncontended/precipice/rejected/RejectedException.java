@@ -15,7 +15,13 @@
  *
  */
 
-package net.uncontended.precipice;
+package net.uncontended.precipice.rejected;
 
-public enum NoRejections {
+public class RejectedException extends RuntimeException {
+
+    public final Enum reason;
+
+    public RejectedException(Enum reason) {
+        this.reason = reason;
+    }
 }

@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.TimeoutableResult;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;

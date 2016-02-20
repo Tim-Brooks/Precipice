@@ -18,8 +18,7 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.Rejected;
-import net.uncontended.precipice.TimeoutableResult;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
@@ -37,10 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
@@ -74,13 +69,13 @@ public class ThreadPoolPatternTest {
     @Mock
     private TimeoutService timeoutService3;
     @Mock
-    private GuardRail<TimeoutableResult, Rejected> guardRail;
+    private GuardRail<TimeoutableResult, PatternRejected> guardRail;
     @Mock
     private Clock clock;
     @Mock
     private PrecipiceSemaphore semaphore;
     @Mock
-    private CountMetrics<Rejected> metrics;
+    private CountMetrics<PatternRejected> metrics;
     @Mock
     private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock
@@ -121,7 +116,8 @@ public class ThreadPoolPatternTest {
         when(action.call(context2)).thenReturn("Service2");
         when(action.call(context3)).thenReturn("Service3");
     }
-//
+
+    //
 //    @Test
 //    public void actionsSubmittedToServices() throws Exception {
 //        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable(service1, service3);
