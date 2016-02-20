@@ -31,7 +31,7 @@ public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressur
     private final long allowedPerPeriod;
     private final TimeUnit timeUnit;
     private final AtomicLong count = new AtomicLong(0);
-    private volatile long rolloverTime;
+    private final AtomicLong rolloverTime;
     private final long nanoDuration;
 
     public RateLimiter(Rejected rejectedReason, long allowedPerPeriod, long duration, TimeUnit timeUnit) {
@@ -40,7 +40,7 @@ public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressur
         this.duration = duration;
         this.timeUnit = timeUnit;
         this.nanoDuration = timeUnit.toNanos(duration);
-        this.rolloverTime = System.nanoTime() + nanoDuration;
+        this.rolloverTime = new AtomicLong(System.nanoTime() + nanoDuration);
     }
 
     @Override
@@ -48,10 +48,11 @@ public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressur
         for (; ; ) {
             long currentCount = count.incrementAndGet();
             if (currentCount > allowedPerPeriod) {
-                if (rolloverTime > nanoTime) {
+                long localRolloverTime = rolloverTime.get();
+                if (localRolloverTime > nanoTime) {
                     return rejectedReason;
-                } else if (count.compareAndSet(currentCount, 0)) {
-                    rolloverTime = nanoTime;
+                } else if (count.compareAndSet(currentCount, 0) &&
+                        rolloverTime.compareAndSet(localRolloverTime, nanoTime + nanoDuration)) {
                     return null;
                 }
             } else {
