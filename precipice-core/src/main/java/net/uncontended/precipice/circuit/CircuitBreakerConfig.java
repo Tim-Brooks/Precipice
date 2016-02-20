@@ -19,6 +19,7 @@ package net.uncontended.precipice.circuit;
 public class CircuitBreakerConfig<Rejected extends Enum<Rejected>> {
 
     public final Rejected reason;
+    public final Rejected forcedReason;
     public final int failurePercentageThreshold;
     public final long failureThreshold;
     public final long trailingPeriodMillis;
@@ -26,10 +27,11 @@ public class CircuitBreakerConfig<Rejected extends Enum<Rejected>> {
     public final long backOffTimeMillis;
     public final long sampleSizeThreshold;
 
-    public CircuitBreakerConfig(Rejected reason, long failureThreshold, int failurePercentageThreshold,
+    public CircuitBreakerConfig(Rejected reason, Rejected forcedReason, long failureThreshold, int failurePercentageThreshold,
                                 long trailingPeriodMillis, long healthRefreshMillis, long backOffTimeMillis,
                                 long sampleSizeThreshold) {
         this.reason = reason;
+        this.forcedReason = forcedReason;
         this.failureThreshold = failureThreshold;
         this.failurePercentageThreshold = failurePercentageThreshold;
         this.trailingPeriodMillis = trailingPeriodMillis;
