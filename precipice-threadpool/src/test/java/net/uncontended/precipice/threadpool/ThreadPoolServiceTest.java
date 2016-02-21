@@ -120,20 +120,6 @@ public class ThreadPoolServiceTest {
     }
 
     @Test
-    public void promiseCanBeCompletedExternallyWithoutImpactingService() throws Exception {
-        PrecipicePromise<TimeoutableResult, String> promise = mock(PrecipicePromise.class);
-        PrecipiceFuture<TimeoutableResult, String> future = mock(PrecipiceFuture.class);
-
-        when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
-        when(promise.future()).thenReturn(future);
-        when(future.isDone()).thenReturn(true);
-
-        service.complete(TestCallable.success("Success"), promise, Long.MAX_VALUE);
-
-        verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
-    }
-
-    @Test
     public void submittedCallableWillTimeout() throws Exception {
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
