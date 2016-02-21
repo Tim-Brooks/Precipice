@@ -74,11 +74,11 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
     }
 
     @Override
-    public boolean completeExceptionally(S status, Throwable ex) {
+    public boolean completeExceptionally(S status, Throwable exception) {
         if (!this.isCompleted && internalCallback != null) {
             internalCallback.apply(status, this);
             if (wrappedCompletable != null) {
-                wrappedCompletable.completeExceptionally(status, ex);
+                wrappedCompletable.completeExceptionally(status, exception);
             }
             return true;
         }

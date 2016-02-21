@@ -19,9 +19,34 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Failable;
 
+/**
+ * A context that can be completed with the result of a computation.
+ * The context can only be completed once. This holds true for both an
+ * successes and exceptions. So if it is completed with an exception,
+ * it cannot be completed successfully.
+ *
+ * @param <S> the type of the status for this promise
+ * @param <T> the type of the result for this promise
+ */
 public interface Completable<S extends Failable, T> {
 
+    /**
+     * Completes this context successfully with the result. A boolean will be
+     * returned indicating if it was completed successfully.
+     *
+     * @param status of the computation
+     * @param result of the computation
+     * @return if the context was competed successfully
+     */
     boolean complete(S status, T result);
 
-    boolean completeExceptionally(S status, Throwable ex);
+    /**
+     * Completes this context with an exception. A boolean will be returned
+     * indicating if it was completed successfully.
+     *
+     * @param status of the computation
+     * @param exception of the computation
+     * @return if the context was competed successfully
+     */
+    boolean completeExceptionally(S status, Throwable exception);
 }

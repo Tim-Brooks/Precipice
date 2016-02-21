@@ -80,18 +80,18 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public boolean completeExceptionally(S status, Throwable ex) {
+    public boolean completeExceptionally(S status, Throwable exception) {
         if (this.status.get() == null) {
             if (this.status.compareAndSet(null, status)) {
-                throwable = ex;
+                throwable = exception;
                 executeInternalCallback(status);
                 latch.countDown();
                 PrecipiceFunction<S, Throwable> cb = errorCallback.get();
                 if (cb != null && errorCallback.compareAndSet(cb, null)) {
-                    cb.apply(status, ex);
+                    cb.apply(status, exception);
                 }
                 if (wrappedPromise != null) {
-                    wrappedPromise.completeExceptionally(status, ex);
+                    wrappedPromise.completeExceptionally(status, exception);
                 }
                 return true;
             }

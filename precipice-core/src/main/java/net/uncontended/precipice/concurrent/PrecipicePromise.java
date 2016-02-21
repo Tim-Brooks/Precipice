@@ -19,7 +19,19 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Failable;
 
+/**
+ * A context that can be completed with the result of an asynchronous computation.
+ *
+ * @param <S> the type of the status for this promise
+ * @param <T> the type of the result for this promise
+ */
 public interface PrecipicePromise<S extends Failable, T> extends Completable<S,T> {
+
+    /**
+     * Returns a future containing the result of this promise
+     *
+     * @return a future
+     */
 
     PrecipiceFuture<S, T> future();
 }
