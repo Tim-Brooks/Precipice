@@ -34,6 +34,8 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     public final LatencySnapshot[] latencies;
     public final LatencySnapshot[] totalLatencies;
 
+    // TODO: Add rejections
+
     Summary(long period, TimeUnit unit, GuardRail<Result, Rejected> guardRail) {
         this.period = period;
         this.unit = unit;
