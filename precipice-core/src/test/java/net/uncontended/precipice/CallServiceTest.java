@@ -18,9 +18,11 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.CompletionContext;
+import net.uncontended.precipice.metrics.MetricCounter;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
+import net.uncontended.precipice.test_utils.Simulation;
 import net.uncontended.precipice.test_utils.TestCallables;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
@@ -29,6 +31,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
@@ -115,5 +120,46 @@ public class CallServiceTest {
         }
 
         verify(releaseFunction).apply(eq(TimeoutableResult.TIMEOUT), any(ExecutionContext.class));
+    }
+
+    @Test
+    public void simulationTest() {
+        GuardRailBuilder<TimeoutableResult, Rejected> builder = new GuardRailBuilder<>();
+        builder.name("Simulation")
+                .resultMetrics(new MetricCounter<>(TimeoutableResult.class))
+                .rejectedMetrics(new MetricCounter<>(Rejected.class));
+
+        GuardRail<TimeoutableResult, Rejected> guardRail = builder.build();
+        final CallService<Rejected> callService = new CallService<>(guardRail);
+
+        Map<TimeoutableResult, Runnable> resultToRunnable = new HashMap<>();
+        resultToRunnable.put(TimeoutableResult.SUCCESS, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    callService.call(TestCallables.success(0L));
+                } catch (Exception e) {}
+            }
+        });
+
+        resultToRunnable.put(TimeoutableResult.ERROR, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    callService.call(TestCallables.erred(new IOException()));
+                } catch (Exception e) {}
+            }
+        });
+
+        resultToRunnable.put(TimeoutableResult.TIMEOUT, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    callService.call(TestCallables.erred(new PrecipiceTimeoutException()));
+                } catch (Exception e) {}
+            }
+        });
+        
+        Simulation.run(guardRail, resultToRunnable, new HashMap<Rejected, Runnable>());
     }
 }
