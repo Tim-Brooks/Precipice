@@ -19,6 +19,11 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.metrics.CountMetrics;
 
+/**
+ * A mechanism to provide back pressure for task execution.
+ *
+ * @param <Rejected> the type for rejection reasons
+ */
 public interface BackPressure<Rejected extends Enum<Rejected>> {
 
     /**
