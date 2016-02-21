@@ -49,8 +49,9 @@ public class Simulation {
                 resultToRunnable.get(resultTypes.get(j)).run();
                 ++resultCounts[j];
             } else {
-                rejectedToRunnable.get(rejectedTypes.get(j)).run();
-                ++rejectedCounts[j];
+                int rejectedIndex = j - resultTypeCount;
+                rejectedToRunnable.get(rejectedTypes.get(rejectedIndex)).run();
+                ++rejectedCounts[rejectedIndex];
             }
         }
 

@@ -24,9 +24,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NoOpCircuitBreaker<Rejected extends Enum<Rejected>> implements CircuitBreaker<Rejected> {
     private final AtomicBoolean circuitOpen = new AtomicBoolean(false);
+    private final Rejected reason;
+
+    public NoOpCircuitBreaker(Rejected reason) {
+        this.reason = reason;
+    }
 
     @Override
     public Rejected acquirePermit(long number, long nanoTime) {
+        if (circuitOpen.get()) {
+            return reason;
+        }
         return null;
     }
 
