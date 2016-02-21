@@ -31,7 +31,7 @@ public interface ExecutionContext {
 
     /**
      * Returns the number of guard rail permits that this task required.
-     * 
+     *
      * @return number of permits
      */
     long permitCount();

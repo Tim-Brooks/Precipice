@@ -46,7 +46,7 @@ public class EventualTest {
     @Test
     public void testErrorCallback() throws InterruptedException {
         final AtomicReference<Throwable> error = new AtomicReference<>();
-        final AtomicReference<String> result = new AtomicReference<>();
+        final AtomicReference<String> resultReference = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
         Eventual<TestResult, String> eventual = new Eventual<>();
@@ -63,7 +63,7 @@ public class EventualTest {
         eventual.onSuccess(new PrecipiceFunction<TestResult, String>() {
             @Override
             public void apply(TestResult result, String argument) {
-                result.set(argument);
+                resultReference.set(argument);
             }
         });
 
@@ -73,7 +73,7 @@ public class EventualTest {
 
         assertSame(exception, error.get());
         assertSame(exception, eventual.getError());
-        assertNull(result.get());
+        assertNull(resultReference.get());
         assertNull(eventual.getResult());
         assertFalse(isTimedOut.get());
         assertFalse(eventual.isCancelled());
@@ -88,7 +88,7 @@ public class EventualTest {
     @Test
     public void testSuccessCallback() throws Exception {
         final AtomicReference<Throwable> error = new AtomicReference<>();
-        final AtomicReference<String> result = new AtomicReference<>();
+        final AtomicReference<String> resultReference = new AtomicReference<>();
         final AtomicBoolean isTimedOut = new AtomicBoolean(false);
 
         Eventual<TestResult, String> eventual = new Eventual<>();
@@ -105,7 +105,7 @@ public class EventualTest {
         eventual.onSuccess(new PrecipiceFunction<TestResult, String>() {
             @Override
             public void apply(TestResult result, String argument) {
-                result.set(argument);
+                resultReference.set(argument);
             }
         });
 
@@ -114,7 +114,7 @@ public class EventualTest {
         assertFalse(eventual.completeExceptionally(TestResult.ERROR, exception));
         assertFalse(eventual.cancel(true));
 
-        assertSame(stringResult, result.get());
+        assertSame(stringResult, resultReference.get());
         assertSame(stringResult, eventual.getResult());
         assertSame(stringResult, eventual.get());
         assertNull(error.get());

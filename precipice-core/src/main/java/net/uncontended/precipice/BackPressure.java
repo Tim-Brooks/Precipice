@@ -21,10 +21,34 @@ import net.uncontended.precipice.metrics.CountMetrics;
 
 public interface BackPressure<Rejected extends Enum<Rejected>> {
 
+    /**
+     * Acquires the request permits for task execution. If the execution is denied due
+     * to back pressure, then a the rejected reason is returned. If the permits are
+     * successfully acquired, then null is returned.
+     *
+     * @param number of permits requested
+     * @param nanoTime current nanosecond time
+     * @return the reason for rejection if permit acquisition fails
+     */
     Rejected acquirePermit(long number, long nanoTime);
 
+    /**
+     * Releases permits without considering the result of the execution.
+     *
+     * @param number of permits to release
+     * @param nanoTime current nanosecond time
+     */
     void releasePermit(long number, long nanoTime);
 
+    /**
+     * Releases permits while considering the result of the execution. The result of the
+     * execution may help inform the logic of the back pressure mechanism (depending on the
+     * implementation).
+     *
+     * @param number of permits to release
+     * @param result of the task execution
+     * @param nanoTime current nanosecond time
+     */
     void releasePermit(long number, Failable result, long nanoTime);
 
     <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics);
