@@ -17,9 +17,22 @@
 
 package net.uncontended.precipice;
 
+/**
+ * A context representing the execution of a task that was allowed by a guardrail.
+ */
 public interface ExecutionContext {
 
+    /**
+     * Returns the time that the guard rail approved the execution of this task.
+     *
+     * @return the start nano time
+     */
     long startNanos();
 
+    /**
+     * Returns the number of guard rail permits that this task required.
+     * 
+     * @return number of permits
+     */
     long permitCount();
 }

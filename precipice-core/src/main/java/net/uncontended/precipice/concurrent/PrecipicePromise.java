@@ -32,6 +32,5 @@ public interface PrecipicePromise<S extends Failable, T> extends Completable<S,T
      *
      * @return a future
      */
-
     PrecipiceFuture<S, T> future();
 }
