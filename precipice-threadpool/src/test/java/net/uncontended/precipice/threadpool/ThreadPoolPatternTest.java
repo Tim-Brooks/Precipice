@@ -19,10 +19,12 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.SingleReaderSequence;
+import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.semaphore.PrecipiceSemaphore;
 import net.uncontended.precipice.time.Clock;
@@ -37,7 +39,14 @@ import org.mockito.MockitoAnnotations;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
@@ -77,7 +86,9 @@ public class ThreadPoolPatternTest {
     @Mock
     private PrecipiceSemaphore semaphore;
     @Mock
-    private CountMetrics<PatternRejected> metrics;
+    private CountMetrics<TimeoutableResult> metrics;
+    @Mock
+    private CountMetrics<PatternRejected> rejectedMetrics;
     @Mock
     private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock
@@ -111,7 +122,8 @@ public class ThreadPoolPatternTest {
         when(service3.getTimeoutService()).thenReturn(timeoutService3);
 
         when(guardRail.getClock()).thenReturn(clock);
-        when(guardRail.getRejectedMetrics()).thenReturn(metrics);
+        when(guardRail.getResultMetrics()).thenReturn(metrics);
+        when(guardRail.getRejectedMetrics()).thenReturn(rejectedMetrics);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
 
         when(action.call(context1)).thenReturn("Service1");
@@ -119,113 +131,68 @@ public class ThreadPoolPatternTest {
         when(action.call(context3)).thenReturn("Service3");
     }
 
+    @Test
+    public void actionsSubmittedToServices() throws Exception {
+        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable(service1, service3);
+        long millisTimeout = 100L;
 
-//    @Test
-//    public void actionsSubmittedToServices() throws Exception {
-//        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable(service1, service3);
-//        Eventual<TimeoutableResult, Object> parent = new Eventual<>(1L, submitTimeNanos);
-//        Eventual<TimeoutableResult, Object> child1 = new Eventual<>(1L, submitTimeNanos, parent);
-//        Eventual<TimeoutableResult, Object> child2 = new Eventual<>(1L, submitTimeNanos, parent);
-//        long millisTimeout = 100L;
-//
-//        when(guardRail.acquirePermits(1L)).thenReturn(null);
-//        when(pattern.getPrecipices(1L, submitTimeNanos)).thenReturn(iterable);
-//        when(promiseFactory.getPromise(1L, submitTimeNanos)).thenReturn(parent);
-//        when(promiseFactory1.getPromise(guardRail, 1L, submitTimeNanos, parent)).thenReturn(child1);
-//        when(promiseFactory3.getPromise(guardRail, 1L, submitTimeNanos, parent)).thenReturn(child2);
-//
-//        PrecipiceFuture<TimeoutableResult, String> f = poolPattern.submit(action, millisTimeout);
-//
-//        verifyZeroInteractions(service2);
-//        verify(promiseFactory1).getPromise(guardRail, 1L, submitTimeNanos, parent);
-//        verify(promiseFactory3).getPromise(guardRail, 1L, submitTimeNanos, parent);
-//        verify(executor1).execute(task1Captor.capture());
-//        verify(executor3).execute(task2Captor.capture());
-//        verify(timeoutService1).scheduleTimeout(task1Captor.capture());
-//        verify(timeoutService3).scheduleTimeout(task2Captor.capture());
-//
-//        ThreadPoolTask<TimeoutableResult> task1 = task1Captor.getAllValues().get(0);
-//        ThreadPoolTask<TimeoutableResult> task12 = task1Captor.getAllValues().get(1);
-//        ThreadPoolTask<TimeoutableResult> task2 = task2Captor.getAllValues().get(0);
-//        ThreadPoolTask<TimeoutableResult> task22 = task2Captor.getAllValues().get(1);
-//
-//        assertSame(task1, task12);
-//        assertSame(task2, task22);
-//        assertEquals(millisTimeout, task1.getMillisRelativeTimeout());
-//        assertEquals(millisTimeout, task2.getMillisRelativeTimeout());
-//
-//        long expectedNanoTimeout = submitTimeNanos + TimeUnit.MILLISECONDS.toNanos(millisTimeout);
-//        assertEquals(expectedNanoTimeout, task1.nanosAbsoluteTimeout);
-//        assertEquals(expectedNanoTimeout, task2.nanosAbsoluteTimeout);
-//
-//        assertNull(f.getStatus());
-//        task1.run();
-//        task2.run();
-//        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
-//        assertEquals("Service1", f.getResult());
-//
-//        PrecipiceFuture<TimeoutableResult, Object> future1 = child1.future();
-//        PrecipiceFuture<TimeoutableResult, Object> future2 = child2.future();
-//        assertEquals("Service1", future1.getResult());
-//        assertEquals(TimeoutableResult.SUCCESS, future1.getStatus());
-//        assertEquals("Service3", future2.getResult());
-//        assertEquals(TimeoutableResult.SUCCESS, future2.getStatus());
-//    }
-//
-//    @Test
-//    public void ifNoServiceReturnedThenAllRejected() throws Exception {
-//        SingleReaderSequence<ThreadPoolService> iterable = prepIterable();
-//        long millisTimeout = 100L;
-//
-//        when(guardRail.acquirePermitOrGetRejectedReason()).thenReturn(null);
-//        when(pattern.getPrecipices(1L, submitTimeNanos)).thenReturn(iterable);
-//
-//        try {
-//            poolPattern.submit(action, millisTimeout);
-//            fail("Should have been rejected");
-//        } catch (RejectedException e) {
-//            assertEquals(Rejected.ALL_SERVICES_REJECTED, e.reason);
-//        }
-//
-//        verify(semaphore).releasePermit(1);
-//        verify(metrics).incrementRejectionCount(Rejected.ALL_SERVICES_REJECTED, submitTimeNanos);
-//
-//        verifyZeroInteractions(service1);
-//        verifyZeroInteractions(service2);
-//        verifyZeroInteractions(service3);
-//    }
-//
-//    @Test
-//    public void rejectedActionsHandled() throws Exception {
-//        when(guardRail.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.CIRCUIT_OPEN);
-//
-//        try {
-//            poolPattern.submit(action, 100L);
-//            fail("Should have been rejected");
-//        } catch (RejectedException e) {
-//            assertEquals(Rejected.CIRCUIT_OPEN, e.reason);
-//        }
-//        verify(metrics).incrementRejectionCount(Rejected.CIRCUIT_OPEN, submitTimeNanos);
-//
-//        verifyZeroInteractions(service1);
-//        verifyZeroInteractions(service2);
-//        verifyZeroInteractions(service3);
-//
-//        when(guardRail.acquirePermitOrGetRejectedReason()).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
-//
-//        try {
-//            poolPattern.submit(action, 100L);
-//            fail("Should have been rejected");
-//        } catch (RejectedException e) {
-//            assertEquals(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, e.reason);
-//        }
-//        verify(metrics).incrementRejectionCount(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, submitTimeNanos);
-//
-//        verifyZeroInteractions(service1);
-//        verifyZeroInteractions(service2);
-//        verifyZeroInteractions(service3);
-//    }
-//
+        when(guardRail.acquirePermits(1L)).thenReturn(null);
+        when(pattern.getPrecipices(1L, submitTimeNanos)).thenReturn(iterable);
+        when(guardRail1.acquirePermits(1L, submitTimeNanos)).thenReturn(null);
+        when(guardRail3.acquirePermits(1L, submitTimeNanos)).thenReturn(null);
+
+        PrecipiceFuture<TimeoutableResult, String> f = poolPattern.submit(action, millisTimeout);
+
+        verifyZeroInteractions(service2);
+        verify(executor1).execute(task1Captor.capture());
+        verify(executor3).execute(task2Captor.capture());
+        verify(timeoutService1).scheduleTimeout(task1Captor.capture());
+        verify(timeoutService3).scheduleTimeout(task2Captor.capture());
+
+        ThreadPoolTask<TimeoutableResult> task1 = task1Captor.getAllValues().get(0);
+        ThreadPoolTask<TimeoutableResult> task12 = task1Captor.getAllValues().get(1);
+        ThreadPoolTask<TimeoutableResult> task2 = task2Captor.getAllValues().get(0);
+        ThreadPoolTask<TimeoutableResult> task22 = task2Captor.getAllValues().get(1);
+
+        assertSame(task1, task12);
+        assertSame(task2, task22);
+        assertEquals(millisTimeout, task1.getMillisRelativeTimeout());
+        assertEquals(millisTimeout, task2.getMillisRelativeTimeout());
+
+        long expectedNanoTimeout = submitTimeNanos + TimeUnit.MILLISECONDS.toNanos(millisTimeout);
+        assertEquals(expectedNanoTimeout, task1.nanosAbsoluteTimeout);
+        assertEquals(expectedNanoTimeout, task2.nanosAbsoluteTimeout);
+
+        assertNull(f.getStatus());
+        task1.run();
+        task2.run();
+        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
+        assertEquals("Service1", f.getResult());
+    }
+
+    @Test
+    public void ifNoServiceReturnedThenAllRejected() throws Exception {
+        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable();
+        long millisTimeout = 100L;
+
+        when(guardRail.acquirePermits(1L, submitTimeNanos)).thenReturn(null);
+        when(pattern.getPrecipices(1L, submitTimeNanos)).thenReturn(iterable);
+
+        try {
+            poolPattern.submit(action, millisTimeout);
+            fail("Should have been rejected");
+        } catch (RejectedException e) {
+            assertEquals(PatternRejected.ALL_REJECTED, e.reason);
+        }
+
+        verify(guardRail).releasePermitsWithoutResult(1, submitTimeNanos);
+        verify(rejectedMetrics).incrementMetricCount(PatternRejected.ALL_REJECTED, submitTimeNanos);
+
+        verifyZeroInteractions(service1);
+        verifyZeroInteractions(service2);
+        verifyZeroInteractions(service3);
+    }
+
     private SingleReaderSequence<ThreadPoolService<?>> prepIterable(ThreadPoolService... services) {
         SingleReaderSequence<ThreadPoolService<?>> iterable = new SingleReaderSequence<>(services.length);
 
