@@ -23,19 +23,71 @@ import net.uncontended.precipice.Failable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A context containing the result of an asynchronous computation.
+ *
+ * @param <S> the type of the status for this future
+ * @param <T> the type of the result for this future
+ */
 public interface PrecipiceFuture<S extends Failable, T> extends Future<T> {
 
+    /**
+     * Attaches a callback to be executed if the future is completed successfully.
+     * The function will be passed the status of the future and the result.
+     *
+     * This method only is guaranteed to be safe if it is called once. Specific implementations
+     * may provide stronger guarantees.
+     *
+     * @param fn function to be executed
+     */
     void onSuccess(PrecipiceFunction<S, T> fn);
 
+    /**
+     * Attaches a callback to be executed if the future is not completed successfully.
+     * The function will be passed the status of the future and any exception that occurred
+     * during execution.
+     *
+     * This method only is guaranteed to be safe if it is called once. Specific implementations
+     * may provide stronger guarantees.
+     *
+     * @param fn function to be executed
+     */
     void onError(PrecipiceFunction<S, Throwable> fn);
 
+    /**
+     * Block until the completion of the future.
+     *
+     * @throws InterruptedException
+     */
     void await() throws InterruptedException;
 
+    /**
+     * Block until the completion of the future or until the time duration is exceeded.
+     *
+     * @param duration the maximum duration to wait
+     * @param unit the unit of the duration argument
+     * @throws InterruptedException
+     */
     void await(long duration, TimeUnit unit) throws InterruptedException;
 
+    /**
+     * Return the result of the future.
+     *
+     * @return the result
+     */
     T getResult();
 
+    /**
+     * Return the exception that might have occurred from a failed execution.
+     *
+     * @return the exception
+     */
     Throwable getError();
 
+    /**
+     * Return the status of the future.
+     *
+     * @return the status
+     */
     S getStatus();
 }

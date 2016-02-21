@@ -62,7 +62,7 @@ public class EventualTest {
 
         eventual.onSuccess(new PrecipiceFunction<TestResult, String>() {
             @Override
-            public void apply(TestResult status, String argument) {
+            public void apply(TestResult result, String argument) {
                 result.set(argument);
             }
         });
@@ -97,14 +97,14 @@ public class EventualTest {
         IOException exception = new IOException();
         eventual.onError(new PrecipiceFunction<TestResult, Throwable>() {
             @Override
-            public void apply(TestResult status, Throwable argument) {
+            public void apply(TestResult result, Throwable argument) {
                 error.set(argument);
             }
         });
 
         eventual.onSuccess(new PrecipiceFunction<TestResult, String>() {
             @Override
-            public void apply(TestResult status, String argument) {
+            public void apply(TestResult result, String argument) {
                 result.set(argument);
             }
         });
@@ -131,8 +131,8 @@ public class EventualTest {
 
         eventual.internalOnComplete(new PrecipiceFunction<TestResult, ExecutionContext>() {
             @Override
-            public void apply(TestResult status, ExecutionContext argument) {
-                statusReference.compareAndSet(null, status);
+            public void apply(TestResult result, ExecutionContext argument) {
+                statusReference.compareAndSet(null, result);
                 context.compareAndSet(null, argument);
 
             }
@@ -152,8 +152,8 @@ public class EventualTest {
 
         eventual.internalOnComplete(new PrecipiceFunction<TestResult, ExecutionContext>() {
             @Override
-            public void apply(TestResult status, ExecutionContext argument) {
-                statusReference.compareAndSet(null, status);
+            public void apply(TestResult result, ExecutionContext argument) {
+                statusReference.compareAndSet(null, result);
                 context.compareAndSet(null, argument);
 
             }

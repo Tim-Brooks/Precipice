@@ -20,5 +20,5 @@ package net.uncontended.precipice;
 @FunctionalInterface
 public interface PrecipiceFunction<S, T> {
 
-    void apply(S status, T argument);
+    void apply(S result, T argument);
 }

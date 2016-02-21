@@ -18,15 +18,17 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.result.TimeoutableResult;
+import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.SingleReaderSequence;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.semaphore.PrecipiceSemaphore;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.timeout.TimeoutService;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -117,7 +119,7 @@ public class ThreadPoolPatternTest {
         when(action.call(context3)).thenReturn("Service3");
     }
 
-    //
+
 //    @Test
 //    public void actionsSubmittedToServices() throws Exception {
 //        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable(service1, service3);
