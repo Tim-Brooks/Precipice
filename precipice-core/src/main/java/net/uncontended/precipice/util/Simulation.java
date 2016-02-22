@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.test_utils;
+package net.uncontended.precipice.util;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 public class Simulation {
 
@@ -41,7 +43,7 @@ public class Simulation {
         long[] resultCounts = new long[resultTypeCount];
         long[] rejectedCounts = new long[rejectedTypeCount];
 
-        int executions = random.nextInt(1000) + 1000;
+        int executions = random.nextInt(500) + 500;
         for (int i = 0; i < executions; ++i) {
             int j = random.nextInt(totalCount);
 
@@ -62,13 +64,22 @@ public class Simulation {
     private static <T extends Enum<T>> void assertMetrics(String testType, CountMetrics<T> metrics, List<T> types,
                                                           long[] counts) {
         for (int i = 0; i < types.size(); ++i) {
-            T type = types.get(i);
-            long actualCount = metrics.getMetricCount(type);
-            long expectedCount = counts[i];
+            for (int j = 0; j < 5; ++j) {
 
-            String message = String.format("Expected: %s %s counts to be returned for %s. Actual: %s.",
-                    expectedCount, testType, type, actualCount);
-            assert actualCount == expectedCount : message;
+                T type = types.get(i);
+                long actualCount = metrics.getMetricCount(type);
+                long expectedCount = counts[i];
+
+                if (expectedCount != actualCount && j != 4) {
+                    System.out.println("here");
+                    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
+                } else {
+                    String message = String.format("Expected: %s %s counts to be returned for %s. Actual: %s.",
+                            expectedCount, testType, type, actualCount);
+
+                    assert actualCount == expectedCount : message;
+                }
+            }
         }
     }
 }

@@ -18,24 +18,31 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.rejected.Rejected;
-import net.uncontended.precipice.rejected.RejectedException;
-import net.uncontended.precipice.result.TimeoutableResult;
+import net.uncontended.precipice.GuardRailBuilder;
+import net.uncontended.precipice.circuit.NoOpCircuitBreaker;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.metrics.MetricCounter;
+import net.uncontended.precipice.rejected.Rejected;
+import net.uncontended.precipice.rejected.RejectedException;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.threadpool.test_utils.TestCallable;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
+import net.uncontended.precipice.util.Simulation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -43,9 +50,7 @@ import java.util.concurrent.ExecutorService;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ThreadPoolServiceTest {
 
@@ -169,5 +174,69 @@ public class ThreadPoolServiceTest {
         service.submit(TestCallable.success(), 100);
 
         verify(guardRail).acquirePermits(1L, startNanos);
+    }
+
+    @Test
+    public void simulationTest() {
+        GuardRailBuilder<TimeoutableResult, Rejected> builder = new GuardRailBuilder<>();
+        final NoOpCircuitBreaker<Rejected> breaker = new NoOpCircuitBreaker<>(Rejected.CIRCUIT_OPEN);
+        builder.name("Simulation")
+                .resultMetrics(new MetricCounter<>(TimeoutableResult.class))
+                .rejectedMetrics(new MetricCounter<>(Rejected.class))
+                .addBackPressure(breaker);
+
+        GuardRail<TimeoutableResult, Rejected> guardRail = builder.build();
+        final ThreadPoolService<Rejected> callService = new ThreadPoolService<>(5, 10, guardRail);
+
+        Map<TimeoutableResult, Runnable> resultToRunnable = new HashMap<>();
+        resultToRunnable.put(TimeoutableResult.SUCCESS, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    callService.submit(TestCallable.success());
+                } catch (Exception e) {
+                }
+            }
+        });
+
+        resultToRunnable.put(TimeoutableResult.ERROR, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    PrecipiceFuture<TimeoutableResult, String> f = callService.submit(TestCallable.erred(new IOException()));
+                    f.await();
+                } catch (Exception e) {
+                }
+            }
+        });
+
+        resultToRunnable.put(TimeoutableResult.TIMEOUT, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    CountDownLatch latch = new CountDownLatch(1);
+                    PrecipiceFuture<TimeoutableResult, String> f = callService.submit(TestCallable.blocked(latch), 1L);
+                    f.await();
+                    latch.countDown();
+                } catch (Exception e) {
+                }
+            }
+        });
+
+        Map<Rejected, Runnable> rejectedToRunnable = new HashMap<>();
+        rejectedToRunnable.put(Rejected.CIRCUIT_OPEN, new Runnable() {
+            @Override
+            public void run() {
+                breaker.forceOpen();
+                try {
+                    PrecipiceFuture<TimeoutableResult, String> f = callService.submit(TestCallable.success());
+                    f.await();
+                } catch (Exception e) {
+                }
+                breaker.forceClosed();
+            }
+        });
+
+        Simulation.run(guardRail, resultToRunnable, rejectedToRunnable);
     }
 }
