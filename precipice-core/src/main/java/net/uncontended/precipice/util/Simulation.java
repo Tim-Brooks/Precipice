@@ -32,14 +32,17 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
-public class Simulation {
+public class Simulation<R extends Enum<R> & Failable, V extends Enum<V>> {
 
-    public static <R extends Enum<R> & Failable, V extends Enum<V>> void run(GuardRail<R, V> guardRail,
-                                                                             Map<R, Runnable> resultToRunnable,
-                                                                             Map<V, Runnable> rejectedToRunnable) {
-        UnlimitedSemaphore<V> gauge = new UnlimitedSemaphore<>();
-        wireUpGauge(guardRail, gauge);
+    private final UnlimitedSemaphore<V> gauge = new UnlimitedSemaphore<>();
+    private final GuardRail<R, V> guardRail;
 
+    public Simulation(GuardRail<R, V> guardRail) {
+        wireUpGauge(guardRail);
+        this.guardRail = guardRail;
+    }
+
+    public void run(Map<R, Runnable> resultToRunnable, Map<V, Runnable> rejectedToRunnable) {
         Random random = ThreadLocalRandom.current();
         int resultTypeCount = resultToRunnable.size();
         int rejectedTypeCount = rejectedToRunnable.size();
@@ -73,8 +76,7 @@ public class Simulation {
         assertMetrics("rejected", guardRail.getRejectedMetrics(), rejectedTypes, rejectedCounts);
     }
 
-    private static <R extends Enum<R> & Failable, V extends Enum<V>> void wireUpGauge(GuardRail<R, V> guardRail,
-                                                                                      UnlimitedSemaphore<V> gauge) {
+    private void wireUpGauge(GuardRail<R, V> guardRail) {
         try {
             Field f = guardRail.getClass().getDeclaredField("backPressureList");
             f.setAccessible(true);
@@ -85,8 +87,7 @@ public class Simulation {
         }
     }
 
-    private static <T extends Enum<T>> void assertMetrics(String testType, CountMetrics<T> metrics, List<T> types,
-                                                          long[] counts) {
+    private <T extends Enum<T>> void assertMetrics(String testType, CountMetrics<T> metrics, List<T> types, long[] counts) {
         for (int i = 0; i < types.size(); ++i) {
             for (int j = 0; j < 5; ++j) {
 

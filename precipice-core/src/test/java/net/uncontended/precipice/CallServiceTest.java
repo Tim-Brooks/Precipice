@@ -23,10 +23,10 @@ import net.uncontended.precipice.metrics.MetricCounter;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
-import net.uncontended.precipice.util.Simulation;
 import net.uncontended.precipice.test_utils.TestCallables;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
+import net.uncontended.precipice.util.Simulation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -179,6 +179,7 @@ public class CallServiceTest {
             }
         });
 
-        Simulation.run(guardRail, resultToRunnable, rejectedToRunnable);
+        Simulation<TimeoutableResult, Rejected> simulation = new Simulation<>(guardRail);
+        simulation.run(resultToRunnable, rejectedToRunnable);
     }
 }

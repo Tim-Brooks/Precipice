@@ -232,11 +232,13 @@ public class ThreadPoolServiceTest {
                 try {
                     PrecipiceFuture<TimeoutableResult, String> f = callService.submit(TestCallable.success());
                     f.await();
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
                 breaker.forceClosed();
             }
         });
 
-        Simulation.run(guardRail, resultToRunnable, rejectedToRunnable);
+        Simulation<TimeoutableResult, Rejected> simulation = new Simulation<>(guardRail);
+        simulation.run(resultToRunnable, rejectedToRunnable);
     }
 }
