@@ -29,19 +29,19 @@ public class UnlimitedSemaphore<Rejected extends Enum<Rejected>> implements Back
 
     @Override
     public Rejected acquirePermit(long number, long nanoTime) {
-        concurrencyLevel.incrementAndGet();
+        concurrencyLevel.addAndGet(number);
         return null;
     }
 
     @Override
     public void releasePermit(long number, long nanoTime) {
-        concurrencyLevel.decrementAndGet();
+        concurrencyLevel.addAndGet(-number);
     }
 
 
     @Override
     public void releasePermit(long number, Failable status, long nanoTime) {
-        concurrencyLevel.decrementAndGet();
+        concurrencyLevel.addAndGet(-number);
     }
 
     @Override

@@ -36,7 +36,7 @@ public class LongSemaphore<Rejected extends Enum<Rejected>> implements BackPress
     }
 
     @Override
-    public Rejected acquirePermit(long units, long nanoTime) {
+    public Rejected acquirePermit(long number, long nanoTime) {
         for (; ; ) {
             long permitsRemaining = this.permitsRemaining.get();
             if (permitsRemaining > 0) {
@@ -50,13 +50,13 @@ public class LongSemaphore<Rejected extends Enum<Rejected>> implements BackPress
     }
 
     @Override
-    public void releasePermit(long rateUnits, long nanoTime) {
-        this.permitsRemaining.getAndIncrement();
+    public void releasePermit(long number, long nanoTime) {
+        this.permitsRemaining.getAndAdd(number);
     }
 
     @Override
-    public void releasePermit(long rateUnits, Failable result, long nanoTime) {
-        this.permitsRemaining.getAndIncrement();
+    public void releasePermit(long number, Failable result, long nanoTime) {
+        this.permitsRemaining.getAndAdd(number);
     }
 
     @Override

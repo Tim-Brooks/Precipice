@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.circuit.NoOpCircuitBreaker;
 import net.uncontended.precipice.concurrent.CompletionContext;
 import net.uncontended.precipice.metrics.MetricCounter;
 import net.uncontended.precipice.rejected.Rejected;
@@ -27,6 +26,7 @@ import net.uncontended.precipice.test_utils.TestCallables;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.util.Simulation;
+import net.uncontended.precipice.util.SimulationRejected;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -35,6 +35,9 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
@@ -125,61 +128,53 @@ public class CallServiceTest {
 
     @Test
     public void simulationTest() {
-        GuardRailBuilder<TimeoutableResult, Rejected> builder = new GuardRailBuilder<>();
-        final NoOpCircuitBreaker<Rejected> breaker = new NoOpCircuitBreaker<>(Rejected.CIRCUIT_OPEN);
+        final Random random = ThreadLocalRandom.current();
+        GuardRailBuilder<TimeoutableResult, SimulationRejected> builder = new GuardRailBuilder<>();
         builder.name("Simulation")
                 .resultMetrics(new MetricCounter<>(TimeoutableResult.class))
-                .rejectedMetrics(new MetricCounter<>(Rejected.class))
-                .addBackPressure(breaker);
+                .rejectedMetrics(new MetricCounter<>(SimulationRejected.class));
 
-        GuardRail<TimeoutableResult, Rejected> guardRail = builder.build();
-        final CallService<Rejected> callService = new CallService<>(guardRail);
+        GuardRail<TimeoutableResult, SimulationRejected> guardRail = builder.build();
+        final CallService<SimulationRejected> callService = new CallService<>(guardRail);
 
-        Map<TimeoutableResult, Runnable> resultToRunnable = new HashMap<>();
-        resultToRunnable.put(TimeoutableResult.SUCCESS, new Runnable() {
+        Map<TimeoutableResult, Callable<Long>> resultToCallable = new HashMap<>();
+        resultToCallable.put(TimeoutableResult.SUCCESS, new Callable<Long>() {
             @Override
-            public void run() {
+            public Long call() throws Exception {
+                long number = random.nextInt(10) + 1;
                 try {
-                    callService.call(TestCallables.success(0L));
-                } catch (Exception e) {
+                    callService.call(TestCallables.success(0L), number);
+                } catch (RejectedException e) {
                 }
+                return number;
             }
         });
 
-        resultToRunnable.put(TimeoutableResult.ERROR, new Runnable() {
+        resultToCallable.put(TimeoutableResult.ERROR, new Callable<Long>() {
             @Override
-            public void run() {
+            public Long call() {
+                long number = random.nextInt(10) + 1;
                 try {
-                    callService.call(TestCallables.erred(new IOException()));
+                    callService.call(TestCallables.erred(new IOException()), number);
                 } catch (Exception e) {
                 }
+                return number;
             }
         });
 
-        resultToRunnable.put(TimeoutableResult.TIMEOUT, new Runnable() {
+        resultToCallable.put(TimeoutableResult.TIMEOUT, new Callable<Long>() {
             @Override
-            public void run() {
+            public Long call() {
+                long number = random.nextInt(10) + 1;
                 try {
-                    callService.call(TestCallables.erred(new PrecipiceTimeoutException()));
+                    callService.call(TestCallables.erred(new PrecipiceTimeoutException()), number);
                 } catch (Exception e) {
                 }
+                return number;
             }
         });
 
-        Map<Rejected, Runnable> rejectedToRunnable = new HashMap<>();
-        rejectedToRunnable.put(Rejected.CIRCUIT_OPEN, new Runnable() {
-            @Override
-            public void run() {
-                breaker.forceOpen();
-                try {
-                    callService.call(TestCallables.success(0L));
-                } catch (Exception e) {
-                }
-                breaker.forceClosed();
-            }
-        });
-
-        Simulation<TimeoutableResult, Rejected> simulation = new Simulation<>(guardRail);
-        simulation.run(resultToRunnable, rejectedToRunnable);
+        Simulation<TimeoutableResult> simulation = new Simulation<>(guardRail);
+        simulation.run(resultToCallable);
     }
 }
