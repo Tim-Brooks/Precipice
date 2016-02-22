@@ -193,7 +193,8 @@ public class ThreadPoolServiceTest {
             @Override
             public void run() {
                 try {
-                    callService.submit(TestCallable.success());
+                    PrecipiceFuture<TimeoutableResult, String> f = callService.submit(TestCallable.success());
+                    f.await();
                 } catch (Exception e) {
                 }
             }
@@ -231,8 +232,7 @@ public class ThreadPoolServiceTest {
                 try {
                     PrecipiceFuture<TimeoutableResult, String> f = callService.submit(TestCallable.success());
                     f.await();
-                } catch (Exception e) {
-                }
+                } catch (Exception e) {}
                 breaker.forceClosed();
             }
         });
