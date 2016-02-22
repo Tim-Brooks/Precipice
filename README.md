@@ -4,7 +4,7 @@ Precipice is a library that helps you moniter and manage the execution of tasks 
 
 ## Design
 
-The core abstraction of Precipice is the concept of a **GuardRail**. If you would like to execute a task, you request permits from the GuardRail. The decision about whether permits are available is determined based on user configurable metrics and backpressure mechanisms.
+The core abstraction of Precipice is the concept of a **GuardRail**. If you would like to execute a task, you attempt to acquire permits from the GuardRail. The logic determining whether permits are available is based on user configurable metrics and backpressure mechanisms.
 
 Specifically a GuardRail has:
 
@@ -26,7 +26,7 @@ The latest release is available on [Maven Central](http://search.maven.org/#sear
 
 ### Creating a GuardRail
 
-GuardRails can be created using the builder. A name, metrics for tracking results, and metrics for tracking rejections are required. Latency metrics and back pressure mechanisms are optional.
+A GuardRail can be created using the GuardRailBuilder. A name, metrics for tracking results, and metrics for tracking rejections are required. Latency metrics and back pressure mechanisms are optional.
 
 As a note, you must specify enumerated types to define possible results or rejections. There are a number of common options provided. Or you may implement your own.
 
