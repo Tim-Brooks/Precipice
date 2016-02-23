@@ -18,15 +18,15 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.CountMetrics;
-import net.uncontended.precipice.metrics.HealthGauge;
-import net.uncontended.precipice.metrics.HealthSnapshot;
-import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.metrics.*;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Unstable and still in development. At this time, {@link DefaultCircuitBreaker} should be used.
+ */
 public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBreaker<Rejected> {
     private static final int CLOSED = 0;
     private static final int OPEN = 1;
