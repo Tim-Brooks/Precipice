@@ -83,6 +83,15 @@ public class ThreadPoolTaskTest {
         task.run();
 
         verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
+
+        PrecipicePromise<TimeoutableResult, Integer> promise2 = mock(PrecipicePromise.class);
+        ThreadPoolTask<Integer> task2 = new ThreadPoolTask<>(TestCallable.success(1), promise2, 10L, 0L);
+
+        when(promise2.future()).thenReturn(mock(PrecipiceFuture.class));
+
+        task2.run();
+
+        verify(promise2).complete(TimeoutableResult.SUCCESS, 1);
     }
 
     @Test

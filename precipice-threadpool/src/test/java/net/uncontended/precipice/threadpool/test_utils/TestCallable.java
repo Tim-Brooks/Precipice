@@ -26,10 +26,10 @@ public class TestCallable {
         return success("Success");
     }
 
-    public static Callable<String> success(final String result) {
-        return new Callable<String>() {
+    public static <T> Callable<T> success(final T result) {
+        return new Callable<T>() {
             @Override
-            public String call() throws Exception {
+            public T call() throws Exception {
                 return result;
             }
         };

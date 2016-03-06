@@ -30,16 +30,16 @@ class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runn
     private static final int INTERRUPTING = 2;
 
     private final PrecipicePromise<Status, T> promise;
-    private final Status success;
-    private final Status exception;
+    private final ResultToStatus<Status, T> resultToStatus;
+    private final ThrowableToStatus<Status> throwableToStatus;
     private final Callable<T> callable;
     private final AtomicInteger state = new AtomicInteger(PENDING);
     private volatile Thread runner;
 
-    public CancellableTask(Status success, Status exception, Callable<T> callable, PrecipicePromise<Status, T>
-            promise) {
-        this.success = success;
-        this.exception = exception;
+    public CancellableTask(ResultToStatus<Status, T> resultToStatus, ThrowableToStatus<Status> throwableToStatus,
+                           Callable<T> callable, PrecipicePromise<Status, T> promise) {
+        this.resultToStatus = resultToStatus;
+        this.throwableToStatus = throwableToStatus;
         this.callable = callable;
         this.promise = promise;
     }
@@ -63,12 +63,6 @@ class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runn
         }
     }
 
-    private void waitForInterruption() {
-        while (state.get() == INTERRUPTING) {
-            Thread.yield();
-        }
-    }
-
     public void cancel(Status cancelledStatus, Exception exception) {
         if (state.get() == PENDING) {
             safeCancel(cancelledStatus, exception);
@@ -78,7 +72,7 @@ class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runn
     private void safeSetSuccess(T result) {
         try {
             if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
-                promise.complete(success, result);
+                promise.complete(resultToStatus.resultToStatus(result), result);
                 return;
             }
             if (state.get() == INTERRUPTING) {
@@ -92,7 +86,7 @@ class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runn
     private void safeSetErred(Throwable e) {
         try {
             if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
-                promise.completeExceptionally(exception, e);
+                promise.completeExceptionally(throwableToStatus.throwableToStatus(e), e);
                 return;
             }
             if (state.get() == INTERRUPTING) {
@@ -115,5 +109,21 @@ class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runn
         } catch (Throwable t) {
             Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
+    }
+
+    private void waitForInterruption() {
+        while (state.get() == INTERRUPTING) {
+            Thread.yield();
+        }
+    }
+
+    @FunctionalInterface
+    interface ResultToStatus<Status extends Enum<Status> & Failable, Result> {
+        Status resultToStatus(Result result);
+    }
+
+    @FunctionalInterface
+    interface ThrowableToStatus<Status extends Enum<Status> & Failable> {
+        Status throwableToStatus(Throwable throwable);
     }
 }

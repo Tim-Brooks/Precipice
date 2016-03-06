@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
 import net.uncontended.precipice.timeout.TimeoutService;
 import net.uncontended.precipice.timeout.TimeoutTask;
@@ -26,25 +26,21 @@ import net.uncontended.precipice.timeout.TimeoutTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeoutException;
 
 class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
-    private static final int PENDING = 0;
-    private static final int DONE = 1;
-    private static final int INTERRUPTING = 2;
-
+    private static final CancellableTask.ResultToStatus<TimeoutableResult, Object> resultToStatus = new Success();
+    private static final CancellableTask.ThrowableToStatus<TimeoutableResult> throwableToStatus = new Error();
+    private CancellableTask<TimeoutableResult, T> cancellableTask;
     public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;
-    private final PrecipicePromise<TimeoutableResult, T> promise;
-    private final Callable<T> callable;
-    private final AtomicInteger state = new AtomicInteger(PENDING);
-    private volatile Thread runner;
 
     public ThreadPoolTask(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise, long millisRelativeTimeout,
                           long nanosAbsoluteStart) {
-        this.callable = callable;
-        this.promise = promise;
+        CancellableTask.ResultToStatus<TimeoutableResult, T> castedResultToStatus =
+                (CancellableTask.ResultToStatus<TimeoutableResult, T>) resultToStatus;
+        this.cancellableTask = new CancellableTask<>(castedResultToStatus, throwableToStatus, callable, promise);
         this.millisRelativeTimeout = millisRelativeTimeout;
         if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
             nanosAbsoluteTimeout = 0;
@@ -60,29 +56,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     @Override
     public void run() {
-        try {
-            int state = this.state.get();
-            if (state == PENDING && !promise.future().isDone()) {
-                runner = Thread.currentThread();
-                T result = callable.call();
-                safeSetSuccess(result);
-            } else if (state == INTERRUPTING) {
-                waitForInterruption();
-            }
-        } catch (InterruptedException e) {
-        } catch (PrecipiceTimeoutException e) {
-            safeSetTimedOut(e);
-        } catch (Throwable e) {
-            safeSetErred(e);
-        } finally {
-            Thread.interrupted();
-        }
-    }
-
-    private void waitForInterruption() {
-        while (state.get() == INTERRUPTING) {
-            Thread.yield();
-        }
+        cancellableTask.run();
     }
 
     @Override
@@ -100,9 +74,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     @Override
     public void setTimedOut() {
-        if (state.get() == PENDING) {
-            safeSetTimedOut(new PrecipiceTimeoutException());
-        }
+        cancellableTask.cancel(TimeoutableResult.TIMEOUT, new PrecipiceTimeoutException());
     }
 
     @Override
@@ -110,45 +82,23 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
         return millisRelativeTimeout;
     }
 
-    private void safeSetSuccess(T result) {
-        try {
-            if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
-                promise.complete(TimeoutableResult.SUCCESS, result);
-                return;
-            }
-            if (state.get() == INTERRUPTING) {
-                waitForInterruption();
-            }
-        } catch (Throwable t) {
-            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
+    private static class Success implements CancellableTask.ResultToStatus<TimeoutableResult, Object> {
+
+        @Override
+        public TimeoutableResult resultToStatus(Object result) {
+            return TimeoutableResult.SUCCESS;
         }
     }
 
-    private void safeSetErred(Throwable e) {
-        try {
-            if (state.get() == PENDING && state.compareAndSet(PENDING, DONE)) {
-                promise.completeExceptionally(TimeoutableResult.ERROR, e);
-                return;
-            }
-            if (state.get() == INTERRUPTING) {
-                waitForInterruption();
-            }
-        } catch (Throwable t) {
-            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
-        }
-    }
+    private static class Error implements CancellableTask.ThrowableToStatus<TimeoutableResult> {
 
-    private void safeSetTimedOut(PrecipiceTimeoutException e) {
-        try {
-            if (state.compareAndSet(PENDING, INTERRUPTING)) {
-                if (runner != null) {
-                    runner.interrupt();
-                }
-                promise.completeExceptionally(TimeoutableResult.TIMEOUT, e);
-                state.set(DONE);
+        @Override
+        public TimeoutableResult throwableToStatus(Throwable throwable) {
+            if (throwable instanceof TimeoutException) {
+                return TimeoutableResult.TIMEOUT;
+            } else {
+                return TimeoutableResult.ERROR;
             }
-        } catch (Throwable t) {
-            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), t);
         }
     }
 }
