@@ -23,7 +23,7 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runnable {
+public class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runnable {
 
     private static final int PENDING = 0;
     private static final int DONE = 1;
@@ -118,12 +118,12 @@ class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runn
     }
 
     @FunctionalInterface
-    interface ResultToStatus<Status extends Enum<Status> & Failable, Result> {
+    public interface ResultToStatus<Status extends Enum<Status> & Failable, Result> {
         Status resultToStatus(Result result);
     }
 
     @FunctionalInterface
-    interface ThrowableToStatus<Status extends Enum<Status> & Failable> {
+    public interface ThrowableToStatus<Status extends Enum<Status> & Failable> {
         Status throwableToStatus(Throwable throwable);
     }
 }

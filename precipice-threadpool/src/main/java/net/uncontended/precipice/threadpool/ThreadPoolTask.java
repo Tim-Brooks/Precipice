@@ -20,7 +20,6 @@ package net.uncontended.precipice.threadpool;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
-import net.uncontended.precipice.timeout.TimeoutService;
 import net.uncontended.precipice.timeout.TimeoutTask;
 
 import java.util.concurrent.Callable;
@@ -30,8 +29,8 @@ import java.util.concurrent.TimeoutException;
 
 class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
-    private static final CancellableTask.ResultToStatus<TimeoutableResult, Object> resultToStatus = new Success();
-    private static final CancellableTask.ThrowableToStatus<TimeoutableResult> throwableToStatus = new Error();
+    static final CancellableTask.ResultToStatus<TimeoutableResult, Object> resultToStatus = new Success();
+    static final CancellableTask.ThrowableToStatus<TimeoutableResult> throwableToStatus = new Error();
     private CancellableTask<TimeoutableResult, T> cancellableTask;
     public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;
@@ -42,16 +41,7 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
                 (CancellableTask.ResultToStatus<TimeoutableResult, T>) resultToStatus;
         this.cancellableTask = new CancellableTask<>(castedResultToStatus, throwableToStatus, callable, promise);
         this.millisRelativeTimeout = millisRelativeTimeout;
-        if (millisRelativeTimeout == TimeoutService.NO_TIMEOUT) {
-            nanosAbsoluteTimeout = 0;
-        } else {
-            nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS)
-                    + nanosAbsoluteStart;
-        }
-    }
-
-    public boolean canTimeout() {
-        return millisRelativeTimeout != TimeoutService.NO_TIMEOUT;
+        nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS) + nanosAbsoluteStart;
     }
 
     @Override
