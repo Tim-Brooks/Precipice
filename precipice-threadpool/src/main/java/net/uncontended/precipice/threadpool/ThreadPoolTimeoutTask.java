@@ -27,7 +27,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-class ThreadPoolTask<T> implements Runnable, TimeoutTask {
+class ThreadPoolTimeoutTask<T> implements Runnable, TimeoutTask {
 
     static final CancellableTask.ResultToStatus<TimeoutableResult, Object> resultToStatus = new Success();
     static final CancellableTask.ThrowableToStatus<TimeoutableResult> throwableToStatus = new Error();
@@ -35,13 +35,17 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
     public final long nanosAbsoluteTimeout;
     public final long millisRelativeTimeout;
 
-    public ThreadPoolTask(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise, long millisRelativeTimeout,
-                          long nanosAbsoluteStart) {
-        CancellableTask.ResultToStatus<TimeoutableResult, T> castedResultToStatus =
-                (CancellableTask.ResultToStatus<TimeoutableResult, T>) resultToStatus;
-        this.cancellableTask = new CancellableTask<>(castedResultToStatus, throwableToStatus, callable, promise);
+    public ThreadPoolTimeoutTask(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise,
+                                 long millisRelativeTimeout, long nanosAbsoluteStart) {
+        this(new CancellableTask<>((CancellableTask.ResultToStatus<TimeoutableResult, T>) resultToStatus,
+                throwableToStatus, callable, promise), millisRelativeTimeout, nanosAbsoluteStart);
+    }
+
+    public ThreadPoolTimeoutTask(CancellableTask<TimeoutableResult, T> cancellableTask,
+                                 long millisRelativeTimeout, long nanosAbsoluteStart) {
         this.millisRelativeTimeout = millisRelativeTimeout;
         nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS) + nanosAbsoluteStart;
+        this.cancellableTask = cancellableTask;
     }
 
     @Override
@@ -56,8 +60,8 @@ class ThreadPoolTask<T> implements Runnable, TimeoutTask {
 
     @Override
     public int compareTo(Delayed o) {
-        if (o instanceof ThreadPoolTask) {
-            return Long.compare(nanosAbsoluteTimeout, ((ThreadPoolTask<T>) o).nanosAbsoluteTimeout);
+        if (o instanceof ThreadPoolTimeoutTask) {
+            return Long.compare(nanosAbsoluteTimeout, ((ThreadPoolTimeoutTask<T>) o).nanosAbsoluteTimeout);
         }
         return Long.compare(getDelay(TimeUnit.NANOSECONDS), o.getDelay(TimeUnit.NANOSECONDS));
     }

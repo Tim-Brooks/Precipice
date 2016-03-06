@@ -18,7 +18,6 @@
 package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
@@ -94,9 +93,9 @@ public class ThreadPoolPatternTest {
     @Mock
     private PatternAction<String, Object> action;
     @Captor
-    private ArgumentCaptor<ThreadPoolTask<TimeoutableResult>> task1Captor;
+    private ArgumentCaptor<ThreadPoolTimeoutTask<TimeoutableResult>> task1Captor;
     @Captor
-    private ArgumentCaptor<ThreadPoolTask<TimeoutableResult>> task2Captor;
+    private ArgumentCaptor<ThreadPoolTimeoutTask<TimeoutableResult>> task2Captor;
 
     private ThreadPoolPattern<Object> poolPattern;
     private long submitTimeNanos = 10L;
@@ -149,10 +148,10 @@ public class ThreadPoolPatternTest {
         verify(timeoutService1).scheduleTimeout(task1Captor.capture());
         verify(timeoutService3).scheduleTimeout(task2Captor.capture());
 
-        ThreadPoolTask<TimeoutableResult> task1 = task1Captor.getAllValues().get(0);
-        ThreadPoolTask<TimeoutableResult> task12 = task1Captor.getAllValues().get(1);
-        ThreadPoolTask<TimeoutableResult> task2 = task2Captor.getAllValues().get(0);
-        ThreadPoolTask<TimeoutableResult> task22 = task2Captor.getAllValues().get(1);
+        ThreadPoolTimeoutTask<TimeoutableResult> task1 = task1Captor.getAllValues().get(0);
+        ThreadPoolTimeoutTask<TimeoutableResult> task12 = task1Captor.getAllValues().get(1);
+        ThreadPoolTimeoutTask<TimeoutableResult> task2 = task2Captor.getAllValues().get(0);
+        ThreadPoolTimeoutTask<TimeoutableResult> task22 = task2Captor.getAllValues().get(1);
 
         assertSame(task1, task12);
         assertSame(task2, task22);

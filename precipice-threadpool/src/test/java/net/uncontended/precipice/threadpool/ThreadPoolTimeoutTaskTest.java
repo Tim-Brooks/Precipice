@@ -34,14 +34,14 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class ThreadPoolTaskTest {
+public class ThreadPoolTimeoutTaskTest {
 
     @Mock
     private PrecipicePromise<TimeoutableResult, String> promise;
     @Mock
     private PrecipiceFuture<TimeoutableResult, String> future;
 
-    private ThreadPoolTask<String> task;
+    private ThreadPoolTimeoutTask<String> task;
 
     @Before
     public void setUp() {
@@ -54,7 +54,7 @@ public class ThreadPoolTaskTest {
     public void ensureThatTimeoutsAreSetupCorrectly() {
         long millisRelativeTimeout = 10L;
         long nanosStart = 0L;
-        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, millisRelativeTimeout, nanosStart);
+        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise, millisRelativeTimeout, nanosStart);
 
         assertEquals(millisRelativeTimeout, task.millisRelativeTimeout);
         assertEquals(millisRelativeTimeout, task.getMillisRelativeTimeout());
@@ -65,7 +65,7 @@ public class ThreadPoolTaskTest {
     public void callableNotRunIfFutureAlreadyDone() {
         Callable<String> callable = mock(Callable.class);
 
-        task = new ThreadPoolTask<>(callable, promise, 10L, 0L);
+        task = new ThreadPoolTimeoutTask<>(callable, promise, 10L, 0L);
 
         when(future.isDone()).thenReturn(true);
 
@@ -78,14 +78,14 @@ public class ThreadPoolTaskTest {
 
     @Test
     public void promiseCompletedWithCallableResult() {
-        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise, 10L, 0L);
 
         task.run();
 
         verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
 
         PrecipicePromise<TimeoutableResult, Integer> promise2 = mock(PrecipicePromise.class);
-        ThreadPoolTask<Integer> task2 = new ThreadPoolTask<>(TestCallable.success(1), promise2, 10L, 0L);
+        ThreadPoolTimeoutTask<Integer> task2 = new ThreadPoolTimeoutTask<>(TestCallable.success(1), promise2, 10L, 0L);
 
         when(promise2.future()).thenReturn(mock(PrecipiceFuture.class));
 
@@ -96,7 +96,7 @@ public class ThreadPoolTaskTest {
 
     @Test
     public void promiseNotTimedOutIfCompleted() {
-        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise, 10L, 0L);
 
         task.run();
 
@@ -110,7 +110,7 @@ public class ThreadPoolTaskTest {
 
     @Test
     public void promiseTimedOutIfNotCompleted() {
-        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise, 10L, 0L);
 
         task.setTimedOut();
 
@@ -119,7 +119,7 @@ public class ThreadPoolTaskTest {
 
     @Test
     public void callableNotRunIfTaskInternallyComplete() {
-        task = new ThreadPoolTask<>(TestCallable.success("Success"), promise, 10L, 0L);
+        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise, 10L, 0L);
 
         task.setTimedOut();
 

@@ -77,7 +77,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
             TimeoutService timeoutService = service.getTimeoutService();
 
             Callable<T> callable = new CallableWithContext<>(action, context);
-            ThreadPoolTask<T> task = new ThreadPoolTask<>(callable, internal, adjustedTimeout, nanoTime);
+            ThreadPoolTimeoutTask<T> task = new ThreadPoolTimeoutTask<>(callable, internal, adjustedTimeout, nanoTime);
             executor.execute(task);
             timeoutService.scheduleTimeout(task);
         }
