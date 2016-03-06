@@ -27,7 +27,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-class ThreadPoolTimeoutTask<T> implements Runnable, TimeoutTask {
+public class ThreadPoolTimeoutTask<T> implements Runnable, TimeoutTask {
 
     static final CancellableTask.ResultToStatus<TimeoutableResult, Object> resultToStatus = new Success();
     static final CancellableTask.ThrowableToStatus<TimeoutableResult> throwableToStatus = new Error();
