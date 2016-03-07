@@ -120,7 +120,7 @@ public class ThreadPoolServiceTest {
 
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
-        service.complete(TestCallable.success("Same Promise"), promise, TimeoutService.NO_TIMEOUT);
+        service.complete(TestCallable.success("Same Promise"), promise);
 
         assertEquals("Same Promise", promise.future().get());
     }

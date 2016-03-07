@@ -24,9 +24,8 @@ public class TimeoutService {
 
     public static long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
 
-    public static final long NO_TIMEOUT = -1;
     public static final TimeoutService defaultTimeoutService = new TimeoutService("default");
-    private final DelayQueue<TimeoutTask> timeoutQueue = new DelayQueue<>();
+    private final DelayQueue<Timeout> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
@@ -37,13 +36,16 @@ public class TimeoutService {
         timeoutThread.setDaemon(true);
     }
 
-    public void scheduleTimeout(TimeoutTask task) {
+    public void scheduleTimeout(TimeoutTask task, long relativeTimeoutMillis) {
+        scheduleTimeout(task, relativeTimeoutMillis, System.nanoTime());
+    }
+
+    public void scheduleTimeout(TimeoutTask task, long relativeTimeoutMillis, long nanoTime) {
         if (!isStarted.get()) {
             startThread();
         }
-        if (task.getMillisRelativeTimeout() != NO_TIMEOUT) {
-            timeoutQueue.offer(task);
-        }
+
+        timeoutQueue.offer(new Timeout(task, relativeTimeoutMillis, nanoTime));
     }
 
     public static long adjustTimeout(long millisTimeout) {
@@ -62,7 +64,7 @@ public class TimeoutService {
             public void run() {
                 for (; ; ) {
                     try {
-                        TimeoutTask task = timeoutQueue.take();
+                        Timeout task = timeoutQueue.take();
                         task.setTimedOut();
                     } catch (InterruptedException e) {
                         break;

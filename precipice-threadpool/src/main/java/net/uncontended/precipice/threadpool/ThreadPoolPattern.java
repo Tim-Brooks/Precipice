@@ -18,8 +18,6 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
-import net.uncontended.precipice.rejected.RejectedException;
-import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.factories.Asynchronous;
@@ -27,6 +25,8 @@ import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
 import net.uncontended.precipice.pattern.PatternStrategy;
 import net.uncontended.precipice.pattern.Sequence;
+import net.uncontended.precipice.rejected.RejectedException;
+import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.Map;
@@ -77,11 +77,12 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
             TimeoutService timeoutService = service.getTimeoutService();
 
             Callable<T> callable = new CallableWithContext<>(action, context);
-            ThreadPoolTimeoutTask<T> task = new ThreadPoolTimeoutTask<>(callable, internal, adjustedTimeout, nanoTime);
+            CancellableTask<TimeoutableResult, T> task =
+                    new CancellableTask<>((CancellableTask.ResultToStatus<TimeoutableResult, T>)service.resultToStatus,
+                            service.throwableToStatus, callable, internal);
             executor.execute(task);
-            timeoutService.scheduleTimeout(task);
+            timeoutService.scheduleTimeout(new ThreadPoolTimeoutTask<>(task), adjustedTimeout, nanoTime);
         }
-
         return promise.future();
     }
 
