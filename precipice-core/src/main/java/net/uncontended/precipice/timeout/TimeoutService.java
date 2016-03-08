@@ -18,13 +18,15 @@
 package net.uncontended.precipice.timeout;
 
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimeoutService {
 
-    public static long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
+    public static final long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
+    public static final TimeoutService DEFAULT_TIMEOUT_SERVICE = new TimeoutService("default");
 
-    public static final TimeoutService defaultTimeoutService = new TimeoutService("default");
     private final DelayQueue<Timeout> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
@@ -36,16 +38,16 @@ public class TimeoutService {
         timeoutThread.setDaemon(true);
     }
 
-    public void scheduleTimeout(TimeoutTask task, long relativeTimeoutMillis) {
-        scheduleTimeout(task, relativeTimeoutMillis, System.nanoTime());
+    public void scheduleTimeout(TimeoutTask task, long timeoutMillis) {
+        scheduleTimeout(task, timeoutMillis, System.nanoTime());
     }
 
-    public void scheduleTimeout(TimeoutTask task, long relativeTimeoutMillis, long nanoTime) {
+    public void scheduleTimeout(TimeoutTask task, long timeoutMillis, long nanoTime) {
         if (!isStarted.get()) {
             startThread();
         }
 
-        timeoutQueue.offer(new Timeout(task, relativeTimeoutMillis, nanoTime));
+        timeoutQueue.offer(new Timeout(task, timeoutMillis, nanoTime));
     }
 
     public static long adjustTimeout(long millisTimeout) {
@@ -74,4 +76,33 @@ public class TimeoutService {
         });
     }
 
+    private static class Timeout implements Delayed {
+
+        private final TimeoutTask task;
+        public final long nanosAbsoluteTimeout;
+        public final long millisRelativeTimeout;
+
+        public Timeout(TimeoutTask task, long millisRelativeTimeout, long nanosAbsoluteStart) {
+            this.task = task;
+            this.millisRelativeTimeout = millisRelativeTimeout;
+            nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS) + nanosAbsoluteStart;
+        }
+
+        @Override
+        public long getDelay(TimeUnit unit) {
+            return unit.convert(nanosAbsoluteTimeout - System.nanoTime(), TimeUnit.NANOSECONDS);
+        }
+
+        @Override
+        public int compareTo(Delayed o) {
+            if (o instanceof Timeout) {
+                return Long.compare(nanosAbsoluteTimeout, ((Timeout) o).nanosAbsoluteTimeout);
+            }
+            return Long.compare(getDelay(TimeUnit.NANOSECONDS), o.getDelay(TimeUnit.NANOSECONDS));
+        }
+
+        public void setTimedOut() {
+            task.setTimedOut();
+        }
+    }
 }

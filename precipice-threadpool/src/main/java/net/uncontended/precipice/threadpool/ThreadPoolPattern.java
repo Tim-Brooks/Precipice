@@ -27,6 +27,7 @@ import net.uncontended.precipice.pattern.PatternStrategy;
 import net.uncontended.precipice.pattern.Sequence;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
+import net.uncontended.precipice.threadpool.utils.TaskFactory;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.Map;
@@ -77,9 +78,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
             TimeoutService timeoutService = service.getTimeoutService();
 
             Callable<T> callable = new CallableWithContext<>(action, context);
-            CancellableTask<TimeoutableResult, T> task =
-                    new CancellableTask<>((CancellableTask.ResultToStatus<TimeoutableResult, T>)service.resultToStatus,
-                            service.throwableToStatus, callable, internal);
+            CancellableTask<TimeoutableResult, T> task = TaskFactory.createTask(callable, internal);
             executor.execute(task);
             timeoutService.scheduleTimeout(new ThreadPoolTimeoutTask<>(task), adjustedTimeout, nanoTime);
         }

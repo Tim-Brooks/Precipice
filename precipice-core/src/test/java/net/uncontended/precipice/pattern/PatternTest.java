@@ -56,7 +56,6 @@ public class PatternTest {
     private GuardRail<TimeoutableResult, Rejected> guardRail3;
 
     private Pattern<TimeoutableResult, Precipice<TimeoutableResult, Rejected>> pattern;
-    private int submissionCount = 2;
     private long nanoTime = 10L;
 
     @Before
@@ -66,6 +65,7 @@ public class PatternTest {
         List<Precipice<TimeoutableResult, Rejected>> controllables = Arrays.asList(precipice1, precipice2, precipice3);
         pattern = new Pattern<>(controllables, strategy);
 
+        int submissionCount = 2;
         when(strategy.attemptCount()).thenReturn(submissionCount);
         when(precipice1.guardRail()).thenReturn(guardRail1);
         when(precipice2.guardRail()).thenReturn(guardRail2);

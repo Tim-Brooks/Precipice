@@ -24,15 +24,13 @@ import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.factories.Asynchronous;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
+import net.uncontended.precipice.threadpool.utils.TaskFactory;
 import net.uncontended.precipice.timeout.TimeoutService;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
 
 public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Precipice<TimeoutableResult, Rejected> {
-    static final CancellableTask.ResultToStatus<TimeoutableResult, Object> resultToStatus = new Success();
-    static final CancellableTask.ThrowableToStatus<TimeoutableResult> throwableToStatus = new Error();
     private final ExecutorService executorService;
     private final TimeoutService timeoutService;
     private final GuardRail<TimeoutableResult, Rejected> guardRail;
@@ -44,7 +42,7 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
     public ThreadPoolService(ExecutorService executorService, GuardRail<TimeoutableResult, Rejected> guardRail) {
         this.guardRail = guardRail;
         this.executorService = executorService;
-        timeoutService = TimeoutService.defaultTimeoutService;
+        timeoutService = TimeoutService.DEFAULT_TIMEOUT_SERVICE;
     }
 
     @Override
@@ -74,23 +72,16 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
     }
 
     private <T> void internalComplete(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise) {
-        CancellableTask<TimeoutableResult, T> task = getCancellableTask(callable, promise);
-        executorService.execute(task);
+        executorService.execute(TaskFactory.createTask(callable, promise));
     }
 
     private <T> void internalComplete(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise, long millisTimeout) {
         long startNanos = guardRail.getClock().nanoTime();
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
-        CancellableTask<TimeoutableResult, T> task = getCancellableTask(callable, promise);
+        CancellableTask<TimeoutableResult, T> task = TaskFactory.createTask(callable, promise);
         ThreadPoolTimeoutTask<T> timeoutTask = new ThreadPoolTimeoutTask<>(task);
         executorService.execute(task);
         timeoutService.scheduleTimeout(timeoutTask, adjustedTimeout, startNanos);
-    }
-
-    private <T> CancellableTask<TimeoutableResult, T> getCancellableTask(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise) {
-        CancellableTask.ResultToStatus<TimeoutableResult, T> castedResultToStatus =
-                (CancellableTask.ResultToStatus<TimeoutableResult, T>) resultToStatus;
-        return new CancellableTask<>(castedResultToStatus, throwableToStatus, callable, promise);
     }
 
     public ExecutorService getExecutor() {
@@ -104,26 +95,6 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
     public void shutdown() {
         guardRail.shutdown();
         executorService.shutdown();
-    }
-
-    private static class Success implements CancellableTask.ResultToStatus<TimeoutableResult, Object> {
-
-        @Override
-        public TimeoutableResult resultToStatus(Object result) {
-            return TimeoutableResult.SUCCESS;
-        }
-    }
-
-    private static class Error implements CancellableTask.ThrowableToStatus<TimeoutableResult> {
-
-        @Override
-        public TimeoutableResult throwableToStatus(Throwable throwable) {
-            if (throwable instanceof TimeoutException) {
-                return TimeoutableResult.TIMEOUT;
-            } else {
-                return TimeoutableResult.ERROR;
-            }
-        }
     }
 
 }

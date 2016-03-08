@@ -17,102 +17,25 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.result.TimeoutableResult;
-import net.uncontended.precipice.threadpool.test_utils.TestCallable;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-import java.util.concurrent.Callable;
-
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class ThreadPoolTimeoutTaskTest {
 
-    @Mock
-    private PrecipicePromise<TimeoutableResult, String> promise;
-    @Mock
-    private PrecipiceFuture<TimeoutableResult, String> future;
+    @Test
+    public void taskCancelledIfTimeout() {
+        CancellableTask<TimeoutableResult, String> task = mock(CancellableTask.class);
+        ThreadPoolTimeoutTask<String> timeout =  new ThreadPoolTimeoutTask<>(task);
 
-    private ThreadPoolTimeoutTask<String> task;
+        timeout.setTimedOut();
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-
-        when(promise.future()).thenReturn(future);
+        verify(task).cancel(eq(TimeoutableResult.TIMEOUT), any(PrecipiceTimeoutException.class));
     }
 
-//    @Test
-//    public void callableNotRunIfFutureAlreadyDone() {
-//        Callable<String> callable = mock(Callable.class);
-//
-//        task = new ThreadPoolTimeoutTask<>(callable, promise);
-//
-//        when(future.isDone()).thenReturn(true);
-//
-//        task.run();
-//
-//        verify(promise).future();
-//        verifyNoMoreInteractions(promise);
-//        verifyZeroInteractions(callable);
-//    }
-//
-//    @Test
-//    public void promiseCompletedWithCallableResult() {
-//        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise);
-//
-//        task.run();
-//
-//        verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
-//
-//        PrecipicePromise<TimeoutableResult, Integer> promise2 = mock(PrecipicePromise.class);
-//        ThreadPoolTimeoutTask<Integer> task2 = new ThreadPoolTimeoutTask<>(TestCallable.success(1), promise2);
-//
-//        when(promise2.future()).thenReturn(mock(PrecipiceFuture.class));
-//
-//        task2.run();
-//
-//        verify(promise2).complete(TimeoutableResult.SUCCESS, 1);
-//    }
-//
-//    @Test
-//    public void promiseNotTimedOutIfCompleted() {
-//        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise);
-//
-//        task.run();
-//
-//        verify(promise).future();
-//        verify(promise).complete(TimeoutableResult.SUCCESS, "Success");
-//
-//        task.setTimedOut();
-//
-//        verifyNoMoreInteractions(promise);
-//    }
-//
-//    @Test
-//    public void promiseTimedOutIfNotCompleted() {
-//        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise);
-//
-//        task.setTimedOut();
-//
-//        verify(promise).completeExceptionally(same(TimeoutableResult.TIMEOUT), any(PrecipiceTimeoutException.class));
-//    }
-//
-//    @Test
-//    public void callableNotRunIfTaskInternallyComplete() {
-//        task = new ThreadPoolTimeoutTask<>(TestCallable.success("Success"), promise);
-//
-//        task.setTimedOut();
-//
-//        verify(promise).completeExceptionally(same(TimeoutableResult.TIMEOUT), any(PrecipiceTimeoutException.class));
-//
-//        task.run();
-//
-//        verifyNoMoreInteractions(promise);
-//    }
 }

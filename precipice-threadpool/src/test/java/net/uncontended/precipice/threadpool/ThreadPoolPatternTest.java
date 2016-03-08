@@ -28,6 +28,7 @@ import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.semaphore.PrecipiceSemaphore;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.timeout.TimeoutService;
+import net.uncontended.precipice.timeout.TimeoutTask;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,15 +39,13 @@ import org.mockito.MockitoAnnotations;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
 public class ThreadPoolPatternTest {
@@ -93,9 +92,13 @@ public class ThreadPoolPatternTest {
     @Mock
     private PatternAction<String, Object> action;
     @Captor
-    private ArgumentCaptor<ThreadPoolTimeoutTask<TimeoutableResult>> task1Captor;
+    private ArgumentCaptor<CancellableTask<TimeoutableResult, ?>> task1Captor;
     @Captor
-    private ArgumentCaptor<ThreadPoolTimeoutTask<TimeoutableResult>> task2Captor;
+    private ArgumentCaptor<CancellableTask<TimeoutableResult, ?>> task2Captor;
+    @Captor
+    private ArgumentCaptor<ThreadPoolTimeoutTask> timeout1Captor;
+    @Captor
+    private ArgumentCaptor<ThreadPoolTimeoutTask> timeout2Captor;
 
     private ThreadPoolPattern<Object> poolPattern;
     private long submitTimeNanos = 10L;
@@ -142,28 +145,20 @@ public class ThreadPoolPatternTest {
 
         PrecipiceFuture<TimeoutableResult, String> f = poolPattern.submit(action, millisTimeout);
 
-        // TODO: Check test assertions
+        verifyZeroInteractions(service2);
+        verify(executor1).execute(task1Captor.capture());
+        verify(executor3).execute(task2Captor.capture());
+        verify(timeoutService1).scheduleTimeout(any(TimeoutTask.class), eq(millisTimeout), eq(10L));
+        verify(timeoutService3).scheduleTimeout(any(TimeoutTask.class), eq(millisTimeout), eq(10L));
 
-//        verifyZeroInteractions(service2);
-//        verify(executor1).execute(task1Captor.capture());
-//        verify(executor3).execute(task2Captor.capture());
-//        verify(timeoutService1).scheduleTimeout(task1Captor.capture(), millisTimeout);
-//        verify(timeoutService3).scheduleTimeout(task2Captor.capture(), millisTimeout);
-//
-//        ThreadPoolTimeoutTask<TimeoutableResult> task1 = task1Captor.getAllValues().get(0);
-//        ThreadPoolTimeoutTask<TimeoutableResult> task12 = task1Captor.getAllValues().get(1);
-//        ThreadPoolTimeoutTask<TimeoutableResult> task2 = task2Captor.getAllValues().get(0);
-//        ThreadPoolTimeoutTask<TimeoutableResult> task22 = task2Captor.getAllValues().get(1);
-//
-//        long expectedNanoTimeout = submitTimeNanos + TimeUnit.MILLISECONDS.toNanos(millisTimeout);
-//        assertEquals(expectedNanoTimeout, task1.nanosAbsoluteTimeout);
-//        assertEquals(expectedNanoTimeout, task2.nanosAbsoluteTimeout);
-//
-//        assertNull(f.getStatus());
-//        task1.run();
-//        task2.run();
-//        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
-//        assertEquals("Service1", f.getResult());
+        CancellableTask<TimeoutableResult, ?> task1 = task1Captor.getValue();
+        CancellableTask<TimeoutableResult, ?> task2 = task1Captor.getValue();
+
+        assertNull(f.getStatus());
+        task1.run();
+        task2.run();
+        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
+        assertEquals("Service1", f.getResult());
     }
 
     @Test
