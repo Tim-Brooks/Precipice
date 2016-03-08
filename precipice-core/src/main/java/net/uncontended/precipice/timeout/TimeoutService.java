@@ -27,7 +27,7 @@ public class TimeoutService {
     public static final long MAX_TIMEOUT_MILLIS = 1000 * 60 * 60 * 24;
     public static final TimeoutService DEFAULT_TIMEOUT_SERVICE = new TimeoutService("default");
 
-    private final DelayQueue<Timeout> timeoutQueue = new DelayQueue<>();
+    private final DelayQueue<TimeoutHolder> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
@@ -38,16 +38,16 @@ public class TimeoutService {
         timeoutThread.setDaemon(true);
     }
 
-    public void scheduleTimeout(TimeoutTask task, long timeoutMillis) {
+    public void scheduleTimeout(net.uncontended.precipice.timeout.Timeout task, long timeoutMillis) {
         scheduleTimeout(task, timeoutMillis, System.nanoTime());
     }
 
-    public void scheduleTimeout(TimeoutTask task, long timeoutMillis, long nanoTime) {
+    public void scheduleTimeout(net.uncontended.precipice.timeout.Timeout task, long timeoutMillis, long nanoTime) {
         if (!isStarted.get()) {
             startThread();
         }
 
-        timeoutQueue.offer(new Timeout(task, timeoutMillis, nanoTime));
+        timeoutQueue.offer(new TimeoutHolder(task, timeoutMillis, nanoTime));
     }
 
     public static long adjustTimeout(long millisTimeout) {
@@ -66,7 +66,7 @@ public class TimeoutService {
             public void run() {
                 for (; ; ) {
                     try {
-                        Timeout task = timeoutQueue.take();
+                        TimeoutHolder task = timeoutQueue.take();
                         task.setTimedOut();
                     } catch (InterruptedException e) {
                         break;
@@ -76,13 +76,13 @@ public class TimeoutService {
         });
     }
 
-    private static class Timeout implements Delayed {
+    private static class TimeoutHolder implements Delayed {
 
-        private final TimeoutTask task;
+        private final net.uncontended.precipice.timeout.Timeout task;
         public final long nanosAbsoluteTimeout;
         public final long millisRelativeTimeout;
 
-        public Timeout(TimeoutTask task, long millisRelativeTimeout, long nanosAbsoluteStart) {
+        public TimeoutHolder(net.uncontended.precipice.timeout.Timeout task, long millisRelativeTimeout, long nanosAbsoluteStart) {
             this.task = task;
             this.millisRelativeTimeout = millisRelativeTimeout;
             nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS) + nanosAbsoluteStart;
@@ -95,14 +95,14 @@ public class TimeoutService {
 
         @Override
         public int compareTo(Delayed o) {
-            if (o instanceof Timeout) {
-                return Long.compare(nanosAbsoluteTimeout, ((Timeout) o).nanosAbsoluteTimeout);
+            if (o instanceof TimeoutHolder) {
+                return Long.compare(nanosAbsoluteTimeout, ((TimeoutHolder) o).nanosAbsoluteTimeout);
             }
             return Long.compare(getDelay(TimeUnit.NANOSECONDS), o.getDelay(TimeUnit.NANOSECONDS));
         }
 
         public void setTimedOut() {
-            task.setTimedOut();
+            task.timeout();
         }
     }
 }

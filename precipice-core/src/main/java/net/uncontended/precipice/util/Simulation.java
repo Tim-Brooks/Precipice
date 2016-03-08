@@ -138,7 +138,7 @@ public class Simulation<R extends Enum<R> & Failable> {
         }
 
         @Override
-        public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
+        public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, SimulationRejected> guardRail) {
         }
 
         public long currentConcurrencyLevel() {

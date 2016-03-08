@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.Completable;
 import net.uncontended.precipice.Failable;
 
 /**

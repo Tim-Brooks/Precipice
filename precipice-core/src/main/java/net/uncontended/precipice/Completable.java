@@ -15,9 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.concurrent;
-
-import net.uncontended.precipice.Failable;
+package net.uncontended.precipice;
 
 /**
  * A context that can be completed with the result of a computation.
@@ -44,7 +42,7 @@ public interface Completable<S extends Failable, T> {
      * Completes this context with an exception. A boolean will be returned
      * indicating if it was completed successfully.
      *
-     * @param status of the computation
+     * @param status    of the computation
      * @param exception of the computation
      * @return if the context was competed successfully
      */

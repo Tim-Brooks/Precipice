@@ -19,61 +19,52 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.metrics.NoOpLatencyMetrics;
 import net.uncontended.precipice.time.Clock;
-import net.uncontended.precipice.time.SystemTime;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private String name;
-    private CountMetrics<Result> resultMetrics;
-    private CountMetrics<Rejected> rejectedMetrics;
-    private List<BackPressure<Rejected>> backPressureList = new ArrayList<>();
-    private LatencyMetrics<Result> resultLatency = new NoOpLatencyMetrics<>();
-    private Clock clock = new SystemTime();
+    private GuardRailProperties<Result, Rejected> properties = new GuardRailProperties<>();
+
 
     public GuardRailBuilder<Result, Rejected> addBackPressure(BackPressure<Rejected> backPressure) {
-        this.backPressureList.add(backPressure);
+        this.properties.backPressureList.add(backPressure);
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> name(String name) {
-        this.name = name;
+        this.properties.name = name;
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> resultMetrics(CountMetrics<Result> resultMetrics) {
-        this.resultMetrics = resultMetrics;
+        this.properties.resultMetrics = resultMetrics;
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> rejectedMetrics(CountMetrics<Rejected> rejectedMetrics) {
-        this.rejectedMetrics = rejectedMetrics;
+        this.properties.rejectedMetrics = rejectedMetrics;
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> resultLatency(LatencyMetrics<Result> resultLatency) {
-        this.resultLatency = resultLatency;
+        this.properties.resultLatency = resultLatency;
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> clock(Clock clock) {
-        this.clock = clock;
+        this.properties.clock = clock;
         return this;
     }
 
     public GuardRail<Result, Rejected> build() {
-        if (name == null) {
+        if (properties.name == null) {
             throw new IllegalArgumentException();
-        } else if (resultMetrics == null) {
+        } else if (properties.resultMetrics == null) {
             throw new IllegalArgumentException();
-        } else if (rejectedMetrics == null) {
+        } else if (properties.rejectedMetrics == null) {
             throw new IllegalArgumentException();
         }
 
-        return new GuardRail<>(name, resultMetrics, rejectedMetrics, resultLatency, backPressureList, clock);
+        return GuardRail.create(properties);
     }
 }

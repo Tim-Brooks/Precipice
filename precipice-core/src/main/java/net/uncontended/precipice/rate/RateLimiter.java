@@ -19,7 +19,7 @@ package net.uncontended.precipice.rate;
 
 import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.GuardRail;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -74,7 +74,7 @@ public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressur
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
 
     }
 }

@@ -20,7 +20,7 @@ package net.uncontended.precipice.factories;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.rejected.RejectedException;
-import net.uncontended.precipice.concurrent.Completable;
+import net.uncontended.precipice.Completable;
 import net.uncontended.precipice.concurrent.Eventual;
 
 public class Asynchronous {

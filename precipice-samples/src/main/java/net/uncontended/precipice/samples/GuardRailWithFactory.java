@@ -19,7 +19,7 @@ package net.uncontended.precipice.samples;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.GuardRailBuilder;
-import net.uncontended.precipice.concurrent.CompletionContext;
+import net.uncontended.precipice.CompletionContext;
 import net.uncontended.precipice.factories.Synchronous;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.MetricCounter;

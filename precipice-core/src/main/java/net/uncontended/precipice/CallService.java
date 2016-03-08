@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.concurrent.Completable;
 import net.uncontended.precipice.factories.Synchronous;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;

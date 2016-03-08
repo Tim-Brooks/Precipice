@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 /**
- * A context representing the execution of a task that was allowed by a guardrail.
+ * A context representing the execution of a task that was allowed by a guard rail.
  */
 public interface ExecutionContext {
 

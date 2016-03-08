@@ -17,10 +17,7 @@
 
 package net.uncontended.precipice.concurrent;
 
-import net.uncontended.precipice.Cancellable;
-import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.ExecutionContext;
-import net.uncontended.precipice.PrecipiceFunction;
+import net.uncontended.precipice.*;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,7 +52,7 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     public Eventual(Completable<S, T> completable) {
         this(0L, System.nanoTime(), completable);
     }
-    
+
     public Eventual(long permitCount, long startNanos, Completable<S, T> completable) {
         this.permitCount = permitCount;
         this.startNanos = startNanos;

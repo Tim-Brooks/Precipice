@@ -15,11 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.concurrent;
-
-import net.uncontended.precipice.ExecutionContext;
-import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.Failable;
+package net.uncontended.precipice;
 
 public class CompletionContext<S extends Failable, T> implements Completable<S, T>, ExecutionContext {
 

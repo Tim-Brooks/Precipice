@@ -79,7 +79,7 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
         long startNanos = guardRail.getClock().nanoTime();
         long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
         CancellableTask<TimeoutableResult, T> task = TaskFactory.createTask(callable, promise);
-        ThreadPoolTimeoutTask<T> timeoutTask = new ThreadPoolTimeoutTask<>(task);
+        ThreadPoolTimeout<T> timeoutTask = new ThreadPoolTimeout<>(task);
         executorService.execute(task);
         timeoutService.scheduleTimeout(timeoutTask, adjustedTimeout, startNanos);
     }

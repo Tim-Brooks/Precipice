@@ -64,11 +64,11 @@ public class GuardRailTest {
     }
 
     @Test
-    public void backPressureMechanismsAreSetupWithMetrics() {
-        builder.build();
+    public void backPressureMechanismsAreSetupWithGuardRail() {
+        this.guardRail = builder.build();
 
-        verify(backPressure).registerResultMetrics(resultMetrics);
-        verify(backPressure2).registerResultMetrics(resultMetrics);
+        verify(backPressure).registerGuardRail(guardRail);
+        verify(backPressure2).registerGuardRail(guardRail);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class GuardRailTest {
 
         assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, guardRail.acquirePermits(1L, 10L));
 
-        verify(backPressure2).registerResultMetrics(resultMetrics);
+        verify(backPressure2).registerGuardRail(guardRail);
         verifyNoMoreInteractions(backPressure2);
     }
 

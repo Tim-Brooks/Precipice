@@ -18,7 +18,11 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.*;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.HealthGauge;
+import net.uncontended.precipice.metrics.HealthSnapshot;
+import net.uncontended.precipice.metrics.RollingCountMetrics;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -107,11 +111,12 @@ public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBr
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+        CountMetrics<Result> metrics = guardRail.getResultMetrics();
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {
-            throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result metrics");
+            throw new IllegalArgumentException("NoOpenCircuit requires rolling result metrics");
         }
     }
 

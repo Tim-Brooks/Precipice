@@ -18,6 +18,7 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Cancellable;
+import net.uncontended.precipice.Completable;
 import net.uncontended.precipice.ExecutionContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.test_utils.TestResult;

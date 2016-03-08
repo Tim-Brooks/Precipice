@@ -18,6 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.HealthGauge;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
@@ -92,7 +93,8 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
     }
 
     @Override
-    public <Result extends Enum<Result> & Failable> void registerResultMetrics(CountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
+        CountMetrics<Result> metrics = guardRail.getResultMetrics();
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {

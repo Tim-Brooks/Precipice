@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.concurrent.CompletionContext;
 import net.uncontended.precipice.metrics.MetricCounter;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;

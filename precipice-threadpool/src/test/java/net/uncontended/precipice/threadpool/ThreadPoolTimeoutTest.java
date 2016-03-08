@@ -19,18 +19,23 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
-import net.uncontended.precipice.timeout.TimeoutTask;
+import org.junit.Test;
 
-public class ThreadPoolTimeoutTask<T> implements TimeoutTask {
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-    private CancellableTask<TimeoutableResult, T> cancellableTask;
+public class ThreadPoolTimeoutTest {
 
-    public ThreadPoolTimeoutTask(CancellableTask<TimeoutableResult, T> cancellableTask) {
-        this.cancellableTask = cancellableTask;
+    @Test
+    public void taskCancelledIfTimeout() {
+        CancellableTask<TimeoutableResult, String> task = mock(CancellableTask.class);
+        ThreadPoolTimeout<String> timeout =  new ThreadPoolTimeout<>(task);
+
+        timeout.timeout();
+
+        verify(task).cancel(eq(TimeoutableResult.TIMEOUT), any(PrecipiceTimeoutException.class));
     }
 
-    @Override
-    public void setTimedOut() {
-        cancellableTask.cancel(TimeoutableResult.TIMEOUT, new PrecipiceTimeoutException());
-    }
 }

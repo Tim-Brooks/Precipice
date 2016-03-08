@@ -80,7 +80,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
             Callable<T> callable = new CallableWithContext<>(action, context);
             CancellableTask<TimeoutableResult, T> task = TaskFactory.createTask(callable, internal);
             executor.execute(task);
-            timeoutService.scheduleTimeout(new ThreadPoolTimeoutTask<>(task), adjustedTimeout, nanoTime);
+            timeoutService.scheduleTimeout(new ThreadPoolTimeout<>(task), adjustedTimeout, nanoTime);
         }
         return promise.future();
     }

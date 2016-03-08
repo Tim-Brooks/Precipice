@@ -18,6 +18,6 @@
 package net.uncontended.precipice.timeout;
 
 @FunctionalInterface
-public interface TimeoutTask {
-    void setTimedOut();
+public interface Timeout {
+    void timeout();
 }

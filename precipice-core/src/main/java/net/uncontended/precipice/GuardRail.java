@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.List;
@@ -34,19 +34,14 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
 
-    public GuardRail(String name, CountMetrics<Result> resultMetrics, CountMetrics<Rejected> rejectedMetrics,
-                     LatencyMetrics<Result> latencyMetrics, List<BackPressure<Rejected>> backPressureList, Clock clock) {
-        this.resultMetrics = resultMetrics;
-        this.rejectedMetrics = rejectedMetrics;
-        this.latencyMetrics = latencyMetrics;
-        this.name = name;
-        this.clock = clock;
-        this.backPressureList = backPressureList;
+    private GuardRail(GuardRailProperties<Result, Rejected> properties) {
+        this.resultMetrics = properties.resultMetrics;
+        this.rejectedMetrics = properties.rejectedMetrics;
+        this.latencyMetrics = properties.resultLatency;
+        this.name = properties.name;
+        this.clock = properties.clock;
+        this.backPressureList = properties.backPressureList;
         this.releaseFunction = new FinishingCallback();
-
-        for (BackPressure<Rejected> bp : backPressureList) {
-            bp.registerResultMetrics(resultMetrics);
-        }
     }
 
     public Rejected acquirePermits(long number) {
@@ -75,6 +70,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     public void releasePermitsWithoutResult(long number) {
         releasePermitsWithoutResult(number, clock.nanoTime());
     }
+
     public void releasePermitsWithoutResult(long number, long nanoTime) {
         for (BackPressure backPressure : backPressureList) {
             backPressure.releasePermit(number, nanoTime);
@@ -131,6 +127,19 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     public Clock getClock() {
         return clock;
+    }
+
+    public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> GuardRail<Result, Rejected>
+    create(GuardRailProperties<Result, Rejected> properties) {
+        GuardRail<Result, Rejected> guardRail = new GuardRail<>(properties);
+        guardRail.wireUp();
+        return guardRail;
+    }
+
+    private void wireUp() {
+        for (BackPressure<Rejected> bp : backPressureList) {
+            bp.registerGuardRail(this);
+        }
     }
 
     private class FinishingCallback implements PrecipiceFunction<Result, ExecutionContext> {
