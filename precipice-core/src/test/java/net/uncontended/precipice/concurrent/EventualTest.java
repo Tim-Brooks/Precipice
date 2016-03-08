@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.Cancellable;
 import net.uncontended.precipice.ExecutionContext;
 import net.uncontended.precipice.PrecipiceFunction;
 import net.uncontended.precipice.test_utils.TestResult;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class EventualTest {
@@ -182,5 +184,20 @@ public class EventualTest {
         eventual.completeExceptionally(TestResult.ERROR, ex);
 
         verify(wrappedPromise).completeExceptionally(TestResult.ERROR, ex);
+    }
+
+    @Test
+    public void cancelAttemptsToCancel() {
+        Eventual<TestResult, String> eventual = new Eventual<>();
+        assertFalse(eventual.cancel(true));
+
+        Cancellable cancellable = mock(Cancellable.class);
+        eventual.setCancellable(cancellable);
+
+        assertTrue(eventual.cancel(true));
+
+        verify(cancellable).cancel();
+
+        assertTrue(eventual.isCancelled());
     }
 }

@@ -111,6 +111,19 @@ public class CancellableTaskTest {
     }
 
     @Test
+    public void callableNotRunIfTaskCancelled() {
+        task = TaskFactory.createTask(TestCallable.success("Success"), promise);
+
+        task.cancel();
+
+        verify(promise, times(0)).completeExceptionally(any(TimeoutableResult.class), any(Throwable.class));
+
+        task.run();
+
+        verifyNoMoreInteractions(promise);
+    }
+
+    @Test
     public void canConfigureStatusMappers() {
         CancellableTask.ResultToStatus<TimeoutableResult, Object> resultToStatus =
                 new CancellableTask.ResultToStatus<TimeoutableResult, Object>() {

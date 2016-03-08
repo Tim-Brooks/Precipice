@@ -17,13 +17,15 @@
 
 package net.uncontended.precipice.threadpool;
 
+import net.uncontended.precipice.Cancellable;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
+import net.uncontended.precipice.result.TimeoutableResult;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runnable {
+public class CancellableTask<Status extends Enum<Status> & Failable, T> implements Runnable, Cancellable {
 
     private static final int PENDING = 0;
     private static final int DONE = 1;
@@ -61,6 +63,11 @@ public class CancellableTask<Status extends Enum<Status> & Failable, T> implemen
         } finally {
             Thread.interrupted();
         }
+    }
+
+    @Override
+    public void cancel() {
+        cancel(null, null);
     }
 
     public void cancel(Status cancelledStatus, Exception exception) {
@@ -103,7 +110,9 @@ public class CancellableTask<Status extends Enum<Status> & Failable, T> implemen
                 if (runner != null) {
                     runner.interrupt();
                 }
-                promise.completeExceptionally(status, e);
+                if (status != null) {
+                    promise.completeExceptionally(status, e);
+                }
                 state.set(DONE);
             }
         } catch (Throwable t) {

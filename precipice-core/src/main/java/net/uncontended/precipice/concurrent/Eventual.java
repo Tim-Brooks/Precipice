@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.concurrent;
 
+import net.uncontended.precipice.Cancellable;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.ExecutionContext;
 import net.uncontended.precipice.PrecipiceFunction;
@@ -31,6 +32,8 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     private final Completable<S, T> wrappedPromise;
     private volatile T result;
     private volatile Throwable throwable;
+    private volatile Cancellable cancellable;
+    private volatile boolean isCancelled = false;
     private final CountDownLatch latch = new CountDownLatch(1);
     private final AtomicReference<S> status = new AtomicReference<>(null);
     private final AtomicReference<PrecipiceFunction<S, T>> successCallback = new AtomicReference<>();
@@ -138,12 +141,18 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
 
     @Override
     public boolean isCancelled() {
-        return false;
+        return isCancelled;
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        return false;
+        if (mayInterruptIfRunning && cancellable != null && !isDone()) {
+            isCancelled = true;
+            cancellable.cancel();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -211,6 +220,10 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     @Override
     public long permitCount() {
         return permitCount;
+    }
+
+    public void setCancellable(Cancellable cancellable) {
+        this.cancellable = cancellable;
     }
 
     public void internalOnComplete(PrecipiceFunction<S, ExecutionContext> fn) {
