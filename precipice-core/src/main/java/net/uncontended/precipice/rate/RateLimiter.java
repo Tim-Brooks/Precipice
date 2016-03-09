@@ -24,6 +24,9 @@ import net.uncontended.precipice.GuardRail;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Unstable and still in development.
+ */
 public class RateLimiter<Rejected extends Enum<Rejected>> implements BackPressure<Rejected> {
 
     private final Rejected rejectedReason;

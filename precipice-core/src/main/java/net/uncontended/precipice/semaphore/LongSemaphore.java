@@ -26,10 +26,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LongSemaphore<Rejected extends Enum<Rejected>> implements BackPressure<Rejected>, PrecipiceSemaphore {
 
     private final AtomicLong permitsRemaining;
-    private final int maxConcurrencyLevel;
+    private final long maxConcurrencyLevel;
     private final Rejected reason;
 
-    public LongSemaphore(Rejected reason, int maxConcurrencyLevel) {
+    public LongSemaphore(Rejected reason, long maxConcurrencyLevel) {
         this.maxConcurrencyLevel = maxConcurrencyLevel;
         this.reason = reason;
         this.permitsRemaining = new AtomicLong(maxConcurrencyLevel);
@@ -39,8 +39,9 @@ public class LongSemaphore<Rejected extends Enum<Rejected>> implements BackPress
     public Rejected acquirePermit(long number, long nanoTime) {
         for (; ; ) {
             long permitsRemaining = this.permitsRemaining.get();
-            if (permitsRemaining > 0) {
-                if (this.permitsRemaining.compareAndSet(permitsRemaining, permitsRemaining - 1)) {
+            long newRemaining = permitsRemaining - number;
+            if (newRemaining >= 0) {
+                if (this.permitsRemaining.compareAndSet(permitsRemaining, newRemaining)) {
                     return null;
                 }
             } else {
