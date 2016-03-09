@@ -93,7 +93,6 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
     }
 
     public void shutdown() {
-        guardRail.shutdown();
         executorService.shutdown();
     }
 

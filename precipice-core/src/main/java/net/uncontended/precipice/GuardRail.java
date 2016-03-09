@@ -31,7 +31,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final String name;
     private final Clock clock;
     private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
-    private volatile boolean isShutdown = false;
     private List<BackPressure<Rejected>> backPressureList;
 
     private GuardRail(GuardRailProperties<Result, Rejected> properties) {
@@ -49,10 +48,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     }
 
     public Rejected acquirePermits(long number, long nanoTime) {
-        if (isShutdown) {
-            throw new IllegalStateException("Service has been shutdown.");
-        }
-
         for (int i = 0; i < backPressureList.size(); ++i) {
             BackPressure<Rejected> bp = backPressureList.get(i);
             Rejected rejected = bp.acquirePermit(number, nanoTime);
@@ -99,14 +94,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     public PrecipiceFunction<Result, ExecutionContext> releaseFunction() {
         return releaseFunction;
-    }
-
-    public void shutdown() {
-        isShutdown = true;
-    }
-
-    public boolean isShutdown() {
-        return isShutdown;
     }
 
     public String getName() {

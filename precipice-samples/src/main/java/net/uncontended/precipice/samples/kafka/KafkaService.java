@@ -74,7 +74,6 @@ public class KafkaService<K, V> implements Precipice<ProduceStatus, Rejected> {
     }
 
     public void shutdown(boolean shutdownClient) {
-        guardRail.shutdown();
         if (shutdownClient) {
             producer.close();
         }

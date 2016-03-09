@@ -23,10 +23,10 @@ import com.ning.http.client.Request;
 import com.ning.http.client.Response;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
-import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.factories.Asynchronous;
+import net.uncontended.precipice.rejected.Rejected;
 
 import java.util.concurrent.TimeoutException;
 
@@ -79,7 +79,6 @@ public class HttpAsyncService implements Precipice<HTTPStatus, Rejected> {
     }
 
     public void shutdown(boolean shutdownClient) {
-        guardRail.shutdown();
         if (shutdownClient) {
             client.close();
         }

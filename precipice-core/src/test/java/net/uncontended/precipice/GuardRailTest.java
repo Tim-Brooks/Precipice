@@ -72,20 +72,6 @@ public class GuardRailTest {
     }
 
     @Test
-    public void exceptionIfShutdown() {
-        guardRail = builder.build();
-
-        guardRail.shutdown();
-        try {
-            guardRail.acquirePermits(1L);
-            fail("Exception should have been thrown due to controllable being shutdown.");
-        } catch (IllegalStateException e) {
-            assertEquals("Service has been shutdown.", e.getMessage());
-        }
-
-    }
-
-    @Test
     public void acquirePermitReturnsNullIfNoRejections() {
         guardRail = builder.build();
 

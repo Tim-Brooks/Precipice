@@ -76,10 +76,8 @@ public class ThreadPoolServiceTest {
     }
 
     @Test
-    public void controllerAndThreadPoolShutdownWhenShutdownCallMade() {
+    public void threadPoolShutdownWhenShutdownCallMade() {
         service.shutdown();
-
-        verify(guardRail).shutdown();
 
         assertTrue(executorService.isShutdown());
     }
