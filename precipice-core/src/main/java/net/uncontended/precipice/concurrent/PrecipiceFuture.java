@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * @param <S> the type of the status for this future
  * @param <T> the type of the result for this future
  */
-public interface PrecipiceFuture<S extends Failable, T> extends Future<T> {
+public interface PrecipiceFuture<S extends Failable, T> extends Future<T>, net.uncontended.precipice.Readable<S,T> {
 
     /**
      * Attaches a callback to be executed if the future is completed successfully.
@@ -70,24 +70,4 @@ public interface PrecipiceFuture<S extends Failable, T> extends Future<T> {
      */
     void await(long duration, TimeUnit unit) throws InterruptedException;
 
-    /**
-     * Return the result of the future.
-     *
-     * @return the result
-     */
-    T getResult();
-
-    /**
-     * Return the exception that might have occurred from a failed execution.
-     *
-     * @return the exception
-     */
-    Throwable getError();
-
-    /**
-     * Return the status of the future.
-     *
-     * @return the status
-     */
-    S getStatus();
 }

@@ -18,6 +18,7 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.*;
+import net.uncontended.precipice.Readable;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -97,6 +98,11 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
             }
         }
         return false;
+    }
+
+    @Override
+    public Readable<S, T> readable() {
+        return this;
     }
 
     @Override

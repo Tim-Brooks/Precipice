@@ -17,13 +17,16 @@
 
 package net.uncontended.precipice;
 
-public class CompletionContext<S extends Failable, T> implements Completable<S, T>, ExecutionContext {
+public class CompletionContext<S extends Failable, T> implements Completable<S, T>, ExecutionContext, Readable<S, T> {
 
     private final long permits;
     private final long startTime;
     private final Completable<S, T> wrappedCompletable;
     private PrecipiceFunction<S, ExecutionContext> internalCallback;
     private boolean isCompleted = false;
+    private S status;
+    private T result;
+    private Throwable exception;
 
     public CompletionContext() {
         this(0L);
@@ -59,6 +62,8 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
 
     @Override
     public boolean complete(S status, T result) {
+        this.status = status;
+        this.result = result;
         if (!this.isCompleted && internalCallback != null) {
             internalCallback.apply(status, this);
             if (wrappedCompletable != null) {
@@ -71,6 +76,8 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
 
     @Override
     public boolean completeExceptionally(S status, Throwable exception) {
+        this.status = status;
+        this.exception = exception;
         if (!this.isCompleted && internalCallback != null) {
             internalCallback.apply(status, this);
             if (wrappedCompletable != null) {
@@ -79,6 +86,26 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Readable<S, T> readable() {
+        return this;
+    }
+
+    @Override
+    public T getResult() {
+        return result;
+    }
+
+    @Override
+    public Throwable getError() {
+        return exception;
+    }
+
+    @Override
+    public S getStatus() {
+        return status;
     }
 
     public void internalOnComplete(PrecipiceFunction<S, ExecutionContext> fn) {

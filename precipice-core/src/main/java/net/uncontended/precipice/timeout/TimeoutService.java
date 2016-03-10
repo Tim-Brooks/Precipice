@@ -70,6 +70,8 @@ public class TimeoutService {
                         task.setTimedOut();
                     } catch (InterruptedException e) {
                         break;
+                    } catch (Exception e) {
+                        // TODO: Handle
                     }
                 }
             }

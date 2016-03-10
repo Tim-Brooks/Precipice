@@ -47,4 +47,6 @@ public interface Completable<S extends Failable, T> {
      * @return if the context was competed successfully
      */
     boolean completeExceptionally(S status, Throwable exception);
+
+    Readable<S, T> readable();
 }
