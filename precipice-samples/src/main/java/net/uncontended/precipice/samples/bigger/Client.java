@@ -44,7 +44,7 @@ public class Client {
 //            try {
 //                PrecipiceFuture<TimeoutableResult, String> f = loadBalancer.submit(new Action(), 20L);
 //                String result = f.get();
-//                TimeoutableResult status = f.getStatus();
+//                TimeoutableResult status = f.getResult();
 //
 //
 //                System.out.println(result);

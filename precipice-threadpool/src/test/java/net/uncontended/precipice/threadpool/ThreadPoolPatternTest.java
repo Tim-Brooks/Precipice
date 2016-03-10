@@ -154,11 +154,11 @@ public class ThreadPoolPatternTest {
         CancellableTask<TimeoutableResult, ?> task1 = task1Captor.getValue();
         CancellableTask<TimeoutableResult, ?> task2 = task1Captor.getValue();
 
-        assertNull(f.getStatus());
+        assertNull(f.getResult());
         task1.run();
         task2.run();
-        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
-        assertEquals("Service1", f.getResult());
+        assertEquals(TimeoutableResult.SUCCESS, f.getResult());
+        assertEquals("Service1", f.getValue());
     }
 
     @Test

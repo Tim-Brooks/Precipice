@@ -109,7 +109,7 @@ public class ThreadPoolServiceTest {
         PrecipiceFuture<TimeoutableResult, String> f = service.submit(TestCallable.success(), TimeoutService.MAX_TIMEOUT_MILLIS);
 
         assertEquals("Success", f.get());
-        assertEquals(TimeoutableResult.SUCCESS, f.getStatus());
+        assertEquals(TimeoutableResult.SUCCESS, f.getResult());
     }
 
     @Test
@@ -137,7 +137,7 @@ public class ThreadPoolServiceTest {
             assertTrue(e.getCause() instanceof PrecipiceTimeoutException);
         }
 
-        assertEquals(TimeoutableResult.TIMEOUT, future.getStatus());
+        assertEquals(TimeoutableResult.TIMEOUT, future.getResult());
         assertTrue(future.getError() instanceof PrecipiceTimeoutException);
 
         latch.countDown();
@@ -159,8 +159,8 @@ public class ThreadPoolServiceTest {
             assertEquals(exception, e.getCause());
         }
         assertEquals(exception, future.getError());
-        assertNull(future.getResult());
-        assertEquals(TimeoutableResult.ERROR, future.getStatus());
+        assertNull(future.getValue());
+        assertEquals(TimeoutableResult.ERROR, future.getResult());
     }
 
     @Test
