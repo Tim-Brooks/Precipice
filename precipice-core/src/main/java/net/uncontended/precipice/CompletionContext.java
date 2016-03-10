@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 public class CompletionContext<Result extends Failable, V> implements Completable<Result, V>, ExecutionContext,
-        ReadableView<Result, V> {
+        ResultView<Result, V> {
 
     private final long permits;
     private final long startTime;
@@ -90,7 +90,7 @@ public class CompletionContext<Result extends Failable, V> implements Completabl
     }
 
     @Override
-    public ReadableView<Result, V> readable() {
+    public ResultView<Result, V> resultView() {
         return this;
     }
 

@@ -19,7 +19,7 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.PrecipiceFunction;
-import net.uncontended.precipice.ReadableView;
+import net.uncontended.precipice.ResultView;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * @param <Result> the type of the result for this future
  * @param <V> the type of the value for this future
  */
-public interface PrecipiceFuture<Result extends Failable, V> extends Future<V>, ReadableView<Result, V> {
+public interface PrecipiceFuture<Result extends Failable, V> extends Future<V>, ResultView<Result, V> {
 
     /**
      * Attaches a callback to be executed if the future is completed successfully.

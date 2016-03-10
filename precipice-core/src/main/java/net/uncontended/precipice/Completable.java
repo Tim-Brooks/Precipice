@@ -48,5 +48,10 @@ public interface Completable<Result extends Failable, V> {
      */
     boolean completeExceptionally(Result result, Throwable exception);
 
-    ReadableView<Result, V> readable();
+    /**
+     * Returns a view of the result of of this completable.
+     *
+     * @return the result view
+     */
+    ResultView<Result, V> resultView();
 }
