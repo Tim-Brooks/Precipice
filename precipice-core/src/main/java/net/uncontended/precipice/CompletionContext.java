@@ -17,15 +17,16 @@
 
 package net.uncontended.precipice;
 
-public class CompletionContext<S extends Failable, T> implements Completable<S, T>, ExecutionContext, Readable<S, T> {
+public class CompletionContext<Result extends Failable, V> implements Completable<Result, V>, ExecutionContext,
+        ReadableView<Result, V> {
 
     private final long permits;
     private final long startTime;
-    private final Completable<S, T> wrappedCompletable;
-    private PrecipiceFunction<S, ExecutionContext> internalCallback;
+    private final Completable<Result, V> wrappedCompletable;
+    private PrecipiceFunction<Result, ExecutionContext> internalCallback;
     private boolean isCompleted = false;
-    private S status;
-    private T result;
+    private Result result;
+    private V value;
     private Throwable exception;
 
     public CompletionContext() {
@@ -40,11 +41,11 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
         this(permits, startTime, null);
     }
 
-    public CompletionContext(long startTime, Completable<S, T> wrappedCompletable) {
+    public CompletionContext(long startTime, Completable<Result, V> wrappedCompletable) {
         this(1L, startTime, wrappedCompletable);
     }
 
-    public CompletionContext(long permits, long startTime, Completable<S, T> wrappedCompletable) {
+    public CompletionContext(long permits, long startTime, Completable<Result, V> wrappedCompletable) {
         this.permits = permits;
         this.startTime = startTime;
         this.wrappedCompletable = wrappedCompletable;
@@ -61,13 +62,13 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
     }
 
     @Override
-    public boolean complete(S status, T result) {
-        this.status = status;
+    public boolean complete(Result result, V value) {
         this.result = result;
+        this.value = value;
         if (!this.isCompleted && internalCallback != null) {
-            internalCallback.apply(status, this);
+            internalCallback.apply(result, this);
             if (wrappedCompletable != null) {
-                wrappedCompletable.complete(status, result);
+                wrappedCompletable.complete(result, value);
             }
             return true;
         }
@@ -75,13 +76,13 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
     }
 
     @Override
-    public boolean completeExceptionally(S status, Throwable exception) {
-        this.status = status;
+    public boolean completeExceptionally(Result result, Throwable exception) {
+        this.result = result;
         this.exception = exception;
         if (!this.isCompleted && internalCallback != null) {
-            internalCallback.apply(status, this);
+            internalCallback.apply(result, this);
             if (wrappedCompletable != null) {
-                wrappedCompletable.completeExceptionally(status, exception);
+                wrappedCompletable.completeExceptionally(result, exception);
             }
             return true;
         }
@@ -89,13 +90,13 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
     }
 
     @Override
-    public Readable<S, T> readable() {
+    public ReadableView<Result, V> readable() {
         return this;
     }
 
     @Override
-    public T getResult() {
-        return result;
+    public V getValue() {
+        return value;
     }
 
     @Override
@@ -104,11 +105,11 @@ public class CompletionContext<S extends Failable, T> implements Completable<S, 
     }
 
     @Override
-    public S getStatus() {
-        return status;
+    public Result getResult() {
+        return result;
     }
 
-    public void internalOnComplete(PrecipiceFunction<S, ExecutionContext> fn) {
+    public void internalOnComplete(PrecipiceFunction<Result, ExecutionContext> fn) {
         internalCallback = fn;
     }
 }

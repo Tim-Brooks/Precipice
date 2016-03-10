@@ -1,12 +1,12 @@
 package net.uncontended.precipice;
 
-public interface Readable<S extends Failable, T> {
+public interface ReadableView<Result extends Failable, T> {
     /**
-     * Return the result of the execution.
+     * Return the value of the execution.
      *
-     * @return the result
+     * @return the value
      */
-    T getResult();
+    T getValue();
 
     /**
      * Return the exception that might have occurred from a failed execution.
@@ -16,9 +16,9 @@ public interface Readable<S extends Failable, T> {
     Throwable getError();
 
     /**
-     * Return the status of the execution.
+     * Return the result of the execution.
      *
-     * @return the status
+     * @return the result
      */
-    S getStatus();
+    Result getResult();
 }

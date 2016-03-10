@@ -23,15 +23,15 @@ import net.uncontended.precipice.Failable;
 /**
  * A context that can be completed with the result of an asynchronous computation.
  *
- * @param <S> the type of the status for this promise
- * @param <T> the type of the result for this promise
+ * @param <Result> the type of the result for this promise
+ * @param <V>      the type of the value for this promise
  */
-public interface PrecipicePromise<S extends Failable, T> extends Completable<S,T> {
+public interface PrecipicePromise<Result extends Failable, V> extends Completable<Result, V> {
 
     /**
      * Returns a future containing the result of this promise
      *
      * @return a future
      */
-    PrecipiceFuture<S, T> future();
+    PrecipiceFuture<Result, V> future();
 }

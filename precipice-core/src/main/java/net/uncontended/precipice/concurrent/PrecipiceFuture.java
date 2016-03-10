@@ -19,6 +19,7 @@ package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.PrecipiceFunction;
+import net.uncontended.precipice.ReadableView;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -26,25 +27,25 @@ import java.util.concurrent.TimeUnit;
 /**
  * A context containing the result of an asynchronous computation.
  *
- * @param <S> the type of the status for this future
- * @param <T> the type of the result for this future
+ * @param <Result> the type of the result for this future
+ * @param <V> the type of the value for this future
  */
-public interface PrecipiceFuture<S extends Failable, T> extends Future<T>, net.uncontended.precipice.Readable<S,T> {
+public interface PrecipiceFuture<Result extends Failable, V> extends Future<V>, ReadableView<Result, V> {
 
     /**
      * Attaches a callback to be executed if the future is completed successfully.
-     * The function will be passed the status of the future and the result.
+     * The function will be passed the result of the future and the value.
      * <p/>
      * This method only is guaranteed to be safe if it is called once. Specific implementations
      * may provide stronger guarantees.
      *
      * @param fn function to be executed
      */
-    void onSuccess(PrecipiceFunction<S, T> fn);
+    void onSuccess(PrecipiceFunction<Result, V> fn);
 
     /**
      * Attaches a callback to be executed if the future is not completed successfully.
-     * The function will be passed the status of the future and any exception that occurred
+     * The function will be passed the result of the future and any exception that occurred
      * during execution.
      * <p/>
      * This method only is guaranteed to be safe if it is called once. Specific implementations
@@ -52,7 +53,7 @@ public interface PrecipiceFuture<S extends Failable, T> extends Future<T>, net.u
      *
      * @param fn function to be executed
      */
-    void onError(PrecipiceFunction<S, Throwable> fn);
+    void onError(PrecipiceFunction<Result, Throwable> fn);
 
     /**
      * Block until the completion of the future.

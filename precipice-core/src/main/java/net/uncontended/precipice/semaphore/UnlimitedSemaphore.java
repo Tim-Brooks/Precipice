@@ -40,7 +40,7 @@ public class UnlimitedSemaphore<Rejected extends Enum<Rejected>> implements Back
 
 
     @Override
-    public void releasePermit(long number, Failable status, long nanoTime) {
+    public void releasePermit(long number, Failable result, long nanoTime) {
         concurrencyLevel.addAndGet(-number);
     }
 

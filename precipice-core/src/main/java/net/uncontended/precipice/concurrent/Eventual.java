@@ -18,25 +18,26 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.Readable;
+import net.uncontended.precipice.ReadableView;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, PrecipicePromise<S, T>, ExecutionContext {
+public class Eventual<Result extends Failable, V> implements PrecipiceFuture<Result, V>, PrecipicePromise<Result, V>,
+        ExecutionContext {
 
     private final long permitCount;
     private final long startNanos;
-    private final Completable<S, T> wrappedPromise;
-    private volatile T result;
+    private final Completable<Result, V> wrappedPromise;
+    private volatile V value;
     private volatile Throwable throwable;
     private volatile Cancellable cancellable;
     private volatile boolean isCancelled = false;
     private final CountDownLatch latch = new CountDownLatch(1);
-    private final AtomicReference<S> status = new AtomicReference<>(null);
-    private final AtomicReference<PrecipiceFunction<S, T>> successCallback = new AtomicReference<>();
-    private final AtomicReference<PrecipiceFunction<S, Throwable>> errorCallback = new AtomicReference<>();
-    private PrecipiceFunction<S, ExecutionContext> internalCallback;
+    private final AtomicReference<Result> result = new AtomicReference<>(null);
+    private final AtomicReference<PrecipiceFunction<Result, V>> successCallback = new AtomicReference<>();
+    private final AtomicReference<PrecipiceFunction<Result, Throwable>> errorCallback = new AtomicReference<>();
+    private PrecipiceFunction<Result, ExecutionContext> internalCallback;
 
     public Eventual() {
         this(0L);
@@ -50,29 +51,29 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
         this(permitCount, startNanos, null);
     }
 
-    public Eventual(Completable<S, T> completable) {
+    public Eventual(Completable<Result, V> completable) {
         this(0L, System.nanoTime(), completable);
     }
 
-    public Eventual(long permitCount, long startNanos, Completable<S, T> completable) {
+    public Eventual(long permitCount, long startNanos, Completable<Result, V> completable) {
         this.permitCount = permitCount;
         this.startNanos = startNanos;
         wrappedPromise = completable;
     }
 
     @Override
-    public boolean complete(S status, T result) {
-        if (this.status.get() == null) {
-            if (this.status.compareAndSet(null, status)) {
-                this.result = result;
-                executeInternalCallback(status);
+    public boolean complete(Result result, V value) {
+        if (this.result.get() == null) {
+            if (this.result.compareAndSet(null, result)) {
+                this.value = value;
+                executeInternalCallback(result);
                 latch.countDown();
-                PrecipiceFunction<S, T> cb = successCallback.get();
+                PrecipiceFunction<Result, V> cb = successCallback.get();
                 if (cb != null && successCallback.compareAndSet(cb, null)) {
-                    cb.apply(status, result);
+                    cb.apply(result, value);
                 }
                 if (wrappedPromise != null) {
-                    wrappedPromise.complete(status, result);
+                    wrappedPromise.complete(result, value);
                 }
                 return true;
             }
@@ -81,18 +82,18 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public boolean completeExceptionally(S status, Throwable exception) {
-        if (this.status.get() == null) {
-            if (this.status.compareAndSet(null, status)) {
+    public boolean completeExceptionally(Result result, Throwable exception) {
+        if (this.result.get() == null) {
+            if (this.result.compareAndSet(null, result)) {
                 throwable = exception;
-                executeInternalCallback(status);
+                executeInternalCallback(result);
                 latch.countDown();
-                PrecipiceFunction<S, Throwable> cb = errorCallback.get();
+                PrecipiceFunction<Result, Throwable> cb = errorCallback.get();
                 if (cb != null && errorCallback.compareAndSet(cb, null)) {
-                    cb.apply(status, exception);
+                    cb.apply(result, exception);
                 }
                 if (wrappedPromise != null) {
-                    wrappedPromise.completeExceptionally(status, exception);
+                    wrappedPromise.completeExceptionally(result, exception);
                 }
                 return true;
             }
@@ -101,20 +102,20 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public Readable<S, T> readable() {
+    public ReadableView<Result, V> readable() {
         return this;
     }
 
     @Override
-    public PrecipiceFuture<S, T> future() {
+    public PrecipiceFuture<Result, V> future() {
         return this;
     }
 
     @Override
-    public T get() throws InterruptedException, ExecutionException {
+    public V get() throws InterruptedException, ExecutionException {
         latch.await();
-        if (result != null) {
-            return result;
+        if (value != null) {
+            return value;
         } else if (isCancelled()) {
             throw new CancellationException();
         } else {
@@ -123,10 +124,10 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (latch.await(timeout, unit)) {
-            if (result != null) {
-                return result;
+            if (value != null) {
+                return value;
             } else if (isCancelled()) {
                 throw new CancellationException();
             } else {
@@ -139,7 +140,7 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
 
     @Override
     public boolean isDone() {
-        return status.get() != null;
+        return result.get() != null;
     }
 
     @Override
@@ -169,8 +170,8 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public T getResult() {
-        return result;
+    public V getValue() {
+        return value;
     }
 
     @Override
@@ -179,16 +180,16 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public void onSuccess(PrecipiceFunction<S, T> fn) {
+    public void onSuccess(PrecipiceFunction<Result, V> fn) {
         // TODO: Decide whether it is okay to execute multiple callbacks.
-        S localStatus = status.get();
-        if (localStatus != null && !localStatus.isFailure()) {
-            fn.apply(localStatus, result);
+        Result localResult = result.get();
+        if (localResult != null && !localResult.isFailure()) {
+            fn.apply(localResult, value);
         } else {
             if (successCallback.compareAndSet(null, fn)) {
-                S localStatus2 = status.get();
-                if (localStatus2 != null && !localStatus2.isFailure() && successCallback.compareAndSet(fn, null)) {
-                    fn.apply(localStatus2, result);
+                Result localResult2 = result.get();
+                if (localResult2 != null && !localResult2.isFailure() && successCallback.compareAndSet(fn, null)) {
+                    fn.apply(localResult2, value);
                 }
             }
 
@@ -196,23 +197,23 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
     }
 
     @Override
-    public void onError(PrecipiceFunction<S, Throwable> fn) {
-        S localStatus = status.get();
-        if (localStatus != null && localStatus.isFailure()) {
-            fn.apply(localStatus, throwable);
+    public void onError(PrecipiceFunction<Result, Throwable> fn) {
+        Result localResult = result.get();
+        if (localResult != null && localResult.isFailure()) {
+            fn.apply(localResult, throwable);
         } else {
             if (errorCallback.compareAndSet(null, fn)) {
-                S localStatus2 = status.get();
-                if (localStatus2 != null && localStatus2.isFailure() && errorCallback.compareAndSet(fn, null)) {
-                    fn.apply(localStatus2, throwable);
+                Result localResult2 = result.get();
+                if (localResult2 != null && localResult2.isFailure() && errorCallback.compareAndSet(fn, null)) {
+                    fn.apply(localResult2, throwable);
                 }
             }
         }
     }
 
     @Override
-    public S getStatus() {
-        return status.get();
+    public Result getResult() {
+        return result.get();
     }
 
     @Override
@@ -229,13 +230,13 @@ public class Eventual<S extends Failable, T> implements PrecipiceFuture<S, T>, P
         this.cancellable = cancellable;
     }
 
-    public void internalOnComplete(PrecipiceFunction<S, ExecutionContext> fn) {
+    public void internalOnComplete(PrecipiceFunction<Result, ExecutionContext> fn) {
         internalCallback = fn;
     }
 
-    private void executeInternalCallback(S status) {
+    private void executeInternalCallback(Result result) {
         if (internalCallback != null) {
-            internalCallback.apply(status, this);
+            internalCallback.apply(result, this);
         }
     }
 }

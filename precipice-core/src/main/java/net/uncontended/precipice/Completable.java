@@ -23,30 +23,30 @@ package net.uncontended.precipice;
  * successes and exceptions. So if it is completed with an exception,
  * it cannot be completed successfully.
  *
- * @param <S> the type of the status for this promise
- * @param <T> the type of the result for this promise
+ * @param <Result> the type of the result for this promise
+ * @param <V>      the type of the value for this completable
  */
-public interface Completable<S extends Failable, T> {
+public interface Completable<Result extends Failable, V> {
 
     /**
      * Completes this context successfully with the result. A boolean will be
      * returned indicating if it was completed successfully.
      *
-     * @param status of the computation
      * @param result of the computation
+     * @param value  of the computation
      * @return if the context was competed successfully
      */
-    boolean complete(S status, T result);
+    boolean complete(Result result, V value);
 
     /**
      * Completes this context with an exception. A boolean will be returned
      * indicating if it was completed successfully.
      *
-     * @param status    of the computation
+     * @param result    of the computation
      * @param exception of the computation
      * @return if the context was competed successfully
      */
-    boolean completeExceptionally(S status, Throwable exception);
+    boolean completeExceptionally(Result result, Throwable exception);
 
-    Readable<S, T> readable();
+    ReadableView<Result, V> readable();
 }

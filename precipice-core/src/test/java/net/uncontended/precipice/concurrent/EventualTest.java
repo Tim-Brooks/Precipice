@@ -77,7 +77,7 @@ public class EventualTest {
         assertSame(exception, error.get());
         assertSame(exception, eventual.getError());
         assertNull(resultReference.get());
-        assertNull(eventual.getResult());
+        assertNull(eventual.getValue());
         assertFalse(isTimedOut.get());
         assertFalse(eventual.isCancelled());
 
@@ -118,7 +118,7 @@ public class EventualTest {
         assertFalse(eventual.cancel(true));
 
         assertSame(stringResult, resultReference.get());
-        assertSame(stringResult, eventual.getResult());
+        assertSame(stringResult, eventual.getValue());
         assertSame(stringResult, eventual.get());
         assertNull(error.get());
         assertNull(eventual.getError());
@@ -129,13 +129,13 @@ public class EventualTest {
     @Test
     public void testInternalCallbackIsCalledOnError() throws Exception {
         Eventual<TestResult, String> eventual = new Eventual<>();
-        final AtomicReference<TestResult> statusReference = new AtomicReference<>();
+        final AtomicReference<TestResult> resultReference = new AtomicReference<>();
         final AtomicReference<ExecutionContext> context = new AtomicReference<>();
 
         eventual.internalOnComplete(new PrecipiceFunction<TestResult, ExecutionContext>() {
             @Override
             public void apply(TestResult result, ExecutionContext argument) {
-                statusReference.compareAndSet(null, result);
+                resultReference.compareAndSet(null, result);
                 context.compareAndSet(null, argument);
 
             }
@@ -143,20 +143,20 @@ public class EventualTest {
 
         eventual.completeExceptionally(TestResult.ERROR, new RuntimeException());
 
-        assertEquals(TestResult.ERROR, statusReference.get());
+        assertEquals(TestResult.ERROR, resultReference.get());
         assertSame(eventual, context.get());
     }
 
     @Test
     public void testInternalCallbackIsCalledOnSuccess() throws Exception {
         Eventual<TestResult, String> eventual = new Eventual<>();
-        final AtomicReference<TestResult> statusReference = new AtomicReference<>();
+        final AtomicReference<TestResult> resultReference = new AtomicReference<>();
         final AtomicReference<ExecutionContext> context = new AtomicReference<>();
 
         eventual.internalOnComplete(new PrecipiceFunction<TestResult, ExecutionContext>() {
             @Override
             public void apply(TestResult result, ExecutionContext argument) {
-                statusReference.compareAndSet(null, result);
+                resultReference.compareAndSet(null, result);
                 context.compareAndSet(null, argument);
 
             }
@@ -164,7 +164,7 @@ public class EventualTest {
 
         eventual.complete(TestResult.SUCCESS, "");
 
-        assertEquals(TestResult.SUCCESS, statusReference.get());
+        assertEquals(TestResult.SUCCESS, resultReference.get());
         assertSame(eventual, context.get());
     }
 
