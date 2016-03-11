@@ -19,6 +19,7 @@ package net.uncontended.precipice.pattern;
 
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;

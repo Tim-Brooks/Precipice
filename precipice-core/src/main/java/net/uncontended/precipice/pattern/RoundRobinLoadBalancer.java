@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RoundRobinLoadBalancer implements PatternStrategy {
 
+    // TODO: The arrays can probably be cached
+
     private static final int FLIP_POINT = Integer.MAX_VALUE / 2;
     private final int size;
     private final int maxAcquireAttempts;
