@@ -69,7 +69,7 @@ public class PatternTest {
         pattern = new Pattern<>(controllables, strategy);
 
         int submissionCount = 2;
-        when(strategy.attemptCount()).thenReturn(submissionCount);
+        when(strategy.acquireCount()).thenReturn(submissionCount);
         when(precipice1.guardRail()).thenReturn(guardRail1);
         when(precipice2.guardRail()).thenReturn(guardRail2);
         when(precipice3.guardRail()).thenReturn(guardRail3);
@@ -88,7 +88,7 @@ public class PatternTest {
     public void getReturnsCorrectPrecipices() {
         int[] indices = {0, 1, 2};
 
-        when(strategy.nextIndices()).thenReturn(new ArrayIntIterator(indices));
+        when(strategy.nextIndices()).thenReturn(new SingleReaderArrayIterable(indices));
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
         Sequence<Precipice<TimeoutableResult, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
@@ -111,7 +111,7 @@ public class PatternTest {
         int[] indices = {2, 0, 1};
         CountMetrics<Rejected> metrics = mock(CountMetrics.class);
 
-        when(strategy.nextIndices()).thenReturn(new ArrayIntIterator(indices));
+        when(strategy.nextIndices()).thenReturn(new SingleReaderArrayIterable(indices));
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
@@ -134,7 +134,7 @@ public class PatternTest {
     public void getOnlyReturnsTheNumberOfPrecipicesThatAreAvailable() {
         int[] indices = {2, 0, 1};
 
-        when(strategy.nextIndices()).thenReturn(new ArrayIntIterator(indices));
+        when(strategy.nextIndices()).thenReturn(new SingleReaderArrayIterable(indices));
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
@@ -159,7 +159,7 @@ public class PatternTest {
         when(strategy.nextIndices()).thenAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                return new ArrayIntIterator(indices);
+                return new SingleReaderArrayIterable(indices);
             }
         });
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);

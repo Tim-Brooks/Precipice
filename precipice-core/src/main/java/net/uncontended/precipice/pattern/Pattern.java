@@ -35,7 +35,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     public Pattern(Collection<C> precipices, PatternStrategy strategy) {
         if (precipices.size() == 0) {
             throw new IllegalArgumentException("Cannot create Pattern with 0 Precipices.");
-        } else if (strategy.attemptCount() > precipices.size()) {
+        } else if (strategy.acquireCount() > precipices.size()) {
             throw new IllegalArgumentException("Attempt count cannot be greater than the number of precipices.");
         }
         
@@ -57,19 +57,16 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     }
 
     private void setupSequence(long permits, long nanoTime, SingleReaderSequence<C> precipices) {
-        IntIterator indices = strategy.nextIndices();
-        int submittedCount = 0;
-        int size = indices.size();
-        for (int i = 0; i < size; ++i) {
-            int next = indices.next();
-            C precipice = pool.get(next);
+        int acquiredCount = 0;
+        for (Integer index : strategy.nextIndices()) {
+            C precipice = pool.get(index);
             GuardRail<Result, ?> guardRail = precipice.guardRail();
             Object rejected = guardRail.acquirePermits(permits, nanoTime);
             if (rejected == null) {
                 precipices.add(precipice);
-                ++submittedCount;
+                ++acquiredCount;
             }
-            if (submittedCount == strategy.attemptCount()) {
+            if (acquiredCount == strategy.acquireCount()) {
                 break;
             }
         }
@@ -79,7 +76,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
         SingleReaderSequence<C> precipices = local.get();
 
         if (precipices == null) {
-            precipices = new SingleReaderSequence<>(strategy.attemptCount());
+            precipices = new SingleReaderSequence<>(strategy.acquireCount());
             local.set(precipices);
         }
         precipices.reset();

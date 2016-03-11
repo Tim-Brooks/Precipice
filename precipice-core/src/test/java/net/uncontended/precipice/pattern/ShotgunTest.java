@@ -19,9 +19,9 @@ package net.uncontended.precipice.pattern;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import java.util.Iterator;
+
+import static org.junit.Assert.*;
 
 public class ShotgunTest {
 
@@ -33,11 +33,11 @@ public class ShotgunTest {
         int secondTotal = 0;
         int thirdTotal = 0;
         for (int i = 0; i < 5000; ++i) {
-            IntIterator indices = shotgun.nextIndices();
-            assertEquals(3, indices.size());
+            Iterator<Integer> indices = shotgun.nextIndices().iterator();
             int first = indices.next();
             int second = indices.next();
             int third = indices.next();
+            assertFalse(indices.hasNext());
             assertNotEquals(first, second);
             assertNotEquals(first, third);
             assertNotEquals(second, third);

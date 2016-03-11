@@ -19,7 +19,7 @@ package net.uncontended.precipice.pattern;
 
 public interface PatternStrategy {
 
-    IntIterator nextIndices();
+    Iterable<Integer> nextIndices();
 
-    int attemptCount();
+    int acquireCount();
 }

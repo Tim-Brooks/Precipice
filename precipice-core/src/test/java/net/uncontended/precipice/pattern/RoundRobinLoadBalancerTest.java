@@ -20,9 +20,11 @@ package net.uncontended.precipice.pattern;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class RoundRobinLoadBalancerTest {
 
@@ -31,10 +33,25 @@ public class RoundRobinLoadBalancerTest {
         int start = (Integer.MAX_VALUE / 2) - 1;
         PatternStrategy strategy = new RoundRobinLoadBalancer(3, 3, new AtomicInteger(start));
 
-        assertEquals(start % 3, strategy.nextIndices().next());
-        assertEquals((start + 1) % 3, strategy.nextIndices().next());
-        assertEquals(0, strategy.nextIndices().next());
-        assertEquals(1, strategy.nextIndices().next());
-        assertEquals(2, strategy.nextIndices().next());
+        assertEquals(start % 3, strategy.nextIndices().iterator().next().intValue());
+        assertEquals((start + 1) % 3, strategy.nextIndices().iterator().next().intValue());
+        assertEquals(0, strategy.nextIndices().iterator().next().intValue());
+        assertEquals(1, strategy.nextIndices().iterator().next().intValue());
+        assertEquals(2, strategy.nextIndices().iterator().next().intValue());
+    }
+
+    @Test
+    public void acquireAttemptsAreObserved() {
+        PatternStrategy strategy = new RoundRobinLoadBalancer(3, 2);
+
+        Iterator<Integer> iterator = strategy.nextIndices().iterator();
+        assertEquals(0, iterator.next().intValue());
+        assertEquals(1, iterator.next().intValue());
+        assertFalse(iterator.hasNext());
+
+        Iterator<Integer> iterator2 = strategy.nextIndices().iterator();
+        assertEquals(1, iterator2.next().intValue());
+        assertEquals(2, iterator2.next().intValue());
+        assertFalse(iterator2.hasNext());
     }
 }

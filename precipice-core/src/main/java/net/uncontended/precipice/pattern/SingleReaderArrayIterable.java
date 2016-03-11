@@ -17,22 +17,35 @@
 
 package net.uncontended.precipice.pattern;
 
-public class ArrayIntIterator implements IntIterator {
+import java.util.Iterator;
 
+public class SingleReaderArrayIterable implements Iterator<Integer>, Iterable<Integer> {
+
+    private int size;
     private int[] indices;
     private int index = 0;
 
-    public ArrayIntIterator(int[] indices) {
+    public SingleReaderArrayIterable(int[] indices) {
         this.indices = indices;
+        this.size = indices.length;
     }
 
-    @Override
     public int size() {
         return indices.length;
     }
 
     @Override
-    public int next() {
+    public boolean hasNext() {
+        return index != size;
+    }
+
+    @Override
+    public Iterator<Integer> iterator() {
+        return this;
+    }
+
+    @Override
+    public Integer next() {
         return indices[index++];
     }
 
