@@ -24,12 +24,12 @@ public class Shotgun implements PatternStrategy {
 
     private final int acquireCount;
     private final int serviceCount;
-    private final int[] serviceIndices;
+    private final Integer[] serviceIndices;
 
     public Shotgun(int serviceCount, int acquireCount) {
         this.serviceCount = serviceCount;
         this.acquireCount = acquireCount;
-        this.serviceIndices = new int[serviceCount];
+        this.serviceIndices = new Integer[serviceCount];
         for (int i = 0; i < serviceCount; ++i) {
             serviceIndices[i] = i;
         }
@@ -37,12 +37,13 @@ public class Shotgun implements PatternStrategy {
 
     @Override
     public Iterable<Integer> nextIndices() {
-        int[] orderToTry = new int[serviceCount];
+        SingleReaderArrayIterable iterable = new SingleReaderArrayIterable(serviceCount);
+        Integer[] orderToTry = iterable.getIndices();
 
         System.arraycopy(serviceIndices, 0, orderToTry, 0, serviceCount);
         shuffle(orderToTry);
 
-        return new SingleReaderArrayIterable(orderToTry);
+        return iterable;
     }
 
     @Override
@@ -50,7 +51,7 @@ public class Shotgun implements PatternStrategy {
         return acquireCount;
     }
 
-    private static void shuffle(int[] orderToTry) {
+    private static void shuffle(Integer[] orderToTry) {
         int index;
         Random random = ThreadLocalRandom.current();
         for (int i = orderToTry.length - 1; i > 0; i--) {

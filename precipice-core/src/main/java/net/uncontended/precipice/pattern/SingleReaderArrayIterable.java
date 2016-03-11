@@ -22,12 +22,12 @@ import java.util.Iterator;
 public class SingleReaderArrayIterable implements Iterator<Integer>, Iterable<Integer> {
 
     private int size;
-    private int[] indices;
+    private Integer[] indices;
     private int index = 0;
 
-    public SingleReaderArrayIterable(int[] indices) {
-        this.indices = indices;
-        this.size = indices.length;
+    public SingleReaderArrayIterable(int size) {
+        this.indices = new Integer[size];
+        this.size = size;
     }
 
     public int size() {
@@ -49,11 +49,7 @@ public class SingleReaderArrayIterable implements Iterator<Integer>, Iterable<In
         return indices[index++];
     }
 
-    public void setIndices(int[] indices) {
-        this.indices = indices;
-    }
-
-    public int[] getIndices() {
+    public Integer[] getIndices() {
         return this.indices;
     }
 

@@ -53,12 +53,14 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
             resetCounter(index);
         }
 
-        int[] orderToTry = new int[maxAcquireAttempts];
+        SingleReaderArrayIterable iterable = new SingleReaderArrayIterable(maxAcquireAttempts);
+
+        Integer[] orderToTry = iterable.getIndices();
         for (int i = 0; i < maxAcquireAttempts; ++i) {
             orderToTry[i] = (int) ((index + i) % size);
         }
         shuffleTail(orderToTry);
-        return new SingleReaderArrayIterable(orderToTry);
+        return iterable;
     }
 
     @Override
@@ -66,7 +68,7 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
         return 1;
     }
 
-    private static void shuffleTail(int[] orderToTry) {
+    private static void shuffleTail(Integer[] orderToTry) {
         int index;
         Random random = ThreadLocalRandom.current();
         for (int i = orderToTry.length - 1; i > 1; i--) {
