@@ -44,7 +44,7 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
     }
 
     @Override
-    public int[] nextIndices() {
+    public IntIterator nextIndices() {
         int index = counter.getAndIncrement();
 
         if (index >= FLIP_POINT) {
@@ -55,7 +55,7 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
         for (int i = 0; i < maxAcquireAttempts; ++i) {
             indices[i] = (index + i) % size;
         }
-        return indices;
+        return new ArrayIntIterator(indices);
     }
 
     @Override

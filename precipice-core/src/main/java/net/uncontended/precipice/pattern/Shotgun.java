@@ -36,13 +36,13 @@ public class Shotgun implements PatternStrategy {
     }
 
     @Override
-    public int[] nextIndices() {
+    public IntIterator nextIndices() {
         int[] orderToTry = new int[serviceCount];
 
         System.arraycopy(serviceIndices, 0, orderToTry, 0, serviceCount);
         shuffle(orderToTry);
 
-        return orderToTry;
+        return new ArrayIntIterator(orderToTry);
     }
 
     @Override

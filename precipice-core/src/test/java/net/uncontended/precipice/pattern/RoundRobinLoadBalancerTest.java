@@ -31,10 +31,10 @@ public class RoundRobinLoadBalancerTest {
         int start = (Integer.MAX_VALUE / 2) - 1;
         PatternStrategy strategy = new RoundRobinLoadBalancer(3, 3, new AtomicInteger(start));
 
-        assertEquals(start % 3, strategy.nextIndices()[0]);
-        assertEquals((start + 1) % 3, strategy.nextIndices()[0]);
-        assertEquals(0, strategy.nextIndices()[0]);
-        assertEquals(1, strategy.nextIndices()[0]);
-        assertEquals(2, strategy.nextIndices()[0]);
+        assertEquals(start % 3, strategy.nextIndices().next());
+        assertEquals((start + 1) % 3, strategy.nextIndices().next());
+        assertEquals(0, strategy.nextIndices().next());
+        assertEquals(1, strategy.nextIndices().next());
+        assertEquals(2, strategy.nextIndices().next());
     }
 }

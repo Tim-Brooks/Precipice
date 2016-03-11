@@ -57,10 +57,12 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     }
 
     private void setupSequence(long permits, long nanoTime, SingleReaderSequence<C> precipices) {
-        int[] servicesToTry = strategy.nextIndices();
+        IntIterator indices = strategy.nextIndices();
         int submittedCount = 0;
-        for (int serviceIndex : servicesToTry) {
-            C precipice = pool.get(serviceIndex);
+        int size = indices.size();
+        for (int i = 0; i < size; ++i) {
+            int next = indices.next();
+            C precipice = pool.get(next);
             GuardRail<Result, ?> guardRail = precipice.guardRail();
             Object rejected = guardRail.acquirePermits(permits, nanoTime);
             if (rejected == null) {

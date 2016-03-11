@@ -17,9 +17,34 @@
 
 package net.uncontended.precipice.pattern;
 
-public interface PatternStrategy {
+public class ArrayIntIterator implements IntIterator {
 
-    IntIterator nextIndices();
+    private int[] indices;
+    private int index = 0;
 
-    int attemptCount();
+    public ArrayIntIterator(int[] indices) {
+        this.indices = indices;
+    }
+
+    @Override
+    public int size() {
+        return indices.length;
+    }
+
+    @Override
+    public int next() {
+        return indices[index++];
+    }
+
+    public void setIndices(int[] indices) {
+        this.indices = indices;
+    }
+
+    public int[] getIndices() {
+        return this.indices;
+    }
+
+    public void reset() {
+        index = 0;
+    }
 }

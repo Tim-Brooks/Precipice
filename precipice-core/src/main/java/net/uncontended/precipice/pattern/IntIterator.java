@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice.pattern;
 
-public interface PatternStrategy {
+public interface IntIterator {
 
-    IntIterator nextIndices();
+    int size();
 
-    int attemptCount();
+    int next();
 }

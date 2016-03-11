@@ -17,7 +17,8 @@
 
 package net.uncontended.precipice.pattern;
 
-import net.uncontended.precipice.*;
+import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.result.TimeoutableResult;
@@ -25,6 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,7 +88,7 @@ public class PatternTest {
     public void getReturnsCorrectPrecipices() {
         int[] indices = {0, 1, 2};
 
-        when(strategy.nextIndices()).thenReturn(indices);
+        when(strategy.nextIndices()).thenReturn(new ArrayIntIterator(indices));
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
         Sequence<Precipice<TimeoutableResult, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
@@ -108,7 +111,7 @@ public class PatternTest {
         int[] indices = {2, 0, 1};
         CountMetrics<Rejected> metrics = mock(CountMetrics.class);
 
-        when(strategy.nextIndices()).thenReturn(indices);
+        when(strategy.nextIndices()).thenReturn(new ArrayIntIterator(indices));
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
@@ -131,7 +134,7 @@ public class PatternTest {
     public void getOnlyReturnsTheNumberOfPrecipicesThatAreAvailable() {
         int[] indices = {2, 0, 1};
 
-        when(strategy.nextIndices()).thenReturn(indices);
+        when(strategy.nextIndices()).thenReturn(new ArrayIntIterator(indices));
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED);
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
@@ -150,10 +153,15 @@ public class PatternTest {
 
     @Test
     public void iteratorIsReusedAndThreadLocal() throws Exception {
-        int[] indices = {2, 0, 1};
+        final int[] indices = {2, 0, 1};
         Executor executor = Executors.newCachedThreadPool();
 
-        when(strategy.nextIndices()).thenReturn(indices);
+        when(strategy.nextIndices()).thenAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return new ArrayIntIterator(indices);
+            }
+        });
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
