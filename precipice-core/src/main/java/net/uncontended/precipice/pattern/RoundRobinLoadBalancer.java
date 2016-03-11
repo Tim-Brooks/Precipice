@@ -23,14 +23,20 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
 
     private static final int FLIP_POINT = Integer.MAX_VALUE / 2;
     private final int size;
+    private final int maxAcquireAttempts;
     private final AtomicInteger counter;
 
     public RoundRobinLoadBalancer(int size) {
-        this(size, new AtomicInteger(0));
+        this(size, size);
     }
 
-    public RoundRobinLoadBalancer(int size, AtomicInteger counter) {
+    public RoundRobinLoadBalancer(int size, int maxAcquireAttempts) {
+        this(size, maxAcquireAttempts, new AtomicInteger(0));
+    }
+
+    public RoundRobinLoadBalancer(int size, int maxAcquireAttempts, AtomicInteger counter) {
         this.size = size;
+        this.maxAcquireAttempts = maxAcquireAttempts;
         this.counter = counter;
     }
 
@@ -42,8 +48,10 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
             resetCounter(index);
         }
 
-        int[] indices = new int[1];
-        indices[0] = index % size;
+        int[] indices = new int[maxAcquireAttempts];
+        for (int i = 0; i < maxAcquireAttempts; ++i) {
+            indices[i] = (index + i) % size;
+        }
         return indices;
     }
 
