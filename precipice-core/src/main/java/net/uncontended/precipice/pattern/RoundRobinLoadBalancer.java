@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice.pattern;
 
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RoundRobinLoadBalancer implements PatternStrategy {
@@ -25,6 +27,7 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
     // TODO: Also this is flawed because a failed service will drop its entire load on the next service
 
     private static final int FLIP_POINT = Integer.MAX_VALUE / 2;
+    private final int flipPoint;
     private final int size;
     private final int maxAcquireAttempts;
     private final AtomicInteger counter;
@@ -41,21 +44,23 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
         this.size = size;
         this.maxAcquireAttempts = maxAcquireAttempts;
         this.counter = counter;
+        this.flipPoint = (Integer.MAX_VALUE / 2) - maxAcquireAttempts;
     }
 
     @Override
     public Iterable<Integer> nextIndices() {
         int index = counter.getAndIncrement();
 
-        if (index >= FLIP_POINT) {
+        if (index >= flipPoint) {
             resetCounter(index);
         }
 
-        int[] indices = new int[maxAcquireAttempts];
+        int[] orderToTry = new int[maxAcquireAttempts];
         for (int i = 0; i < maxAcquireAttempts; ++i) {
-            indices[i] = (index + i) % size;
+            orderToTry[i] = (index + i) % size;
         }
-        return new SingleReaderArrayIterable(indices);
+        shuffleTail(orderToTry);
+        return new SingleReaderArrayIterable(orderToTry);
     }
 
     @Override
@@ -63,14 +68,26 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
         return 1;
     }
 
+    private static void shuffleTail(int[] orderToTry) {
+        int index;
+        Random random = ThreadLocalRandom.current();
+        for (int i = orderToTry.length - 1; i > 1; i--) {
+            index = random.nextInt(i) + 1;
+            if (index != i) {
+                orderToTry[index] ^= orderToTry[i];
+                orderToTry[i] ^= orderToTry[index];
+                orderToTry[index] ^= orderToTry[i];
+            }
+        }
+    }
+
     private void resetCounter(int start) {
         int index = start;
         for (; ; ) {
-            if (index < FLIP_POINT || counter.compareAndSet(index + 1, 0)) {
+            if (index < flipPoint || counter.compareAndSet(index + 1, 0)) {
                 break;
             }
             index = counter.get();
-
         }
     }
 }

@@ -22,13 +22,13 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Shotgun implements PatternStrategy {
 
-    private final int submissionCount;
+    private final int acquireCount;
     private final int serviceCount;
     private final int[] serviceIndices;
 
-    public Shotgun(int serviceCount, int submissionCount) {
+    public Shotgun(int serviceCount, int acquireCount) {
         this.serviceCount = serviceCount;
-        this.submissionCount = submissionCount;
+        this.acquireCount = acquireCount;
         this.serviceIndices = new int[serviceCount];
         for (int i = 0; i < serviceCount; ++i) {
             serviceIndices[i] = i;
@@ -47,7 +47,7 @@ public class Shotgun implements PatternStrategy {
 
     @Override
     public int acquireCount() {
-        return submissionCount;
+        return acquireCount;
     }
 
     private static void shuffle(int[] orderToTry) {

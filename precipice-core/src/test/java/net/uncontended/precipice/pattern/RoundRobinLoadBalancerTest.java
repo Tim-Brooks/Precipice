@@ -23,14 +23,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class RoundRobinLoadBalancerTest {
 
     @Test
     public void wrappingWorks() {
-        int start = (Integer.MAX_VALUE / 2) - 1;
+        int start = (Integer.MAX_VALUE / 2) - 4;
         PatternStrategy strategy = new RoundRobinLoadBalancer(3, 3, new AtomicInteger(start));
 
         assertEquals(start % 3, strategy.nextIndices().iterator().next().intValue());
@@ -53,5 +53,35 @@ public class RoundRobinLoadBalancerTest {
         assertEquals(1, iterator2.next().intValue());
         assertEquals(2, iterator2.next().intValue());
         assertFalse(iterator2.hasNext());
+    }
+
+    @Test
+    public void tailIndicesAreReturnedUniformly() {
+        PatternStrategy strategy = new RoundRobinLoadBalancer(3, 3);
+
+        int expectedFirst = 0;
+        int secondTotal = 0;
+        int thirdTotal = 0;
+        for (int i = 0; i < 5000; ++i) {
+            Iterator<Integer> indices = strategy.nextIndices().iterator();
+            int first = indices.next();
+            assertEquals(expectedFirst % 3, first);
+            int second = indices.next();
+            int third = indices.next();
+            assertFalse(indices.hasNext());
+            assertNotEquals(first, second);
+            assertNotEquals(first, third);
+            assertNotEquals(second, third);
+            secondTotal += second;
+            thirdTotal += third;
+
+            ++expectedFirst;
+        }
+
+        double secondMean = (double) secondTotal / 5000;
+        double thirdMean = (double) thirdTotal / 5000;
+
+        String message = "Concerning distribution of indices returned";
+        assertTrue(message, 0.15 > Math.abs(secondMean - thirdMean));
     }
 }
