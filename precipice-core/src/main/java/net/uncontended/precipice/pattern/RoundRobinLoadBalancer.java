@@ -19,37 +19,35 @@ package net.uncontended.precipice.pattern;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class RoundRobinLoadBalancer implements PatternStrategy {
 
     // TODO: The arrays can probably be cached
-    // TODO: Also this is flawed because a failed service will drop its entire load on the next service
 
-    private static final int FLIP_POINT = Integer.MAX_VALUE / 2;
-    private final int flipPoint;
+    private final long flipPoint;
     private final int size;
     private final int maxAcquireAttempts;
-    private final AtomicInteger counter;
+    private final AtomicLong counter;
 
     public RoundRobinLoadBalancer(int size) {
         this(size, size);
     }
 
     public RoundRobinLoadBalancer(int size, int maxAcquireAttempts) {
-        this(size, maxAcquireAttempts, new AtomicInteger(0));
+        this(size, maxAcquireAttempts, new AtomicLong(0));
     }
 
-    public RoundRobinLoadBalancer(int size, int maxAcquireAttempts, AtomicInteger counter) {
+    public RoundRobinLoadBalancer(int size, int maxAcquireAttempts, AtomicLong counter) {
         this.size = size;
         this.maxAcquireAttempts = maxAcquireAttempts;
         this.counter = counter;
-        this.flipPoint = (Integer.MAX_VALUE / 2) - maxAcquireAttempts;
+        this.flipPoint = Long.MAX_VALUE - maxAcquireAttempts;
     }
 
     @Override
     public Iterable<Integer> nextIndices() {
-        int index = counter.getAndIncrement();
+        long index = counter.getAndIncrement();
 
         if (index >= flipPoint) {
             resetCounter(index);
@@ -57,7 +55,7 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
 
         int[] orderToTry = new int[maxAcquireAttempts];
         for (int i = 0; i < maxAcquireAttempts; ++i) {
-            orderToTry[i] = (index + i) % size;
+            orderToTry[i] = (int) ((index + i) % size);
         }
         shuffleTail(orderToTry);
         return new SingleReaderArrayIterable(orderToTry);
@@ -81,8 +79,8 @@ public class RoundRobinLoadBalancer implements PatternStrategy {
         }
     }
 
-    private void resetCounter(int start) {
-        int index = start;
+    private void resetCounter(long start) {
+        long index = start;
         for (; ; ) {
             if (index < flipPoint || counter.compareAndSet(index + 1, 0)) {
                 break;

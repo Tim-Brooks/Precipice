@@ -22,6 +22,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
@@ -30,11 +31,12 @@ public class RoundRobinLoadBalancerTest {
 
     @Test
     public void wrappingWorks() {
-        int start = (Integer.MAX_VALUE / 2) - 4;
-        PatternStrategy strategy = new RoundRobinLoadBalancer(3, 3, new AtomicInteger(start));
+        long start = (Long.MAX_VALUE) - 4;
+        PatternStrategy strategy = new RoundRobinLoadBalancer(3, 3, new AtomicLong(start));
 
-        assertEquals(start % 3, strategy.nextIndices().iterator().next().intValue());
-        assertEquals((start + 1) % 3, strategy.nextIndices().iterator().next().intValue());
+        long expectedStart = start % 3;
+        assertEquals(expectedStart, strategy.nextIndices().iterator().next().intValue());
+        assertEquals(expectedStart + 1, strategy.nextIndices().iterator().next().intValue());
         assertEquals(0, strategy.nextIndices().iterator().next().intValue());
         assertEquals(1, strategy.nextIndices().iterator().next().intValue());
         assertEquals(2, strategy.nextIndices().iterator().next().intValue());
