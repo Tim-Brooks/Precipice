@@ -44,28 +44,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     }
 
     /**
-     * Acquire a single permit for task execution. If the acquisition is rejected then
-     * a reason will be returned. If the acquisition is successful, null will be returned.
-     *
-     * @return the rejected reason
-     */
-    public Rejected acquirePermit() {
-        return acquirePermit(clock.nanoTime());
-    }
-
-    /**
-     * Acquire a single permit for task execution. If the acquisition is rejected then
-     * a reason will be returned. If the acquisition is successful, null will be returned.
-     *
-     * @param nanoTime current nano time
-     * @return the rejected reason
-     */
-    private Rejected acquirePermit(long nanoTime) {
-        return acquirePermits(1L, nanoTime);
-
-    }
-
-    /**
      * Acquire permits for task execution. If the acquisition is rejected then a reason
      * will be returned. If the acquisition is successful, null will be returned.
      *
