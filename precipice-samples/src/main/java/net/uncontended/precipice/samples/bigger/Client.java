@@ -81,7 +81,7 @@ public class Client {
 //        clientMBeans.add(new ClientMBeans(name, actionMetrics, breaker));
 //    }
 //
-//    private class Action implements PatternAction<String, Map<String, Object>> {
+//    private class Action implements PatternCallable<String, Map<String, Object>> {
 //        @Override
 //        public String call(Map<String, Object> context) throws Exception {
 //            HttpUrl.Builder builder = new HttpUrl.Builder().scheme("http");

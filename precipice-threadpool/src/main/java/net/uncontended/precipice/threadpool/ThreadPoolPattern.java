@@ -22,7 +22,7 @@ import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.factories.Asynchronous;
 import net.uncontended.precipice.pattern.Pattern;
-import net.uncontended.precipice.pattern.PatternAction;
+import net.uncontended.precipice.pattern.PatternCallable;
 import net.uncontended.precipice.pattern.PatternStrategy;
 import net.uncontended.precipice.pattern.Sequence;
 import net.uncontended.precipice.rejected.RejectedException;
@@ -59,7 +59,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
         return guardRail;
     }
 
-    public <T> PrecipiceFuture<TimeoutableResult, T> submit(final PatternAction<T, C> action, long millisTimeout) {
+    public <T> PrecipiceFuture<TimeoutableResult, T> submit(final PatternCallable<T, C> action, long millisTimeout) {
         long nanoTime = acquirePermit();
 
         Sequence<ThreadPoolService<?>> services = pattern.getPrecipices(1L, nanoTime);

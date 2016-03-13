@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
-public interface PatternAction<T, C> {
+public interface PatternCallable<T, C> {
 
     T call(C context) throws Exception;
 }

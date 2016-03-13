@@ -21,7 +21,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
-import net.uncontended.precipice.pattern.PatternAction;
+import net.uncontended.precipice.pattern.PatternCallable;
 import net.uncontended.precipice.pattern.WritableSequence;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
@@ -90,7 +90,7 @@ public class ThreadPoolPatternTest {
     @Mock
     private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock
-    private PatternAction<String, Object> action;
+    private PatternCallable<String, Object> action;
     @Captor
     private ArgumentCaptor<CancellableTask<TimeoutableResult, ?>> task1Captor;
     @Captor
