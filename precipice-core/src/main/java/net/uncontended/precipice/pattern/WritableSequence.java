@@ -36,9 +36,7 @@ public class WritableSequence<E> implements Sequence<E>, Iterator<E> {
 
     @Override
     public E next() {
-        int j = index;
-        ++index;
-        return (E) children[j];
+        return (E) children[index++];
     }
 
     @Override
