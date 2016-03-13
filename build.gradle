@@ -152,7 +152,7 @@ project(':precipice-samples') {
     dependencies {
         compile 'io.undertow:undertow-core:1.2.10.Final'
         compile 'com.squareup.okhttp:okhttp:2.4.0'
-        compile 'com.ning:async-http-client:1.9.33'
+        compile 'org.asynchttpclient:async-http-client:2.0.0-RC12'
         compile 'org.apache.kafka:kafka-clients:0.8.2.1'
         
         compile project(':precipice-core')

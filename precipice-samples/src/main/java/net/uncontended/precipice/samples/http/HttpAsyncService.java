@@ -17,17 +17,18 @@
 
 package net.uncontended.precipice.samples.http;
 
-import com.ning.http.client.AsyncCompletionHandler;
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Request;
-import com.ning.http.client.Response;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.factories.Asynchronous;
 import net.uncontended.precipice.rejected.Rejected;
+import org.asynchttpclient.AsyncCompletionHandler;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.RequestBuilder;
+import org.asynchttpclient.Response;
 
+import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 
@@ -35,15 +36,18 @@ public class HttpAsyncService implements Precipice<HTTPStatus, Rejected> {
 
     private final AsyncHttpClient client;
     private final GuardRail<HTTPStatus, Rejected> guardRail;
+    private final String url;
 
-    public HttpAsyncService(GuardRail<HTTPStatus, Rejected> guardRail, AsyncHttpClient client) {
+    public HttpAsyncService(GuardRail<HTTPStatus, Rejected> guardRail, String url, AsyncHttpClient client) {
         this.guardRail = guardRail;
+        this.url = url;
         this.client = client;
     }
 
-    public PrecipiceFuture<HTTPStatus, Response> submit(Request request) {
-        final PrecipicePromise<HTTPStatus, Response> promise = Asynchronous.acquirePermitsAndPromise(guardRail, 1L);
+    public PrecipiceFuture<HTTPStatus, Response> submit(RequestBuilder request) {
+        request.setUrl(url);
 
+        final PrecipicePromise<HTTPStatus, Response> promise = Asynchronous.acquirePermitsAndPromise(guardRail, 1L);
         client.executeRequest(request, new AsyncCompletionHandler<Void>() {
             @Override
             public Void onCompleted(Response response) throws Exception {
@@ -74,11 +78,7 @@ public class HttpAsyncService implements Precipice<HTTPStatus, Rejected> {
     }
 
 
-    public void shutdown() {
-        shutdown(true);
-    }
-
-    public void shutdown(boolean shutdownClient) {
+    public void shutdown(boolean shutdownClient) throws IOException {
         if (shutdownClient) {
             client.close();
         }
