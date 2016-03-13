@@ -17,7 +17,18 @@
 
 package net.uncontended.precipice;
 
+/**
+ * A <code>Precipice</code> is a class that has an associated GuardRail. This interface
+ * should be implemented by classes that combined the usage of a GuardRail with specialized
+ * execution logic. The only method {@link #guardRail()} should return the GuardRail associated
+ * with the implemented class. The {@link CallService} is an example of an implementation.
+ */
 public interface Precipice<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
+    /**
+     * Return the GuardRail associated with this class.
+     *
+     * @return the GuardRail
+     */
     GuardRail<Result, Rejected> guardRail();
 }
