@@ -153,7 +153,11 @@ public class PatternTest {
     }
 
     @Test
-    public void iteratorIsReusedAndThreadLocal() throws Exception {
+    public void threadLocalFactoryMeansIteratorIsReusedAndThreadLocal() throws Exception {
+        List<Precipice<TimeoutableResult, Rejected>> controllables = Arrays.asList(precipice1, precipice2, precipice3);
+
+        pattern = new Pattern<>(controllables, strategy, new ThreadLocalSequenceFactory<Precipice<TimeoutableResult, Rejected>>());
+
         final Integer[] indices = {2, 0, 1};
         Executor executor = Executors.newCachedThreadPool();
 

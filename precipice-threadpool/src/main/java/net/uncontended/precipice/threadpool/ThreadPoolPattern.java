@@ -43,7 +43,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
 
     public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext, GuardRail<TimeoutableResult,
             PatternRejected> guardRail, PatternStrategy strategy) {
-        this(serviceToContext, guardRail, new Pattern<>(serviceToContext.keySet(), strategy));
+        this(serviceToContext, guardRail, new Pattern<>(serviceToContext.keySet(), strategy, sequenceFactory));
     }
 
     public ThreadPoolPattern(Map<ThreadPoolService<?>, C> serviceToContext,

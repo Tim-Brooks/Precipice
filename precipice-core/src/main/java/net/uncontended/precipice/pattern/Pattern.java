@@ -30,19 +30,24 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     private final List<C> pool;
 
     private final PatternStrategy strategy;
-    private ThreadLocal<SingleReaderSequence<C>> local = new ThreadLocal<>();
+    private final SequenceFactory<C> sequenceFactory;
 
     public Pattern(Collection<C> precipices, PatternStrategy strategy) {
+        this(precipices, strategy, new AllocatingSequenceFactory<C>());
+    }
+
+    public Pattern(Collection<C> precipices, PatternStrategy strategy, SequenceFactory<C> sequenceFactory) {
         if (precipices.size() == 0) {
             throw new IllegalArgumentException("Cannot create Pattern with 0 Precipices.");
         } else if (strategy.acquireCount() > precipices.size()) {
             throw new IllegalArgumentException("Attempt count cannot be greater than the number of precipices.");
         }
-        
+
         List<C> pool = new ArrayList<>(precipices.size());
         pool.addAll(precipices);
         this.pool = pool;
         this.strategy = strategy;
+        this.sequenceFactory = sequenceFactory;
     }
 
     public Sequence<C> getPrecipices(long permits, long nanoTime) {
@@ -73,14 +78,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     }
 
     private SingleReaderSequence<C> getPrecipiceSequence() {
-        SingleReaderSequence<C> precipices = local.get();
-
-        if (precipices == null) {
-            precipices = new SingleReaderSequence<>(strategy.acquireCount());
-            local.set(precipices);
-        }
-        precipices.reset();
-
+        SingleReaderSequence<C> precipices = sequenceFactory.getSequence(strategy.acquireCount());
         return precipices;
 
     }
