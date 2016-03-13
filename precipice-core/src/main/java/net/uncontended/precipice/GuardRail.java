@@ -43,10 +43,47 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         this.releaseFunction = new FinishingCallback();
     }
 
+    /**
+     * Acquire a single permit for task execution. If the acquisition is rejected then
+     * a reason will be returned. If the acquisition is successful, null will be returned.
+     *
+     * @return the rejected reason
+     */
+    public Rejected acquirePermit() {
+        return acquirePermit(clock.nanoTime());
+    }
+
+    /**
+     * Acquire a single permit for task execution. If the acquisition is rejected then
+     * a reason will be returned. If the acquisition is successful, null will be returned.
+     *
+     * @param nanoTime current nano time
+     * @return the rejected reason
+     */
+    private Rejected acquirePermit(long nanoTime) {
+        return acquirePermits(1L, nanoTime);
+
+    }
+
+    /**
+     * Acquire permits for task execution. If the acquisition is rejected then a reason
+     * will be returned. If the acquisition is successful, null will be returned.
+     *
+     * @param number of permits to acquire
+     * @return the rejected reason
+     */
     public Rejected acquirePermits(long number) {
         return acquirePermits(number, clock.nanoTime());
     }
 
+    /**
+     * Acquire permits for task execution. If the acquisition is rejected then a reason
+     * will be returned. If the acquisition is successful, null will be returned.
+     *
+     * @param number   of permits to acquire
+     * @param nanoTime current nano time
+     * @return the rejected reason
+     */
     public Rejected acquirePermits(long number, long nanoTime) {
         for (int i = 0; i < backPressureList.size(); ++i) {
             BackPressure<Rejected> bp = backPressureList.get(i);
@@ -62,28 +99,73 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         return null;
     }
 
+    /**
+     * Release acquired permits without result. Since there is not a known result the result
+     * count metrics and latency will not be updated.
+     *
+     * @param number of permits to release
+     */
     public void releasePermitsWithoutResult(long number) {
         releasePermitsWithoutResult(number, clock.nanoTime());
     }
 
+    /**
+     * Release acquired permits without result. Since there is not a known result the result
+     * count metrics and latency will not be updated.
+     *
+     * @param number   of permits to release
+     * @param nanoTime current nano time
+     */
     public void releasePermitsWithoutResult(long number, long nanoTime) {
         for (BackPressure backPressure : backPressureList) {
             backPressure.releasePermit(number, nanoTime);
         }
     }
 
+    /**
+     * Release acquired permits with known result. Since there is a known result the result
+     * count metrics and latency will be updated.
+     *
+     * @param context context of the task execution
+     * @param result  of the execution
+     */
     public void releasePermits(ExecutionContext context, Result result) {
         releasePermits(context.permitCount(), result, context.startNanos(), clock.nanoTime());
     }
 
+    /**
+     * Release acquired permits with known result. Since there is a known result the result
+     * count metrics and latency will be updated.
+     *
+     * @param context  context of the task execution
+     * @param result   of the execution
+     * @param nanoTime current nano time
+     */
     public void releasePermits(ExecutionContext context, Result result, long nanoTime) {
         releasePermits(context.permitCount(), result, context.startNanos(), nanoTime);
     }
 
+    /**
+     * Release acquired permits with known result. Since there is a known result the result
+     * count metrics and latency will be updated.
+     *
+     * @param number     of permits to release
+     * @param result     of the execution
+     * @param startNanos of the execution
+     */
     public void releasePermits(long number, Result result, long startNanos) {
         releasePermits(number, result, startNanos, clock.nanoTime());
     }
 
+    /**
+     * Release acquired permits with known result. Since there is a known result the result
+     * count metrics and latency will be updated.
+     *
+     * @param number     of permits to release
+     * @param result     of the execution
+     * @param startNanos of the execution
+     * @param nanoTime   current nano time
+     */
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
         resultMetrics.incrementMetricCount(result, nanoTime);
         latencyMetrics.recordLatency(result, nanoTime - startNanos, nanoTime);
@@ -92,26 +174,57 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         }
     }
 
+    /**
+     * Return a function that, when called with a result and execution context, will
+     * release acquired permits.
+     *
+     * @return the function
+     */
     public PrecipiceFunction<Result, ExecutionContext> releaseFunction() {
         return releaseFunction;
     }
 
+    /**
+     * Return the name of the GuardRail.
+     *
+     * @return the name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Return the result metrics used by the GuardRail.
+     *
+     * @return the result metrics
+     */
     public CountMetrics<Result> getResultMetrics() {
         return resultMetrics;
     }
 
+    /**
+     * Return the rejected metrics used by the GuardRail.
+     *
+     * @return the rejected metrics
+     */
     public CountMetrics<Rejected> getRejectedMetrics() {
         return rejectedMetrics;
     }
 
+    /**
+     * Return the latency metrics used by the GuardRail.
+     *
+     * @return the latency metrics
+     */
     public LatencyMetrics<Result> getLatencyMetrics() {
         return latencyMetrics;
     }
 
+    /**
+     * Return the clock the GuardRail will refer to for time.
+     *
+     * @return the clock
+     */
     public Clock getClock() {
         return clock;
     }
