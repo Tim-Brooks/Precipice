@@ -19,13 +19,13 @@ package net.uncontended.precipice.pattern;
 
 import java.util.Iterator;
 
-public class SingleReaderSequence<E> implements Sequence<E>, Iterator<E> {
+public class WritableSequence<E> implements Sequence<E>, Iterator<E> {
 
     private final Object[] children;
     private int index = 0;
     private int count = 0;
 
-    public SingleReaderSequence(int size) {
+    public WritableSequence(int size) {
         this.children = new Object[size];
     }
 
@@ -46,6 +46,7 @@ public class SingleReaderSequence<E> implements Sequence<E>, Iterator<E> {
         return this;
     }
 
+    @Override
     public boolean isEmpty() {
         return count == 0;
     }

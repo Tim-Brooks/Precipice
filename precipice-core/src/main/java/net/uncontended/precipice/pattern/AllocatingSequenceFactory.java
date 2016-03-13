@@ -19,7 +19,7 @@ package net.uncontended.precipice.pattern;
 
 public class AllocatingSequenceFactory<C> implements SequenceFactory<C> {
     @Override
-    public SingleReaderSequence<C> getSequence(int size) {
-        return new SingleReaderSequence<>(size);
+    public WritableSequence<C> getSequence(int size) {
+        return new WritableSequence<>(size);
     }
 }

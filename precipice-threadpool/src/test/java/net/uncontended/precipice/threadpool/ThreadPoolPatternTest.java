@@ -22,7 +22,7 @@ import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternAction;
-import net.uncontended.precipice.pattern.SingleReaderSequence;
+import net.uncontended.precipice.pattern.WritableSequence;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.semaphore.PrecipiceSemaphore;
@@ -135,7 +135,7 @@ public class ThreadPoolPatternTest {
 
     @Test
     public void actionsSubmittedToServices() throws Exception {
-        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable(service1, service3);
+        WritableSequence<ThreadPoolService<?>> iterable = prepIterable(service1, service3);
         long millisTimeout = 100L;
 
         when(guardRail.acquirePermits(1L)).thenReturn(null);
@@ -163,7 +163,7 @@ public class ThreadPoolPatternTest {
 
     @Test
     public void ifNoServiceReturnedThenAllRejected() throws Exception {
-        SingleReaderSequence<ThreadPoolService<?>> iterable = prepIterable();
+        WritableSequence<ThreadPoolService<?>> iterable = prepIterable();
         long millisTimeout = 100L;
 
         when(guardRail.acquirePermits(1L, submitTimeNanos)).thenReturn(null);
@@ -184,8 +184,8 @@ public class ThreadPoolPatternTest {
         verifyZeroInteractions(service3);
     }
 
-    private SingleReaderSequence<ThreadPoolService<?>> prepIterable(ThreadPoolService... services) {
-        SingleReaderSequence<ThreadPoolService<?>> iterable = new SingleReaderSequence<>(services.length);
+    private WritableSequence<ThreadPoolService<?>> prepIterable(ThreadPoolService... services) {
+        WritableSequence<ThreadPoolService<?>> iterable = new WritableSequence<>(services.length);
 
         for (ThreadPoolService<?> service : services) {
             iterable.add(service);

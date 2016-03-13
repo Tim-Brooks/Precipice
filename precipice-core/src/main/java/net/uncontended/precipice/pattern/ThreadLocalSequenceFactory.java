@@ -18,15 +18,15 @@ package net.uncontended.precipice.pattern;
 
 public class ThreadLocalSequenceFactory<C> implements SequenceFactory<C> {
 
-    private ThreadLocal<SingleReaderSequence<C>> local = new ThreadLocal<>();
+    private ThreadLocal<WritableSequence<C>> local = new ThreadLocal<>();
 
 
     @Override
-    public SingleReaderSequence<C> getSequence(int size) {
-        SingleReaderSequence<C> precipices = local.get();
+    public WritableSequence<C> getSequence(int size) {
+        WritableSequence<C> precipices = local.get();
 
         if (precipices == null) {
-            precipices = new SingleReaderSequence<>(size);
+            precipices = new WritableSequence<>(size);
             local.set(precipices);
         }
         precipices.reset();

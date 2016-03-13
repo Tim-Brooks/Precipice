@@ -51,7 +51,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     }
 
     public Sequence<C> getPrecipices(long permits, long nanoTime) {
-        SingleReaderSequence<C> precipices = getPrecipiceSequence();
+        WritableSequence<C> precipices = getPrecipiceSequence();
         setupSequence(permits, nanoTime, precipices);
 
         return precipices;
@@ -61,7 +61,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
         return pool;
     }
 
-    private void setupSequence(long permits, long nanoTime, SingleReaderSequence<C> precipices) {
+    private void setupSequence(long permits, long nanoTime, WritableSequence<C> precipices) {
         int acquiredCount = 0;
         for (Integer index : strategy.nextIndices()) {
             C precipice = pool.get(index);
@@ -77,8 +77,8 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
         }
     }
 
-    private SingleReaderSequence<C> getPrecipiceSequence() {
-        SingleReaderSequence<C> precipices = sequenceFactory.getSequence(strategy.acquireCount());
+    private WritableSequence<C> getPrecipiceSequence() {
+        WritableSequence<C> precipices = sequenceFactory.getSequence(strategy.acquireCount());
         return precipices;
 
     }

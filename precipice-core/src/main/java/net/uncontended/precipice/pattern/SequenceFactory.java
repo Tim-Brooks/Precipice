@@ -18,5 +18,5 @@
 package net.uncontended.precipice.pattern;
 
 public interface SequenceFactory<C> {
-    SingleReaderSequence<C> getSequence(int size);
+    WritableSequence<C> getSequence(int size);
 }
