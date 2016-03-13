@@ -19,19 +19,25 @@ package net.uncontended.precipice.timeout;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Unstable and still in development. At this time, {@link TimeoutService} should be used.
+ * Unstable and still in development. At this time, {@link DelayQueueTimeoutService} should be used.
  */
-public class NewTimerService {
+public class TimerWheelService implements TimeoutService {
 
     private final long resolution;
     private final long startTime;
 
-    public NewTimerService(long resolution, TimeUnit unit) {
+    public TimerWheelService(long resolution, TimeUnit unit) {
         this.resolution = unit.toMillis(resolution);
         startTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
     }
 
-    public void schedule(Object task, long delay, TimeUnit unit) {
+    @Override
+    public void scheduleTimeout(Timeout timeout, long timeoutMillis) {
+
+    }
+
+    @Override
+    public void scheduleTimeout(Timeout timeout, long timeoutMillis, long nanoTime) {
 
     }
 }

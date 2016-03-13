@@ -27,7 +27,7 @@ import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.semaphore.PrecipiceSemaphore;
 import net.uncontended.precipice.time.Clock;
-import net.uncontended.precipice.timeout.TimeoutService;
+import net.uncontended.precipice.timeout.DelayQueueTimeoutService;
 import net.uncontended.precipice.timeout.Timeout;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,11 +72,11 @@ public class ThreadPoolPatternTest {
     @Mock
     private ExecutorService executor3;
     @Mock
-    private TimeoutService timeoutService1;
+    private DelayQueueTimeoutService timeoutService1;
     @Mock
-    private TimeoutService timeoutService2;
+    private DelayQueueTimeoutService timeoutService2;
     @Mock
-    private TimeoutService timeoutService3;
+    private DelayQueueTimeoutService timeoutService3;
     @Mock
     private GuardRail<TimeoutableResult, PatternRejected> guardRail;
     @Mock

@@ -35,7 +35,8 @@ String name = "Identity Service";
 GuardRailBuilder builder = new GuardRailBuilder<>();
 builder.name(name);
 builder.resultMetrics(new RollingCountMetrics<>(SimpleResult.class));
-builder.rejectedMetrics(new RollingCountMetrics<>(Unrejectable.class));
+builder.rejectedMetrics(new RollingCountMetrics<>(RejectedReason.class))
+builder.addBackPressure(new LongSemaphore<>(RejectedReason.MAX_CONCURRENCY, 10));
 
 GuardRail guardRail = builder.build();
 ```
@@ -45,7 +46,7 @@ GuardRail guardRail = builder.build();
 The simplest way to employ the GuardRail is by using one of the provided factories for completion contexts. These factories implement the logic for the acquiring and releasing of permits.
 
 ```java
-GuardRail<SimpleResult, Unrejectable> guardRail = builder.build();
+GuardRail<SimpleResult, RejectedReason> guardRail = builder.build();
 CompletionContext<SimpleResult, String> completable = Synchronous.acquirePermitsAndCompletable(guardRail, 1L);
 
 try {
@@ -64,7 +65,7 @@ The CallService is an provides a Precipice implementation that works out of the 
 The CallService will only execute the Callable if a permit is available from the GuardRail, otherwise will throw an RejectedException. CallService implements the Precipice interface, so you can call the guardRail() method to get its GuardRail. With the GuardRail you can interrogate metrics related to callable results, rejections, and latency.
 
 ```java
-CallService<Unrejectable> callService = new CallService<>(guardRail);
+CallService<RejectedReason> callService = new CallService<>(guardRail);
 
 try {
 	Request req = callService.call(() -> client.submitHttpClient());

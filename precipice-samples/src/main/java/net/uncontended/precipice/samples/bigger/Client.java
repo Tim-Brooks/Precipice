@@ -42,7 +42,7 @@ public class Client {
 //            Thread.sleep(20);
 //
 //            try {
-//                PrecipiceFuture<TimeoutableResult, String> f = loadBalancer.submit(new Action(), 20L);
+//                PrecipiceFuture<TimeoutableResult, String> f = loadBalancer.makeRequest(new Action(), 20L);
 //                String result = f.get();
 //                TimeoutableResult status = f.getResult();
 //

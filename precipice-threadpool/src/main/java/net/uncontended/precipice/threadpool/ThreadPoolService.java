@@ -25,14 +25,14 @@ import net.uncontended.precipice.factories.Asynchronous;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
 import net.uncontended.precipice.threadpool.utils.TaskFactory;
-import net.uncontended.precipice.timeout.TimeoutService;
+import net.uncontended.precipice.timeout.DelayQueueTimeoutService;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Precipice<TimeoutableResult, Rejected> {
     private final ExecutorService executorService;
-    private final TimeoutService timeoutService;
+    private final DelayQueueTimeoutService timeoutService;
     private final GuardRail<TimeoutableResult, Rejected> guardRail;
 
     public ThreadPoolService(int poolSize, int queueSize, GuardRail<TimeoutableResult, Rejected> guardRail) {
@@ -42,7 +42,7 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
     public ThreadPoolService(ExecutorService executorService, GuardRail<TimeoutableResult, Rejected> guardRail) {
         this.guardRail = guardRail;
         this.executorService = executorService;
-        timeoutService = TimeoutService.DEFAULT_TIMEOUT_SERVICE;
+        timeoutService = DelayQueueTimeoutService.DEFAULT_TIMEOUT_SERVICE;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
 
     private <T> void internalComplete(Callable<T> callable, PrecipicePromise<TimeoutableResult, T> promise, long millisTimeout) {
         long startNanos = guardRail.getClock().nanoTime();
-        long adjustedTimeout = TimeoutService.adjustTimeout(millisTimeout);
+        long adjustedTimeout = DelayQueueTimeoutService.adjustTimeout(millisTimeout);
         CancellableTask<TimeoutableResult, T> task = TaskFactory.createTask(callable, promise);
         ThreadPoolTimeout<T> timeoutTask = new ThreadPoolTimeout<>(task);
         executorService.execute(task);
@@ -88,7 +88,7 @@ public class ThreadPoolService<Rejected extends Enum<Rejected>> implements Preci
         return executorService;
     }
 
-    public TimeoutService getTimeoutService() {
+    public DelayQueueTimeoutService getTimeoutService() {
         return timeoutService;
     }
 

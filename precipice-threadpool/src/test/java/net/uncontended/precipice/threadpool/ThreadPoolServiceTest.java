@@ -31,7 +31,7 @@ import net.uncontended.precipice.threadpool.utils.PrecipiceExecutors;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 import net.uncontended.precipice.timeout.PrecipiceTimeoutException;
-import net.uncontended.precipice.timeout.TimeoutService;
+import net.uncontended.precipice.timeout.DelayQueueTimeoutService;
 import net.uncontended.precipice.util.Simulation;
 import net.uncontended.precipice.util.SimulationRejected;
 import org.junit.After;
@@ -106,7 +106,7 @@ public class ThreadPoolServiceTest {
     public void callableIsSubmittedAndRan() throws Exception {
         when(guardRail.acquirePermits(eq(1L), anyLong())).thenReturn(null);
 
-        PrecipiceFuture<TimeoutableResult, String> f = service.submit(TestCallable.success(), TimeoutService.MAX_TIMEOUT_MILLIS);
+        PrecipiceFuture<TimeoutableResult, String> f = service.submit(TestCallable.success(), DelayQueueTimeoutService.MAX_TIMEOUT_MILLIS);
 
         assertEquals("Success", f.get());
         assertEquals(TimeoutableResult.SUCCESS, f.getResult());

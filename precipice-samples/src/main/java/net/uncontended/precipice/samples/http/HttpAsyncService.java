@@ -44,7 +44,7 @@ public class HttpAsyncService implements Precipice<HTTPStatus, Rejected> {
         this.client = client;
     }
 
-    public PrecipiceFuture<HTTPStatus, Response> submit(RequestBuilder request) {
+    public PrecipiceFuture<HTTPStatus, Response> makeRequest(RequestBuilder request) {
         request.setUrl(url);
 
         final PrecipicePromise<HTTPStatus, Response> promise = Asynchronous.acquirePermitsAndPromise(guardRail, 1L);

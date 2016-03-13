@@ -50,6 +50,10 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
         this.sequenceFactory = sequenceFactory;
     }
 
+    public Sequence<C> getPrecipices(long permits) {
+        return getPrecipices(permits, System.nanoTime());
+    }
+
     public Sequence<C> getPrecipices(long permits, long nanoTime) {
         WritableSequence<C> precipices = getPrecipiceSequence();
         setupSequence(permits, nanoTime, precipices);
