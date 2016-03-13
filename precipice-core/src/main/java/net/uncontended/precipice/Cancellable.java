@@ -17,7 +17,13 @@
 
 package net.uncontended.precipice;
 
+/**
+ * A context representing the execution of a task that can be cancelled.
+ */
 public interface Cancellable {
 
+    /**
+     * Cancels the execution of this task.
+     */
     void cancel();
 }

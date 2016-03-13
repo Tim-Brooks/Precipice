@@ -45,7 +45,7 @@ public class GuardRailWithFactory {
 
         GuardRail<SimpleResult, Unrejectable> guardRail = builder.build();
 
-        CompletionContext<SimpleResult, String> completable = Synchronous.acquirePermitsAndCompletable(guardRail, 1L);
+        CompletionContext<SimpleResult, String> completable = Synchronous.acquireSinglePermitAndCompletable(guardRail);
 
         try {
             URL url = new URL("http://www.google.com");
@@ -54,6 +54,10 @@ public class GuardRailWithFactory {
         } catch (Exception ex) {
             completable.completeExceptionally(SimpleResult.ERROR, ex);
         }
+
+        completable.getValue();
+        // or
+        completable.getError();
     }
 
     private static String readToString(InputStream inputStream) {

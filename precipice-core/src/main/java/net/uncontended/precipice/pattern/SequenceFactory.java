@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.pattern;
 
+@FunctionalInterface
 public interface SequenceFactory<C> {
     WritableSequence<C> getSequence(int size);
 }
