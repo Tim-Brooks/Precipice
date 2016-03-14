@@ -91,7 +91,7 @@ subprojects {
                 pom.project {
                     name = 'Precipice'
                     packaging = 'jar'
-                    description = 'Precipice provides tools to manage access to and usage of services.'
+                    description = 'Monitoring and back pressure for task execution.'
                     url = 'https://github.com/tbrooks8/Precipice'
 
                     scm {
