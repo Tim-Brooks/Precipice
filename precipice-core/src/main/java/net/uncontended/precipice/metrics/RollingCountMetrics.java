@@ -27,7 +27,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     private final MetricCounter<T> totalCounter;
     private final CountMetrics<T> noOpCounter;
     private final CircularBuffer<CountMetrics<T>> buffer;
-    private final Clock systemTime;
+    private final Clock clock;
     private final Class<T> type;
 
     public RollingCountMetrics(Class<T> type) {
@@ -38,8 +38,8 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock systemTime) {
-        this.systemTime = systemTime;
+    public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock clock) {
+        this.clock = clock;
         long millisecondsPerSlot = slotUnit.toMillis(resolution);
         if (millisecondsPerSlot < 0) {
             throw new IllegalArgumentException(String.format("Too low of resolution. %s milliseconds per slot is the " +
@@ -50,17 +50,17 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
                     "milliseconds is the minimum resolution.", millisecondsPerSlot));
         }
 
-        long startTime = systemTime.nanoTime();
+        long startNanos = clock.nanoTime();
 
         this.type = type;
         totalCounter = new MetricCounter<>(this.type);
         noOpCounter = new NoOpMetricCounter<>(type);
-        buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime);
+        buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
     }
 
     @Override
     public void incrementMetricCount(T metric, long count) {
-        incrementMetricCount(metric, count, systemTime.nanoTime());
+        incrementMetricCount(metric, count, clock.nanoTime());
     }
 
     @Override
@@ -79,7 +79,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
-        return getMetricCountForPeriod(metric, timePeriod, timeUnit, systemTime.nanoTime());
+        return getMetricCountForPeriod(metric, timePeriod, timeUnit, clock.nanoTime());
     }
 
     public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
@@ -93,7 +93,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
-        return metricCounters(timePeriod, timeUnit, systemTime.nanoTime());
+        return metricCounters(timePeriod, timeUnit, clock.nanoTime());
     }
 
     public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
