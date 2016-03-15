@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,25 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.concurrent.util.LongAdder;
+public class NoOpMetricCounter<T extends Enum<T>> implements CountMetrics<T> {
 
-public class MetricCounter<T extends Enum<T>> implements CountMetrics<T> {
-
-    private final LongAdder[] metrics;
     private final Class<T> clazz;
 
-    public MetricCounter(Class<T> clazz) {
+    public NoOpMetricCounter(Class<T> clazz) {
         this.clazz = clazz;
-        T[] metricValues = clazz.getEnumConstants();
-
-        metrics = new LongAdder[metricValues.length];
-        for (T metric : metricValues) {
-            metrics[metric.ordinal()] = new LongAdder();
-        }
     }
-
+    
     @Override
     public void incrementMetricCount(T metric, long count) {
-        metrics[metric.ordinal()].increment();
     }
 
     @Override
     public void incrementMetricCount(T metric, long count, long nanoTime) {
-        metrics[metric.ordinal()].increment();
     }
 
     @Override
     public long getMetricCount(T metric) {
-        return metrics[metric.ordinal()].longValue();
+        return 0;
     }
 
     @Override
