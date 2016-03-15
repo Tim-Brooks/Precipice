@@ -44,6 +44,10 @@ public class MetricCounter<T extends Enum<T>> implements CountMetrics<T> {
         metrics[metric.ordinal()].increment();
     }
 
+    public void increaseMetricCount(T metric, long count, long nanoTime) {
+        metrics[metric.ordinal()].add(count);
+    }
+
     @Override
     public long getMetricCount(T metric) {
         return metrics[metric.ordinal()].longValue();
