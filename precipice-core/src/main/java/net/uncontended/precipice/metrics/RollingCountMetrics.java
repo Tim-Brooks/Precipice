@@ -26,7 +26,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
 
     private final MetricCounter<T> totalCounter;
     private final MetricCounter<T> noOpCounter;
-    private final CircularBuffer<MetricCounter<T>> buffer;
+    private final CircularBuffer<CountMetrics<T>> buffer;
     private final Clock systemTime;
     private final Class<T> type;
 
@@ -59,18 +59,18 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     @Override
-    public void incrementMetricCount(T metric) {
-        incrementMetricCount(metric, systemTime.nanoTime());
+    public void incrementMetricCount(T metric, long count) {
+        incrementMetricCount(metric, count, systemTime.nanoTime());
     }
 
     @Override
-    public void incrementMetricCount(T metric, long nanoTime) {
-        totalCounter.incrementMetricCount(metric);
-        MetricCounter<T> currentMetricCounter = buffer.getSlot(nanoTime);
+    public void incrementMetricCount(T metric, long count, long nanoTime) {
+        totalCounter.incrementMetricCount(metric, count);
+        CountMetrics<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
             currentMetricCounter = buffer.putOrGet(nanoTime, MetricCounter.newCounter(type));
         }
-        currentMetricCounter.incrementMetricCount(metric);
+        currentMetricCounter.incrementMetricCount(metric, count);
     }
 
     @Override
@@ -83,20 +83,20 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+        Iterable<CountMetrics<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
-        for (MetricCounter<T> metricCounter : slots) {
+        for (CountMetrics<T> metricCounter : slots) {
             count += metricCounter.getMetricCount(metric);
         }
         return count;
     }
 
-    public Iterable<MetricCounter<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
+    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
         return metricCounters(timePeriod, timeUnit, systemTime.nanoTime());
     }
 
-    public Iterable<MetricCounter<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }
 

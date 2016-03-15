@@ -87,7 +87,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
 
     private <T> PrecipiceFuture<TimeoutableResult, T> handleAllReject(long nanoTime) {
         guardRail.releasePermitsWithoutResult(1L, nanoTime);
-        guardRail.getRejectedMetrics().incrementMetricCount(PatternRejected.ALL_REJECTED, nanoTime);
+        guardRail.getRejectedMetrics().incrementMetricCount(PatternRejected.ALL_REJECTED, 1L, nanoTime);
         throw new RejectedException(PatternRejected.ALL_REJECTED);
     }
 

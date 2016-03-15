@@ -125,7 +125,7 @@ public class GuardRailTest {
 
         guardRail.releasePermits(2L, result, 10L, 100L);
 
-        verify(resultMetrics).incrementMetricCount(result, 100L);
+        verify(resultMetrics).incrementMetricCount(result, 1L, 100L);
         verify(latencyMetrics).recordLatency(result, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
@@ -142,7 +142,7 @@ public class GuardRailTest {
 
         guardRail.releasePermits(context, result, 100L);
 
-        verify(resultMetrics).incrementMetricCount(result, 100L);
+        verify(resultMetrics).incrementMetricCount(result, 1L, 100L);
         verify(latencyMetrics).recordLatency(result, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
@@ -162,7 +162,7 @@ public class GuardRailTest {
         TestResult result = TestResult.ERROR;
         fn.apply(result, context);
 
-        verify(resultMetrics).incrementMetricCount(result, 110L);
+        verify(resultMetrics).incrementMetricCount(result, 1L, 110L);
         verify(latencyMetrics).recordLatency(result, 100L, 110L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);

@@ -35,12 +35,12 @@ public class MetricCounter<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     @Override
-    public void incrementMetricCount(T metric) {
+    public void incrementMetricCount(T metric, long count) {
         metrics[metric.ordinal()].increment();
     }
 
     @Override
-    public void incrementMetricCount(T metric, long nanoTime) {
+    public void incrementMetricCount(T metric, long count, long nanoTime) {
         metrics[metric.ordinal()].increment();
     }
 
@@ -62,11 +62,11 @@ public class MetricCounter<T extends Enum<T>> implements CountMetrics<T> {
         return new MetricCounter<T>(clazz) {
 
             @Override
-            public void incrementMetricCount(T metric) {
+            public void incrementMetricCount(T metric, long count) {
             }
 
             @Override
-            public void incrementMetricCount(T metric, long nanoTime) {
+            public void incrementMetricCount(T metric, long count, long nanoTime) {
             }
 
             @Override

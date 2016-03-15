@@ -67,7 +67,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
             BackPressure<Rejected> bp = backPressureList.get(i);
             Rejected rejected = bp.acquirePermit(number, nanoTime);
             if (rejected != null) {
-                rejectedMetrics.incrementMetricCount(rejected, nanoTime);
+                rejectedMetrics.incrementMetricCount(rejected, 1L, nanoTime);
                 for (int j = 0; j < i; ++j) {
                     backPressureList.get(j).releasePermit(number, nanoTime);
                 }
@@ -145,7 +145,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      * @param nanoTime   current nano time
      */
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
-        resultMetrics.incrementMetricCount(result, nanoTime);
+        resultMetrics.incrementMetricCount(result, 1L, nanoTime);
         latencyMetrics.recordLatency(result, nanoTime - startNanos, nanoTime);
         for (BackPressure backPressure : backPressureList) {
             backPressure.releasePermit(number, result, nanoTime);

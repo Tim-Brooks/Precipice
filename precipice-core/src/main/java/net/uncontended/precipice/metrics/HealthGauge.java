@@ -61,9 +61,9 @@ public class HealthGauge {
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
             total = 0;
             failures = 0;
-            Iterable<MetricCounter<Result>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
+            Iterable<CountMetrics<Result>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
 
-            for (MetricCounter<Result> metricCounter : counters) {
+            for (CountMetrics<Result> metricCounter : counters) {
                 for (Result result : type.getEnumConstants()) {
                     long metricCount = metricCounter.getMetricCount(result);
                     total += metricCount;
