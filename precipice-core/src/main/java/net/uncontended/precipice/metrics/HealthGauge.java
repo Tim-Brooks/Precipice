@@ -65,7 +65,7 @@ public class HealthGauge {
 
             for (CountMetrics<Result> metricCounter : counters) {
                 for (Result result : type.getEnumConstants()) {
-                    long metricCount = metricCounter.getMetricCount(result);
+                    long metricCount = metricCounter.getCount(result);
                     total += metricCount;
 
                     if (result.isFailure()) {

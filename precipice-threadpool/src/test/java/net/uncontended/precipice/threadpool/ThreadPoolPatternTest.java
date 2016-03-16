@@ -177,7 +177,7 @@ public class ThreadPoolPatternTest {
         }
 
         verify(guardRail).releasePermitsWithoutResult(1, submitTimeNanos);
-        verify(rejectedMetrics).incrementMetricCount(PatternRejected.ALL_REJECTED, 1L, submitTimeNanos);
+        verify(rejectedMetrics).add(PatternRejected.ALL_REJECTED, 1L, submitTimeNanos);
 
         verifyZeroInteractions(service1);
         verifyZeroInteractions(service2);

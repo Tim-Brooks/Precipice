@@ -57,14 +57,14 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
             int metricIndex = t.ordinal();
             metricCounts[metricIndex] = 0;
-            totalMetricCounts[metricIndex] = resultMetrics.getMetricCount(t);
+            totalMetricCounts[metricIndex] = resultMetrics.getCount(t);
         }
 
         if (resultMetrics instanceof RollingCountMetrics) {
             RollingCountMetrics<Result> rollingMetrics = (RollingCountMetrics<Result>) resultMetrics;
             for (CountMetrics<Result> m : rollingMetrics.metricCounters(period, unit)) {
                 for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
-                    metricCounts[t.ordinal()] += m.getMetricCount(t);
+                    metricCounts[t.ordinal()] += m.getCount(t);
                 }
             }
         }

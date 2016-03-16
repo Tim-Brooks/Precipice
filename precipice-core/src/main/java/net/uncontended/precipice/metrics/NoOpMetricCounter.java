@@ -26,15 +26,15 @@ public class NoOpMetricCounter<T extends Enum<T>> implements CountMetrics<T> {
     }
     
     @Override
-    public void incrementMetricCount(T metric, long count) {
+    public void add(T metric, long delta) {
     }
 
     @Override
-    public void incrementMetricCount(T metric, long count, long nanoTime) {
+    public void add(T metric, long delta, long nanoTime) {
     }
 
     @Override
-    public long getMetricCount(T metric) {
+    public long getCount(T metric) {
         return 0;
     }
 

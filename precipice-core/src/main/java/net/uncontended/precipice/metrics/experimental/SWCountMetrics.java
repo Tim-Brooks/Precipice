@@ -60,12 +60,12 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //    }
 //
 //    @Override
-//    public void incrementMetricCount(T metric) {
-//        incrementMetricCount(metric, -1);
+//    public void add(T metric) {
+//        add(metric, -1);
 //    }
 //
 //    @Override
-//    public void incrementMetricCount(T metric, long nanoTime) {
+//    public void add(T metric, long nanoTime) {
 //        totalCounter.incrementMetric(metric);
 //        MetricCounter<T> currentMetricCounter = buffer.getSlot();
 //        currentMetricCounter.incrementMetric(metric);
@@ -95,7 +95,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        Iterable<MetricCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //
 //        long count = 0;
 //        for (MetricCounter<T> metricCounter : slots) {
@@ -116,7 +116,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<MetricCounter<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        Iterable<MetricCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //
 //        long count = 0;
 //        for (MetricCounter<T> metricCounter : slots) {
@@ -132,7 +132,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<MetricCounter<T>> counters = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
+//        Iterable<MetricCounter<T>> counters = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
 //                noOpCounter);
 //
 //        long total = 0;
@@ -166,7 +166,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        return buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //    }
 //
 //    @Override

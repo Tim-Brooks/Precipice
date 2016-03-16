@@ -59,23 +59,25 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     @Override
-    public void incrementMetricCount(T metric, long count) {
-        incrementMetricCount(metric, count, clock.nanoTime());
+    public void add(T metric, long delta) {
+        add(metric, delta, clock.nanoTime());
     }
 
     @Override
-    public void incrementMetricCount(T metric, long count, long nanoTime) {
-        totalCounter.incrementMetricCount(metric, count);
+    public void add(T metric, long delta, long nanoTime) {
+        totalCounter.add(metric, delta);
         CountMetrics<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
             currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
         }
-        currentMetricCounter.incrementMetricCount(metric, count);
+        if (currentMetricCounter != null) {
+            currentMetricCounter.add(metric, delta);
+        }
     }
 
     @Override
-    public long getMetricCount(T metric) {
-        return totalCounter.getMetricCount(metric);
+    public long getCount(T metric) {
+        return totalCounter.getCount(metric);
     }
 
     public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
@@ -83,11 +85,11 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<CountMetrics<T>> slots = buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+        Iterable<CountMetrics<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
         for (CountMetrics<T> metricCounter : slots) {
-            count += metricCounter.getMetricCount(metric);
+            count += metricCounter.getCount(metric);
         }
         return count;
     }
@@ -97,7 +99,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return buffer.collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+        return buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }
 
     @Override

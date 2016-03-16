@@ -27,29 +27,30 @@ public class CircularBuffer<T> {
     private final AtomicReferenceArray<Slot<T>> buffer;
     private final int mask;
     private final int totalSlots;
-    private final int millisecondsPerSlot;
-    private final long startTime;
+    private final long nanosPerSlot;
+    private final long startNanos;
 
     public CircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit) {
         this(slotsToTrack, resolution, slotUnit, System.nanoTime());
     }
 
-    public CircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit, long startTime) {
-        long millisecondsPerSlot = slotUnit.toMillis(resolution);
-
-        this.millisecondsPerSlot = (int) millisecondsPerSlot;
-        this.startTime = currentMillisTime(startTime);
+    public CircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit, long startNanos) {
+        this.nanosPerSlot = slotUnit.toNanos(resolution);
+        this.startNanos = startNanos;
         this.totalSlots = slotsToTrack;
 
         int arraySlot = nextPositivePowerOfTwo(slotsToTrack);
         this.mask = arraySlot - 1;
         this.buffer = new AtomicReferenceArray<>(arraySlot);
+
+        for (int i = 0; i < arraySlot; ++i) {
+            this.buffer.set(i, new Slot<T>(-1, null));
+        }
     }
 
     public T getSlot(long nanoTime) {
-        long currentTime = currentMillisTime(nanoTime);
-        long absoluteSlot = currentAbsoluteSlot(currentTime);
-        int relativeSlot = (int) absoluteSlot & mask;
+        long absoluteSlot = currentAbsoluteSlot(nanoTime);
+        int relativeSlot = toRelative(absoluteSlot);
         Slot<T> slot = buffer.get(relativeSlot);
 
         if (slot != null && slot.absoluteSlot == absoluteSlot) {
@@ -60,15 +61,15 @@ public class CircularBuffer<T> {
     }
 
     public T putOrGet(long nanoTime, T object) {
-        long currentTime = currentMillisTime(nanoTime);
-        long absoluteSlot = currentAbsoluteSlot(currentTime);
-        int relativeSlot = (int) absoluteSlot & mask;
+        long absoluteSlot = currentAbsoluteSlot(nanoTime);
+        int relativeSlot = toRelative(absoluteSlot);
 
         for (; ; ) {
             Slot<T> slot = buffer.get(relativeSlot);
-            // TODO: Ensure this handles backwards in time.
-            if (slot != null && slot.absoluteSlot >= absoluteSlot) {
+            if (slot.absoluteSlot == absoluteSlot) {
                 return slot.object;
+            } else if (slot.absoluteSlot > absoluteSlot) {
+                return null;
             } else {
                 Slot<T> newSlot = new Slot<>(absoluteSlot, object);
                 if (buffer.compareAndSet(relativeSlot, slot, newSlot)) {
@@ -78,21 +79,24 @@ public class CircularBuffer<T> {
         }
     }
 
-    public Iterable<T> collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return collectActiveSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
+    public Iterable<T> activeSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
     }
 
-    public Iterable<T> collectActiveSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
-        int slots = convertToSlots(timePeriod, timeUnit);
-        long currentTime = currentMillisTime(nanoTime);
-        long absoluteSlot = currentAbsoluteSlot(currentTime);
+    public Iterable<T> activeSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+        long slots = convertToSlots(timePeriod, timeUnit);
+        long absoluteSlot = currentAbsoluteSlot(nanoTime);
         long startSlot = 1 + absoluteSlot - slots;
         long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
         return new SlotView(adjustedStartSlot, absoluteSlot, dead);
     }
 
-    private int convertToSlots(long timePeriod, TimeUnit timeUnit) {
-        long longSlots = timeUnit.toMillis(timePeriod) / millisecondsPerSlot;
+    private int toRelative(long absoluteSlot) {
+        return (int) (absoluteSlot & mask);
+    }
+
+    private long convertToSlots(long timePeriod, TimeUnit timeUnit) {
+        long longSlots = timeUnit.toNanos(timePeriod) / nanosPerSlot;
 
         if (longSlots > totalSlots) {
             String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]",
@@ -103,15 +107,11 @@ public class CircularBuffer<T> {
             String message = String.format("Slots must be greater than 0. [Argument: %s]", longSlots);
             throw new IllegalArgumentException(message);
         }
-        return (int) longSlots;
+        return longSlots;
     }
 
-    private long currentAbsoluteSlot(long currentTime) {
-        return (currentTime - startTime) / millisecondsPerSlot;
-    }
-
-    private static long currentMillisTime(long nanoTime) {
-        return TimeUnit.NANOSECONDS.toMillis(nanoTime);
+    private long currentAbsoluteSlot(long nanoTime) {
+        return (nanoTime - startNanos) / nanosPerSlot;
     }
 
     private static int nextPositivePowerOfTwo(int slotsToTrack) {
@@ -153,10 +153,10 @@ public class CircularBuffer<T> {
                     if (!hasNext()) {
                         throw new NoSuchElementException();
                     }
-                    long currentIndex = index++;
-                    int relativeSlot = (int) currentIndex & mask;
+                    long absoluteSlot = index++;
+                    int relativeSlot = toRelative(absoluteSlot);
                     Slot<T> slot = buffer.get(relativeSlot);
-                    if (slot != null && slot.absoluteSlot == currentIndex) {
+                    if (slot.absoluteSlot == absoluteSlot && slot.object != null) {
                         return slot.object;
                     } else {
                         return dead;

@@ -51,22 +51,27 @@ public class Simulation<R extends Enum<R> & Failable> {
         int executions = random.nextInt(500) + 500;
         for (int i = 0; i < executions; ++i) {
             int j = random.nextInt(resultTypeCount);
-            if (random.nextInt(4) == 3) {
-                ++rejectedCounts;
+            boolean shouldReject = random.nextInt(4) == 3;
+            if (shouldReject) {
                 gauge.allowNext = false;
-            } else {
-                ++resultCounts[j];
             }
 
             long concurrencyLevel = gauge.currentConcurrencyLevel();
             assert concurrencyLevel == 0 : String.format("Expected concurrency of 0; Actual: %s", concurrencyLevel);
 
+            long permitNumber;
             try {
-                long permitNumber = resultToCallable.get(resultTypes.get(j)).call();
+                permitNumber = resultToCallable.get(resultTypes.get(j)).call();
                 assert permitNumber == gauge.last : String.format("Expected permit number of %s; Actual: %s",
                         permitNumber, gauge.last);
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            }
+
+            if (shouldReject) {
+                rejectedCounts = rejectedCounts + permitNumber;
+            } else {
+                resultCounts[j] = resultCounts[j] + permitNumber;
             }
 
             concurrencyLevel = gauge.currentConcurrencyLevel();
@@ -91,7 +96,7 @@ public class Simulation<R extends Enum<R> & Failable> {
     }
 
     private void assertRejectedMetrics(CountMetrics<SimulationRejected> rejectedMetrics, long rejectedCounts) {
-        long actualCount = rejectedMetrics.getMetricCount(SimulationRejected.SIMULATION_REJECTION);
+        long actualCount = rejectedMetrics.getCount(SimulationRejected.SIMULATION_REJECTION);
         String message = String.format("Expected: %s rejected counts to be returned for %s. Actual: %s.",
                 rejectedCounts, SimulationRejected.SIMULATION_REJECTION, actualCount);
 
@@ -102,7 +107,7 @@ public class Simulation<R extends Enum<R> & Failable> {
         for (int i = 0; i < types.size(); ++i) {
 
             T type = types.get(i);
-            long actualCount = metrics.getMetricCount(type);
+            long actualCount = metrics.getCount(type);
             long expectedCount = counts[i];
             String message = String.format("Expected: %s result counts to be returned for %s. Actual: %s.",
                     expectedCount, type, actualCount);

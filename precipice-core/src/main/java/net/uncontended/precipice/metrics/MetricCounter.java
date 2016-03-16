@@ -35,21 +35,17 @@ public class MetricCounter<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     @Override
-    public void incrementMetricCount(T metric, long count) {
-        metrics[metric.ordinal()].increment();
+    public void add(T metric, long delta) {
+        metrics[metric.ordinal()].add(delta);
     }
 
     @Override
-    public void incrementMetricCount(T metric, long count, long nanoTime) {
-        metrics[metric.ordinal()].increment();
-    }
-
-    public void increaseMetricCount(T metric, long count, long nanoTime) {
-        metrics[metric.ordinal()].add(count);
+    public void add(T metric, long delta, long nanoTime) {
+        metrics[metric.ordinal()].add(delta);
     }
 
     @Override
-    public long getMetricCount(T metric) {
+    public long getCount(T metric) {
         return metrics[metric.ordinal()].longValue();
     }
 
