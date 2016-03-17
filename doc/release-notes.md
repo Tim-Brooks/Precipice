@@ -31,3 +31,10 @@ constructor.
 
 ### Latency Metrics
 - Make latency metrics capture intervals.
+
+## 0.6.2
+
+### Latency and Count Metrics
+- The GuardRail will now pass the permit count to the metrics.
+- A number of naming conventions have been changes with regard to metrics.
+- There are now some metric classes that increment and others that add the total permit count.

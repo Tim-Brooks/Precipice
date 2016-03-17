@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
 
-    private final MetricCounter<T> totalCounter;
+    private final AddCounter<T> totalCounter;
     private final CountMetrics<T> noOpCounter;
     private final CircularBuffer<CountMetrics<T>> buffer;
     private final Clock clock;
@@ -53,8 +53,8 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         long startNanos = clock.nanoTime();
 
         this.type = type;
-        totalCounter = new MetricCounter<>(this.type);
-        noOpCounter = new NoOpMetricCounter<>(type);
+        totalCounter = new AddCounter<>(this.type);
+        noOpCounter = new NoOpCounter<>(type);
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
     }
 
@@ -68,7 +68,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         totalCounter.add(metric, delta);
         CountMetrics<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
-            currentMetricCounter = buffer.putOrGet(nanoTime, new MetricCounter<>(type));
+            currentMetricCounter = buffer.putOrGet(nanoTime, new AddCounter<>(type));
         }
         if (currentMetricCounter != null) {
             currentMetricCounter.add(metric, delta);

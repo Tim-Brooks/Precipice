@@ -22,11 +22,11 @@ import net.uncontended.precipice.Failable;
 public class NoOpLatencyMetrics<T extends Enum<T> & Failable> implements LatencyMetrics<T> {
 
     @Override
-    public void recordLatency(T metric, long nanoLatency) {
+    public void recordLatency(T metric, long number, long nanoLatency) {
     }
 
     @Override
-    public void recordLatency(T metric, long nanoLatency, long nanoTime) {
+    public void recordLatency(T metric, long number, long nanoLatency, long nanoTime) {
     }
 
     @Override

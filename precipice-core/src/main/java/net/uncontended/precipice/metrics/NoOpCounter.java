@@ -17,11 +17,11 @@
 
 package net.uncontended.precipice.metrics;
 
-public class NoOpMetricCounter<T extends Enum<T>> implements CountMetrics<T> {
+public class NoOpCounter<T extends Enum<T>> implements CountMetrics<T> {
 
     private final Class<T> clazz;
 
-    public NoOpMetricCounter(Class<T> clazz) {
+    public NoOpCounter(Class<T> clazz) {
         this.clazz = clazz;
     }
     

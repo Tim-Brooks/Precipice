@@ -23,9 +23,9 @@ public interface LatencyMetrics<T extends Enum<T> & Failable> {
 
     LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 
-    void recordLatency(T result, long nanoLatency);
+    void recordLatency(T result, long number, long nanoLatency);
 
-    void recordLatency(T result, long nanoLatency, long nanoTime);
+    void recordLatency(T result, long number, long nanoLatency, long nanoTime);
 
     LatencySnapshot latencySnapshot();
 

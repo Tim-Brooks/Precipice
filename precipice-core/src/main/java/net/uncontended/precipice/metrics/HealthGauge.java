@@ -63,6 +63,7 @@ public class HealthGauge {
             failures = 0;
             Iterable<CountMetrics<Result>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
 
+            // TODO: explore what implications this has for metric permit changes
             for (CountMetrics<Result> metricCounter : counters) {
                 for (Result result : type.getEnumConstants()) {
                     long metricCount = metricCounter.getCount(result);

@@ -43,12 +43,12 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
     }
 
     @Override
-    public void recordLatency(T result, long nanoLatency) {
-        recordLatency(result, nanoLatency, System.nanoTime());
+    public void recordLatency(T result, long number, long nanoLatency) {
+        recordLatency(result, number, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(T result, long nanoLatency, long nanoTime) {
+    public void recordLatency(T result, long number, long nanoLatency, long nanoTime) {
         LatencyBucket bucket = getLatencyBucket(result);
         bucket.record(nanoLatency);
     }

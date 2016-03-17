@@ -26,9 +26,9 @@ import net.uncontended.precipice.metrics.RollingCountMetrics;
  */
 public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundTask {
 
-//    private final MetricCounter<T> totalCounter;
-//    private final MetricCounter<T> noOpCounter;
-//    private final SWCircularBuffer<MetricCounter<T>> buffer;
+//    private final AddCounter<T> totalCounter;
+//    private final AddCounter<T> noOpCounter;
+//    private final SWCircularBuffer<AddCounter<T>> buffer;
 //    private final Clock systemTime;
 //    private final Class<T> type;
 
@@ -54,9 +54,9 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //        long startTime = systemTime.nanoTime();
 //        this.type = type;
-//        totalCounter = new MetricCounter<>(this.type);
-//        noOpCounter = MetricCounter.noOpCounter(type);
-//        buffer = new SWCircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime, new MetricCounter<>(type));
+//        totalCounter = new AddCounter<>(this.type);
+//        noOpCounter = AddCounter.noOpCounter(type);
+//        buffer = new SWCircularBuffer<>(slotsToTrack, resolution, slotUnit, startTime, new AddCounter<>(type));
 //    }
 //
 //    @Override
@@ -67,7 +67,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //    @Override
 //    public void add(T metric, long nanoTime) {
 //        totalCounter.incrementMetric(metric);
-//        MetricCounter<T> currentMetricCounter = buffer.getSlot();
+//        AddCounter<T> currentMetricCounter = buffer.getSlot();
 //        currentMetricCounter.incrementMetric(metric);
 //    }
 //
@@ -79,7 +79,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //    @Override
 //    public void incrementRejectionCount(Rejected reason, long nanoTime) {
 //        totalCounter.incrementRejection(reason);
-//        MetricCounter<T> currentMetricCounter = buffer.getSlot();
+//        AddCounter<T> currentMetricCounter = buffer.getSlot();
 //        currentMetricCounter.incrementRejection(reason);
 //    }
 //
@@ -95,10 +95,10 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<MetricCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        Iterable<AddCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //
 //        long count = 0;
-//        for (MetricCounter<T> metricCounter : slots) {
+//        for (AddCounter<T> metricCounter : slots) {
 //            count += metricCounter.getMetricCountForPeriod(metric);
 //        }
 //        return count;
@@ -116,10 +116,10 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<MetricCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        Iterable<AddCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //
 //        long count = 0;
-//        for (MetricCounter<T> metricCounter : slots) {
+//        for (AddCounter<T> metricCounter : slots) {
 //            count += metricCounter.getRejectionCount(reason);
 //        }
 //        return count;
@@ -132,14 +132,14 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<MetricCounter<T>> counters = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
+//        Iterable<AddCounter<T>> counters = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
 //                noOpCounter);
 //
 //        long total = 0;
 //        long notRejectedTotal = 0;
 //        long failures = 0;
 //        long rejections = 0;
-//        for (MetricCounter<T> metricCounter : counters) {
+//        for (AddCounter<T> metricCounter : counters) {
 //            for (T t : type.getEnumConstants()) {
 //                long metricCount = metricCounter.getMetricCountForPeriod(t);
 //                total += metricCount;
@@ -160,17 +160,17 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //    }
 //
 //    @Override
-//    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
+//    public Iterable<AddCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit) {
 //        return metricCounterIterable(timePeriod, timeUnit, systemTime.nanoTime());
 //    }
 //
 //    @Override
-//    public Iterable<MetricCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+//    public Iterable<AddCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
 //        return buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //    }
 //
 //    @Override
-//    public MetricCounter<T> totalCountMetricCounter() {
+//    public AddCounter<T> totalCountMetricCounter() {
 //        return totalCounter;
 //    }
 //
@@ -181,6 +181,6 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 
     @Override
     public void tick(long nanoTime) {
-//        buffer.put(nanoTime, new MetricCounter<T>(type));
+//        buffer.put(nanoTime, new AddCounter<T>(type));
     }
 }

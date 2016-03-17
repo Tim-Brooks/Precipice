@@ -40,7 +40,7 @@ public class IntervalLatencyMetricsTest {
         ThreadLocalRandom current = ThreadLocalRandom.current();
         for (int i = 1; i <= 100000; ++i) {
             int n = current.nextInt(2);
-            metrics.recordLatency(metricArray[n], i);
+            metrics.recordLatency(metricArray[n], 1L, i);
         }
 
         LatencySnapshot snapshot = metrics.latencySnapshot();
@@ -58,10 +58,10 @@ public class IntervalLatencyMetricsTest {
     @Test
     public void latencyIsPartitionedByMetric() {
         for (int i = 1; i <= 100000; ++i) {
-            metrics.recordLatency(TestResult.SUCCESS, i);
+            metrics.recordLatency(TestResult.SUCCESS, 1L, i);
         }
         for (int i = 100001; i <= 200000; ++i) {
-            metrics.recordLatency(TestResult.ERROR, i);
+            metrics.recordLatency(TestResult.ERROR, 1L, i);
         }
 
         LatencySnapshot successSnapshot = metrics.latencySnapshot(TestResult.SUCCESS);
@@ -98,10 +98,10 @@ public class IntervalLatencyMetricsTest {
     @Test
     public void intervalLatencyIsPartitionedByMetric() {
         for (int i = 1; i <= 100000; ++i) {
-            metrics.recordLatency(TestResult.SUCCESS, i);
+            metrics.recordLatency(TestResult.SUCCESS, 1L, i);
         }
         for (int i = 100001; i <= 200000; ++i) {
-            metrics.recordLatency(TestResult.ERROR, i);
+            metrics.recordLatency(TestResult.ERROR, 1L, i);
         }
 
         LatencySnapshot successSnapshot = metrics.intervalSnapshot(TestResult.SUCCESS);
@@ -131,16 +131,16 @@ public class IntervalLatencyMetricsTest {
         for (TestResult m : metricArray) {
 
             for (int i = 1; i <= 100000; ++i) {
-                metrics.recordLatency(m, i);
+                metrics.recordLatency(m, 1L, i);
             }
             LatencySnapshot successSnapshot = metrics.intervalSnapshot(m);
             for (int i = 100001; i <= 200000; ++i) {
-                metrics.recordLatency(m, i);
+                metrics.recordLatency(m, 1L, i);
             }
             LatencySnapshot successSnapshot2 = metrics.intervalSnapshot(m);
 
             for (int i = 200001; i <= 300000; ++i) {
-                metrics.recordLatency(m, i);
+                metrics.recordLatency(m, 1L, i);
             }
             LatencySnapshot successSnapshot3 = metrics.intervalSnapshot(m);
 

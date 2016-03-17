@@ -146,7 +146,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      */
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
         resultMetrics.add(result, number, nanoTime);
-        latencyMetrics.recordLatency(result, nanoTime - startNanos, nanoTime);
+        latencyMetrics.recordLatency(result, number, nanoTime - startNanos, nanoTime);
         for (BackPressure backPressure : backPressureList) {
             backPressure.releasePermit(number, result, nanoTime);
         }

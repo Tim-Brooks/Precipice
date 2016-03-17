@@ -55,12 +55,12 @@ public class RollingLatencyMetrics<T extends Enum<T> & Failable> implements Late
     }
 
     @Override
-    public void recordLatency(T metric, long nanoLatency) {
-        recordLatency(metric, nanoLatency, System.nanoTime());
+    public void recordLatency(T metric, long number, long nanoLatency) {
+        recordLatency(metric, number, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(T metric, long nanoLatency, long nanoTime) {
+    public void recordLatency(T metric, long number, long nanoLatency, long nanoTime) {
         if (nanoLatency != -1) {
             LatencyBucket bucket = getLatencyBucket(metric);
             bucket.record(nanoLatency, nanoTime);
