@@ -48,9 +48,9 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
     }
 
     @Override
-    public void recordLatency(T result, long number, long nanoLatency, long nanoTime) {
+    public void recordLatency(T result, long count, long nanoLatency, long nanoTime) {
         LatencyBucket bucket = getLatencyBucket(result);
-        bucket.record(nanoLatency);
+        bucket.record(nanoLatency, count);
     }
 
     @Override
@@ -130,9 +130,9 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
             inactive = recorder.getIntervalHistogram();
         }
 
-        private void record(long nanoLatency) {
-            recorder.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
-            histogram.recordValue(Math.min(nanoLatency, histogram.getHighestTrackableValue()));
+        private void record(long nanoLatency, long count) {
+            recorder.recordValueWithCount(Math.min(nanoLatency, histogram.getHighestTrackableValue()), count);
+            histogram.recordValueWithCount(Math.min(nanoLatency, histogram.getHighestTrackableValue()), count);
         }
 
         private Histogram getIntervalHistogram() {
