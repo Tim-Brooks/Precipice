@@ -43,6 +43,9 @@ public class IntervalLatencyMetricsTest {
             metrics.recordLatency(metricArray[n], 1L, i);
         }
 
+        // TODO: For side effects
+        metrics.intervalSnapshot(TestResult.SUCCESS);
+        metrics.intervalSnapshot(TestResult.ERROR);
         LatencySnapshot snapshot = metrics.latencySnapshot();
 
         assertEquals(100, snapshot.latencyMax / 1000);
@@ -63,6 +66,10 @@ public class IntervalLatencyMetricsTest {
         for (int i = 100001; i <= 200000; ++i) {
             metrics.recordLatency(TestResult.ERROR, 1L, i);
         }
+
+        // TODO: For side effects
+        metrics.intervalSnapshot(TestResult.SUCCESS);
+        metrics.intervalSnapshot(TestResult.ERROR);
 
         LatencySnapshot successSnapshot = metrics.latencySnapshot(TestResult.SUCCESS);
         assertEquals(100, successSnapshot.latencyMax / 1000);

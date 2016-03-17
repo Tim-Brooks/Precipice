@@ -54,14 +54,14 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
     }
 
     @Override
-    public LatencySnapshot latencySnapshot(T result) {
+    public synchronized LatencySnapshot latencySnapshot(T result) {
         LatencyBucket bucket = getLatencyBucket(result);
         return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
 
     }
 
     @Override
-    public LatencySnapshot latencySnapshot() {
+    public synchronized LatencySnapshot latencySnapshot() {
         Histogram accumulated = new Histogram(highestTrackableValue, numberOfSignificantValueDigits);
 
         long startTime = -1;
@@ -81,8 +81,8 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
     }
 
     public synchronized LatencySnapshot intervalSnapshot(T result) {
-        LatencyBucket latencyBucket = getLatencyBucket(result);
-        Histogram histogram = latencyBucket.getIntervalHistogram();
+        LatencyBucket bucket = getLatencyBucket(result);
+        Histogram histogram = bucket.getIntervalHistogram();
         return createSnapshot(histogram, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
     }
 
@@ -132,12 +132,12 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
 
         private void record(long nanoLatency, long count) {
             recorder.recordValueWithCount(Math.min(nanoLatency, histogram.getHighestTrackableValue()), count);
-            histogram.recordValueWithCount(Math.min(nanoLatency, histogram.getHighestTrackableValue()), count);
         }
 
         private Histogram getIntervalHistogram() {
             Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
             inactive = intervalHistogram;
+            histogram.add(intervalHistogram);
             return intervalHistogram;
         }
     }
