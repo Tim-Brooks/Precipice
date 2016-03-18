@@ -47,8 +47,8 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         latencies = new LatencySnapshot[length];
         totalLatencies = new LatencySnapshot[length];
         for (int i = 0; i < length; ++i) {
-            latencies[i] = LatencyMetrics.DEFAULT_SNAPSHOT;
-            totalLatencies[i] = LatencyMetrics.DEFAULT_SNAPSHOT;
+            latencies[i] = LatencySnapshot.DEFAULT_SNAPSHOT;
+            totalLatencies[i] = LatencySnapshot.DEFAULT_SNAPSHOT;
         }
     }
 
@@ -74,12 +74,12 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         if (latencyMetrics instanceof IntervalLatencyMetrics) {
             IntervalLatencyMetrics<Result> intervalMetrics = (IntervalLatencyMetrics<Result>) latencyMetrics;
             for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
-                latencies[t.ordinal()] = intervalMetrics.intervalSnapshot(t);
+//                latencies[t.ordinal()] = intervalMetrics.intervalSnapshot(t);
             }
         }
 
         for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
-            totalLatencies[t.ordinal()] = latencyMetrics.latencySnapshot(t);
+//            totalLatencies[t.ordinal()] = latencyMetrics.latencySnapshot(t);
         }
     }
 }

@@ -17,10 +17,9 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.test_utils.TestResult;
+import org.HdrHistogram.Histogram;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.Assert.assertEquals;
 
@@ -34,31 +33,6 @@ public class IntervalLatencyMetricsTest {
     }
 
     @Test
-    public void latencyIsStoredInHistogram() {
-        TestResult[] metricArray = {TestResult.SUCCESS, TestResult.ERROR};
-
-        ThreadLocalRandom current = ThreadLocalRandom.current();
-        for (int i = 1; i <= 100000; ++i) {
-            int n = current.nextInt(2);
-            metrics.recordLatency(metricArray[n], 1L, i);
-        }
-
-        // TODO: For side effects
-        metrics.intervalSnapshot(TestResult.SUCCESS);
-        metrics.intervalSnapshot(TestResult.ERROR);
-        LatencySnapshot snapshot = metrics.latencySnapshot();
-
-        assertEquals(100, snapshot.latencyMax / 1000);
-        assertEquals(50, snapshot.latency50 / 1000);
-        assertEquals(90, snapshot.latency90 / 1000);
-        assertEquals(99, snapshot.latency99 / 1000);
-        assertEquals(100, snapshot.latency999 / 1000);
-        assertEquals(100, snapshot.latency9999 / 1000);
-        assertEquals(100, snapshot.latency99999 / 1000);
-        assertEquals(50, (long) snapshot.latencyMean / 1000);
-    }
-
-    @Test
     public void latencyIsPartitionedByMetric() {
         for (int i = 1; i <= 100000; ++i) {
             metrics.recordLatency(TestResult.SUCCESS, 1L, i);
@@ -67,39 +41,29 @@ public class IntervalLatencyMetricsTest {
             metrics.recordLatency(TestResult.ERROR, 1L, i);
         }
 
-        // TODO: For side effects
-        metrics.intervalSnapshot(TestResult.SUCCESS);
-        metrics.intervalSnapshot(TestResult.ERROR);
+        // For side effects
+        metrics.intervalHistogram(TestResult.SUCCESS);
+        metrics.intervalHistogram(TestResult.ERROR);
 
-        LatencySnapshot successSnapshot = metrics.latencySnapshot(TestResult.SUCCESS);
-        assertEquals(100, successSnapshot.latencyMax / 1000);
-        assertEquals(50, successSnapshot.latency50 / 1000);
-        assertEquals(90, successSnapshot.latency90 / 1000);
-        assertEquals(99, successSnapshot.latency99 / 1000);
-        assertEquals(100, successSnapshot.latency999 / 1000);
-        assertEquals(100, successSnapshot.latency9999 / 1000);
-        assertEquals(100, successSnapshot.latency99999 / 1000);
-        assertEquals(50, (long) successSnapshot.latencyMean / 1000);
+        Histogram successHistogram = metrics.totalHistogram(TestResult.SUCCESS);
+        assertEquals(100, successHistogram.getMaxValue() / 1000);
+        assertEquals(50, successHistogram.getValueAtPercentile(50.0) / 1000);
+        assertEquals(90, successHistogram.getValueAtPercentile(90.0) / 1000);
+        assertEquals(99, successHistogram.getValueAtPercentile(99.0) / 1000);
+        assertEquals(100, successHistogram.getValueAtPercentile(99.9) / 1000);
+        assertEquals(100, successHistogram.getValueAtPercentile(99.99) / 1000);
+        assertEquals(100, successHistogram.getValueAtPercentile(99.999) / 1000);
+        assertEquals(50.00128128, successHistogram.getMean() / 1000, 0.01);
 
-        LatencySnapshot errorSnapshot = metrics.latencySnapshot(TestResult.ERROR);
-        assertEquals(200, errorSnapshot.latencyMax / 1000);
-        assertEquals(150, errorSnapshot.latency50 / 1000);
-        assertEquals(190, errorSnapshot.latency90 / 1000);
-        assertEquals(199, errorSnapshot.latency99 / 1000);
-        assertEquals(200, errorSnapshot.latency999 / 1000);
-        assertEquals(200, errorSnapshot.latency9999 / 1000);
-        assertEquals(200, errorSnapshot.latency99999 / 1000);
-        assertEquals(150, (long) errorSnapshot.latencyMean / 1000);
-
-        LatencySnapshot snapshot = metrics.latencySnapshot();
-        assertEquals(200, snapshot.latencyMax / 1000);
-        assertEquals(100, snapshot.latency50 / 1000);
-        assertEquals(180, snapshot.latency90 / 1000);
-        assertEquals(198, snapshot.latency99 / 1000);
-        assertEquals(200, snapshot.latency999 / 1000);
-        assertEquals(200, snapshot.latency9999 / 1000);
-        assertEquals(200, snapshot.latency99999 / 1000);
-        assertEquals(100, (long) snapshot.latencyMean / 1000);
+        Histogram errorHistogram = metrics.totalHistogram(TestResult.ERROR);
+        assertEquals(200, errorHistogram.getMaxValue() / 1000);
+        assertEquals(150, errorHistogram.getValueAtPercentile(50.0) / 1000);
+        assertEquals(190, errorHistogram.getValueAtPercentile(90.0) / 1000);
+        assertEquals(199, errorHistogram.getValueAtPercentile(99.0) / 1000);
+        assertEquals(200, errorHistogram.getValueAtPercentile(99.9) / 1000);
+        assertEquals(200, errorHistogram.getValueAtPercentile(99.99) / 1000);
+        assertEquals(200, errorHistogram.getValueAtPercentile(99.999) / 1000);
+        assertEquals(150.00128128, errorHistogram.getMean() / 1000, 0.01);
     }
 
     @Test
@@ -111,25 +75,25 @@ public class IntervalLatencyMetricsTest {
             metrics.recordLatency(TestResult.ERROR, 1L, i);
         }
 
-        LatencySnapshot successSnapshot = metrics.intervalSnapshot(TestResult.SUCCESS);
-        assertEquals(100, successSnapshot.latencyMax / 1000);
-        assertEquals(50, successSnapshot.latency50 / 1000);
-        assertEquals(90, successSnapshot.latency90 / 1000);
-        assertEquals(99, successSnapshot.latency99 / 1000);
-        assertEquals(100, successSnapshot.latency999 / 1000);
-        assertEquals(100, successSnapshot.latency9999 / 1000);
-        assertEquals(100, successSnapshot.latency99999 / 1000);
-        assertEquals(50, (long) successSnapshot.latencyMean / 1000);
+        Histogram successHistogram = metrics.intervalHistogram(TestResult.SUCCESS);
+        assertEquals(100, successHistogram.getMaxValue() / 1000);
+        assertEquals(50, successHistogram.getValueAtPercentile(50.0) / 1000);
+        assertEquals(90, successHistogram.getValueAtPercentile(90.0) / 1000);
+        assertEquals(99, successHistogram.getValueAtPercentile(99.0) / 1000);
+        assertEquals(100, successHistogram.getValueAtPercentile(99.9) / 1000);
+        assertEquals(100, successHistogram.getValueAtPercentile(99.99) / 1000);
+        assertEquals(100, successHistogram.getValueAtPercentile(99.999) / 1000);
+        assertEquals(50.00128128, successHistogram.getMean() / 1000, 0.01);
 
-        LatencySnapshot errorSnapshot = metrics.intervalSnapshot(TestResult.ERROR);
-        assertEquals(200, errorSnapshot.latencyMax / 1000);
-        assertEquals(150, errorSnapshot.latency50 / 1000);
-        assertEquals(190, errorSnapshot.latency90 / 1000);
-        assertEquals(199, errorSnapshot.latency99 / 1000);
-        assertEquals(200, errorSnapshot.latency999 / 1000);
-        assertEquals(200, errorSnapshot.latency9999 / 1000);
-        assertEquals(200, errorSnapshot.latency99999 / 1000);
-        assertEquals(150, (long) errorSnapshot.latencyMean / 1000);
+        Histogram errorHistogram = metrics.intervalHistogram(TestResult.ERROR);
+        assertEquals(200, errorHistogram.getMaxValue() / 1000);
+        assertEquals(150, errorHistogram.getValueAtPercentile(50.0) / 1000);
+        assertEquals(190, errorHistogram.getValueAtPercentile(90.0) / 1000);
+        assertEquals(199, errorHistogram.getValueAtPercentile(99.0) / 1000);
+        assertEquals(200, errorHistogram.getValueAtPercentile(99.9) / 1000);
+        assertEquals(200, errorHistogram.getValueAtPercentile(99.99) / 1000);
+        assertEquals(200, errorHistogram.getValueAtPercentile(99.999) / 1000);
+        assertEquals(150.00128128, errorHistogram.getMean() / 1000, 0.01);
     }
 
     @Test
@@ -140,43 +104,45 @@ public class IntervalLatencyMetricsTest {
             for (int i = 1; i <= 100000; ++i) {
                 metrics.recordLatency(m, 1L, i);
             }
-            LatencySnapshot successSnapshot = metrics.intervalSnapshot(m);
+            Histogram histogram1 = metrics.intervalHistogram(m);
+
             for (int i = 100001; i <= 200000; ++i) {
                 metrics.recordLatency(m, 1L, i);
             }
-            LatencySnapshot successSnapshot2 = metrics.intervalSnapshot(m);
+            Histogram histogram2 = metrics.intervalHistogram(m);
 
             for (int i = 200001; i <= 300000; ++i) {
                 metrics.recordLatency(m, 1L, i);
             }
-            LatencySnapshot successSnapshot3 = metrics.intervalSnapshot(m);
 
-            assertEquals(100, successSnapshot.latencyMax / 1000);
-            assertEquals(50, successSnapshot.latency50 / 1000);
-            assertEquals(90, successSnapshot.latency90 / 1000);
-            assertEquals(99, successSnapshot.latency99 / 1000);
-            assertEquals(100, successSnapshot.latency999 / 1000);
-            assertEquals(100, successSnapshot.latency9999 / 1000);
-            assertEquals(100, successSnapshot.latency99999 / 1000);
-            assertEquals(50, (long) successSnapshot.latencyMean / 1000);
+            Histogram histogram3 = metrics.intervalHistogram(m);
 
-            assertEquals(200, successSnapshot2.latencyMax / 1000);
-            assertEquals(150, successSnapshot2.latency50 / 1000);
-            assertEquals(190, successSnapshot2.latency90 / 1000);
-            assertEquals(199, successSnapshot2.latency99 / 1000);
-            assertEquals(200, successSnapshot2.latency999 / 1000);
-            assertEquals(200, successSnapshot2.latency9999 / 1000);
-            assertEquals(200, successSnapshot2.latency99999 / 1000);
-            assertEquals(150, (long) successSnapshot2.latencyMean / 1000);
+            assertEquals(100, histogram1.getMaxValue() / 1000);
+            assertEquals(50, histogram1.getValueAtPercentile(50.0) / 1000);
+            assertEquals(90, histogram1.getValueAtPercentile(90.0) / 1000);
+            assertEquals(99, histogram1.getValueAtPercentile(99.0) / 1000);
+            assertEquals(100, histogram1.getValueAtPercentile(99.9) / 1000);
+            assertEquals(100, histogram1.getValueAtPercentile(99.99) / 1000);
+            assertEquals(100, histogram1.getValueAtPercentile(99.999) / 1000);
+            assertEquals(50.00128128, histogram1.getMean() / 1000, 0.01);
 
-            assertEquals(301, successSnapshot3.latencyMax / 1000);
-            assertEquals(250, successSnapshot3.latency50 / 1000);
-            assertEquals(290, successSnapshot3.latency90 / 1000);
-            assertEquals(299, successSnapshot3.latency99 / 1000);
-            assertEquals(301, successSnapshot3.latency999 / 1000);
-            assertEquals(301, successSnapshot3.latency9999 / 1000);
-            assertEquals(301, successSnapshot3.latency99999 / 1000);
-            assertEquals(250, (long) successSnapshot3.latencyMean / 1000);
+            assertEquals(200, histogram2.getMaxValue() / 1000);
+            assertEquals(150, histogram2.getValueAtPercentile(50.0) / 1000);
+            assertEquals(190, histogram2.getValueAtPercentile(90.0) / 1000);
+            assertEquals(199, histogram2.getValueAtPercentile(99.0) / 1000);
+            assertEquals(200, histogram2.getValueAtPercentile(99.9) / 1000);
+            assertEquals(200, histogram2.getValueAtPercentile(99.99) / 1000);
+            assertEquals(200, histogram2.getValueAtPercentile(99.999) / 1000);
+            assertEquals(150.00128128, histogram2.getMean() / 1000, 0.01);
+
+            assertEquals(301, histogram3.getMaxValue() / 1000);
+            assertEquals(250, histogram3.getValueAtPercentile(50.0) / 1000);
+            assertEquals(290, histogram3.getValueAtPercentile(90.0) / 1000);
+            assertEquals(299, histogram3.getValueAtPercentile(99.0) / 1000);
+            assertEquals(301, histogram3.getValueAtPercentile(99.9) / 1000);
+            assertEquals(301, histogram3.getValueAtPercentile(99.99) / 1000);
+            assertEquals(301, histogram3.getValueAtPercentile(99.999) / 1000);
+            assertEquals(250.00128128, histogram3.getMean() / 1000, 0.01);
         }
     }
 }

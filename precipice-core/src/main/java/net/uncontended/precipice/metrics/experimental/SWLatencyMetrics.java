@@ -19,9 +19,7 @@ package net.uncontended.precipice.metrics.experimental;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.metrics.BackgroundTask;
-import net.uncontended.precipice.metrics.CircularBuffer;
 import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
-import net.uncontended.precipice.metrics.LatencySnapshot;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
@@ -49,14 +47,6 @@ public class SWLatencyMetrics<T extends Enum<T> & Failable> implements Backgroun
 
     public void recordLatency(T metric, long nanoLatency, long nanoTime) {
         getLatencyBucket(metric).record(nanoLatency);
-    }
-
-    public LatencySnapshot latencySnapshot() {
-        return null;
-    }
-
-    public LatencySnapshot latencySnapshot(T metric) {
-        return null;
     }
 
     @Override

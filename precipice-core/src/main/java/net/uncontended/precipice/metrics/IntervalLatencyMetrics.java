@@ -53,81 +53,51 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
         bucket.record(nanoLatency, count);
     }
 
-    @Override
-    public synchronized LatencySnapshot latencySnapshot(T result) {
+    public Histogram totalHistogram(T result) {
+        return totalHistogram(result, true);
+    }
+
+    public Histogram totalHistogram(T result, boolean shouldAllocate) {
         LatencyBucket bucket = getLatencyBucket(result);
-        return createSnapshot(bucket.histogram, bucket.histogram.getStartTimeStamp(), System.currentTimeMillis());
-
-    }
-
-    @Override
-    public synchronized LatencySnapshot latencySnapshot() {
-        Histogram accumulated = new Histogram(highestTrackableValue, numberOfSignificantValueDigits);
-
-        long startTime = -1;
-        for (LatencyBucket bucket : buckets) {
-            if (bucket != null) {
-                Histogram histogram = bucket.histogram;
-                if (startTime == -1) {
-                    startTime = histogram.getStartTimeStamp();
-                } else {
-                    startTime = Math.min(startTime, histogram.getStartTimeStamp());
-                }
-                accumulated.add(histogram);
-            }
+        Histogram histogram = bucket.histogram;
+        if (shouldAllocate) {
+            Histogram newlyAllocated = new Histogram(highestTrackableValue, numberOfSignificantValueDigits);
+            newlyAllocated.add(histogram);
+            histogram = newlyAllocated;
         }
-
-        return createSnapshot(accumulated, startTime, System.currentTimeMillis());
+        return histogram;
     }
 
-    public synchronized LatencySnapshot intervalSnapshot(T result) {
+    public synchronized Histogram intervalHistogram(T result) {
+        return intervalHistogram(result, true);
+    }
+
+    public synchronized Histogram intervalHistogram(T result, boolean shouldAllocate) {
         LatencyBucket bucket = getLatencyBucket(result);
         Histogram histogram = bucket.getIntervalHistogram();
-        return createSnapshot(histogram, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
+        if (shouldAllocate) {
+            Histogram newlyAllocated = new Histogram(highestTrackableValue, numberOfSignificantValueDigits);
+            newlyAllocated.add(histogram);
+            histogram = newlyAllocated;
+        }
+        return histogram;
     }
 
     private LatencyBucket getLatencyBucket(T result) {
         return buckets[result.ordinal()];
     }
 
-    private static LatencySnapshot createSnapshot(Histogram histogram, long startTime, long endTime) {
-        long latency50 = histogram.getValueAtPercentile(50.0);
-        long latency90 = histogram.getValueAtPercentile(90.0);
-        long latency99 = histogram.getValueAtPercentile(99.0);
-        long latency999 = histogram.getValueAtPercentile(99.9);
-        long latency9999 = histogram.getValueAtPercentile(99.99);
-        long latency99999 = histogram.getValueAtPercentile(99.999);
-        long latencyMax = histogram.getMaxValue();
-        double latencyMean = calculateMean(histogram);
-        return new LatencySnapshot(latency50, latency90, latency99, latency999, latency9999, latency99999, latencyMax,
-                latencyMean, startTime, endTime);
-    }
-
-    private static double calculateMean(Histogram histogram) {
-        if (histogram.getTotalCount() == 0) {
-            return 0.0;
-        }
-        RecordedValuesIterator iter = new RecordedValuesIterator(histogram);
-        double totalValue = 0;
-        while (iter.hasNext()) {
-            HistogramIterationValue iterationValue = iter.next();
-            totalValue += histogram.medianEquivalentValue(iterationValue.getValueIteratedTo())
-                    * iterationValue.getCountAtValueIteratedTo();
-        }
-        return totalValue * 1.0 / histogram.getTotalCount();
-    }
-
     private static class LatencyBucket {
         private final Histogram histogram;
         private final Recorder recorder;
-        private Histogram inactive;
+        private Histogram previousInterval;
 
         private LatencyBucket(long highestTrackableValue, int numberOfSignificantValueDigits) {
             histogram = new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
             histogram.setStartTimeStamp(System.currentTimeMillis());
 
             recorder = new Recorder(highestTrackableValue, numberOfSignificantValueDigits);
-            inactive = recorder.getIntervalHistogram();
+            previousInterval = recorder.getIntervalHistogram();
         }
 
         private void record(long nanoLatency, long count) {
@@ -135,8 +105,8 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
         }
 
         private Histogram getIntervalHistogram() {
-            Histogram intervalHistogram = recorder.getIntervalHistogram(inactive);
-            inactive = intervalHistogram;
+            Histogram intervalHistogram = recorder.getIntervalHistogram(previousInterval);
+            previousInterval = intervalHistogram;
             histogram.add(intervalHistogram);
             return intervalHistogram;
         }

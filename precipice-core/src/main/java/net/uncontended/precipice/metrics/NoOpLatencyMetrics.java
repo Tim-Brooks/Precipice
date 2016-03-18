@@ -28,14 +28,4 @@ public class NoOpLatencyMetrics<T extends Enum<T> & Failable> implements Latency
     @Override
     public void recordLatency(T metric, long number, long nanoLatency, long nanoTime) {
     }
-
-    @Override
-    public LatencySnapshot latencySnapshot() {
-        return LatencyMetrics.DEFAULT_SNAPSHOT;
-    }
-
-    @Override
-    public LatencySnapshot latencySnapshot(T metric) {
-        return LatencyMetrics.DEFAULT_SNAPSHOT;
-    }
 }

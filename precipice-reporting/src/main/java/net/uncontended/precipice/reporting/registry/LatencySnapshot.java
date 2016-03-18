@@ -15,9 +15,14 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.reporting.registry;
+
+import org.HdrHistogram.Histogram;
+import org.HdrHistogram.HistogramIterationValue;
+import org.HdrHistogram.RecordedValuesIterator;
 
 public class LatencySnapshot {
+    public static final LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
 
     public final long latencyMax;
     public final long latency50;
@@ -43,6 +48,19 @@ public class LatencySnapshot {
         this.latencyMean = latencyMean;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    public static LatencySnapshot fromHistogram(Histogram histogram) {
+        long latency50 = histogram.getValueAtPercentile(50.0);
+        long latency90 = histogram.getValueAtPercentile(90.0);
+        long latency99 = histogram.getValueAtPercentile(99.0);
+        long latency999 = histogram.getValueAtPercentile(99.9);
+        long latency9999 = histogram.getValueAtPercentile(99.99);
+        long latency99999 = histogram.getValueAtPercentile(99.999);
+        long latencyMax = histogram.getMaxValue();
+        double latencyMean = histogram.getMean();
+        return new LatencySnapshot(latency50, latency90, latency99, latency999, latency9999, latency99999, latencyMax,
+                latencyMean, histogram.getStartTimeStamp(), histogram.getEndTimeStamp());
     }
 
     @Override
