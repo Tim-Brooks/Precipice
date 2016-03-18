@@ -80,11 +80,11 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         return totalCounter.getCount(metric);
     }
 
-    public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
-        return getMetricCountForPeriod(metric, timePeriod, timeUnit, clock.nanoTime());
+    public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
+        return getCountForPeriod(metric, timePeriod, timeUnit, clock.nanoTime());
     }
 
-    public long getMetricCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
         Iterable<CountMetrics<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 
         long count = 0;
