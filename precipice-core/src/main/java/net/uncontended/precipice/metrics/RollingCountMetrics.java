@@ -95,7 +95,8 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
     }
 
     public CountMetrics<T> currentCounter(long nanoTime) {
-        return buffer.activeValues(1, nanoTime, noOpCounter).iterator().next();
+        CountMetrics<T> counter = buffer.getSlot(nanoTime);
+        return counter != null ? counter : noOpCounter;
     }
 
     public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {

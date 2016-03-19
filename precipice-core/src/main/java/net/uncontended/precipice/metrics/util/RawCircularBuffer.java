@@ -136,7 +136,7 @@ public class RawCircularBuffer<T> {
     }
 
     // Essentially what I need is an iterator that also iterates the slots. I need to know, based upon the slot, the
-    // start and end time of a slot. This suggests that the slots should be persistent. And noted "newed" up every
+    // start and end time of a slot. This suggests that the slots should be persistent. And not "newed" up every
     // time we do a switch. This will make the concurrency logic a little more complicated it seems.
 
     private class SlotView implements Iterable<Slot<T>> {
