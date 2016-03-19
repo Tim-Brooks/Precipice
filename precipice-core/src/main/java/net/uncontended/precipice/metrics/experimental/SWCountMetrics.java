@@ -95,7 +95,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public long getMetricCountForTimePeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<AddCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        Iterable<AddCounter<T>> slots = buffer.activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //
 //        long count = 0;
 //        for (AddCounter<T> metricCounter : slots) {
@@ -116,7 +116,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public long getRejectionCountForTimePeriod(Rejected reason, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<AddCounter<T>> slots = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        Iterable<AddCounter<T>> slots = buffer.activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //
 //        long count = 0;
 //        for (AddCounter<T> metricCounter : slots) {
@@ -132,7 +132,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public HealthSnapshot healthSnapshot(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        Iterable<AddCounter<T>> counters = buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime,
+//        Iterable<AddCounter<T>> counters = buffer.activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime,
 //                noOpCounter);
 //
 //        long total = 0;
@@ -166,7 +166,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //
 //    @Override
 //    public Iterable<AddCounter<T>> metricCounterIterable(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        return buffer.activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+//        return buffer.activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
 //    }
 //
 //    @Override

@@ -30,12 +30,12 @@ public class CircularBuffer<T> {
     private final long nanosPerSlot;
     private final long startNanos;
 
-    public CircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit) {
-        this(slotsToTrack, resolution, slotUnit, System.nanoTime());
+    public CircularBuffer(int slotsToTrack, long resolution, TimeUnit timeUnit) {
+        this(slotsToTrack, resolution, timeUnit, System.nanoTime());
     }
 
-    public CircularBuffer(int slotsToTrack, long resolution, TimeUnit slotUnit, long startNanos) {
-        this.nanosPerSlot = slotUnit.toNanos(resolution);
+    public CircularBuffer(int slotsToTrack, long resolution, TimeUnit timeUnit, long startNanos) {
+        this.nanosPerSlot = timeUnit.toNanos(resolution);
         this.startNanos = startNanos;
         this.totalSlots = slotsToTrack;
 
@@ -79,16 +79,20 @@ public class CircularBuffer<T> {
         }
     }
 
-    public Iterable<T> activeSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return activeSlotsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
+    public Iterable<T> activeValuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, null);
     }
 
-    public Iterable<T> activeSlotsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
-        long slots = convertToSlots(timePeriod, timeUnit);
+    public Iterable<T> activeValuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+        return activeValues(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
+    }
+
+    public Iterable<T> activeValues(long slots, long nanoTime, T dead) {
         long absoluteSlot = currentAbsoluteSlot(nanoTime);
         long startSlot = 1 + absoluteSlot - slots;
         long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
         return new SlotView(adjustedStartSlot, absoluteSlot, dead);
+
     }
 
     private int toRelative(long absoluteSlot) {
@@ -96,18 +100,17 @@ public class CircularBuffer<T> {
     }
 
     private long convertToSlots(long timePeriod, TimeUnit timeUnit) {
-        long longSlots = timeUnit.toNanos(timePeriod) / nanosPerSlot;
+        long slotCount = timeUnit.toNanos(timePeriod) / nanosPerSlot;
 
-        if (longSlots > totalSlots) {
-            String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]",
-                    totalSlots, longSlots);
+        if (slotCount > totalSlots) {
+            String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]", totalSlots, slotCount);
             throw new IllegalArgumentException(message);
         }
-        if (longSlots <= 0) {
-            String message = String.format("Slots must be greater than 0. [Argument: %s]", longSlots);
+        if (slotCount <= 0) {
+            String message = String.format("Slots must be greater than 0. [Argument: %s]", slotCount);
             throw new IllegalArgumentException(message);
         }
-        return longSlots;
+        return slotCount;
     }
 
     private long currentAbsoluteSlot(long nanoTime) {
@@ -128,7 +131,7 @@ public class CircularBuffer<T> {
         }
     }
 
-    private class SlotView implements Iterable<T> {
+    private class SlotView implements Iterable<T>, Iterator<T> {
 
         private final T dead;
         private final long maxIndex;
@@ -141,33 +144,33 @@ public class CircularBuffer<T> {
         }
 
         @Override
+        public boolean hasNext() {
+            return index <= maxIndex;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            long absoluteSlot = index++;
+            int relativeSlot = toRelative(absoluteSlot);
+            Slot<T> slot = buffer.get(relativeSlot);
+            if (slot.absoluteSlot == absoluteSlot && slot.object != null) {
+                return slot.object;
+            } else {
+                return dead;
+            }
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("remove");
+        }
+
+        @Override
         public Iterator<T> iterator() {
-            return new Iterator<T>() {
-                @Override
-                public boolean hasNext() {
-                    return index <= maxIndex;
-                }
-
-                @Override
-                public T next() {
-                    if (!hasNext()) {
-                        throw new NoSuchElementException();
-                    }
-                    long absoluteSlot = index++;
-                    int relativeSlot = toRelative(absoluteSlot);
-                    Slot<T> slot = buffer.get(relativeSlot);
-                    if (slot.absoluteSlot == absoluteSlot && slot.object != null) {
-                        return slot.object;
-                    } else {
-                        return dead;
-                    }
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException("remove");
-                }
-            };
+            return this;
         }
     }
 }
