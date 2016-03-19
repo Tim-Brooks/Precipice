@@ -92,7 +92,6 @@ public class CircularBuffer<T> {
         long startSlot = 1 + absoluteSlot - slots;
         long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
         return new SlotView(adjustedStartSlot, absoluteSlot, dead);
-
     }
 
     private int toRelative(long absoluteSlot) {

@@ -80,6 +80,11 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         return totalCounter.getCount(metric);
     }
 
+    @Override
+    public Class<T> getMetricType() {
+        return type;
+    }
+
     public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
         return getCountForPeriod(metric, timePeriod, timeUnit, clock.nanoTime());
     }
@@ -105,10 +110,5 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
 
     public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return type;
     }
 }
