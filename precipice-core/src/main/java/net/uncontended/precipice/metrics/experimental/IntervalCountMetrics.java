@@ -22,6 +22,7 @@ import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
@@ -70,5 +71,13 @@ public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> 
 
     public CountMetrics<T> previousIntervalCounts() {
         return previousInterval;
+    }
+
+    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
+        return metricCounters(timePeriod, timeUnit, clock.nanoTime());
+    }
+
+    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return null;
     }
 }
