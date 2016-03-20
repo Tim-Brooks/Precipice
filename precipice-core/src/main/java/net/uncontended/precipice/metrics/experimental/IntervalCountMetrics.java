@@ -17,29 +17,37 @@
 
 package net.uncontended.precipice.metrics.experimental;
 
-import net.uncontended.precipice.metrics.AddCounter;
 import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.CounterFactory;
+import net.uncontended.precipice.metrics.Counters;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
 
     private long meta;
-    private final Class<T> type;
+    private final Class<T> clazz;
+    private final CounterFactory factory;
     private final Clock clock;
     private final Holder<T> totalCounter;
     private volatile Holder<T> intervalCounter;
     private volatile Holder<T> lastInterval;
 
-    public IntervalCountMetrics(Class<T> type) {
-        this(type, new SystemTime());
+    public IntervalCountMetrics(Class<T> clazz) {
+        this(clazz, Counters.adding());
     }
 
-    public IntervalCountMetrics(Class<T> type, Clock clock) {
-        this.type = type;
+    public IntervalCountMetrics(Class<T> clazz, CounterFactory factory) {
+        this(clazz, factory, new SystemTime());
+    }
+
+    public IntervalCountMetrics(Class<T> clazz, CounterFactory factory, Clock clock) {
+        this.clazz = clazz;
+        this.factory = factory;
         this.clock = clock;
-        this.totalCounter = new Holder<>(new AddCounter<>(this.type), meta++);
-        this.intervalCounter = new Holder<>(new AddCounter<>(this.type), meta++);
+        long nanoTime = clock.nanoTime();
+        this.totalCounter = new Holder<>(factory.newCounter(clazz, nanoTime), meta++);
+        this.intervalCounter = new Holder<>(factory.newCounter(clazz, nanoTime), meta++);
     }
 
     @Override
@@ -66,7 +74,7 @@ public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> 
 
     @Override
     public Class<T> getMetricType() {
-        return type;
+        return clazz;
     }
 
     public synchronized CountMetrics<T> intervalCounts() {
@@ -75,8 +83,8 @@ public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> 
 
     public synchronized CountMetrics<T> intervalCounts(long nanoTime) {
         Holder<T> old = this.intervalCounter;
-        this.intervalCounter = new Holder<>(new AddCounter<>(this.type), meta++);
-        for (T metric : type.getEnumConstants()) {
+        this.intervalCounter = new Holder<>(factory.newCounter(this.clazz, nanoTime), meta++);
+        for (T metric : clazz.getEnumConstants()) {
             totalCounter.counter.add(metric, old.counter.getCount(metric));
         }
         this.lastInterval = old;
