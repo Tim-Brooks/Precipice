@@ -22,7 +22,7 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
+public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, RollingCounts<T> {
 
     private final AddCounter<T> totalCounter;
     private final CountMetrics<T> noOpCounter;
@@ -104,10 +104,12 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
         return counter != null ? counter : noOpCounter;
     }
 
+    @Override
     public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
         return metricCounters(timePeriod, timeUnit, clock.nanoTime());
     }
 
+    @Override
     public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }

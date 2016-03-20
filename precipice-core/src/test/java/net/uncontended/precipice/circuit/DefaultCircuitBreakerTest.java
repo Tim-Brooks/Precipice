@@ -21,6 +21,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.HealthGauge;
 import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
+import net.uncontended.precipice.metrics.RollingCounts;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;

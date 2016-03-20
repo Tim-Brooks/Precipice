@@ -42,18 +42,18 @@ public class HealthGauge {
         return new HealthSnapshot(total, failures);
     }
 
-    public <Result extends Enum<Result> & Failable> void add(RollingCountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void add(RollingCounts<Result> metrics) {
         gauges.add(new InternalGauge<>(metrics));
     }
 
     private class InternalGauge<Result extends Enum<Result> & Failable> {
 
-        private final RollingCountMetrics<Result> metrics;
+        private final RollingCounts<Result> metrics;
         private final Class<Result> type;
         private long total = 0;
         private long failures = 0;
 
-        private InternalGauge(RollingCountMetrics<Result> metrics) {
+        private InternalGauge(RollingCounts<Result> metrics) {
             this.metrics = metrics;
             type = metrics.getMetricType();
         }

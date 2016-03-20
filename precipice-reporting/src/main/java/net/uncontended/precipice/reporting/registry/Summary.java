@@ -60,8 +60,8 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
             totalMetricCounts[metricIndex] = resultMetrics.getCount(t);
         }
 
-        if (resultMetrics instanceof RollingCountMetrics) {
-            RollingCountMetrics<Result> rollingMetrics = (RollingCountMetrics<Result>) resultMetrics;
+        if (resultMetrics instanceof RollingCounts) {
+            RollingCounts<Result> rollingMetrics = (RollingCounts<Result>) resultMetrics;
             for (CountMetrics<Result> m : rollingMetrics.metricCounters(period, unit)) {
                 for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
                     metricCounts[t.ordinal()] += m.getCount(t);

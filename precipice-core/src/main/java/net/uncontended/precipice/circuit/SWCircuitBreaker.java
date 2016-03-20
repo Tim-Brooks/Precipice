@@ -91,7 +91,7 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
         CountMetrics<Result> metrics = guardRail.getResultMetrics();
-        if (metrics instanceof RollingCountMetrics) {
+        if (metrics instanceof RollingCounts) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {
             throw new IllegalArgumentException("SWCircuitBreaker requires rolling result metrics");
