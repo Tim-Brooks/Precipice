@@ -22,16 +22,14 @@ import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
 public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> {
 
+    private long meta;
     private final Class<T> type;
     private final Clock clock;
-    private final CountMetrics<T> totalCounter;
-    private final AtomicReference<CountMetrics<T>> intervalCounter;
-    private volatile CountMetrics<T> previousInterval;
+    private final Holder<T> totalCounter;
+    private volatile Holder<T> intervalCounter;
+    private volatile Holder<T> lastInterval;
 
     public IntervalCountMetrics(Class<T> type) {
         this(type, new SystemTime());
@@ -40,8 +38,8 @@ public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> 
     public IntervalCountMetrics(Class<T> type, Clock clock) {
         this.type = type;
         this.clock = clock;
-        this.totalCounter = new AddCounter<>(this.type);
-        this.intervalCounter = new AtomicReference<CountMetrics<T>>(new AddCounter<>(this.type));
+        this.totalCounter = new Holder<>(new AddCounter<>(this.type), meta++);
+        this.intervalCounter = new Holder<>(new AddCounter<>(this.type), meta++);
     }
 
     @Override
@@ -52,12 +50,18 @@ public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> 
 
     @Override
     public void add(T metric, long delta, long nanoTime) {
-        totalCounter.add(metric, delta, nanoTime);
+        intervalCounter.counter.add(metric, delta, nanoTime);
     }
 
     @Override
     public long getCount(T metric) {
-        return totalCounter.getCount(metric);
+        for (; ; ) {
+            Holder<T> localTotal = this.totalCounter;
+            Holder<T> localInterval = this.intervalCounter;
+            if (localTotal.id != localInterval.id) {
+                return localTotal.counter.getCount(metric) + localInterval.counter.getCount(metric);
+            }
+        }
     }
 
     @Override
@@ -66,18 +70,30 @@ public class IntervalCountMetrics<T extends Enum<T>> implements CountMetrics<T> 
     }
 
     public synchronized CountMetrics<T> intervalCounts() {
-        return intervalCounter.getAndSet(new AddCounter<>(this.type));
+        return intervalCounts(clock.nanoTime());
     }
 
-    public CountMetrics<T> previousIntervalCounts() {
-        return previousInterval;
+    public synchronized CountMetrics<T> intervalCounts(long nanoTime) {
+        Holder<T> old = this.intervalCounter;
+        this.intervalCounter = new Holder<>(new AddCounter<>(this.type), meta++);
+        for (T metric : type.getEnumConstants()) {
+            totalCounter.counter.add(metric, old.counter.getCount(metric));
+        }
+        this.lastInterval = old;
+        return old.counter;
     }
 
-    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
-        return metricCounters(timePeriod, timeUnit, clock.nanoTime());
+    public CountMetrics<T> lastIntervalCounts() {
+        return lastInterval.counter;
     }
 
-    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return null;
+    private static class Holder<T extends Enum<T>> {
+        private CountMetrics<T> counter;
+        private long id;
+
+        private Holder(CountMetrics<T> counter, long id) {
+            this.counter = counter;
+            this.id = id;
+        }
     }
 }
