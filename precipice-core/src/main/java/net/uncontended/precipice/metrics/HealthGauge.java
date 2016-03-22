@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.metrics.experimental.Rolling;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,7 @@ public class HealthGauge {
 
     private class InternalGauge<Result extends Enum<Result> & Failable> {
 
-        private final RollingCountMetrics<Result> metrics;
+        private final Rolling<CountMetrics<Result>> metrics;
         private final Class<Result> type;
         private long total = 0;
         private long failures = 0;
