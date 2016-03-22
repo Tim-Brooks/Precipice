@@ -23,20 +23,25 @@ public final class Counters {
     }
 
     public static CounterFactory incrementing() {
-        return new CounterFactory() {
-            @Override
-            public <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz, long nanoTime) {
-                return new IncrementCounter<>(clazz);
-            }
-        };
+        return new IncrementingFactory();
     }
 
     public static CounterFactory adding() {
-        return new CounterFactory() {
-            @Override
-            public <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz, long nanoTime) {
-                return new AddCounter<>(clazz);
-            }
-        };
+        return new AddFactory();
+    }
+
+    private static class IncrementingFactory implements CounterFactory {
+
+        @Override
+        public <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz, long nanoTime) {
+            return new IncrementCounter<>(clazz);
+        }
+    }
+
+    private static class AddFactory implements CounterFactory {
+        @Override
+        public <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz, long nanoTime) {
+            return new AddCounter<>(clazz);
+        }
     }
 }

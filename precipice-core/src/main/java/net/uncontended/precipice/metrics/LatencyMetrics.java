@@ -17,11 +17,11 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.Failable;
+public interface LatencyMetrics<T extends Enum<T>> {
 
-public interface LatencyMetrics<T extends Enum<T> & Failable> {
-    
     void recordLatency(T result, long number, long nanoLatency);
 
     void recordLatency(T result, long number, long nanoLatency, long nanoTime);
+
+    Class<T> getMetricType();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
-public class NoOpLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<T> {
+public interface Interval<T> {
 
-    private final Class<T> clazz;
-
-    public NoOpLatencyMetrics(Class<T> clazz) {
-        this.clazz = clazz;
-    }
-
-    @Override
-    public void recordLatency(T metric, long number, long nanoLatency) {
-    }
-
-    @Override
-    public void recordLatency(T metric, long number, long nanoLatency, long nanoTime) {
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return clazz;
-    }
+    T interval(T newVersion);
 }

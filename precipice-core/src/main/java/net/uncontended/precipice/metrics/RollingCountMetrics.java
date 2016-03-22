@@ -17,12 +17,13 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.metrics.experimental.Rolling;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, RollingCounts<T> {
+public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, Rolling<CountMetrics<T>> {
 
     private final CountMetrics<T> totalCounter;
     private final CountMetrics<T> noOpCounter;
@@ -54,22 +55,12 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, 
     public RollingCountMetrics(Class<T> type, CounterFactory factory, int slotsToTrack, long resolution,
                                TimeUnit slotUnit, Clock clock) {
         this.clock = clock;
-        long millisecondsPerSlot = slotUnit.toMillis(resolution);
-        if (millisecondsPerSlot < 0) {
-            throw new IllegalArgumentException(String.format("Too low of resolution. %s milliseconds per slot is the " +
-                    "lowest valid resolution", Integer.MAX_VALUE));
-        }
-        if (100 > millisecondsPerSlot) {
-            throw new IllegalArgumentException(String.format("Too low of resolution: [%s milliseconds]. 100 " +
-                    "milliseconds is the minimum resolution.", millisecondsPerSlot));
-        }
-
+        this.type = type;
         long startNanos = clock.nanoTime();
 
-        this.type = type;
+        buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
         totalCounter = factory.newCounter(this.type, startNanos);
         noOpCounter = new NoOpCounter<>(type);
-        buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
     }
 
     @Override
@@ -119,12 +110,12 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, 
     }
 
     @Override
-    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit) {
-        return metricCounters(timePeriod, timeUnit, clock.nanoTime());
+    public Iterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit) {
+        return forPeriod(timePeriod, timeUnit, clock.nanoTime());
     }
 
     @Override
-    public Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public Iterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }
 }

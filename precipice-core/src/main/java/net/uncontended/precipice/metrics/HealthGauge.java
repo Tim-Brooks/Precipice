@@ -42,18 +42,18 @@ public class HealthGauge {
         return new HealthSnapshot(total, failures);
     }
 
-    public <Result extends Enum<Result> & Failable> void add(RollingCounts<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void add(RollingCountMetrics<Result> metrics) {
         gauges.add(new InternalGauge<>(metrics));
     }
 
     private class InternalGauge<Result extends Enum<Result> & Failable> {
 
-        private final RollingCounts<Result> metrics;
+        private final RollingCountMetrics<Result> metrics;
         private final Class<Result> type;
         private long total = 0;
         private long failures = 0;
 
-        private InternalGauge(RollingCounts<Result> metrics) {
+        private InternalGauge(RollingCountMetrics<Result> metrics) {
             this.metrics = metrics;
             type = metrics.getMetricType();
         }
@@ -61,7 +61,7 @@ public class HealthGauge {
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
             total = 0;
             failures = 0;
-            Iterable<CountMetrics<Result>> counters = metrics.metricCounters(timePeriod, timeUnit, nanoTime);
+            Iterable<CountMetrics<Result>> counters = metrics.forPeriod(timePeriod, timeUnit, nanoTime);
 
             // TODO: explore what implications this has for metric permit changes
             for (CountMetrics<Result> metricCounter : counters) {

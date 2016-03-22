@@ -36,6 +36,8 @@ public class CircularBuffer<T> {
 
     public CircularBuffer(int slotsToTrack, long resolution, TimeUnit timeUnit, long startNanos) {
         this.nanosPerSlot = timeUnit.toNanos(resolution);
+        validateSlotSize(nanosPerSlot);
+
         this.startNanos = startNanos;
         this.totalSlots = slotsToTrack;
 
@@ -98,6 +100,18 @@ public class CircularBuffer<T> {
         return (int) (absoluteSlot & mask);
     }
 
+    private static void validateSlotSize(long nanosPerSlot) {
+        if (nanosPerSlot < 0) {
+            String message = "Nanoseconds per slot must be positive. Found: [%s nanoseconds]";
+            throw new IllegalArgumentException(String.format(message, Integer.MAX_VALUE));
+        }
+        if (TimeUnit.MILLISECONDS.toNanos(100) > nanosPerSlot) {
+            throw new IllegalArgumentException(String.format("Too low of resolution: [%s nanoseconds]. 100 " +
+                    "milliseconds is the minimum resolution.", nanosPerSlot));
+        }
+
+    }
+
     private long convertToSlots(long timePeriod, TimeUnit timeUnit) {
         long slotCount = timeUnit.toNanos(timePeriod) / nanosPerSlot;
 
@@ -106,7 +120,7 @@ public class CircularBuffer<T> {
             throw new IllegalArgumentException(message);
         }
         if (slotCount <= 0) {
-            String message = String.format("Slots must be greater than 0. [Argument: %s]", slotCount);
+            String message = String.format("Time period must be greater than 0. Found: [%s timePeriod]", timePeriod);
             throw new IllegalArgumentException(message);
         }
         return slotCount;
@@ -120,9 +134,9 @@ public class CircularBuffer<T> {
         return 1 << 32 - Integer.numberOfLeadingZeros(slotsToTrack - 1);
     }
 
-    public static class Slot<T> {
-        public final T object;
-        public final long absoluteSlot;
+    private static class Slot<T> {
+        private final T object;
+        private final long absoluteSlot;
 
         private Slot(long absoluteSlot, T object) {
             this.absoluteSlot = absoluteSlot;

@@ -31,7 +31,7 @@ public class GuardRailProperties<Result extends Enum<Result> & Failable, Rejecte
     public String name;
     public CountMetrics<Result> resultMetrics;
     public CountMetrics<Rejected> rejectedMetrics;
+    public LatencyMetrics<Result> resultLatency;
     public List<BackPressure<Rejected>> backPressureList = new ArrayList<>();
-    public LatencyMetrics<Result> resultLatency = new NoOpLatencyMetrics<>();
     public Clock clock = new SystemTime();
 }

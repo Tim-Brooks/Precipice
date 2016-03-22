@@ -18,25 +18,28 @@
 package net.uncontended.precipice.metrics;
 
 
-import net.uncontended.precipice.Failable;
-import org.HdrHistogram.*;
+import org.HdrHistogram.AtomicHistogram;
+import org.HdrHistogram.Histogram;
+import org.HdrHistogram.Recorder;
 
 import java.util.concurrent.TimeUnit;
 
-public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements LatencyMetrics<T> {
+public class IntervalLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<T> {
 
     private final LatencyBucket[] buckets;
+    private final Class<T> clazz;
     private final long highestTrackableValue;
     private final int numberOfSignificantValueDigits;
 
-    public IntervalLatencyMetrics(Class<T> type) {
-        this(type, TimeUnit.HOURS.toNanos(1), 2);
+    public IntervalLatencyMetrics(Class<T> clazz) {
+        this(clazz, TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public IntervalLatencyMetrics(Class<T> type, long highestTrackableValue, int numberOfSignificantValueDigits) {
+    public IntervalLatencyMetrics(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
+        this.clazz = clazz;
         this.highestTrackableValue = highestTrackableValue;
         this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
-        buckets = new LatencyBucket[type.getEnumConstants().length];
+        buckets = new LatencyBucket[clazz.getEnumConstants().length];
         for (int i = 0; i < buckets.length; ++i) {
             buckets[i] = new LatencyBucket(highestTrackableValue, numberOfSignificantValueDigits);
         }
@@ -51,6 +54,11 @@ public class IntervalLatencyMetrics<T extends Enum<T> & Failable> implements Lat
     public void recordLatency(T result, long count, long nanoLatency, long nanoTime) {
         LatencyBucket bucket = getLatencyBucket(result);
         bucket.record(nanoLatency, count);
+    }
+
+    @Override
+    public Class<T> getMetricType() {
+        return clazz;
     }
 
     public Histogram totalHistogram(T result) {
