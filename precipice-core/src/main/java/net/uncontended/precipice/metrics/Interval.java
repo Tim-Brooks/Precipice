@@ -15,13 +15,15 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import java.util.concurrent.TimeUnit;
+public interface Interval<T> {
 
-public interface Rolling<T> {
-    Iterable<T> forPeriod(long timePeriod, TimeUnit timeUnit);
+    T current();
 
-    Iterable<T> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
+    T interval();
 
+    T interval(long nanoTime);
+
+    T interval(long nanoTime, T newVersion);
 }

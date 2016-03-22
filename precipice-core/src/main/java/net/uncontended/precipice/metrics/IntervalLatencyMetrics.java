@@ -46,14 +46,19 @@ public class IntervalLatencyMetrics<T extends Enum<T>> implements LatencyMetrics
     }
 
     @Override
-    public void recordLatency(T result, long number, long nanoLatency) {
-        recordLatency(result, number, nanoLatency, System.nanoTime());
+    public void record(T result, long number, long nanoLatency) {
+        record(result, number, nanoLatency, System.nanoTime());
     }
 
     @Override
-    public void recordLatency(T result, long count, long nanoLatency, long nanoTime) {
+    public void record(T result, long count, long nanoLatency, long nanoTime) {
         LatencyBucket bucket = getLatencyBucket(result);
         bucket.record(nanoLatency, count);
+    }
+
+    @Override
+    public PrecipiceHistogram getHistogram(T metric) {
+        return null;
     }
 
     @Override

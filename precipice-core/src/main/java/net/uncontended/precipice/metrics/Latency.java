@@ -17,12 +17,19 @@
 
 package net.uncontended.precipice.metrics;
 
-import java.util.concurrent.TimeUnit;
+public final class Latency {
 
-public interface RollingCounts<T extends Enum<T>> {
-    Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit);
+    private Latency() {
+    }
 
-    Iterable<CountMetrics<T>> metricCounters(long timePeriod, TimeUnit timeUnit, long nanoTime);
+    public static LatencyFactory atomicHDRHistogram() {
+        return new AtomicHDRHistogramFactory();
+    }
 
-    Class<T> getMetricType();
+    private static class AtomicHDRHistogramFactory implements LatencyFactory {
+        @Override
+        public <T extends Enum<T>> LatencyMetrics<T> newLatency(Class<T> clazz, long nanoTime) {
+            return new AtomicHDRHistogram<>(clazz);
+        }
+    }
 }

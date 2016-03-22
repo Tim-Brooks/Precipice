@@ -35,10 +35,10 @@ public class IntervalLatencyMetricsTest {
     @Test
     public void latencyIsPartitionedByMetric() {
         for (int i = 1; i <= 100000; ++i) {
-            metrics.recordLatency(TestResult.SUCCESS, 1L, i);
+            metrics.record(TestResult.SUCCESS, 1L, i);
         }
         for (int i = 100001; i <= 200000; ++i) {
-            metrics.recordLatency(TestResult.ERROR, 1L, i);
+            metrics.record(TestResult.ERROR, 1L, i);
         }
 
         // For side effects
@@ -69,10 +69,10 @@ public class IntervalLatencyMetricsTest {
     @Test
     public void intervalLatencyIsPartitionedByMetric() {
         for (int i = 1; i <= 100000; ++i) {
-            metrics.recordLatency(TestResult.SUCCESS, 1L, i);
+            metrics.record(TestResult.SUCCESS, 1L, i);
         }
         for (int i = 100001; i <= 200000; ++i) {
-            metrics.recordLatency(TestResult.ERROR, 1L, i);
+            metrics.record(TestResult.ERROR, 1L, i);
         }
 
         Histogram successHistogram = metrics.intervalHistogram(TestResult.SUCCESS);
@@ -102,17 +102,17 @@ public class IntervalLatencyMetricsTest {
         for (TestResult m : metricArray) {
 
             for (int i = 1; i <= 100000; ++i) {
-                metrics.recordLatency(m, 1L, i);
+                metrics.record(m, 1L, i);
             }
             Histogram histogram1 = metrics.intervalHistogram(m);
 
             for (int i = 100001; i <= 200000; ++i) {
-                metrics.recordLatency(m, 1L, i);
+                metrics.record(m, 1L, i);
             }
             Histogram histogram2 = metrics.intervalHistogram(m);
 
             for (int i = 200001; i <= 300000; ++i) {
-                metrics.recordLatency(m, 1L, i);
+                metrics.record(m, 1L, i);
             }
 
             Histogram histogram3 = metrics.intervalHistogram(m);

@@ -1,4 +1,4 @@
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.metrics.LatencyMetrics;
 

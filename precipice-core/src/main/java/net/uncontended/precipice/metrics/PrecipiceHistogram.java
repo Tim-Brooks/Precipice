@@ -15,24 +15,14 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.AtomicHDRHistogram;
-import net.uncontended.precipice.metrics.LatencyMetrics;
+import org.HdrHistogram.Histogram;
 
-public final class Latency {
+public interface PrecipiceHistogram {
 
-    private Latency() {
-    }
+    long getValueAtPercentile(double percentile);
 
-    public static LatencyFactory atomicHDRHistogram() {
-        return new AtomicHDRHistogramFactory();
-    }
+    Histogram hdrHistogram();
 
-    private static class AtomicHDRHistogramFactory implements LatencyFactory {
-        @Override
-        public <T extends Enum<T>> LatencyMetrics<T> newLatency(Class<T> clazz, long nanoTime) {
-            return new AtomicHDRHistogram<>(clazz);
-        }
-    }
 }

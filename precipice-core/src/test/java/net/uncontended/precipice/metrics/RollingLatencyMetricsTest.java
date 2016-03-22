@@ -41,7 +41,7 @@ public class RollingLatencyMetricsTest {
 //        ThreadLocalRandom current = ThreadLocalRandom.current();
 //        for (int i = 1; i <= 100000; ++i) {
 //            int n = current.nextInt(3);
-//            metrics.recordLatency(metricArray[n], i);
+//            metrics.record(metricArray[n], i);
 //        }
 //
 //        LatencySnapshot snapshot = metrics.latencySnapshot();
@@ -59,13 +59,13 @@ public class RollingLatencyMetricsTest {
 //    @Test
 //    public void latencyIsPartitionedByMetric() {
 //        for (int i = 1; i <= 100000; ++i) {
-//            metrics.recordLatency(Metric.SUCCESS, i);
+//            metrics.record(Metric.SUCCESS, i);
 //        }
 //        for (int i = 100001; i <= 200000; ++i) {
-//            metrics.recordLatency(Metric.ERROR, i);
+//            metrics.record(Metric.ERROR, i);
 //        }
 //        for (int i = 200001; i <= 300000; ++i) {
-//            metrics.recordLatency(Metric.TIMEOUT, i);
+//            metrics.record(Metric.TIMEOUT, i);
 //        }
 //
 //        LatencySnapshot successSnapshot = metrics.latencySnapshot(Metric.SUCCESS);
@@ -148,10 +148,10 @@ public class RollingLatencyMetricsTest {
 //    }
 //
 //    private void populateLatency(Metric metric, long windowStart) {
-//        metrics.recordLatency(metric, 5L, windowStart + TWO_MINUTES);
-//        metrics.recordLatency(metric, 5L, windowStart + (TWO_MINUTES * 2));
-//        metrics.recordLatency(metric, 5L, windowStart + (TWO_MINUTES * 3));
-//        metrics.recordLatency(metric, 5L, windowStart + (TWO_MINUTES * 4));
+//        metrics.record(metric, 5L, windowStart + TWO_MINUTES);
+//        metrics.record(metric, 5L, windowStart + (TWO_MINUTES * 2));
+//        metrics.record(metric, 5L, windowStart + (TWO_MINUTES * 3));
+//        metrics.record(metric, 5L, windowStart + (TWO_MINUTES * 4));
 //    }
 //
 //    private LatencySnapshot defaultSnapshot(long startTime, long endTime) {

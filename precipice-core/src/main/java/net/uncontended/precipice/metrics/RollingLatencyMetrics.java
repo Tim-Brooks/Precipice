@@ -15,27 +15,20 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.CircularBuffer;
-import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
-import net.uncontended.precipice.metrics.LatencyMetrics;
-import net.uncontended.precipice.metrics.NoOpLatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Unstable and still in development. At this time, {@link IntervalLatencyMetrics} should be used.
- */
 public class RollingLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<T>, Rolling<LatencyMetrics<T>> {
 
     private final Class<T> clazz;
     private final LatencyFactory factory;
     private final Clock clock;
     private final CircularBuffer<LatencyMetrics<T>> buffer;
-    private final NoOpLatencyMetrics<T> noOpLatency;
+    private final NoOpLatency<T> noOpLatency;
 
     public RollingLatencyMetrics(Class<T> clazz) {
         this(clazz, Latency.atomicHDRHistogram());
@@ -66,28 +59,44 @@ public class RollingLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<
         long startNanos = clock.nanoTime();
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
-        noOpLatency = new NoOpLatencyMetrics<>(clazz);
+        noOpLatency = new NoOpLatency<>(clazz);
     }
 
     @Override
-    public void recordLatency(T metric, long number, long nanoLatency) {
-        recordLatency(metric, number, nanoLatency, clock.nanoTime());
+    public void record(T metric, long number, long nanoLatency) {
+        record(metric, number, nanoLatency, clock.nanoTime());
     }
 
     @Override
-    public void recordLatency(T metric, long number, long nanoLatency, long nanoTime) {
+    public void record(T metric, long number, long nanoLatency, long nanoTime) {
         LatencyMetrics<T> latencyMetrics = buffer.getSlot(nanoTime);
         if (latencyMetrics == null) {
             latencyMetrics = buffer.putOrGet(nanoTime, factory.newLatency(clazz, nanoTime));
         }
         if (latencyMetrics != null) {
-            latencyMetrics.recordLatency(metric, number, nanoLatency, nanoTime);
+            latencyMetrics.record(metric, number, nanoLatency, nanoTime);
         }
+    }
+
+    @Override
+    public PrecipiceHistogram getHistogram(T metric) {
+        return null;
     }
 
     @Override
     public Class<T> getMetricType() {
         return clazz;
+    }
+
+    @Override
+    public LatencyMetrics<T> current() {
+        return current(clock.nanoTime());
+    }
+
+    @Override
+    public LatencyMetrics<T> current(long nanoTime) {
+        LatencyMetrics<T> latency = buffer.getSlot(nanoTime);
+        return latency != null ? latency : noOpLatency;
     }
 
     @Override

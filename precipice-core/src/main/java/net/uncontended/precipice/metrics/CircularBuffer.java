@@ -100,16 +100,8 @@ public class CircularBuffer<T> {
         return (int) (absoluteSlot & mask);
     }
 
-    private static void validateSlotSize(long nanosPerSlot) {
-        if (nanosPerSlot < 0) {
-            String message = "Nanoseconds per slot must be positive. Found: [%s nanoseconds]";
-            throw new IllegalArgumentException(String.format(message, Integer.MAX_VALUE));
-        }
-        if (TimeUnit.MILLISECONDS.toNanos(100) > nanosPerSlot) {
-            throw new IllegalArgumentException(String.format("Too low of resolution: [%s nanoseconds]. 100 " +
-                    "milliseconds is the minimum resolution.", nanosPerSlot));
-        }
-
+    private long currentAbsoluteSlot(long nanoTime) {
+        return (nanoTime - startNanos) / nanosPerSlot;
     }
 
     private long convertToSlots(long timePeriod, TimeUnit timeUnit) {
@@ -126,8 +118,16 @@ public class CircularBuffer<T> {
         return slotCount;
     }
 
-    private long currentAbsoluteSlot(long nanoTime) {
-        return (nanoTime - startNanos) / nanosPerSlot;
+    private static void validateSlotSize(long nanosPerSlot) {
+        if (nanosPerSlot < 0) {
+            String message = "Nanoseconds per slot must be positive. Found: [%s nanoseconds]";
+            throw new IllegalArgumentException(String.format(message, Integer.MAX_VALUE));
+        }
+        if (TimeUnit.MILLISECONDS.toNanos(100) > nanosPerSlot) {
+            throw new IllegalArgumentException(String.format("Too low of resolution: [%s nanoseconds]. 100 " +
+                    "milliseconds is the minimum resolution.", nanosPerSlot));
+        }
+
     }
 
     private static int nextPositivePowerOfTwo(int slotsToTrack) {

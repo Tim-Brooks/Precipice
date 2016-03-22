@@ -15,9 +15,8 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -25,20 +24,32 @@ public class RelaxedLatencyInterval<T extends Enum<T>> implements LatencyMetrics
 
     private final Clock clock = new SystemTime();
     private final Class<T> clazz;
+    private final LatencyFactory latencyFactory;
     private volatile LatencyMetrics<T> live;
 
     public RelaxedLatencyInterval(Class<T> clazz) {
+        this(clazz, Latency.atomicHDRHistogram());
+    }
+
+    public RelaxedLatencyInterval(Class<T> clazz, LatencyFactory latencyFactory) {
         this.clazz = clazz;
+        this.latencyFactory = latencyFactory;
+        this.live = latencyFactory.newLatency(clazz, clock.nanoTime());
     }
 
     @Override
-    public void recordLatency(T result, long number, long nanoLatency) {
-        recordLatency(result, number, nanoLatency, clock.nanoTime());
+    public void record(T result, long number, long nanoLatency) {
+        record(result, number, nanoLatency, clock.nanoTime());
     }
 
     @Override
-    public void recordLatency(T result, long number, long nanoLatency, long nanoTime) {
-        live.recordLatency(result, number, nanoLatency, nanoTime);
+    public void record(T result, long number, long nanoLatency, long nanoTime) {
+        live.record(result, number, nanoLatency, nanoTime);
+    }
+
+    @Override
+    public PrecipiceHistogram getHistogram(T metric) {
+        return null;
     }
 
     @Override
@@ -47,7 +58,22 @@ public class RelaxedLatencyInterval<T extends Enum<T>> implements LatencyMetrics
     }
 
     @Override
-    public synchronized LatencyMetrics<T> interval(LatencyMetrics<T> newMetrics) {
+    public LatencyMetrics<T> current() {
+        return live;
+    }
+
+    @Override
+    public synchronized LatencyMetrics<T> interval() {
+        return interval(clock.nanoTime());
+    }
+
+    @Override
+    public synchronized LatencyMetrics<T> interval(long nanoTime) {
+        return interval(nanoTime, latencyFactory.newLatency(clazz, nanoTime));
+    }
+
+    @Override
+    public synchronized LatencyMetrics<T> interval(long nanoTime, LatencyMetrics<T> newMetrics) {
         LatencyMetrics<T> oldLive = live;
         live = newMetrics;
         return oldLive;

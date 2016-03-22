@@ -19,9 +19,11 @@ package net.uncontended.precipice.metrics;
 
 public interface LatencyMetrics<T extends Enum<T>> {
 
-    void recordLatency(T result, long number, long nanoLatency);
+    void record(T result, long number, long nanoLatency);
 
-    void recordLatency(T result, long number, long nanoLatency, long nanoTime);
+    void record(T result, long number, long nanoLatency, long nanoTime);
+
+    PrecipiceHistogram getHistogram(T metric);
 
     Class<T> getMetricType();
 }

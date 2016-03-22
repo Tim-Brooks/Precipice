@@ -15,14 +15,17 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import org.HdrHistogram.Histogram;
+import java.util.concurrent.TimeUnit;
 
-public interface PrecipiceHistogram {
+public interface Rolling<T> {
 
-    long getValueAtPercentile(double percentile);
+    T current();
 
-    Histogram hdrHistogram();
+    T current(long nanoTime);
 
+    Iterable<T> forPeriod(long timePeriod, TimeUnit timeUnit);
+
+    Iterable<T> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
 }

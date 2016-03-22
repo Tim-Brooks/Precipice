@@ -15,9 +15,8 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 import org.HdrHistogram.WriterReaderPhaser;
@@ -27,25 +26,39 @@ public class StrictLatencyInterval<T extends Enum<T>> implements LatencyMetrics<
     private final Clock clock = new SystemTime();
     private final Class<T> clazz;
     private final WriterReaderPhaser phaser = new WriterReaderPhaser();
+    private final LatencyFactory latencyFactory;
+    private final NoOpLatency<T> noOpLatency;
     private volatile LatencyMetrics<T> live;
 
     public StrictLatencyInterval(Class<T> clazz) {
+        this(clazz, Latency.atomicHDRHistogram());
+    }
+
+    public StrictLatencyInterval(Class<T> clazz, LatencyFactory latencyFactory) {
         this.clazz = clazz;
+        this.latencyFactory = latencyFactory;
+        this.live = latencyFactory.newLatency(clazz, clock.nanoTime());
+        this.noOpLatency = new NoOpLatency<>(clazz);
     }
 
     @Override
-    public void recordLatency(T result, long number, long nanoLatency) {
-        recordLatency(result, number, nanoLatency, clock.nanoTime());
+    public void record(T result, long number, long nanoLatency) {
+        record(result, number, nanoLatency, clock.nanoTime());
     }
 
     @Override
-    public void recordLatency(T result, long number, long nanoLatency, long nanoTime) {
+    public void record(T result, long number, long nanoLatency, long nanoTime) {
         long permit = phaser.writerCriticalSectionEnter();
         try {
-            live.recordLatency(result, number, nanoLatency, nanoTime);
+            live.record(result, number, nanoLatency, nanoTime);
         } finally {
             phaser.writerCriticalSectionExit(permit);
         }
+    }
+
+    @Override
+    public PrecipiceHistogram getHistogram(T metric) {
+        return noOpLatency.getHistogram(metric);
     }
 
     @Override
@@ -54,10 +67,24 @@ public class StrictLatencyInterval<T extends Enum<T>> implements LatencyMetrics<
     }
 
     @Override
-    public synchronized LatencyMetrics<T> interval(LatencyMetrics<T> newMetrics) {
+    public LatencyMetrics<T> current() {
+        return live;
+    }
+
+    @Override
+    public synchronized LatencyMetrics<T> interval() {
+        return interval(clock.nanoTime());
+    }
+
+    @Override
+    public synchronized LatencyMetrics<T> interval(long nanoTime) {
+        return interval(nanoTime, latencyFactory.newLatency(clazz, nanoTime));
+    }
+
+    @Override
+    public synchronized LatencyMetrics<T> interval(long nanoTime, LatencyMetrics<T> newMetrics) {
         phaser.readerLock();
         try {
-
             LatencyMetrics<T> oldLive = live;
             live = newMetrics;
             phaser.flipPhase(500000L);

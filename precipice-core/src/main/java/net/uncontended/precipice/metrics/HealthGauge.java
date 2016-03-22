@@ -18,7 +18,6 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.experimental.Rolling;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +42,7 @@ public class HealthGauge {
         return new HealthSnapshot(total, failures);
     }
 
-    public <Result extends Enum<Result> & Failable> void add(RollingCountMetrics<Result> metrics) {
+    public <Result extends Enum<Result> & Failable> void add(Rolling<CountMetrics<Result>> metrics) {
         gauges.add(new InternalGauge<>(metrics));
     }
 
@@ -54,9 +53,9 @@ public class HealthGauge {
         private long total = 0;
         private long failures = 0;
 
-        private InternalGauge(RollingCountMetrics<Result> metrics) {
+        private InternalGauge(Rolling<CountMetrics<Result>> metrics) {
             this.metrics = metrics;
-            type = metrics.getMetricType();
+            type = metrics.current().getMetricType();
         }
 
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {

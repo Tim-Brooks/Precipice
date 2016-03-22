@@ -20,8 +20,8 @@ package net.uncontended.precipice.circuit;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.HealthGauge;
 import net.uncontended.precipice.metrics.HealthSnapshot;
+import net.uncontended.precipice.metrics.NoOpCounter;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.metrics.RollingCounts;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;
@@ -51,6 +51,7 @@ public class DefaultCircuitBreakerTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         when(guardRail.getResultMetrics()).thenReturn(countMetrics);
+        when(countMetrics.current()).thenReturn(new NoOpCounter<>(TestResult.class));
     }
 
     @Test

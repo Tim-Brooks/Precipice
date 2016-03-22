@@ -19,6 +19,7 @@ package net.uncontended.precipice.reporting.registry;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.*;
+import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.concurrent.TimeUnit;
 
@@ -60,9 +61,9 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
             totalMetricCounts[metricIndex] = resultMetrics.getCount(t);
         }
 
-        if (resultMetrics instanceof RollingCounts) {
-            RollingCounts<Result> rollingMetrics = (RollingCounts<Result>) resultMetrics;
-            for (CountMetrics<Result> m : rollingMetrics.metricCounters(period, unit)) {
+        if (resultMetrics instanceof RollingCountMetrics) {
+            Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
+            for (CountMetrics<Result> m : rollingMetrics.forPeriod(period, unit)) {
                 for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
                     metricCounts[t.ordinal()] += m.getCount(t);
                 }

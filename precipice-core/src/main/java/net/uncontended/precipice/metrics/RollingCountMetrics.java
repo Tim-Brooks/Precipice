@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.experimental.Rolling;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -104,7 +103,13 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, 
         return count;
     }
 
-    public CountMetrics<T> currentCounter(long nanoTime) {
+    @Override
+    public CountMetrics<T> current() {
+        return current(clock.nanoTime());
+    }
+
+    @Override
+    public CountMetrics<T> current(long nanoTime) {
         CountMetrics<T> counter = buffer.getSlot(nanoTime);
         return counter != null ? counter : noOpCounter;
     }
