@@ -18,69 +18,83 @@ package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.*;
+import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.Rolling;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class Summary<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
     private final long period;
     private final TimeUnit unit;
     private final GuardRail<Result, Rejected> guardRail;
-    private final CountMetrics<Result> resultMetrics;
+    private final Class<Result> resultClazz;
+    private final Class<Rejected> rejectedClazz;
 
-    public final long[] totalMetricCounts;
-    public final long[] metricCounts;
+    public final long[] totalResultCounts;
+    public final long[] resultCounts;
 
-    public final LatencySnapshot[] latencies;
-    public final LatencySnapshot[] totalLatencies;
+    public final long[] totalRejectedCounts;
+    public final long[] rejectedCounts;
 
-    // TODO: Add rejections
+    private SummaryProperties properties = new SummaryProperties();
 
     Summary(long period, TimeUnit unit, GuardRail<Result, Rejected> guardRail) {
         this.period = period;
         this.unit = unit;
         this.guardRail = guardRail;
-        resultMetrics = guardRail.getResultMetrics();
-        int length = resultMetrics.getMetricType().getEnumConstants().length;
-        totalMetricCounts = new long[length];
-        metricCounts = new long[length];
-        latencies = new LatencySnapshot[length];
-        totalLatencies = new LatencySnapshot[length];
-        for (int i = 0; i < length; ++i) {
-            latencies[i] = LatencySnapshot.DEFAULT_SNAPSHOT;
-            totalLatencies[i] = LatencySnapshot.DEFAULT_SNAPSHOT;
-        }
+
+        resultClazz = guardRail.getResultMetrics().getMetricType();
+        int resultLength = resultClazz.getEnumConstants().length;
+        totalResultCounts = new long[resultLength];
+        resultCounts = new long[resultLength];
+
+        rejectedClazz = guardRail.getRejectedMetrics().getMetricType();
+        int rejectedLength = rejectedClazz.getEnumConstants().length;
+        totalRejectedCounts = new long[rejectedLength];
+        rejectedCounts = new long[rejectedLength];
+
     }
 
     public void refresh() {
+        Arrays.fill(resultCounts, 0);
+        Arrays.fill(rejectedCounts, 0);
 
-        for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
-            int metricIndex = t.ordinal();
-            metricCounts[metricIndex] = 0;
-            totalMetricCounts[metricIndex] = resultMetrics.getCount(t);
-        }
+        CountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
+        CountMetrics<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
 
-        if (resultMetrics instanceof RollingCountMetrics) {
+
+        if (resultMetrics instanceof Rolling) {
             Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
             for (CountMetrics<Result> m : rollingMetrics.forPeriod(period, unit)) {
                 for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
-                    metricCounts[t.ordinal()] += m.getCount(t);
+                    resultCounts[t.ordinal()] += m.getCount(t);
                 }
             }
         }
 
-        LatencyMetrics<Result> latencyMetrics = guardRail.getLatencyMetrics();
-
-        if (latencyMetrics instanceof IntervalLatencyMetrics) {
-            IntervalLatencyMetrics<Result> intervalMetrics = (IntervalLatencyMetrics<Result>) latencyMetrics;
-            for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
-//                latencies[t.ordinal()] = intervalMetrics.intervalSnapshot(t);
+        if (properties.accumulateTotalResults) {
+            for (Result t : resultClazz.getEnumConstants()) {
+                int metricIndex = t.ordinal();
+                totalResultCounts[metricIndex] += resultCounts[metricIndex];
+            }
+        } else {
+            for (Result t : resultClazz.getEnumConstants()) {
+                int metricIndex = t.ordinal();
+                totalResultCounts[metricIndex] = resultMetrics.getCount(t);
             }
         }
 
-        for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
-//            totalLatencies[t.ordinal()] = latencyMetrics.latencySnapshot(t);
+        if (properties.accumulateTotalRejections) {
+            for (Rejected t : rejectedClazz.getEnumConstants()) {
+                int metricIndex = t.ordinal();
+                totalRejectedCounts[metricIndex] += rejectedCounts[metricIndex];
+            }
+        } else {
+            for (Rejected t : rejectedClazz.getEnumConstants()) {
+                int metricIndex = t.ordinal();
+                totalRejectedCounts[metricIndex] = rejectedMetrics.getCount(t);
+            }
         }
     }
 }

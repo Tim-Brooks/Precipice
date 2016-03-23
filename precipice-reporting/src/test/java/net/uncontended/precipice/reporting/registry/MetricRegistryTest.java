@@ -103,8 +103,8 @@ public class MetricRegistryTest {
 //        Summary<?> summary = summaryReference.get();
 //        assertEquals(pendingN, summary.pendingCount);
 //        assertEquals(capacityN, summary.remainingCapacity);
-//        assertNull(summary.totalMetricCounts);
-//        assertEquals(errorN, summary.metricCounts);
+//        assertNull(summary.totalResultCounts);
+//        assertEquals(errorN, summary.resultCounts);
 
 //        assertEquals(successLatencySnapshot, summary.successLatency);
 //        assertEquals(errorLatencySnapshot, summary.errorLatency);

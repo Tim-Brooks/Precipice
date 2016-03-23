@@ -181,8 +181,9 @@ project(':precipice-samples') {
 project(':precipice-reporting') {
 
     dependencies {
-        compile project(':precipice-core')
         compile 'io.undertow:undertow-core:1.2.10.Final'
+
+        compile project(':precipice-core')
     }
 
     task sourcesJar(type: Jar) {

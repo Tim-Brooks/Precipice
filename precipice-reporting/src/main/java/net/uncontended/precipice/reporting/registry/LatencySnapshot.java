@@ -17,9 +17,8 @@
 
 package net.uncontended.precipice.reporting.registry;
 
+
 import org.HdrHistogram.Histogram;
-import org.HdrHistogram.HistogramIterationValue;
-import org.HdrHistogram.RecordedValuesIterator;
 
 public class LatencySnapshot {
     public static final LatencySnapshot DEFAULT_SNAPSHOT = new LatencySnapshot(-1, -1, -1, -1, -1, -1, -1, -1.0, -1, -1);
