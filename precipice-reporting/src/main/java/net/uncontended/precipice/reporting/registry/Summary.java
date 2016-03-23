@@ -67,8 +67,17 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         if (resultMetrics instanceof Rolling) {
             Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
             for (CountMetrics<Result> m : rollingMetrics.forPeriod(period, unit)) {
-                for (Result t : resultMetrics.getMetricType().getEnumConstants()) {
+                for (Result t : resultClazz.getEnumConstants()) {
                     resultCounts[t.ordinal()] += m.getCount(t);
+                }
+            }
+        }
+
+        if (rejectedMetrics instanceof Rolling) {
+            Rolling<CountMetrics<Rejected>> rollingMetrics = (Rolling<CountMetrics<Rejected>>) rejectedMetrics;
+            for (CountMetrics<Rejected> m : rollingMetrics.forPeriod(period, unit)) {
+                for (Rejected t : rejectedClazz.getEnumConstants()) {
+                    rejectedCounts[t.ordinal()] += m.getCount(t);
                 }
             }
         }
