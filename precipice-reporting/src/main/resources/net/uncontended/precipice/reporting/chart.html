@@ -2,33 +2,9 @@
 <head>
     <script src="jquery-1.11.3.min.js"></script>
     <script src="d3.min.js"></script>
-    <script src="epoch.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="epoch.min.css">
 </head>
 <body>
-<div id="lineChart" class="epoch category10" style="width: 800px; height: 200px"></div>
 <script>
-var lineChartData = [
-  {
-    label: "Series 1",
-    values: [{time: 1439320207, y: 4}]
-  }];
-  var chart = $('#lineChart').epoch({
-    type: 'time.line',
-    data: lineChartData
-  });
-  function poll() {
-    $.get("/api", function(data, status) {
-        for (i = 0; i < data.length; i++) {
-            var d = data[i]
-            d.time = Math.trunc(d.time / 1000)
-            chart.push([d]);
-        };
-        poll();
-        }).error(function(d, e) {alert(d);});
-  }
-
-  poll()
 
 </script>
 </body>
