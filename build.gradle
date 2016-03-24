@@ -182,6 +182,7 @@ project(':precipice-reporting') {
 
     dependencies {
         compile 'io.undertow:undertow-core:1.2.10.Final'
+        compile 'com.fasterxml.jackson.core:jackson-core:2.7.3'
 
         compile project(':precipice-core')
     }

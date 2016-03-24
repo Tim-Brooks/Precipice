@@ -16,9 +16,23 @@
 
 package net.uncontended.precipice.reporting.registry;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import net.uncontended.precipice.Failable;
+
+import java.io.IOException;
+import java.io.StringWriter;
+
 public class ToJSON {
 
-    public String write(Summary<?, ?> summary) {
+    public <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> String write(Slice<Result, Rejected>[] slices) {
+        JsonFactory jsonFactory = new JsonFactory();
+        try {
+            JsonGenerator generator = jsonFactory.createGenerator(new StringWriter());
+        } catch (IOException e) {
+            return "{}";
+        }
+
         return "";
     }
 }
