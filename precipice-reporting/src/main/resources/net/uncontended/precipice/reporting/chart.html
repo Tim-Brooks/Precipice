@@ -2,10 +2,152 @@
 <head>
     <script src="jquery-1.11.3.min.js"></script>
     <script src="d3.min.js"></script>
+    <script src="metricsgraphics.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="metricsgraphics.css">
 </head>
 <body>
+<div id="failure_percentage"></div>
+<div class="col-lg-7 text-center" id="result_counts"></div>
+<div class="col-lg-7 text-center result_legend"></div>
+<div class="col-lg-7 text-center" id="rejected_counts"></div>
+<div class="col-lg-7 text-center rejected_legend"></div>
 <script>
 
+var data_map = {"name": "Drive",
+                "results": {"success": true, "error": false, "timeout": false},
+                "rejections": ["circuit_open"],
+                "epochs": [1458755967000,
+                           1458755968000,
+                           1458755969000,
+                           1458755970000,
+                           1458755971000,
+                           1458755972000,
+                           1458755973000,
+                           1458755974000,
+                           1458755975000,
+                           1458755976000,
+                           1458755978000,
+                           1458755979000,
+                           1458755980000,
+                           1458755981000],
+                "result_counts": [{"success": 110, "error": 0, "timeout": 0},
+                                  {"success": 192, "error": 6, "timeout": 2},
+                                  {"success": 69, "error": 12, "timeout": 37},
+                                  {"success": 80, "error": 0, "timeout": 29},
+                                  {"success": 43, "error": 37, "timeout": 20},
+                                  {"success": 100, "error": 12, "timeout": 0},
+                                  {"success": 100, "error": 0, "timeout": 34},
+                                  {"success": 100, "error": 0, "timeout": 3},
+                                  {"success": 92, "error": 6, "timeout": 2},
+                                  {"success": 69, "error": 10, "timeout": 30},
+                                  {"success": 80, "error": 10, "timeout": 20},
+                                  {"success": 43, "error": 137, "timeout": 20},
+                                  {"success": 100, "error": 0, "timeout": 0},
+                                  {"success": 100, "error": 0, "timeout": 0}],
+                "rejected_counts": [{"circuit_open": 0},
+                                    {"circuit_open": 0},
+                                    {"circuit_open": 69},
+                                    {"circuit_open": 0},
+                                    {"circuit_open": 0},
+                                    {"circuit_open": 0},
+                                    {"circuit_open": 1},
+                                    {"circuit_open": 2},
+                                    {"circuit_open": 0},
+                                    {"circuit_open": 9},
+                                    {"circuit_open": 8},
+                                    {"circuit_open": 0},
+                                    {"circuit_open": 0},
+                                    {"circuit_open": 0}]}
+
+var result_array = Object.keys(data_map.results);
+var rejection_array = data_map.rejections;
+
+function calculate_failures(data_map) {
+    var epoch_array = data_map.epochs;
+    var result_count_array = data_map.result_counts;
+    var sample_count = data_map.epochs.length;
+    var data=[];
+
+    var result_to_is_failure = data_map.results;
+    for (var i = 0; i < sample_count; i++) {
+        var counts = result_count_array[i];
+        var total = 0;
+        var successes = 0;
+        for (r in result_to_is_failure) {
+            if (result_to_is_failure[r]) {
+                successes += counts[r];
+            }
+            total += counts[r];
+        }
+        if (total == 0) {
+            data.push({date: new Date(epoch_array[i]), value: 0});
+        } else {
+            data.push({date: new Date(epoch_array[i]), value: successes / total});
+        }
+    }
+    return data;
+}
+
+function calculate_counts(epoch_array, enum_array, count_array) {
+    var sample_count = epoch_array.length;
+    var data = [];
+
+    for (var i = 0; i < enum_array.length; i++) {
+        data.push([]);
+    }
+    for (var i = 0; i < sample_count; i++) {
+        var date = new Date(epoch_array[i]);
+        var counts = count_array[i];
+        for (var j = 0; j < enum_array.length; j++) {
+            var r = enum_array[j];
+            data[j].push({date: date, value: counts[r]});
+        }
+    }
+    return data;
+}
+
+var failure_percentage = calculate_failures(data_map);
+
+var result_counts = calculate_counts(data_map.epochs, result_array, data_map.result_counts);
+var rejected_counts = calculate_counts(data_map.epochs, rejection_array, data_map.rejected_counts);
+
+MG.data_graphic({
+    title: "Failure Percentage",
+    data: failure_percentage,
+    target: '#failure_percentage',
+    format: 'percentage',
+    width: 800,
+    height: 250,
+    right: 40
+});
+
+MG.data_graphic({
+    title: "Result Counts",
+    data: result_counts,
+    width: 1200,
+    height: 400,
+    right: 40,
+    area: false,
+    missing_is_zero: true,
+    aggregate_rollover: true,
+    target: '#result_counts',
+    legend: result_array,
+    legend_target: '.result_legend'
+});
+
+MG.data_graphic({
+    title: "Rejection Counts",
+    data: rejected_counts,
+    width: 800,
+    height: 250,
+    right: 40,
+    area: false,
+    missing_is_zero: true,
+    aggregate_rollover: true,
+    target: '#rejected_counts',
+    legend: rejection_array,
+    legend_target: '.rejected_legend'
+});
 </script>
 </body>
 </html>
