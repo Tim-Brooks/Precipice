@@ -23,16 +23,74 @@ import net.uncontended.precipice.Failable;
 import java.io.IOException;
 import java.io.StringWriter;
 
-public class ToJSON {
+public class ToJSON<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    public <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> String write(Slice<Result, Rejected>[] slices) {
-        JsonFactory jsonFactory = new JsonFactory();
+
+    private static final String EMPTY = "{}";
+    private JsonFactory jsonFactory = new JsonFactory();
+
+    public String write(Summary<Result, Rejected> summary) {
+        Slice<Result, Rejected>[] slices = summary.getSlices();
+
+        Class<Result> resultClazz = summary.resultClazz;
+        Class<Rejected> rejectedClazz = summary.rejectedClazz;
+
+        StringWriter w = new StringWriter();
         try {
-            JsonGenerator generator = jsonFactory.createGenerator(new StringWriter());
+            JsonGenerator generator = jsonFactory.createGenerator(w);
+            generator.writeStartObject();
+            generator.writeObjectFieldStart("result-to-success?");
+            for (Result r : resultClazz.getEnumConstants()) {
+                generator.writeObjectField(r.toString(), r.isFailure());
+            }
+            generator.writeEndObject();
+            generator.writeArrayFieldStart("rejected");
+            for (Rejected r : rejectedClazz.getEnumConstants()) {
+                generator.writeString(r.toString());
+            }
+            generator.writeEndArray();
+            generator.writeArrayFieldStart("slices");
+            writeSlice(generator, slices[0]);
+            generator.writeEndArray();
+            generator.writeEndObject();
+            generator.flush();
         } catch (IOException e) {
-            return "{}";
+            e.printStackTrace();
+            return EMPTY;
         }
 
-        return "";
+        return w.toString();
+    }
+
+    private void writeSlice(JsonGenerator generator, Slice<Result, Rejected> slice) throws IOException {
+        generator.writeStartObject();
+        generator.writeObjectField("start-epoch", slice.startEpoch);
+        generator.writeObjectField("end-epoch", slice.endEpoch);
+
+        generator.writeObjectFieldStart("total-result-counts");
+        for (Result result : slice.resultClazz.getEnumConstants()) {
+            generator.writeObjectField(result.toString(), slice.totalResultCounts[result.ordinal()]);
+        }
+        generator.writeEndObject();
+
+        generator.writeObjectFieldStart("result-counts");
+        for (Result result : slice.resultClazz.getEnumConstants()) {
+            generator.writeObjectField(result.toString(), slice.resultCounts[result.ordinal()]);
+        }
+        generator.writeEndObject();
+
+        generator.writeObjectFieldStart("total-rejected-counts");
+        for (Rejected result : slice.rejectedClazz.getEnumConstants()) {
+            generator.writeObjectField(result.toString(), slice.totalRejectedCounts[result.ordinal()]);
+        }
+        generator.writeEndObject();
+
+        generator.writeObjectFieldStart("rejected-counts");
+        for (Rejected result : slice.rejectedClazz.getEnumConstants()) {
+            generator.writeObjectField(result.toString(), slice.rejectedCounts[result.ordinal()]);
+        }
+        generator.writeEndObject();
+
+        generator.writeEndObject();
     }
 }

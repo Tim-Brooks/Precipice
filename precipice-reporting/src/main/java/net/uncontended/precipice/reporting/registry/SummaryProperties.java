@@ -21,4 +21,6 @@ public class SummaryProperties {
     public boolean accumulateTotalResults;
 
     public boolean accumulateTotalRejections;
+
+    public int bufferSize;
 }

@@ -28,19 +28,18 @@ public class Slice<Result extends Enum<Result> & Failable, Rejected extends Enum
     public final long[] totalRejectedCounts;
     public final long[] rejectedCounts;
 
-    public final long startEpoch;
-    public final long endEpoch;
+    public long startEpoch = -1;
+    public long endEpoch = -1;
 
-    public Slice(Class<Result> resultClazz, Class<Rejected> rejectedClazz, long[] totalResultCounts,
-                 long[] resultCounts, long[] totalRejectedCounts, long[] rejectedCounts, long startEpoch,
-                 long endEpoch) {
+    public Slice(Class<Result> resultClazz, Class<Rejected> rejectedClazz) {
         this.resultClazz = resultClazz;
         this.rejectedClazz = rejectedClazz;
-        this.totalResultCounts = totalResultCounts;
-        this.resultCounts = resultCounts;
-        this.totalRejectedCounts = totalRejectedCounts;
-        this.rejectedCounts = rejectedCounts;
-        this.startEpoch = startEpoch;
-        this.endEpoch = endEpoch;
+        int resultLength = resultClazz.getEnumConstants().length;
+        int rejectedLength = rejectedClazz.getEnumConstants().length;
+
+        this.totalResultCounts = new long[resultLength];
+        this.resultCounts = new long[resultLength];
+        this.totalRejectedCounts = new long[rejectedLength];
+        this.rejectedCounts = new long[rejectedLength];
     }
 }

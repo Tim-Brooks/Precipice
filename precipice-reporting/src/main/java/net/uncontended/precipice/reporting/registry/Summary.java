@@ -25,17 +25,20 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class Summary<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
+    public final Class<Result> resultClazz;
+    public final Class<Rejected> rejectedClazz;
     private final long period;
     private final TimeUnit unit;
     private final GuardRail<Result, Rejected> guardRail;
-    private final Class<Result> resultClazz;
-    private final Class<Rejected> rejectedClazz;
 
-    public final long[] totalResultCounts;
-    public final long[] resultCounts;
+    private final long[] totalResultCounts;
+    private final long[] resultCounts;
 
-    public final long[] totalRejectedCounts;
-    public final long[] rejectedCounts;
+    private final long[] totalRejectedCounts;
+    private final long[] rejectedCounts;
+
+    private volatile int current = 0;
+    private Slice<Result, Rejected>[] slices;
 
     private SummaryProperties properties = new SummaryProperties();
 
@@ -54,6 +57,10 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         totalRejectedCounts = new long[rejectedLength];
         rejectedCounts = new long[rejectedLength];
 
+        slices = (Slice<Result, Rejected>[]) new Slice[properties.bufferSize];
+        for (int i = 0; i < slices.length; ++i) {
+            slices[i] = new Slice<>(resultClazz, rejectedClazz);
+        }
     }
 
     public void refresh() {
@@ -105,5 +112,25 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
                 totalRejectedCounts[metricIndex] = rejectedMetrics.getCount(t);
             }
         }
+        ++current;
+    }
+
+    public Slice<Result, Rejected> currentSlice() {
+        return slices[current % slices.length];
+    }
+
+    public Slice<Result, Rejected>[] getSlices() {
+        return slices;
+    }
+
+    private void updateSlice(long startEpoch, long endEpoch) {
+        Slice<Result, Rejected> slice = slices[0];
+
+        slice.startEpoch = startEpoch;
+        slice.endEpoch = endEpoch;
+        System.arraycopy(resultCounts, 0, slice.resultCounts, 0, resultCounts.length);
+        System.arraycopy(totalResultCounts, 0, slice.totalResultCounts, 0, totalResultCounts.length);
+        System.arraycopy(rejectedCounts, 0, slice.rejectedCounts, 0, rejectedCounts.length);
+        System.arraycopy(totalRejectedCounts, 0, slice.totalRejectedCounts, 0, totalRejectedCounts.length);
     }
 }
