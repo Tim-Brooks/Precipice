@@ -21,10 +21,10 @@ import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 import org.HdrHistogram.WriterReaderPhaser;
 
-public class StrictLatencyInterval<T extends Enum<T>> implements LatencyMetrics<T>, Interval<LatencyMetrics<T>> {
+public class StrictLatencyInterval<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T>,
+        Interval<LatencyMetrics<T>> {
 
     private final Clock clock = new SystemTime();
-    private final Class<T> clazz;
     private final WriterReaderPhaser phaser = new WriterReaderPhaser();
     private final LatencyFactory latencyFactory;
     private final NoOpLatency<T> noOpLatency;
@@ -35,7 +35,7 @@ public class StrictLatencyInterval<T extends Enum<T>> implements LatencyMetrics<
     }
 
     public StrictLatencyInterval(Class<T> clazz, LatencyFactory latencyFactory) {
-        this.clazz = clazz;
+        super(clazz);
         this.latencyFactory = latencyFactory;
         this.live = latencyFactory.newLatency(clazz, clock.nanoTime());
         this.noOpLatency = new NoOpLatency<>(clazz);
@@ -59,11 +59,6 @@ public class StrictLatencyInterval<T extends Enum<T>> implements LatencyMetrics<
     @Override
     public PrecipiceHistogram getHistogram(T metric) {
         return noOpLatency.getHistogram(metric);
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return clazz;
     }
 
     @Override

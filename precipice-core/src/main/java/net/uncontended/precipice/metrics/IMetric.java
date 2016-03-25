@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface LatencyMetrics<T extends Enum<T>> extends IMetric<T> {
-
-    void record(T result, long number, long nanoLatency);
-
-    void record(T result, long number, long nanoLatency, long nanoTime);
-
-    PrecipiceHistogram getHistogram(T metric);
+public interface IMetric<T extends Enum<T>> {
+    Class<T> getMetricType();
 }

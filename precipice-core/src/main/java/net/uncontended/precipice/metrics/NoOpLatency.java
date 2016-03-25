@@ -17,12 +17,10 @@
 
 package net.uncontended.precipice.metrics;
 
-public class NoOpLatency<T extends Enum<T>> implements LatencyMetrics<T> {
-
-    private final Class<T> clazz;
+public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T> {
 
     public NoOpLatency(Class<T> clazz) {
-        this.clazz = clazz;
+        super(clazz);
     }
 
     @Override
@@ -36,10 +34,5 @@ public class NoOpLatency<T extends Enum<T>> implements LatencyMetrics<T> {
     @Override
     public PrecipiceHistogram getHistogram(T metric) {
         return null;
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return clazz;
     }
 }

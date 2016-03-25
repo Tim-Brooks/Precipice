@@ -22,7 +22,8 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements Rolling<CountMetrics<T>> {
+public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T>,
+        Rolling<CountMetrics<T>> {
 
     private final CountMetrics<T> totalCounter;
     private final CountMetrics<T> noOpCounter;

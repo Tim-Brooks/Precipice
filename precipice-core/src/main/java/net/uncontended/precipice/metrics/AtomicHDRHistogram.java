@@ -22,17 +22,16 @@ import org.HdrHistogram.Histogram;
 
 import java.util.concurrent.TimeUnit;
 
-public class AtomicHDRHistogram<T extends Enum<T>> implements LatencyMetrics<T> {
+public class AtomicHDRHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T> {
 
     private final HDRWrapper[] histograms;
-    private final Class<T> clazz;
 
     public AtomicHDRHistogram(Class<T> clazz) {
         this(clazz, TimeUnit.HOURS.toNanos(1), 2);
     }
 
     public AtomicHDRHistogram(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
-        this.clazz = clazz;
+        super(clazz);
         T[] enumConstants = clazz.getEnumConstants();
         histograms = new HDRWrapper[enumConstants.length];
         for (int i = 0; i < enumConstants.length; ++i) {
@@ -61,10 +60,6 @@ public class AtomicHDRHistogram<T extends Enum<T>> implements LatencyMetrics<T> 
         for (HDRWrapper histogram : histograms) {
             histogram.hdrHistogram.reset();
         }
-    }
-
-    public Class<T> getMetricType() {
-        return clazz;
     }
 
     private static class HDRWrapper implements PrecipiceHistogram {

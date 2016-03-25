@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> {
+public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T> {
 
     public NoOpCounter(Class<T> clazz) {
         super(clazz);

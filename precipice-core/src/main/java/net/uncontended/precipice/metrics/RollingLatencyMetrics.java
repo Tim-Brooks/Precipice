@@ -22,9 +22,9 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<T>, Rolling<LatencyMetrics<T>> {
+public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T>,
+        Rolling<LatencyMetrics<T>> {
 
-    private final Class<T> clazz;
     private final LatencyFactory factory;
     private final Clock clock;
     private final CircularBuffer<LatencyMetrics<T>> buffer;
@@ -53,9 +53,9 @@ public class RollingLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<
 
     public RollingLatencyMetrics(Class<T> clazz, LatencyFactory factory, int slotsToTrack, long resolution,
                                  TimeUnit slotUnit, Clock clock) {
+        super(clazz);
         this.factory = factory;
         this.clock = clock;
-        this.clazz = clazz;
         long startNanos = clock.nanoTime();
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
@@ -80,12 +80,8 @@ public class RollingLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<
 
     @Override
     public PrecipiceHistogram getHistogram(T metric) {
+        // TODO: Implement
         return null;
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return clazz;
     }
 
     @Override

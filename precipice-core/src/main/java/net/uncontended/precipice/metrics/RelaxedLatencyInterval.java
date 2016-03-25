@@ -20,10 +20,10 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RelaxedLatencyInterval<T extends Enum<T>> implements LatencyMetrics<T>, Interval<LatencyMetrics<T>> {
+public class RelaxedLatencyInterval<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T>,
+        Interval<LatencyMetrics<T>> {
 
     private final Clock clock = new SystemTime();
-    private final Class<T> clazz;
     private final LatencyFactory latencyFactory;
     private volatile LatencyMetrics<T> live;
 
@@ -32,7 +32,7 @@ public class RelaxedLatencyInterval<T extends Enum<T>> implements LatencyMetrics
     }
 
     public RelaxedLatencyInterval(Class<T> clazz, LatencyFactory latencyFactory) {
-        this.clazz = clazz;
+        super(clazz);
         this.latencyFactory = latencyFactory;
         this.live = latencyFactory.newLatency(clazz, clock.nanoTime());
     }
@@ -50,11 +50,6 @@ public class RelaxedLatencyInterval<T extends Enum<T>> implements LatencyMetrics
     @Override
     public PrecipiceHistogram getHistogram(T metric) {
         return null;
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return clazz;
     }
 
     @Override

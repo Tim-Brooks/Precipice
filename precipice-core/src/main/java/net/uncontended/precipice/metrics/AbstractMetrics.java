@@ -1,6 +1,6 @@
 package net.uncontended.precipice.metrics;
 
-public abstract class AbstractMetrics<T extends Enum<T>> implements CountMetrics<T> {
+public abstract class AbstractMetrics<T extends Enum<T>> implements IMetric<T> {
     protected final Class<T> clazz;
 
     public AbstractMetrics(Class<T> clazz) {

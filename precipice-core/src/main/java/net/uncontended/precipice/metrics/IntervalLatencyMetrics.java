@@ -24,10 +24,9 @@ import org.HdrHistogram.Recorder;
 
 import java.util.concurrent.TimeUnit;
 
-public class IntervalLatencyMetrics<T extends Enum<T>> implements LatencyMetrics<T> {
+public class IntervalLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T> {
 
     private final LatencyBucket[] buckets;
-    private final Class<T> clazz;
     private final long highestTrackableValue;
     private final int numberOfSignificantValueDigits;
 
@@ -36,7 +35,7 @@ public class IntervalLatencyMetrics<T extends Enum<T>> implements LatencyMetrics
     }
 
     public IntervalLatencyMetrics(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
-        this.clazz = clazz;
+        super(clazz);
         this.highestTrackableValue = highestTrackableValue;
         this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
         buckets = new LatencyBucket[clazz.getEnumConstants().length];
@@ -59,11 +58,6 @@ public class IntervalLatencyMetrics<T extends Enum<T>> implements LatencyMetrics
     @Override
     public PrecipiceHistogram getHistogram(T metric) {
         return null;
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return clazz;
     }
 
     public Histogram totalHistogram(T result) {
