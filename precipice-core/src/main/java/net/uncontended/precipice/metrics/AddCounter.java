@@ -19,13 +19,12 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.concurrent.util.LongAdder;
 
-public class AddCounter<T extends Enum<T>> implements CountMetrics<T> {
+public class AddCounter<T extends Enum<T>> extends AbstractMetrics<T> {
 
     private final LongAdder[] metrics;
-    private final Class<T> clazz;
 
     public AddCounter(Class<T> clazz) {
-        this.clazz = clazz;
+        super(clazz);
         T[] metricValues = clazz.getEnumConstants();
 
         metrics = new LongAdder[metricValues.length];
@@ -47,11 +46,6 @@ public class AddCounter<T extends Enum<T>> implements CountMetrics<T> {
     @Override
     public long getCount(T metric) {
         return metrics[metric.ordinal()].longValue();
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return clazz;
     }
 
 }

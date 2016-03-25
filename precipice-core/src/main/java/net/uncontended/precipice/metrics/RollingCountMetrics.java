@@ -22,14 +22,13 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, Rolling<CountMetrics<T>> {
+public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements Rolling<CountMetrics<T>> {
 
     private final CountMetrics<T> totalCounter;
     private final CountMetrics<T> noOpCounter;
     private final CircularBuffer<CountMetrics<T>> buffer;
     private final CounterFactory factory = Counters.adding();
     private final Clock clock;
-    private final Class<T> type;
 
     public RollingCountMetrics(Class<T> type) {
         this(type, Counters.adding());
@@ -51,15 +50,15 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, 
         this(type, Counters.adding(), slotsToTrack, resolution, slotUnit, clock);
     }
 
-    public RollingCountMetrics(Class<T> type, CounterFactory factory, int slotsToTrack, long resolution,
+    public RollingCountMetrics(Class<T> clazz, CounterFactory factory, int slotsToTrack, long resolution,
                                TimeUnit slotUnit, Clock clock) {
+        super(clazz);
         this.clock = clock;
-        this.type = type;
         long startNanos = clock.nanoTime();
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
-        totalCounter = factory.newCounter(this.type, startNanos);
-        noOpCounter = new NoOpCounter<>(type);
+        totalCounter = factory.newCounter(this.clazz, startNanos);
+        noOpCounter = new NoOpCounter<>(clazz);
     }
 
     @Override
@@ -72,7 +71,7 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, 
         totalCounter.add(metric, delta);
         CountMetrics<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
-            currentMetricCounter = buffer.putOrGet(nanoTime, factory.newCounter(type, nanoTime));
+            currentMetricCounter = buffer.putOrGet(nanoTime, factory.newCounter(clazz, nanoTime));
         }
         if (currentMetricCounter != null) {
             currentMetricCounter.add(metric, delta);
@@ -82,11 +81,6 @@ public class RollingCountMetrics<T extends Enum<T>> implements CountMetrics<T>, 
     @Override
     public long getCount(T metric) {
         return totalCounter.getCount(metric);
-    }
-
-    @Override
-    public Class<T> getMetricType() {
-        return type;
     }
 
     public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {

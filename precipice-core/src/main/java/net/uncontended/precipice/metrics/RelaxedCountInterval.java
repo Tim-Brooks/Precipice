@@ -20,9 +20,8 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RelaxedCountInterval<T extends Enum<T>> implements CountMetrics<T>, Interval<CountMetrics<T>> {
+public class RelaxedCountInterval<T extends Enum<T>> extends AbstractMetrics<T> implements Interval<CountMetrics<T>> {
 
-    private final Class<T> clazz;
     private final CounterFactory intervalFactory;
     private final Clock clock;
     private final CountMetrics<T> totalCounter;
@@ -42,7 +41,7 @@ public class RelaxedCountInterval<T extends Enum<T>> implements CountMetrics<T>,
 
     public RelaxedCountInterval(Class<T> clazz, CounterFactory intervalFactory, CountMetrics<T> totalCounter,
                                 Clock clock) {
-        this.clazz = clazz;
+        super(clazz);
         this.intervalFactory = intervalFactory;
         this.clock = clock;
         long nanoTime = clock.nanoTime();
