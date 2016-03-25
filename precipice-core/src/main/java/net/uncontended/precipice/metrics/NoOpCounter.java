@@ -36,4 +36,8 @@ public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implement
         return 0;
     }
 
+    @Override
+    public boolean isNoOp() {
+        return true;
+    }
 }

@@ -35,4 +35,9 @@ public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implement
     public PrecipiceHistogram getHistogram(T metric) {
         return null;
     }
+
+    @Override
+    public boolean isNoOp() {
+        return true;
+    }
 }

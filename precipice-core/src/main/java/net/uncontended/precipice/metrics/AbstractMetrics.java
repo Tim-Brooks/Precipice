@@ -11,4 +11,19 @@ public abstract class AbstractMetrics<T extends Enum<T>> implements IMetric<T> {
     public Class<T> getMetricType() {
         return clazz;
     }
+
+    @Override
+    public boolean isNoOp() {
+        return false;
+    }
+
+    @Override
+    public long startNanos() {
+        return 0L;
+    }
+
+    @Override
+    public long endNanos() {
+        return 0L;
+    }
 }
