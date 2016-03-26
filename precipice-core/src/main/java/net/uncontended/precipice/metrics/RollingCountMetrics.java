@@ -110,12 +110,12 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     }
 
     @Override
-    public Iterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit) {
+    public IntervalIterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit) {
         return forPeriod(timePeriod, timeUnit, clock.nanoTime());
     }
 
     @Override
-    public Iterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return buffer.valuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+    public IntervalIterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return buffer.intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
     }
 }

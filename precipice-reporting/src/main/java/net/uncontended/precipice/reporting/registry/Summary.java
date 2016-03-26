@@ -19,6 +19,7 @@ package net.uncontended.precipice.reporting.registry;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.IntervalIterable;
 import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.Arrays;
@@ -36,6 +37,9 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
 
     private final long[] totalRejectedCounts;
     private final long[] rejectedCounts;
+
+    private long currentStartEpoch = 0L;
+    private long currentEndEpoch = 0L;
 
     private volatile int current = 0;
     private Slice<Result, Rejected>[] slices;
@@ -70,21 +74,35 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         CountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
         CountMetrics<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
 
+        long localStartEpoch = Long.MAX_VALUE;
+        long localEndEpoch = 0L;
+        long nanoTime = guardRail.getClock().nanoTime();
+
 
         if (resultMetrics instanceof Rolling) {
             Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
-            for (CountMetrics<Result> m : rollingMetrics.forPeriod(period, unit)) {
-                for (Result t : resultClazz.getEnumConstants()) {
-                    resultCounts[t.ordinal()] += m.getCount(t);
+            IntervalIterable<CountMetrics<Result>> intervals = rollingMetrics.forPeriod(period, unit, nanoTime);
+            for (CountMetrics<Result> interval : intervals) {
+                if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != -1) {
+                    for (Result t : resultClazz.getEnumConstants()) {
+                        resultCounts[t.ordinal()] += interval.getCount(t);
+                    }
+                    localStartEpoch = Math.min(localStartEpoch, intervals.intervalStart());
+                    localEndEpoch = Math.max(localEndEpoch, intervals.intervalEnd());
                 }
             }
         }
 
         if (rejectedMetrics instanceof Rolling) {
             Rolling<CountMetrics<Rejected>> rollingMetrics = (Rolling<CountMetrics<Rejected>>) rejectedMetrics;
-            for (CountMetrics<Rejected> m : rollingMetrics.forPeriod(period, unit)) {
-                for (Rejected t : rejectedClazz.getEnumConstants()) {
-                    rejectedCounts[t.ordinal()] += m.getCount(t);
+            IntervalIterable<CountMetrics<Rejected>> intervals = rollingMetrics.forPeriod(period, unit, nanoTime);
+            for (CountMetrics<Rejected> interval : intervals) {
+                if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != -1) {
+                    for (Rejected t : rejectedClazz.getEnumConstants()) {
+                        rejectedCounts[t.ordinal()] += interval.getCount(t);
+                    }
+                    localStartEpoch = Math.min(localStartEpoch, intervals.intervalStart());
+                    localEndEpoch = Math.max(localEndEpoch, intervals.intervalEnd());
                 }
             }
         }
@@ -113,6 +131,10 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
             }
         }
         ++current;
+        currentStartEpoch = localStartEpoch;
+        currentEndEpoch = localEndEpoch;
+        updateSlice();
+
     }
 
     public Slice<Result, Rejected> currentSlice() {
@@ -123,11 +145,11 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         return slices;
     }
 
-    private void updateSlice(long startEpoch, long endEpoch) {
-        Slice<Result, Rejected> slice = slices[0];
+    private void updateSlice() {
+        Slice<Result, Rejected> slice = slices[current];
 
-        slice.startEpoch = startEpoch;
-        slice.endEpoch = endEpoch;
+        slice.startEpoch = currentStartEpoch;
+        slice.endEpoch = currentEndEpoch;
         System.arraycopy(resultCounts, 0, slice.resultCounts, 0, resultCounts.length);
         System.arraycopy(totalResultCounts, 0, slice.totalResultCounts, 0, totalResultCounts.length);
         System.arraycopy(rejectedCounts, 0, slice.rejectedCounts, 0, rejectedCounts.length);

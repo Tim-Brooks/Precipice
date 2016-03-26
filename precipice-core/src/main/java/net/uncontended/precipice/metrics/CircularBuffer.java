@@ -97,11 +97,11 @@ public class CircularBuffer<T> {
         return new Intervals(adjustedStartSlot, absoluteSlot, -1, -1, dead);
     }
 
-    public Iterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public IntervalIterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
     }
 
-    public Iterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+    public IntervalIterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
         return intervals(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
     }
 

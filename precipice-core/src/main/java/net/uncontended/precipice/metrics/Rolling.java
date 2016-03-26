@@ -25,7 +25,7 @@ public interface Rolling<T> {
 
     T current(long nanoTime);
 
-    Iterable<T> forPeriod(long timePeriod, TimeUnit timeUnit);
+    IntervalIterable<T> forPeriod(long timePeriod, TimeUnit timeUnit);
 
-    Iterable<T> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
+    IntervalIterable<T> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
 }
