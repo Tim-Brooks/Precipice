@@ -2,6 +2,7 @@ package net.uncontended.precipice.metrics;
 
 public abstract class AbstractMetrics<T extends Enum<T>> implements IMetric<T> {
     protected final Class<T> clazz;
+    private boolean isClosed = false;
 
     public AbstractMetrics(Class<T> clazz) {
         this.clazz = clazz;
@@ -13,17 +14,11 @@ public abstract class AbstractMetrics<T extends Enum<T>> implements IMetric<T> {
     }
 
     @Override
-    public boolean isNoOp() {
-        return false;
+    public boolean isClosed() {
+        return isClosed;
     }
 
-    @Override
-    public long startNanos() {
-        return 0L;
-    }
-
-    @Override
-    public long endNanos() {
-        return 0L;
+    public void close(long endNanos) {
+        this.isClosed = true;
     }
 }

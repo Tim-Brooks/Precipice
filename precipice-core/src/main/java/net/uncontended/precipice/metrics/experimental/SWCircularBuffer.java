@@ -75,15 +75,15 @@ public class SWCircularBuffer<T> {
 //        }
 //    }
 //
-//    public Iterable<T> activeValuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-//        return activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, null);
+//    public Iterable<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+//        return valuesForTimePeriod(timePeriod, timeUnit, nanoTime, null);
 //    }
 //
-//    public Iterable<T> activeValuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
-//        return activeValues(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
+//    public Iterable<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+//        return values(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
 //    }
 //
-//    public Iterable<T> activeValues(long slots, long nanoTime, T dead) {
+//    public Iterable<T> values(long slots, long nanoTime, T dead) {
 //        long absoluteSlot = currentAbsoluteSlot(nanoTime);
 //        long startSlot = 1 + absoluteSlot - slots;
 //        long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;

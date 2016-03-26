@@ -81,19 +81,41 @@ public class CircularBuffer<T> {
         }
     }
 
-    public Iterable<T> activeValuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return activeValuesForTimePeriod(timePeriod, timeUnit, nanoTime, null);
+    public Iterable<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return valuesForTimePeriod(timePeriod, timeUnit, nanoTime, null);
     }
 
-    public Iterable<T> activeValuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
-        return activeValues(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
+    public Iterable<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+        return values(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
     }
 
-    public Iterable<T> activeValues(long slots, long nanoTime, T dead) {
-        long absoluteSlot = currentAbsoluteSlot(nanoTime);
+    public Iterable<T> values(long slots, long nanoTime, T dead) {
+        long diff = nanoTime - startNanos;
+        long absoluteSlot = diff / nanosPerSlot;
         long startSlot = 1 + absoluteSlot - slots;
         long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-        return new SlotView(adjustedStartSlot, absoluteSlot, dead);
+        return new Intervals(adjustedStartSlot, absoluteSlot, -1, -1, dead);
+    }
+
+    public Iterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        return intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
+    }
+
+    public Iterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+        return intervals(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
+    }
+
+    public IntervalIterable<T> intervals(long slots, long nanoTime, T dead) {
+        return intervals(slots, nanoTime, dead, System.currentTimeMillis());
+    }
+
+    public IntervalIterable<T> intervals(long slots, long nanoTime, T dead, long epochTime) {
+        long diff = nanoTime - startNanos;
+        long absoluteSlot = diff / nanosPerSlot;
+        long startSlot = 1 + absoluteSlot - slots;
+        long remainderMillis = TimeUnit.NANOSECONDS.toMillis(diff % nanosPerSlot);
+        long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
+        return new Intervals(adjustedStartSlot, absoluteSlot, remainderMillis, epochTime, dead);
     }
 
     private int toRelative(long absoluteSlot) {
@@ -144,15 +166,19 @@ public class CircularBuffer<T> {
         }
     }
 
-    private class SlotView implements Iterable<T>, Iterator<T> {
+    private class Intervals implements IntervalIterable<T> {
 
+        private final long remainderMillis;
         private final T dead;
         private final long maxIndex;
         private long index;
+        private final long epochTime;
 
-        private SlotView(long index, long maxIndex, T dead) {
+        private Intervals(long index, long maxIndex, long remainderMillis, long epochTime, T dead) {
             this.index = index;
             this.maxIndex = maxIndex;
+            this.remainderMillis = remainderMillis;
+            this.epochTime = epochTime;
             this.dead = dead;
         }
 
@@ -173,6 +199,22 @@ public class CircularBuffer<T> {
                 return slot.object;
             } else {
                 return dead;
+            }
+        }
+
+        @Override
+        public long intervalStart() {
+            long difference = maxIndex - index + 1;
+            return epochTime - remainderMillis - difference * TimeUnit.NANOSECONDS.toMillis(nanosPerSlot);
+        }
+
+        @Override
+        public long intervalEnd() {
+            long difference = maxIndex - index + 1;
+            if (difference == 0) {
+                return -1;
+            } else {
+                return epochTime - remainderMillis - (difference - 1) * TimeUnit.NANOSECONDS.toMillis(nanosPerSlot);
             }
         }
 

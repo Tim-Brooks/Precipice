@@ -19,6 +19,7 @@ package net.uncontended.precipice.metrics;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Date;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -79,6 +80,14 @@ public class CircularBufferTest {
         for (int i = 0; i < 8; ++i) {
             assertEquals(expectedValues[i].longValue(), atomicLongs[i].longValue() + missed[i].longValue());
         }
+    }
+
+    @Test
+    public void testIntervalTimes() throws InterruptedException {
+        startTime = System.nanoTime() -  TimeUnit.SECONDS.toNanos(10);
+        buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
+
+        // TODO: Implement
     }
 
     private Runnable getRunnable(final CountDownLatch latch) {

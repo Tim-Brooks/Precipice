@@ -20,9 +20,5 @@ package net.uncontended.precipice.metrics;
 public interface IMetric<T extends Enum<T>> {
     Class<T> getMetricType();
 
-    boolean isNoOp();
-
-    long startNanos();
-
-    long endNanos();
+    boolean isClosed();
 }

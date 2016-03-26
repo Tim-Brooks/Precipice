@@ -31,6 +31,7 @@ public class IncrementCounter<T extends Enum<T>> extends AbstractMetrics<T> impl
         for (T metric : metricValues) {
             metrics[metric.ordinal()] = new LongAdder();
         }
+
     }
 
     @Override

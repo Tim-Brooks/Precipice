@@ -37,7 +37,7 @@ public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implement
     }
 
     @Override
-    public boolean isNoOp() {
+    public boolean isClosed() {
         return true;
     }
 }
