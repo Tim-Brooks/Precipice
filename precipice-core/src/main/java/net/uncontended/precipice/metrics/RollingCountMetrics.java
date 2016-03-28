@@ -29,6 +29,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     private final CountMetrics<T> noOpCounter;
     private final CircularBuffer<CountMetrics<T>> buffer;
     private final CounterFactory factory = Counters.adding();
+    private final int intervalsToBuffer;
     private final Clock clock;
 
     public RollingCountMetrics(Class<T> type) {
@@ -54,6 +55,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     public RollingCountMetrics(Class<T> clazz, CounterFactory factory, int slotsToTrack, long resolution,
                                TimeUnit slotUnit, Clock clock) {
         super(clazz);
+        this.intervalsToBuffer = slotsToTrack;
         this.clock = clock;
         long startNanos = clock.nanoTime();
 
@@ -99,23 +101,33 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     }
 
     @Override
-    public CountMetrics<T> current() {
-        return current(clock.nanoTime());
+    public CountMetrics<T> currentInterval() {
+        return currentInterval(clock.nanoTime());
     }
 
     @Override
-    public CountMetrics<T> current(long nanoTime) {
+    public CountMetrics<T> currentInterval(long nanoTime) {
         CountMetrics<T> counter = buffer.getSlot(nanoTime);
         return counter != null ? counter : noOpCounter;
     }
 
     @Override
-    public IntervalIterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit) {
-        return forPeriod(timePeriod, timeUnit, clock.nanoTime());
+    public IntervalIterable<CountMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit) {
+        return intervalsForPeriod(timePeriod, timeUnit, clock.nanoTime());
     }
 
     @Override
-    public IntervalIterable<CountMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public IntervalIterable<CountMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+    }
+
+    @Override
+    public IntervalIterable<CountMetrics<T>> intervals() {
+        return intervals(clock.nanoTime());
+    }
+
+    @Override
+    public IntervalIterable<CountMetrics<T>> intervals(long nanoTime) {
+        return buffer.intervals(this.intervalsToBuffer, nanoTime, noOpCounter, clock.currentTimeMillis());
     }
 }

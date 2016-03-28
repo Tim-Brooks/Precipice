@@ -29,6 +29,7 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
     private final Clock clock;
     private final CircularBuffer<LatencyMetrics<T>> buffer;
     private final NoOpLatency<T> noOpLatency;
+    private long intervalsToBuffer;
 
     public RollingLatencyMetrics(Class<T> clazz) {
         this(clazz, Latency.atomicHDRHistogram());
@@ -57,6 +58,7 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
         this.factory = factory;
         this.clock = clock;
         long startNanos = clock.nanoTime();
+        this.intervalsToBuffer = slotsToTrack;
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
         noOpLatency = new NoOpLatency<>(clazz);
@@ -85,23 +87,33 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
     }
 
     @Override
-    public LatencyMetrics<T> current() {
-        return current(clock.nanoTime());
+    public LatencyMetrics<T> currentInterval() {
+        return currentInterval(clock.nanoTime());
     }
 
     @Override
-    public LatencyMetrics<T> current(long nanoTime) {
+    public LatencyMetrics<T> currentInterval(long nanoTime) {
         LatencyMetrics<T> latency = buffer.getSlot(nanoTime);
         return latency != null ? latency : noOpLatency;
     }
 
     @Override
-    public IntervalIterable<LatencyMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit) {
-        return forPeriod(timePeriod, timeUnit, clock.nanoTime());
+    public IntervalIterable<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit) {
+        return intervalsForPeriod(timePeriod, timeUnit, clock.nanoTime());
     }
 
     @Override
-    public IntervalIterable<LatencyMetrics<T>> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public IntervalIterable<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpLatency);
+    }
+
+    @Override
+    public IntervalIterable<LatencyMetrics<T>> intervals() {
+        return intervals(clock.nanoTime());
+    }
+
+    @Override
+    public IntervalIterable<LatencyMetrics<T>> intervals(long nanoTime) {
+        return buffer.intervals(this.intervalsToBuffer, nanoTime, noOpLatency, clock.currentTimeMillis());
     }
 }

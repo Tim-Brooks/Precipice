@@ -55,13 +55,13 @@ public class HealthGauge {
 
         private InternalGauge(Rolling<CountMetrics<Result>> metrics) {
             this.metrics = metrics;
-            type = metrics.current().getMetricType();
+            type = metrics.currentInterval().getMetricType();
         }
 
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
             total = 0;
             failures = 0;
-            Iterable<CountMetrics<Result>> counters = metrics.forPeriod(timePeriod, timeUnit, nanoTime);
+            Iterable<CountMetrics<Result>> counters = metrics.intervalsForPeriod(timePeriod, timeUnit, nanoTime);
 
             // TODO: explore what implications this has for metric permit changes
             for (CountMetrics<Result> metricCounter : counters) {

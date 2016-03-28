@@ -51,7 +51,7 @@ public class DefaultCircuitBreakerTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         when(guardRail.getResultMetrics()).thenReturn(countMetrics);
-        when(countMetrics.current()).thenReturn(new NoOpCounter<>(TestResult.class));
+        when(countMetrics.currentInterval()).thenReturn(new NoOpCounter<>(TestResult.class));
     }
 
     @Test

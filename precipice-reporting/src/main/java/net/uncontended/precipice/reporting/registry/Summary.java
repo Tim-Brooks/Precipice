@@ -23,13 +23,10 @@ import net.uncontended.precipice.metrics.IntervalIterable;
 import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 public class Summary<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
     public final Class<Result> resultClazz;
     public final Class<Rejected> rejectedClazz;
-    private final long period;
-    private final TimeUnit unit;
     private final GuardRail<Result, Rejected> guardRail;
 
     private final long[] totalResultCounts;
@@ -38,17 +35,15 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     private final long[] totalRejectedCounts;
     private final long[] rejectedCounts;
 
-    private long currentStartEpoch = 0L;
-    private long currentEndEpoch = 0L;
+    private long currentStartEpoch;
+    private long currentEndEpoch;
 
-    private volatile int current = 0;
-    private Slice<Result, Rejected>[] slices;
+    private volatile int current = -1;
+    private final Slice<Result, Rejected>[] slices;
 
-    private SummaryProperties properties = new SummaryProperties();
+    private final SummaryProperties properties;
 
-    Summary(long period, TimeUnit unit, GuardRail<Result, Rejected> guardRail) {
-        this.period = period;
-        this.unit = unit;
+    public Summary(SummaryProperties properties, GuardRail<Result, Rejected> guardRail) {
         this.guardRail = guardRail;
 
         resultClazz = guardRail.getResultMetrics().getMetricType();
@@ -65,9 +60,14 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         for (int i = 0; i < slices.length; ++i) {
             slices[i] = new Slice<>(resultClazz, rejectedClazz);
         }
+        this.properties = properties;
     }
 
     public void refresh() {
+        refresh(guardRail.getClock().nanoTime());
+    }
+
+    public void refresh(long nanoTime) {
         Arrays.fill(resultCounts, 0);
         Arrays.fill(rejectedCounts, 0);
 
@@ -76,12 +76,10 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
 
         long localStartEpoch = Long.MAX_VALUE;
         long localEndEpoch = 0L;
-        long nanoTime = guardRail.getClock().nanoTime();
-
 
         if (resultMetrics instanceof Rolling) {
             Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
-            IntervalIterable<CountMetrics<Result>> intervals = rollingMetrics.forPeriod(period, unit, nanoTime);
+            IntervalIterable<CountMetrics<Result>> intervals = rollingMetrics.intervals(nanoTime);
             for (CountMetrics<Result> interval : intervals) {
                 if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != -1) {
                     for (Result t : resultClazz.getEnumConstants()) {
@@ -95,7 +93,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
 
         if (rejectedMetrics instanceof Rolling) {
             Rolling<CountMetrics<Rejected>> rollingMetrics = (Rolling<CountMetrics<Rejected>>) rejectedMetrics;
-            IntervalIterable<CountMetrics<Rejected>> intervals = rollingMetrics.forPeriod(period, unit, nanoTime);
+            IntervalIterable<CountMetrics<Rejected>> intervals = rollingMetrics.intervals();
             for (CountMetrics<Rejected> interval : intervals) {
                 if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != -1) {
                     for (Rejected t : rejectedClazz.getEnumConstants()) {
@@ -130,10 +128,10 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
                 totalRejectedCounts[metricIndex] = rejectedMetrics.getCount(t);
             }
         }
-        ++current;
         currentStartEpoch = localStartEpoch;
         currentEndEpoch = localEndEpoch;
         updateSlice();
+        ++current;
 
     }
 
@@ -146,7 +144,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     }
 
     private void updateSlice() {
-        Slice<Result, Rejected> slice = slices[current];
+        Slice<Result, Rejected> slice = slices[current + 1];
 
         slice.startEpoch = currentStartEpoch;
         slice.endEpoch = currentEndEpoch;

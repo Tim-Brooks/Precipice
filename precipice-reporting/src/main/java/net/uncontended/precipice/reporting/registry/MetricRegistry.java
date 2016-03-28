@@ -43,7 +43,7 @@ public class MetricRegistry {
 
 
     public void register(GuardRail<?, ?> service) {
-        services.put(service.getName(), new Summary<>(period, unit, service));
+        services.put(service.getName(), new Summary<>(new SummaryProperties(), service));
     }
 
     public boolean deregister(String name) {

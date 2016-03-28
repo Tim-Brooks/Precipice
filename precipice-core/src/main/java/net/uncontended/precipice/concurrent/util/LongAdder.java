@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * {@code long} sum.  When updates (method {@link #add}) are contended
  * across threads, the set of variables may grow dynamically to reduce
  * contention. Method {@link #sum} (or, equivalently, {@link
- * #longValue}) returns the current total combined across the
+ * #longValue}) returns the currentInterval total combined across the
  * variables maintaining the sum.
  *
  * <p> This class is usually preferable to {@link AtomicLong} when
@@ -86,7 +86,7 @@ public class LongAdder extends Striped64 implements Serializable {
     }
 
     /**
-     * Returns the current sum.  The returned value is <em>NOT</em> an
+     * Returns the currentInterval sum.  The returned value is <em>NOT</em> an
      * atomic snapshot: Invocation in the absence of concurrent
      * updates returns an accurate result, but concurrent updates that
      * occur while the sum is being calculated might not be

@@ -30,7 +30,7 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
      * successfully acquired, then null is returned.
      *
      * @param number   of permits requested
-     * @param nanoTime current nanosecond time
+     * @param nanoTime currentInterval nanosecond time
      * @return the reason for rejection if permit acquisition fails
      */
     Rejected acquirePermit(long number, long nanoTime);
@@ -39,7 +39,7 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
      * Releases permits without considering the result of the execution.
      *
      * @param number   of permits to release
-     * @param nanoTime current nanosecond time
+     * @param nanoTime currentInterval nanosecond time
      */
     void releasePermit(long number, long nanoTime);
 
@@ -50,7 +50,7 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
      *
      * @param number   of permits to release
      * @param result   of the task execution
-     * @param nanoTime current nanosecond time
+     * @param nanoTime currentInterval nanosecond time
      */
     void releasePermit(long number, Failable result, long nanoTime);
 

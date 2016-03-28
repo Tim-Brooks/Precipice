@@ -17,7 +17,7 @@ import java.io.Serializable;
  * maximum with initial value {@code Long.MIN_VALUE}.  When updates
  * (method {@link #update}) are contended across threads, the set of
  * variables may grow dynamically to reduce contention.  Method {@link
- * #max} (or, equivalently, {@link #longValue}) returns the current
+ * #max} (or, equivalently, {@link #longValue}) returns the currentInterval
  * maximum across the variables maintaining updates.
  *
  * <p>This class extends {@link Number}, but does <em>not</em> define
@@ -66,7 +66,7 @@ public class LongMaxUpdater extends Striped64 implements Serializable {
     }
 
     /**
-     * Returns the current maximum.  The returned value is
+     * Returns the currentInterval maximum.  The returned value is
      * <em>NOT</em> an atomic snapshot: Invocation in the absence of
      * concurrent updates returns an accurate result, but concurrent
      * updates that occur while the value is being calculated might

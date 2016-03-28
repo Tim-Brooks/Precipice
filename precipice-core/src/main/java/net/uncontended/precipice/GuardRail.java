@@ -59,7 +59,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      * will be returned. If the acquisition is successful, null will be returned.
      *
      * @param number   of permits to acquire
-     * @param nanoTime current nano time
+     * @param nanoTime currentInterval nano time
      * @return the rejected reason
      */
     public Rejected acquirePermits(long number, long nanoTime) {
@@ -92,7 +92,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      * count metrics and latency will not be updated.
      *
      * @param number   of permits to release
-     * @param nanoTime current nano time
+     * @param nanoTime currentInterval nano time
      */
     public void releasePermitsWithoutResult(long number, long nanoTime) {
         for (BackPressure backPressure : backPressureList) {
@@ -117,7 +117,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @param context  context of the task execution
      * @param result   of the execution
-     * @param nanoTime current nano time
+     * @param nanoTime currentInterval nano time
      */
     public void releasePermits(ExecutionContext context, Result result, long nanoTime) {
         releasePermits(context.permitCount(), result, context.startNanos(), nanoTime);
@@ -142,7 +142,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      * @param number     of permits to release
      * @param result     of the execution
      * @param startNanos of the execution
-     * @param nanoTime   current nano time
+     * @param nanoTime   currentInterval nano time
      */
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
         resultMetrics.add(result, number, nanoTime);

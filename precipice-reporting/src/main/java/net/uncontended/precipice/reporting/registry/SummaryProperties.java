@@ -18,9 +18,9 @@ package net.uncontended.precipice.reporting.registry;
 
 public class SummaryProperties {
 
-    public boolean accumulateTotalResults;
+    public boolean accumulateTotalResults = true;
 
-    public boolean accumulateTotalRejections;
+    public boolean accumulateTotalRejections = true;
 
-    public int bufferSize;
+    public int bufferSize = 60;
 }

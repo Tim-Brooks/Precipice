@@ -38,9 +38,9 @@ public class RollingLatencyMetricsTest {
 //        metricArray[1] = Metric.ERROR;
 //        metricArray[2] = Metric.TIMEOUT;
 //
-//        ThreadLocalRandom current = ThreadLocalRandom.current();
+//        ThreadLocalRandom currentInterval = ThreadLocalRandom.currentInterval();
 //        for (int i = 1; i <= 100000; ++i) {
-//            int n = current.nextInt(3);
+//            int n = currentInterval.nextInt(3);
 //            metrics.record(metricArray[n], i);
 //        }
 //

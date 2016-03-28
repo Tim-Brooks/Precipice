@@ -21,11 +21,15 @@ import java.util.concurrent.TimeUnit;
 
 public interface Rolling<T> {
 
-    T current();
+    T currentInterval();
 
-    T current(long nanoTime);
+    T currentInterval(long nanoTime);
 
-    IntervalIterable<T> forPeriod(long timePeriod, TimeUnit timeUnit);
+    IntervalIterable<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit);
 
-    IntervalIterable<T> forPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
+    IntervalIterable<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
+
+    IntervalIterable<T> intervals();
+
+    IntervalIterable<T> intervals(long nanoTime);
 }

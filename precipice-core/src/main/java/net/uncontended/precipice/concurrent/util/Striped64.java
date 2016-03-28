@@ -183,11 +183,11 @@ abstract class Striped64 extends Number {
     }
 
     /**
-     * Computes the function of current and new value. Subclasses
+     * Computes the function of currentInterval and new value. Subclasses
      * should open-code this update function for most uses, but the
      * virtualized form is needed within retryUpdate.
      *
-     * @param currentValue the current value (of either base or a cell)
+     * @param currentValue the currentInterval value (of either base or a cell)
      * @param newValue the argument from a user update call
      * @return result of the update function
      */
