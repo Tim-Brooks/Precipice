@@ -19,11 +19,9 @@ package net.uncontended.precipice.reporting.registry;
 import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
 import net.uncontended.precipice.result.SimpleResult;
-import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class SummaryTest {
@@ -38,8 +36,8 @@ public class SummaryTest {
         SummaryProperties properties = new SummaryProperties();
         properties.bufferSize = 4;
 
-        resultMetrics = new RollingCountMetrics<>(SimpleResult.class, 8, 500, TimeUnit.MILLISECONDS, new Thing());
-        rejectedMetrics = new RollingCountMetrics<>(Rejected.class, 8, 500, TimeUnit.MILLISECONDS, new Thing());
+        resultMetrics = new RollingCountMetrics<>(SimpleResult.class, 8, 500, TimeUnit.MILLISECONDS);
+        rejectedMetrics = new RollingCountMetrics<>(Rejected.class, 8, 500, TimeUnit.MILLISECONDS);
         startTime = System.nanoTime();
 
         GuardRailBuilder<SimpleResult, Rejected> builder = new GuardRailBuilder<>();
@@ -65,23 +63,6 @@ public class SummaryTest {
         }
 
         summary.refresh(startTime + TimeUnit.SECONDS.toNanos(2));
-    }
-
-    private static class Thing implements Clock {
-
-        private long currentTime = 0;
-
-        @Override
-        public long currentTimeMillis() {
-            long currentTime = this.currentTime;
-            this.currentTime += 1000;
-            return currentTime;
-        }
-
-        @Override
-        public long nanoTime() {
-            return System.nanoTime();
-        }
     }
 
     private enum Rejected {

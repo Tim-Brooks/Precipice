@@ -114,6 +114,6 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
 
     @Override
     public IntervalIterable<LatencyMetrics<T>> intervals(long nanoTime) {
-        return buffer.intervals(this.intervalsToBuffer, nanoTime, noOpLatency, clock.currentTimeMillis());
+        return buffer.intervals(this.intervalsToBuffer, nanoTime, noOpLatency);
     }
 }

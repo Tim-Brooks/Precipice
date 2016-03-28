@@ -128,6 +128,6 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
 
     @Override
     public IntervalIterable<CountMetrics<T>> intervals(long nanoTime) {
-        return buffer.intervals(this.intervalsToBuffer, nanoTime, noOpCounter, clock.currentTimeMillis());
+        return buffer.intervals(this.intervalsToBuffer, nanoTime, noOpCounter);
     }
 }

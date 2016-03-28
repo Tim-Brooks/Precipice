@@ -23,6 +23,7 @@ import net.uncontended.precipice.metrics.IntervalIterable;
 import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 public class Summary<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
     public final Class<Result> resultClazz;
@@ -81,7 +82,9 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
             Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
             IntervalIterable<CountMetrics<Result>> intervals = rollingMetrics.intervals(nanoTime);
             for (CountMetrics<Result> interval : intervals) {
-                if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != -1) {
+                long start = intervals.intervalStart();
+                long end = intervals.intervalEnd();
+                if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != 0) {
                     for (Result t : resultClazz.getEnumConstants()) {
                         resultCounts[t.ordinal()] += interval.getCount(t);
                     }
@@ -95,12 +98,14 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
             Rolling<CountMetrics<Rejected>> rollingMetrics = (Rolling<CountMetrics<Rejected>>) rejectedMetrics;
             IntervalIterable<CountMetrics<Rejected>> intervals = rollingMetrics.intervals();
             for (CountMetrics<Rejected> interval : intervals) {
-                if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != -1) {
+                long relativeStart = intervals.intervalStart();
+                long relativeEnd = intervals.intervalEnd();
+                if (relativeStart >= currentEndEpoch && relativeEnd != 0) {
                     for (Rejected t : rejectedClazz.getEnumConstants()) {
                         rejectedCounts[t.ordinal()] += interval.getCount(t);
                     }
-                    localStartEpoch = Math.min(localStartEpoch, intervals.intervalStart());
-                    localEndEpoch = Math.max(localEndEpoch, intervals.intervalEnd());
+                    localStartEpoch = Math.min(localStartEpoch, relativeStart);
+                    localEndEpoch = Math.max(localEndEpoch, relativeEnd);
                 }
             }
         }

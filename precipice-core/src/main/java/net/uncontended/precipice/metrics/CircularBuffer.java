@@ -94,7 +94,7 @@ public class CircularBuffer<T> {
         long absoluteSlot = diff / nanosPerSlot;
         long startSlot = 1 + absoluteSlot - slots;
         long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-        return new Intervals(adjustedStartSlot, absoluteSlot, -1, -1, dead);
+        return new Intervals(adjustedStartSlot, absoluteSlot, -1, dead);
     }
 
     public IntervalIterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
@@ -106,16 +106,12 @@ public class CircularBuffer<T> {
     }
 
     public IntervalIterable<T> intervals(long slots, long nanoTime, T dead) {
-        return intervals(slots, nanoTime, dead, System.currentTimeMillis());
-    }
-
-    public IntervalIterable<T> intervals(long slots, long nanoTime, T dead, long epochTime) {
         long diff = nanoTime - startNanos;
         long absoluteSlot = diff / nanosPerSlot;
         long startSlot = 1 + absoluteSlot - slots;
-        long remainderMillis = TimeUnit.NANOSECONDS.toMillis(diff % nanosPerSlot);
+        long remainderNanos = diff % nanosPerSlot;
         long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-        return new Intervals(adjustedStartSlot, absoluteSlot, remainderMillis, epochTime, dead);
+        return new Intervals(adjustedStartSlot, absoluteSlot, remainderNanos, dead);
     }
 
     private int toRelative(long absoluteSlot) {
@@ -168,17 +164,15 @@ public class CircularBuffer<T> {
 
     private class Intervals implements IntervalIterable<T> {
 
-        private final long remainderMillis;
+        private final long remainderNanos;
         private final T dead;
         private final long maxIndex;
         private long index;
-        private final long epochTime;
 
-        private Intervals(long index, long maxIndex, long remainderMillis, long epochTime, T dead) {
+        private Intervals(long index, long maxIndex, long remainderNanos, T dead) {
             this.index = index;
             this.maxIndex = maxIndex;
-            this.remainderMillis = remainderMillis;
-            this.epochTime = epochTime;
+            this.remainderNanos = remainderNanos;
             this.dead = dead;
         }
 
@@ -205,16 +199,16 @@ public class CircularBuffer<T> {
         @Override
         public long intervalStart() {
             long difference = maxIndex - index + 1;
-            return epochTime - remainderMillis - difference * TimeUnit.NANOSECONDS.toMillis(nanosPerSlot);
+            return - (remainderNanos + (difference * nanosPerSlot));
         }
 
         @Override
         public long intervalEnd() {
             long difference = maxIndex - index + 1;
             if (difference == 0) {
-                return -1;
+                return 0;
             } else {
-                return epochTime - remainderMillis - (difference - 1) * TimeUnit.NANOSECONDS.toMillis(nanosPerSlot);
+                return - (remainderNanos + ((difference - 1) * nanosPerSlot));
             }
         }
 
