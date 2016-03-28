@@ -65,10 +65,10 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     }
 
     public void refresh() {
-        refresh(guardRail.getClock().nanoTime());
+        refresh(guardRail.getClock().currentTimeMillis(), guardRail.getClock().nanoTime());
     }
 
-    public void refresh(long nanoTime) {
+    public void refresh(long epochTime, long nanoTime) {
         Arrays.fill(resultCounts, 0);
         Arrays.fill(rejectedCounts, 0);
 
@@ -82,14 +82,15 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
             Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
             IntervalIterable<CountMetrics<Result>> intervals = rollingMetrics.intervals(nanoTime);
             for (CountMetrics<Result> interval : intervals) {
-                long start = intervals.intervalStart();
-                long end = intervals.intervalEnd();
-                if (intervals.intervalStart() >= currentEndEpoch && intervals.intervalEnd() != 0) {
+                long startDiffMillis = TimeUnit.NANOSECONDS.toMillis(intervals.intervalStart());
+                long endDiffMillis = TimeUnit.NANOSECONDS.toMillis(intervals.intervalEnd());
+                long startEpoch = startDiffMillis + epochTime;
+                if (startEpoch >= currentEndEpoch && endDiffMillis != 0) {
                     for (Result t : resultClazz.getEnumConstants()) {
                         resultCounts[t.ordinal()] += interval.getCount(t);
                     }
-                    localStartEpoch = Math.min(localStartEpoch, intervals.intervalStart());
-                    localEndEpoch = Math.max(localEndEpoch, intervals.intervalEnd());
+                    localStartEpoch = Math.min(localStartEpoch, startEpoch);
+                    localEndEpoch = Math.max(localEndEpoch, endDiffMillis + epochTime);
                 }
             }
         }

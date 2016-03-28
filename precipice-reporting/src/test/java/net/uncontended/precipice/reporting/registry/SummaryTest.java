@@ -22,6 +22,7 @@ import net.uncontended.precipice.result.SimpleResult;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class SummaryTest {
@@ -50,19 +51,29 @@ public class SummaryTest {
     @Test
     public void testRefresh() {
 
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < 12; ++i) {
             resultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
             resultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
         }
 
-        summary.refresh(startTime + TimeUnit.SECONDS.toNanos(1));
+        summary.refresh(10000, startTime + TimeUnit.SECONDS.toNanos(1));
 
-        for (int i = 10; i < 15; ++i) {
+        for (int i = 12; i < 15; ++i) {
             resultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
             resultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
         }
 
-        summary.refresh(startTime + TimeUnit.SECONDS.toNanos(2));
+        summary.refresh(11100, startTime + TimeUnit.SECONDS.toNanos(2));
+
+        summary.refresh(12030, startTime + TimeUnit.SECONDS.toNanos(3));
+
+        summary.refresh(13020, startTime + TimeUnit.SECONDS.toNanos(4));
+
+        for (Slice<SimpleResult, Rejected> slice : summary.getSlices()) {
+//            System.out.println("Start: " + slice.startEpoch);
+//            System.out.println("End: " + slice.endEpoch);
+//            System.out.println(Arrays.toString(slice.resultCounts));
+        }
     }
 
     private enum Rejected {
