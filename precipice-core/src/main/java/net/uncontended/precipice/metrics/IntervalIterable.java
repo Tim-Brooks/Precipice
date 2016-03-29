@@ -18,4 +18,5 @@ public interface IntervalIterable<T> extends Iterable<T>, Iterator<T> {
     long intervalStart();
 
     long intervalEnd();
+
 }
