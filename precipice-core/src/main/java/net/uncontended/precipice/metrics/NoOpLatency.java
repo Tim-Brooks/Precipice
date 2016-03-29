@@ -36,8 +36,4 @@ public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implement
         return null;
     }
 
-    @Override
-    public boolean isClosed() {
-        return true;
-    }
 }

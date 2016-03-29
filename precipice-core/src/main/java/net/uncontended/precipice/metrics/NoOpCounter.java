@@ -35,9 +35,4 @@ public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implement
     public long getCount(T metric) {
         return 0;
     }
-
-    @Override
-    public boolean isClosed() {
-        return true;
-    }
 }
