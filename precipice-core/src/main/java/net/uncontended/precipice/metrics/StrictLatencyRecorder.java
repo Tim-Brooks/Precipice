@@ -21,8 +21,8 @@ import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 import org.HdrHistogram.WriterReaderPhaser;
 
-public class StrictLatencyInterval<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T>,
-        Interval<LatencyMetrics<T>> {
+public class StrictLatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T>,
+        Recorder<LatencyMetrics<T>> {
 
     private final Clock clock = new SystemTime();
     private final WriterReaderPhaser phaser = new WriterReaderPhaser();
@@ -30,11 +30,11 @@ public class StrictLatencyInterval<T extends Enum<T>> extends AbstractMetrics<T>
     private final NoOpLatency<T> noOpLatency;
     private volatile LatencyMetrics<T> live;
 
-    public StrictLatencyInterval(Class<T> clazz) {
+    public StrictLatencyRecorder(Class<T> clazz) {
         this(clazz, Latency.atomicHDRHistogram());
     }
 
-    public StrictLatencyInterval(Class<T> clazz, LatencyFactory latencyFactory) {
+    public StrictLatencyRecorder(Class<T> clazz, LatencyFactory latencyFactory) {
         super(clazz);
         this.latencyFactory = latencyFactory;
         this.live = latencyFactory.newLatency(clazz, clock.nanoTime());
@@ -60,24 +60,23 @@ public class StrictLatencyInterval<T extends Enum<T>> extends AbstractMetrics<T>
     public PrecipiceHistogram getHistogram(T metric) {
         return noOpLatency.getHistogram(metric);
     }
-
-    @Override
+    
     public LatencyMetrics<T> current() {
         return live;
     }
 
     @Override
-    public synchronized LatencyMetrics<T> interval() {
-        return interval(clock.nanoTime());
+    public synchronized LatencyMetrics<T> flip() {
+        return flip(clock.nanoTime());
     }
 
     @Override
-    public synchronized LatencyMetrics<T> interval(long nanoTime) {
-        return interval(nanoTime, latencyFactory.newLatency(clazz, nanoTime));
+    public synchronized LatencyMetrics<T> flip(long nanoTime) {
+        return flip(nanoTime, latencyFactory.newLatency(clazz, nanoTime));
     }
 
     @Override
-    public synchronized LatencyMetrics<T> interval(long nanoTime, LatencyMetrics<T> newMetrics) {
+    public synchronized LatencyMetrics<T> flip(long nanoTime, LatencyMetrics<T> newMetrics) {
         phaser.readerLock();
         try {
             LatencyMetrics<T> oldLive = live;

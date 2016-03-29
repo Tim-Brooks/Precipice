@@ -142,6 +142,10 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     }
 
     public Slice<Result, Rejected> currentSlice() {
+        int current = this.current;
+        if (current == -1) {
+            return slices[0];
+        }
         return slices[current % slices.length];
     }
 

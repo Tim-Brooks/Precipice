@@ -20,27 +20,27 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RelaxedCountInterval<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T>,
-        Interval<CountMetrics<T>> {
+public class RelaxedCountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T>,
+        Recorder<CountMetrics<T>> {
 
     private final CounterFactory intervalFactory;
     private final Clock clock;
     private final CountMetrics<T> totalCounter;
     private volatile CountMetrics<T> intervalCounter;
 
-    public RelaxedCountInterval(Class<T> clazz) {
+    public RelaxedCountRecorder(Class<T> clazz) {
         this(clazz, Counters.adding());
     }
 
-    public RelaxedCountInterval(Class<T> clazz, CounterFactory intervalFactory) {
+    public RelaxedCountRecorder(Class<T> clazz, CounterFactory intervalFactory) {
         this(clazz, intervalFactory, new NoOpCounter<>(clazz));
     }
 
-    public RelaxedCountInterval(Class<T> clazz, CounterFactory intervalFactory, CountMetrics<T> totalCounter) {
+    public RelaxedCountRecorder(Class<T> clazz, CounterFactory intervalFactory, CountMetrics<T> totalCounter) {
         this(clazz, intervalFactory, totalCounter, new SystemTime());
     }
 
-    public RelaxedCountInterval(Class<T> clazz, CounterFactory intervalFactory, CountMetrics<T> totalCounter,
+    public RelaxedCountRecorder(Class<T> clazz, CounterFactory intervalFactory, CountMetrics<T> totalCounter,
                                 Clock clock) {
         super(clazz);
         this.intervalFactory = intervalFactory;
@@ -72,21 +72,20 @@ public class RelaxedCountInterval<T extends Enum<T>> extends AbstractMetrics<T> 
         return clazz;
     }
 
-    @Override
     public CountMetrics<T> current() {
         return intervalCounter;
     }
 
-    public synchronized CountMetrics<T> interval() {
-        return interval(clock.nanoTime());
+    public synchronized CountMetrics<T> flip() {
+        return flip(clock.nanoTime());
     }
 
-    public synchronized CountMetrics<T> interval(long nanoTime) {
-        return interval(nanoTime, intervalFactory.newCounter(clazz, nanoTime));
+    public synchronized CountMetrics<T> flip(long nanoTime) {
+        return flip(nanoTime, intervalFactory.newCounter(clazz, nanoTime));
     }
 
     @Override
-    public synchronized CountMetrics<T> interval(long nanoTime, CountMetrics<T> newVersion) {
+    public synchronized CountMetrics<T> flip(long nanoTime, CountMetrics<T> newVersion) {
         CountMetrics<T> old = this.intervalCounter;
         this.intervalCounter = newVersion;
         return old;

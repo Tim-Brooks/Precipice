@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class IntervalLatencyMetricsTest {
+public class RecorderLatencyMetricsTest {
 
     private IntervalLatencyMetrics<TestResult> metrics;
 

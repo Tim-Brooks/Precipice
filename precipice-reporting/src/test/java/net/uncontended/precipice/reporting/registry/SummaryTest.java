@@ -67,12 +67,12 @@ public class SummaryTest {
 
         summary.refresh(12030, startTime + TimeUnit.SECONDS.toNanos(3));
 
-        summary.refresh(13020, startTime + TimeUnit.SECONDS.toNanos(4));
+        summary.refresh(16020, startTime + TimeUnit.SECONDS.toNanos(4));
 
         for (Slice<SimpleResult, Rejected> slice : summary.getSlices()) {
-//            System.out.println("Start: " + slice.startEpoch);
-//            System.out.println("End: " + slice.endEpoch);
-//            System.out.println(Arrays.toString(slice.resultCounts));
+            System.out.println("Start: " + slice.startEpoch);
+            System.out.println("End: " + slice.endEpoch);
+            System.out.println(Arrays.toString(slice.resultCounts));
         }
     }
 

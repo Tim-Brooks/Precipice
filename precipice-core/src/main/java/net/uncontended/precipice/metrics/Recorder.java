@@ -17,13 +17,11 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface Interval<T> {
+public interface Recorder<T> {
 
-    T current();
+    T flip();
 
-    T interval();
+    T flip(long nanoTime);
 
-    T interval(long nanoTime);
-
-    T interval(long nanoTime, T newVersion);
+    T flip(long nanoTime, T newVersion);
 }
