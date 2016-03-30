@@ -20,21 +20,24 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RelaxedLatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T>,
+public class RelaxedLatencyRecorder<T extends Enum<T>> extends RelaxedRecorder<T, LatencyMetrics<T>> implements LatencyMetrics<T>,
         Recorder<LatencyMetrics<T>> {
 
-    private final Clock clock = new SystemTime();
+    private final Clock clock;
     private final LatencyFactory latencyFactory;
-    private volatile LatencyMetrics<T> live;
 
     public RelaxedLatencyRecorder(Class<T> clazz) {
-        this(clazz, Latency.atomicHDRHistogram());
+        this(clazz, Latency.atomicHDRHistogram(), new SystemTime());
     }
 
     public RelaxedLatencyRecorder(Class<T> clazz, LatencyFactory latencyFactory) {
-        super(clazz);
+        this(clazz, latencyFactory, new SystemTime());
+    }
+
+    public RelaxedLatencyRecorder(Class<T> clazz, LatencyFactory latencyFactory, Clock clock) {
+        super(clazz, latencyFactory.newLatency(clazz), clock.nanoTime());
         this.latencyFactory = latencyFactory;
-        this.live = latencyFactory.newLatency(clazz);
+        this.clock = clock;
     }
 
     @Override
@@ -44,16 +47,12 @@ public class RelaxedLatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T
 
     @Override
     public void record(T result, long number, long nanoLatency, long nanoTime) {
-        live.record(result, number, nanoLatency, nanoTime);
+        active().record(result, number, nanoLatency, nanoTime);
     }
 
     @Override
     public PrecipiceHistogram getHistogram(T metric) {
         return null;
-    }
-
-    public LatencyMetrics<T> current() {
-        return live;
     }
 
     @Override
@@ -64,12 +63,5 @@ public class RelaxedLatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T
     @Override
     public synchronized LatencyMetrics<T> flip(long nanoTime) {
         return flip(nanoTime, latencyFactory.newLatency(clazz));
-    }
-
-    @Override
-    public synchronized LatencyMetrics<T> flip(long nanoTime, LatencyMetrics<T> newMetrics) {
-        LatencyMetrics<T> oldLive = live;
-        live = newMetrics;
-        return oldLive;
     }
 }
