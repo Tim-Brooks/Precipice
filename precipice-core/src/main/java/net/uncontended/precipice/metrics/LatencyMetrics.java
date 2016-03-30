@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface LatencyMetrics<T extends Enum<T>> extends IMetric<T> {
+public interface LatencyMetrics<T extends Enum<T>> extends Metrics<T> {
 
     void record(T result, long number, long nanoLatency);
 

@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface IMetric<T extends Enum<T>> {
+public interface Metrics<T extends Enum<T>> {
 
-    Class<T> getMetricType();
+    Class<T> getMetricClazz();
 
 }

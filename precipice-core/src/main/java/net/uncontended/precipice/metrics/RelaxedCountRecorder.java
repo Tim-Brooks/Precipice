@@ -67,7 +67,7 @@ public class RelaxedCountRecorder<T extends Enum<T>> extends AbstractMetrics<T> 
     }
 
     @Override
-    public Class<T> getMetricType() {
+    public Class<T> getMetricClazz() {
         return clazz;
     }
 

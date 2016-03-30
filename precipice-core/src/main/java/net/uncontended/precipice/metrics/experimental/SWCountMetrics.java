@@ -175,7 +175,7 @@ public class SWCountMetrics<T extends Enum<T> & Failable> implements BackgroundT
 //    }
 //
 //    @Override
-//    public Class<T> getMetricType() {
+//    public Class<T> getMetricClazz() {
 //        return type;
 //    }
 

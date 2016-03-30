@@ -47,12 +47,12 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     public Summary(SummaryProperties properties, GuardRail<Result, Rejected> guardRail) {
         this.guardRail = guardRail;
 
-        resultClazz = guardRail.getResultMetrics().getMetricType();
+        resultClazz = guardRail.getResultMetrics().getMetricClazz();
         int resultLength = resultClazz.getEnumConstants().length;
         totalResultCounts = new long[resultLength];
         resultCounts = new long[resultLength];
 
-        rejectedClazz = guardRail.getRejectedMetrics().getMetricType();
+        rejectedClazz = guardRail.getRejectedMetrics().getMetricClazz();
         int rejectedLength = rejectedClazz.getEnumConstants().length;
         totalRejectedCounts = new long[rejectedLength];
         rejectedCounts = new long[rejectedLength];

@@ -36,7 +36,7 @@ public class MetricRegistryTest {
 //        when(service.getName()).thenReturn(serviceName);
 //        when(service.getActionMetrics()).thenReturn(countMetrics);
 //        when(service.getLatencyMetrics()).thenReturn(latencyMetrics);
-//        when(countMetrics.getMetricType()).thenReturn(TimeoutableResult.class);
+//        when(countMetrics.getMetricClazz()).thenReturn(TimeoutableResult.class);
 //    }
 //
 //    @Test

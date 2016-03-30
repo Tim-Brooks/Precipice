@@ -67,7 +67,7 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         }
 
         if (properties.resultLatency == null) {
-            properties.resultLatency = new NoOpLatency<>(properties.resultMetrics.getMetricType());
+            properties.resultLatency = new NoOpLatency<>(properties.resultMetrics.getMetricClazz());
         }
 
         return GuardRail.create(properties);
