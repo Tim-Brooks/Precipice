@@ -28,7 +28,7 @@ public final class Latency {
 
     private static class AtomicHDRHistogramFactory implements LatencyFactory {
         @Override
-        public <T extends Enum<T>> LatencyMetrics<T> newLatency(Class<T> clazz, long nanoTime) {
+        public <T extends Enum<T>> LatencyMetrics<T> newLatency(Class<T> clazz) {
             return new AtomicHDRHistogram<>(clazz);
         }
     }

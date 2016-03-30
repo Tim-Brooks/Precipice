@@ -73,7 +73,7 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
     public void record(T metric, long number, long nanoLatency, long nanoTime) {
         LatencyMetrics<T> latencyMetrics = buffer.getSlot(nanoTime);
         if (latencyMetrics == null) {
-            latencyMetrics = buffer.putOrGet(nanoTime, factory.newLatency(clazz, nanoTime));
+            latencyMetrics = buffer.putOrGet(nanoTime, factory.newLatency(clazz));
         }
         if (latencyMetrics != null) {
             latencyMetrics.record(metric, number, nanoLatency, nanoTime);

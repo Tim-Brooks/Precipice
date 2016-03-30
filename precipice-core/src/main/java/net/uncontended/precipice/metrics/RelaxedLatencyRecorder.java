@@ -34,7 +34,7 @@ public class RelaxedLatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T
     public RelaxedLatencyRecorder(Class<T> clazz, LatencyFactory latencyFactory) {
         super(clazz);
         this.latencyFactory = latencyFactory;
-        this.live = latencyFactory.newLatency(clazz, clock.nanoTime());
+        this.live = latencyFactory.newLatency(clazz);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class RelaxedLatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T
 
     @Override
     public synchronized LatencyMetrics<T> flip(long nanoTime) {
-        return flip(nanoTime, latencyFactory.newLatency(clazz, nanoTime));
+        return flip(nanoTime, latencyFactory.newLatency(clazz));
     }
 
     @Override
