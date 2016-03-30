@@ -18,7 +18,6 @@
 package net.uncontended.precipice.metrics.experimental;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.BackgroundTask;
 import net.uncontended.precipice.metrics.IntervalLatencyMetrics;
 import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;

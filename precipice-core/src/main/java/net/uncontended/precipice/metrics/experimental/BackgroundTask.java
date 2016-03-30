@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
 public interface BackgroundTask {
     void tick(long nanoTime);
