@@ -60,7 +60,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         long startNanos = clock.nanoTime();
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
-        totalCounter = factory.newCounter(this.clazz, startNanos);
+        totalCounter = factory.newCounter(this.clazz);
         noOpCounter = new NoOpCounter<>(clazz);
     }
 
@@ -74,7 +74,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         totalCounter.add(metric, delta);
         CountMetrics<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
-            currentMetricCounter = buffer.putOrGet(nanoTime, factory.newCounter(clazz, nanoTime));
+            currentMetricCounter = buffer.putOrGet(nanoTime, factory.newCounter(clazz));
         }
         if (currentMetricCounter != null) {
             currentMetricCounter.add(metric, delta);

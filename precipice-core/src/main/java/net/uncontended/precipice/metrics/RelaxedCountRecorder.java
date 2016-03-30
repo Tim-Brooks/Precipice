@@ -45,9 +45,8 @@ public class RelaxedCountRecorder<T extends Enum<T>> extends AbstractMetrics<T> 
         super(clazz);
         this.intervalFactory = intervalFactory;
         this.clock = clock;
-        long nanoTime = clock.nanoTime();
         this.totalCounter = totalCounter;
-        this.intervalCounter = intervalFactory.newCounter(clazz, nanoTime);
+        this.intervalCounter = intervalFactory.newCounter(clazz);
     }
 
     @Override
@@ -81,7 +80,7 @@ public class RelaxedCountRecorder<T extends Enum<T>> extends AbstractMetrics<T> 
     }
 
     public synchronized CountMetrics<T> flip(long nanoTime) {
-        return flip(nanoTime, intervalFactory.newCounter(clazz, nanoTime));
+        return flip(nanoTime, intervalFactory.newCounter(clazz));
     }
 
     @Override

@@ -20,5 +20,5 @@ package net.uncontended.precipice.metrics;
 @FunctionalInterface
 public interface CounterFactory {
 
-    <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz, long nanoTime);
+    <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz);
 }
