@@ -15,14 +15,14 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
-public abstract class RelaxedRecorder<T extends Enum<T>, V> extends AbstractMetrics<T> implements Recorder<V> {
-    protected volatile Holder<V> activeHolder = new Holder<>();
-    protected volatile Holder<V> inactiveHolder = new Holder<>();
+public class DedicatedRelaxedRecorder<V> {
 
-    public RelaxedRecorder(Class<T> clazz, V initialValue, long nanoTime) {
-        super(clazz);
+    private volatile Holder<V> activeHolder = new Holder<>();
+    private volatile Holder<V> inactiveHolder = new Holder<>();
+
+    public DedicatedRelaxedRecorder(V initialValue, long nanoTime) {
         activeHolder.metrics = initialValue;
         activeHolder.endNanos = nanoTime;
     }
@@ -31,10 +31,17 @@ public abstract class RelaxedRecorder<T extends Enum<T>, V> extends AbstractMetr
         return activeHolder.metrics;
     }
 
-    public synchronized V flip(long nanoTime, V newCounter) {
+    public long startRecord() {
+        return 0L;
+    }
+
+    public void endRecord(long permit) {
+    }
+
+    public synchronized V flip(long nanoTime, V newValue) {
         Holder<V> old = this.activeHolder;
         Holder<V> newHolder = this.inactiveHolder;
-        newHolder.metrics = newCounter;
+        newHolder.metrics = newValue;
         newHolder.startNanos = nanoTime;
         old.endNanos = nanoTime;
         activeHolder = newHolder;
@@ -42,9 +49,9 @@ public abstract class RelaxedRecorder<T extends Enum<T>, V> extends AbstractMetr
         return old.metrics;
     }
 
-    protected static class Holder<V> {
-        protected long startNanos;
-        protected long endNanos;
-        protected V metrics;
+    private static class Holder<V> {
+        private long startNanos;
+        private long endNanos;
+        private V metrics;
     }
 }
