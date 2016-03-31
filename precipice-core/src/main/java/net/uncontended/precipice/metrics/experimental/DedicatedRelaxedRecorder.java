@@ -17,18 +17,11 @@
 
 package net.uncontended.precipice.metrics.experimental;
 
-public class DedicatedRelaxedRecorder<V> {
-
-    private volatile Holder<V> activeHolder = new Holder<>();
-    private volatile Holder<V> inactiveHolder = new Holder<>();
+public class DedicatedRelaxedRecorder<V> extends DedicatedRecorder<V> {
 
     public DedicatedRelaxedRecorder(V initialValue, long nanoTime) {
         activeHolder.metrics = initialValue;
         activeHolder.endNanos = nanoTime;
-    }
-
-    public V active() {
-        return activeHolder.metrics;
     }
 
     public long startRecord() {
@@ -47,11 +40,5 @@ public class DedicatedRelaxedRecorder<V> {
         activeHolder = newHolder;
         inactiveHolder = old;
         return old.metrics;
-    }
-
-    private static class Holder<V> {
-        private long startNanos;
-        private long endNanos;
-        private V metrics;
     }
 }

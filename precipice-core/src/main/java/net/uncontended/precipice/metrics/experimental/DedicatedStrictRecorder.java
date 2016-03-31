@@ -19,10 +19,8 @@ package net.uncontended.precipice.metrics.experimental;
 
 import org.HdrHistogram.WriterReaderPhaser;
 
-public class DedicatedStrictRecorder<V> {
+public class DedicatedStrictRecorder<V> extends DedicatedRecorder<V> {
 
-    private volatile Holder<V> activeHolder = new Holder<>();
-    private volatile Holder<V> inactiveHolder = new Holder<>();
     private final WriterReaderPhaser phaser = new WriterReaderPhaser();
 
     public DedicatedStrictRecorder(V initialValue, long nanoTime) {
@@ -30,18 +28,17 @@ public class DedicatedStrictRecorder<V> {
         activeHolder.endNanos = nanoTime;
     }
 
-    public V active() {
-        return activeHolder.metrics;
-    }
-
+    @Override
     public long startRecord() {
         return phaser.writerCriticalSectionEnter();
     }
 
+    @Override
     public void endRecord(long permit) {
         phaser.writerCriticalSectionExit(permit);
     }
 
+    @Override
     public synchronized V flip(long nanoTime, V newValue) {
         phaser.readerLock();
 
@@ -51,7 +48,7 @@ public class DedicatedStrictRecorder<V> {
             newHolder.metrics = newValue;
             newHolder.startNanos = nanoTime;
             old.endNanos = nanoTime;
-            activeHolder = newHolder;
+            this.activeHolder = newHolder;
             inactiveHolder = old;
             phaser.flipPhase(500000L);
             return old.metrics;
@@ -60,9 +57,4 @@ public class DedicatedStrictRecorder<V> {
         }
     }
 
-    private static class Holder<V> {
-        private long startNanos;
-        private long endNanos;
-        private V metrics;
-    }
 }
