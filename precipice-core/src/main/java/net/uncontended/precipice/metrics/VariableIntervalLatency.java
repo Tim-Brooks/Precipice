@@ -20,23 +20,32 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RelaxedLatencyRecorder<T extends Enum<T>> extends RelaxedRecorder<T, LatencyMetrics<T>> implements LatencyMetrics<T>,
-        Recorder<LatencyMetrics<T>> {
+public class VariableIntervalLatency<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T> {
 
+    private final Recorder<LatencyMetrics<T>> recorder;
     private final Clock clock;
     private final LatencyFactory latencyFactory;
 
-    public RelaxedLatencyRecorder(Class<T> clazz) {
-        this(clazz, Latency.atomicHDRHistogram(), new SystemTime());
+    public VariableIntervalLatency(Class<T> clazz) {
+        this(clazz, Latency.atomicHDRHistogram());
     }
 
-    public RelaxedLatencyRecorder(Class<T> clazz, LatencyFactory latencyFactory) {
-        this(clazz, latencyFactory, new SystemTime());
+    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory) {
+        this(clazz, latencyFactory, new RelaxedRecorder<>(latencyFactory.newLatency(clazz), System.nanoTime()));
     }
 
-    public RelaxedLatencyRecorder(Class<T> clazz, LatencyFactory latencyFactory, Clock clock) {
-        super(clazz, latencyFactory.newLatency(clazz), clock.nanoTime());
+    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory, Clock clock) {
+        this(clazz, latencyFactory, new RelaxedRecorder<>(latencyFactory.newLatency(clazz), clock.nanoTime()), clock);
+    }
+
+    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory, Recorder<LatencyMetrics<T>> recorder) {
+        this(clazz, latencyFactory, recorder, new SystemTime());
+    }
+
+    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory, Recorder<LatencyMetrics<T>> recorder, Clock clock) {
+        super(clazz);
         this.latencyFactory = latencyFactory;
+        this.recorder = recorder;
         this.clock = clock;
     }
 
@@ -47,7 +56,7 @@ public class RelaxedLatencyRecorder<T extends Enum<T>> extends RelaxedRecorder<T
 
     @Override
     public void record(T result, long number, long nanoLatency, long nanoTime) {
-        active().record(result, number, nanoLatency, nanoTime);
+        recorder.active().record(result, number, nanoLatency, nanoTime);
     }
 
     @Override
@@ -55,13 +64,8 @@ public class RelaxedLatencyRecorder<T extends Enum<T>> extends RelaxedRecorder<T
         return null;
     }
 
-    @Override
     public synchronized LatencyMetrics<T> flip() {
-        return flip(clock.nanoTime());
+        return recorder.flip(clock.nanoTime(), latencyFactory.newLatency(clazz));
     }
 
-    @Override
-    public synchronized LatencyMetrics<T> flip(long nanoTime) {
-        return flip(nanoTime, latencyFactory.newLatency(clazz));
-    }
 }

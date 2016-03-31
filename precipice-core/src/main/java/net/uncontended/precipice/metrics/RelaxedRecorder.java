@@ -17,34 +17,28 @@
 
 package net.uncontended.precipice.metrics;
 
-public abstract class RelaxedRecorder<T extends Enum<T>, V> extends AbstractMetrics<T> implements Recorder<V> {
-    protected volatile Holder<V> activeHolder = new Holder<>();
-    protected volatile Holder<V> inactiveHolder = new Holder<>();
+public class RelaxedRecorder<V> extends Recorder<V> {
 
-    public RelaxedRecorder(Class<T> clazz, V initialValue, long nanoTime) {
-        super(clazz);
+    public RelaxedRecorder(V initialValue, long nanoTime) {
         activeHolder.metrics = initialValue;
         activeHolder.endNanos = nanoTime;
     }
 
-    public V active() {
-        return activeHolder.metrics;
+    public long startRecord() {
+        return 0L;
     }
 
-    public synchronized V flip(long nanoTime, V newCounter) {
+    public void endRecord(long permit) {
+    }
+
+    public synchronized V flip(long nanoTime, V newValue) {
         Holder<V> old = this.activeHolder;
         Holder<V> newHolder = this.inactiveHolder;
-        newHolder.metrics = newCounter;
+        newHolder.metrics = newValue;
         newHolder.startNanos = nanoTime;
         old.endNanos = nanoTime;
         activeHolder = newHolder;
         inactiveHolder = old;
         return old.metrics;
-    }
-
-    protected static class Holder<V> {
-        protected long startNanos;
-        protected long endNanos;
-        protected V metrics;
     }
 }

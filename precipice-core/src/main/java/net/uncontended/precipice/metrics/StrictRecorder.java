@@ -15,15 +15,15 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
 import org.HdrHistogram.WriterReaderPhaser;
 
-public class DedicatedStrictRecorder<V> extends DedicatedRecorder<V> {
+public class StrictRecorder<V> extends Recorder<V> {
 
     private final WriterReaderPhaser phaser = new WriterReaderPhaser();
 
-    public DedicatedStrictRecorder(V initialValue, long nanoTime) {
+    public StrictRecorder(V initialValue, long nanoTime) {
         activeHolder.metrics = initialValue;
         activeHolder.endNanos = nanoTime;
     }

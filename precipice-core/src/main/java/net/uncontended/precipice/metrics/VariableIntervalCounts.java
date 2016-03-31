@@ -20,21 +20,32 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RelaxedCountRecorder<T extends Enum<T>> extends RelaxedRecorder<T, CountMetrics<T>> implements CountMetrics<T> {
+public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T> {
 
     private final CounterFactory counterFactory;
     private final Clock clock;
+    private Recorder<CountMetrics<T>> recorder;
 
-    public RelaxedCountRecorder(Class<T> clazz) {
+    public VariableIntervalCounts(Class<T> clazz) {
         this(clazz, Counters.adding());
     }
 
-    public RelaxedCountRecorder(Class<T> clazz, CounterFactory counterFactory) {
-        this(clazz, counterFactory, new SystemTime());
+    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory) {
+        this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.newCounter(clazz), System.nanoTime()));
     }
 
-    public RelaxedCountRecorder(Class<T> clazz, CounterFactory counterFactory, Clock clock) {
-        super(clazz, counterFactory.newCounter(clazz), clock.nanoTime());
+    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Recorder<CountMetrics<T>> recorder) {
+        this(clazz, counterFactory, recorder, new SystemTime());
+    }
+
+    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Clock clock) {
+        this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.newCounter(clazz), clock.nanoTime()), clock);
+    }
+
+    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory,
+                                  Recorder<CountMetrics<T>> recorder, Clock clock) {
+        super(clazz);
+        this.recorder = recorder;
         this.counterFactory = counterFactory;
         this.clock = clock;
     }
@@ -47,7 +58,7 @@ public class RelaxedCountRecorder<T extends Enum<T>> extends RelaxedRecorder<T, 
 
     @Override
     public void add(T metric, long delta, long nanoTime) {
-        active().add(metric, delta, nanoTime);
+        recorder.active().add(metric, delta, nanoTime);
     }
 
     @Override
@@ -55,14 +66,8 @@ public class RelaxedCountRecorder<T extends Enum<T>> extends RelaxedRecorder<T, 
         return 0L;
     }
 
-    @Override
     public synchronized CountMetrics<T> flip() {
-        return flip(clock.nanoTime());
-    }
-
-    @Override
-    public synchronized CountMetrics<T> flip(long nanoTime) {
-        return flip(nanoTime, counterFactory.newCounter(clazz));
+        return recorder.flip(clock.nanoTime(), counterFactory.newCounter(clazz));
     }
 
 }

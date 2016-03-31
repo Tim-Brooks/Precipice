@@ -17,11 +17,23 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface Recorder<T> {
+public abstract class Recorder<V> {
+    protected volatile Holder<V> activeHolder = new Holder<>();
+    protected volatile Holder<V> inactiveHolder = new Holder<>();
 
-    T flip();
+    public V active() {
+        return activeHolder.metrics;
+    }
 
-    T flip(long nanoTime);
+    public abstract long startRecord();
 
-    T flip(long nanoTime, T newVersion);
+    public abstract void endRecord(long permit);
+
+    public abstract V flip(long nanoTime, V newValue);
+
+    protected static class Holder<V> {
+        protected long startNanos;
+        protected long endNanos;
+        protected V metrics;
+    }
 }
