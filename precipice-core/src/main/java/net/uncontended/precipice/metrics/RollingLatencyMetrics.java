@@ -27,6 +27,7 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
 
     private final LatencyFactory factory;
     private final Clock clock;
+    private final LatencyMetrics<T> totalLatency;
     private final CircularBuffer<LatencyMetrics<T>> buffer;
     private final NoOpLatency<T> noOpLatency;
     private long intervalsToBuffer;
@@ -55,12 +56,14 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
     public RollingLatencyMetrics(Class<T> clazz, LatencyFactory factory, int slotsToTrack, long resolution,
                                  TimeUnit slotUnit, Clock clock) {
         super(clazz);
+        boolean useTotalCounter = true;
         this.factory = factory;
         this.clock = clock;
         long startNanos = clock.nanoTime();
         this.intervalsToBuffer = slotsToTrack;
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
+        totalLatency = useTotalCounter ? factory.newLatency(clazz) : new NoOpLatency<>(clazz);
         noOpLatency = new NoOpLatency<>(clazz);
     }
 

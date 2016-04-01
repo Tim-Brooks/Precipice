@@ -18,8 +18,6 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.HealthGauge;
-import net.uncontended.precipice.metrics.HealthSnapshot;
 import net.uncontended.precipice.metrics.NoOpCounter;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
 import net.uncontended.precipice.rejected.Rejected;

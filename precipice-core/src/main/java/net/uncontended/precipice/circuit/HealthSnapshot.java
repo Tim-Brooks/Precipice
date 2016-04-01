@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.circuit;
 
 public class HealthSnapshot {
 

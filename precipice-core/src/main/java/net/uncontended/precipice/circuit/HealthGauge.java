@@ -15,9 +15,11 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.ArrayList;
 import java.util.List;

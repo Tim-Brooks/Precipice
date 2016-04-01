@@ -28,7 +28,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     private final CountMetrics<T> totalCounter;
     private final CountMetrics<T> noOpCounter;
     private final CircularBuffer<CountMetrics<T>> buffer;
-    private final CounterFactory factory = Counters.adding();
+    private final CounterFactory factory;
     private final int intervalsToBuffer;
     private final Clock clock;
 
@@ -55,12 +55,15 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     public RollingCountMetrics(Class<T> clazz, CounterFactory factory, int slotsToTrack, long resolution,
                                TimeUnit slotUnit, Clock clock) {
         super(clazz);
+        boolean useTotalCounter = true;
         this.intervalsToBuffer = slotsToTrack;
         this.clock = clock;
+        this.factory = factory;
+
         long startNanos = clock.nanoTime();
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
-        totalCounter = factory.newCounter(this.clazz);
+        totalCounter = useTotalCounter ? factory.newCounter(this.clazz) : new NoOpCounter<>(clazz);
         noOpCounter = new NoOpCounter<>(clazz);
     }
 
