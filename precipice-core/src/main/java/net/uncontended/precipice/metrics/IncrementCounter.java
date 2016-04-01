@@ -49,4 +49,13 @@ public class IncrementCounter<T extends Enum<T>> extends AbstractMetrics<T> impl
         return metrics[metric.ordinal()].longValue();
     }
 
+    @Override
+    public long total() {
+        long total = 0;
+        for (LongAdder adder : metrics) {
+            total += adder.longValue();
+        }
+        return total;
+    }
+
 }

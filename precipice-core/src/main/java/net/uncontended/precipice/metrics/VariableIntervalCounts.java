@@ -66,6 +66,11 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
         return 0L;
     }
 
+    @Override
+    public long total() {
+        return 0;
+    }
+
     public synchronized CountMetrics<T> flip() {
         return recorder.flip(clock.nanoTime(), counterFactory.newCounter(clazz));
     }

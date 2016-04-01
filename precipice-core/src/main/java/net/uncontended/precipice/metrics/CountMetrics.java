@@ -24,4 +24,6 @@ public interface CountMetrics<T extends Enum<T>> extends Metrics<T> {
 
     long getCount(T metric);
 
+    long total();
+
 }

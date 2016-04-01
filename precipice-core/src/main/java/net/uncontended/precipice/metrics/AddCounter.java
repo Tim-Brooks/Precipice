@@ -48,4 +48,13 @@ public class AddCounter<T extends Enum<T>> extends AbstractMetrics<T> implements
         return metrics[metric.ordinal()].longValue();
     }
 
+    @Override
+    public long total() {
+        long total = 0;
+        for (LongAdder adder : metrics) {
+            total += adder.longValue();
+        }
+        return total;
+    }
+
 }

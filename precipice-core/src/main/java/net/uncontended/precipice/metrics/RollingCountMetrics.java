@@ -86,6 +86,11 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         return totalCounter.getCount(metric);
     }
 
+    @Override
+    public long total() {
+        return totalCounter.total();
+    }
+
     public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
         return getCountForPeriod(metric, timePeriod, timeUnit, clock.nanoTime());
     }
