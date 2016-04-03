@@ -15,15 +15,16 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
+import net.uncontended.precipice.metrics.*;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T>,
-        Rolling<CountMetrics<T>> {
+public class NewRollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements Rolling<CountMetrics<T>>,
+        NewCountMetrics<T> {
 
     private final CountMetrics<T> totalCounter;
     private final CountMetrics<T> noOpCounter;
@@ -32,28 +33,28 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     private final int intervalsToBuffer;
     private final Clock clock;
 
-    public RollingCountMetrics(Class<T> type) {
+    public NewRollingCountMetrics(Class<T> type) {
         this(type, Counters.adding());
     }
 
-    public RollingCountMetrics(Class<T> type, CounterFactory factory) {
+    public NewRollingCountMetrics(Class<T> type, CounterFactory factory) {
         this(type, factory, true, (int) TimeUnit.MINUTES.toSeconds(15), 1, TimeUnit.SECONDS, new SystemTime());
     }
 
-    public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+    public NewRollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit) {
         this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public RollingCountMetrics(Class<T> type, CounterFactory factory, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+    public NewRollingCountMetrics(Class<T> type, CounterFactory factory, int slotsToTrack, long resolution, TimeUnit slotUnit) {
         this(type, factory, true, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock clock) {
+    public NewRollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock clock) {
         this(type, Counters.adding(), true, slotsToTrack, resolution, slotUnit, clock);
     }
 
-    public RollingCountMetrics(Class<T> clazz, CounterFactory factory, boolean trackTotalCounts, int slotsToTrack,
-                               long resolution, TimeUnit slotUnit, Clock clock) {
+    public NewRollingCountMetrics(Class<T> clazz, CounterFactory factory, boolean trackTotalCounts, int slotsToTrack,
+                                  long resolution, TimeUnit slotUnit, Clock clock) {
         super(clazz);
         this.intervalsToBuffer = slotsToTrack;
         this.clock = clock;
@@ -83,28 +84,8 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         }
     }
 
-    @Override
-    public long getCount(T metric) {
-        return totalCounter.getCount(metric);
-    }
-
-    @Override
-    public long total() {
-        return totalCounter.total();
-    }
-
-    public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
-        return getCountForPeriod(metric, timePeriod, timeUnit, clock.nanoTime());
-    }
-
-    public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterable<CountMetrics<T>> slots = buffer.valuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
-
-        long count = 0;
-        for (CountMetrics<T> metricCounter : slots) {
-            count += metricCounter.getCount(metric);
-        }
-        return count;
+    public CountMetrics<T> totalCounter() {
+        return totalCounter;
     }
 
     @Override
