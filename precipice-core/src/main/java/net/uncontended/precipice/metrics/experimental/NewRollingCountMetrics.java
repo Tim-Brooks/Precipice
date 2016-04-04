@@ -63,8 +63,8 @@ public class NewRollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T
         long startNanos = clock.nanoTime();
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
-        totalCounter = trackTotalCounts ? factory.newCounter(this.clazz) : new NoOpCounter<>(clazz);
-        noOpCounter = new NoOpCounter<>(clazz);
+        totalCounter = trackTotalCounts ? factory.newCounter(this.clazz) : new NoOpCounter<>(this.clazz);
+        noOpCounter = new NoOpCounter<>(this.clazz);
     }
 
     @Override

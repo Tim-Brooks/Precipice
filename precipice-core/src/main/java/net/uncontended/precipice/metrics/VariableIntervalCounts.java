@@ -20,7 +20,7 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T> {
+public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements NewCountMetrics<T> {
 
     private final CounterFactory counterFactory;
     private final Clock clock;
@@ -59,16 +59,6 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
     @Override
     public void add(T metric, long delta, long nanoTime) {
         recorder.active().add(metric, delta, nanoTime);
-    }
-
-    @Override
-    public long getCount(T metric) {
-        return 0L;
-    }
-
-    @Override
-    public long total() {
-        return 0;
     }
 
     public synchronized CountMetrics<T> flip() {

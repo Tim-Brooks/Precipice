@@ -15,9 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
-
-import net.uncontended.precipice.metrics.Metrics;
+package net.uncontended.precipice.metrics;
 
 public interface NewCountMetrics<T extends Enum<T>> extends Metrics<T> {
     void add(T metric, long delta);
