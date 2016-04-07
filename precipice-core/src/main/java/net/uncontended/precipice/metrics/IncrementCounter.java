@@ -19,7 +19,7 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.concurrent.util.LongAdder;
 
-public class IncrementCounter<T extends Enum<T>> extends AbstractMetrics<T> implements CountMetrics<T> {
+public class IncrementCounter<T extends Enum<T>> extends AbstractMetrics<T> implements ReadableCountMetrics<T> {
 
     private final LongAdder[] metrics;
 

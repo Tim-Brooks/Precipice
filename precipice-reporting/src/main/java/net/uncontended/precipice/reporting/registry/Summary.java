@@ -18,9 +18,10 @@ package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.CountMetrics;
-import net.uncontended.precipice.metrics.IntervalIterable;
+import net.uncontended.precipice.metrics.IntervalIterator;
+import net.uncontended.precipice.metrics.ReadableCountMetrics;
 import net.uncontended.precipice.metrics.Rolling;
+import net.uncontended.precipice.metrics.WritableCountMetrics;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -72,16 +73,18 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         Arrays.fill(resultCounts, 0);
         Arrays.fill(rejectedCounts, 0);
 
-        CountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
-        CountMetrics<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
+        WritableCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
+        WritableCountMetrics<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
 
         long localStartEpoch = Long.MAX_VALUE;
         long localEndEpoch = 0L;
 
         if (resultMetrics instanceof Rolling) {
-            Rolling<CountMetrics<Result>> rollingMetrics = (Rolling<CountMetrics<Result>>) resultMetrics;
-            IntervalIterable<CountMetrics<Result>> intervals = rollingMetrics.intervals(nanoTime);
-            for (CountMetrics<Result> interval : intervals) {
+            Rolling<ReadableCountMetrics<Result>> rollingMetrics = (Rolling<ReadableCountMetrics<Result>>) resultMetrics;
+            IntervalIterator<ReadableCountMetrics<Result>> intervals = rollingMetrics.intervals(nanoTime);
+            ReadableCountMetrics<Result> interval;
+            while (intervals.hasNext()) {
+                interval = intervals.next();
                 long startDiffMillis = TimeUnit.NANOSECONDS.toMillis(intervals.intervalStart());
                 long endDiffMillis = TimeUnit.NANOSECONDS.toMillis(intervals.intervalEnd());
                 long startEpoch = startDiffMillis + epochTime;
@@ -96,9 +99,11 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         }
 
         if (rejectedMetrics instanceof Rolling) {
-            Rolling<CountMetrics<Rejected>> rollingMetrics = (Rolling<CountMetrics<Rejected>>) rejectedMetrics;
-            IntervalIterable<CountMetrics<Rejected>> intervals = rollingMetrics.intervals();
-            for (CountMetrics<Rejected> interval : intervals) {
+            Rolling<ReadableCountMetrics<Rejected>> rollingMetrics = (Rolling<ReadableCountMetrics<Rejected>>) rejectedMetrics;
+            IntervalIterator<ReadableCountMetrics<Rejected>> intervals = rollingMetrics.intervals();
+            ReadableCountMetrics<Rejected> interval;
+            while (intervals.hasNext()) {
+                interval = intervals.next();
                 long relativeStart = intervals.intervalStart();
                 long relativeEnd = intervals.intervalEnd();
                 if (relativeStart >= currentEndEpoch && relativeEnd != 0) {
@@ -119,7 +124,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         } else {
             for (Result t : resultClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-                totalResultCounts[metricIndex] = resultMetrics.getCount(t);
+//                totalResultCounts[metricIndex] = resultMetrics.getCount(t);
             }
         }
 
@@ -131,7 +136,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         } else {
             for (Rejected t : rejectedClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-                totalRejectedCounts[metricIndex] = rejectedMetrics.getCount(t);
+//                totalRejectedCounts[metricIndex] = rejectedMetrics.getCount(t);
             }
         }
         currentStartEpoch = localStartEpoch;

@@ -2,7 +2,7 @@ package net.uncontended.precipice.metrics;
 
 import java.util.Iterator;
 
-public interface IntervalIterable<T> extends Iterable<T>, Iterator<T> {
+public interface IntervalIterator<T> extends Iterator<T> {
     @Override
     boolean hasNext();
 
@@ -11,9 +11,6 @@ public interface IntervalIterable<T> extends Iterable<T>, Iterator<T> {
 
     @Override
     void remove();
-
-    @Override
-    Iterator<T> iterator();
 
     long intervalStart();
 

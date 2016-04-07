@@ -101,22 +101,22 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
     }
 
     @Override
-    public IntervalIterable<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit) {
+    public IntervalIterator<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit) {
         return intervalsForPeriod(timePeriod, timeUnit, clock.nanoTime());
     }
 
     @Override
-    public IntervalIterable<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public IntervalIterator<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return buffer.intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpLatency);
     }
 
     @Override
-    public IntervalIterable<LatencyMetrics<T>> intervals() {
+    public IntervalIterator<LatencyMetrics<T>> intervals() {
         return intervals(clock.nanoTime());
     }
 
     @Override
-    public IntervalIterable<LatencyMetrics<T>> intervals(long nanoTime) {
+    public IntervalIterator<LatencyMetrics<T>> intervals(long nanoTime) {
         return buffer.intervals(this.intervalsToBuffer, nanoTime, noOpLatency);
     }
 }

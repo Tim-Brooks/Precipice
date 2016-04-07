@@ -20,11 +20,11 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements NewCountMetrics<T> {
+public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCountMetrics<T> {
 
     private final CounterFactory counterFactory;
     private final Clock clock;
-    private Recorder<CountMetrics<T>> recorder;
+    private Recorder<ReadableCountMetrics<T>> recorder;
 
     public VariableIntervalCounts(Class<T> clazz) {
         this(clazz, Counters.adding());
@@ -34,7 +34,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
         this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.newCounter(clazz), System.nanoTime()));
     }
 
-    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Recorder<CountMetrics<T>> recorder) {
+    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Recorder<ReadableCountMetrics<T>> recorder) {
         this(clazz, counterFactory, recorder, new SystemTime());
     }
 
@@ -43,7 +43,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
     }
 
     public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory,
-                                  Recorder<CountMetrics<T>> recorder, Clock clock) {
+                                  Recorder<ReadableCountMetrics<T>> recorder, Clock clock) {
         super(clazz);
         this.recorder = recorder;
         this.counterFactory = counterFactory;
@@ -61,7 +61,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
         recorder.active().add(metric, delta, nanoTime);
     }
 
-    public synchronized CountMetrics<T> flip() {
+    public synchronized ReadableCountMetrics<T> flip() {
         return recorder.flip(clock.nanoTime(), counterFactory.newCounter(clazz));
     }
 

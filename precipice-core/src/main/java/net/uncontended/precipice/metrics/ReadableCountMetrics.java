@@ -17,8 +17,10 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface NewCountMetrics<T extends Enum<T>> extends Metrics<T> {
-    void add(T metric, long delta);
+public interface ReadableCountMetrics<T extends Enum<T>> extends WritableCountMetrics<T> {
 
-    void add(T metric, long delta, long nanoTime);
+    long getCount(T metric);
+
+    long total();
+
 }

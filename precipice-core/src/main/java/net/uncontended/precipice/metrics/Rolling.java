@@ -25,11 +25,11 @@ public interface Rolling<T> {
 
     T currentInterval(long nanoTime);
 
-    IntervalIterable<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit);
+    IntervalIterator<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit);
 
-    IntervalIterable<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
+    IntervalIterator<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
 
-    IntervalIterable<T> intervals();
+    IntervalIterator<T> intervals();
 
-    IntervalIterable<T> intervals(long nanoTime);
+    IntervalIterator<T> intervals(long nanoTime);
 }

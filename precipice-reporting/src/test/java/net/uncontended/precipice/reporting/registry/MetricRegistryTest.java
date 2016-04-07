@@ -23,7 +23,7 @@ public class MetricRegistryTest {
 //    @Mock
 //    private Service service;
 //    @Mock
-//    private CountMetrics countMetrics;
+//    private ReadableCountMetrics countMetrics;
 //
 //    @Mock
 //    private IntervalLatencyMetrics<TimeoutableResult> latencyMetrics;

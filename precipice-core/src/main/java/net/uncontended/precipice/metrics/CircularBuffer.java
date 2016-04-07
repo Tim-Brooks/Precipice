@@ -81,15 +81,15 @@ public class CircularBuffer<T> {
         }
     }
 
-    public Iterable<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public Iterator<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return valuesForTimePeriod(timePeriod, timeUnit, nanoTime, null);
     }
 
-    public Iterable<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+    public Iterator<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
         return values(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
     }
 
-    public Iterable<T> values(long slots, long nanoTime, T dead) {
+    public Iterator<T> values(long slots, long nanoTime, T dead) {
         long diff = nanoTime - startNanos;
         long absoluteSlot = diff / nanosPerSlot;
         long startSlot = 1 + absoluteSlot - slots;
@@ -97,15 +97,15 @@ public class CircularBuffer<T> {
         return new Intervals(adjustedStartSlot, absoluteSlot, -1, dead);
     }
 
-    public IntervalIterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+    public IntervalIterator<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
     }
 
-    public IntervalIterable<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
+    public IntervalIterator<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
         return intervals(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
     }
 
-    public IntervalIterable<T> intervals(long slots, long nanoTime, T dead) {
+    public IntervalIterator<T> intervals(long slots, long nanoTime, T dead) {
         long diff = nanoTime - startNanos;
         long absoluteSlot = diff / nanosPerSlot;
         long startSlot = 1 + absoluteSlot - slots;
@@ -162,7 +162,7 @@ public class CircularBuffer<T> {
         }
     }
 
-    private class Intervals implements IntervalIterable<T> {
+    private class Intervals implements IntervalIterator<T> {
 
         private final long remainderNanos;
         private final T dead;
@@ -199,7 +199,7 @@ public class CircularBuffer<T> {
         @Override
         public long intervalStart() {
             long difference = maxIndex - index + 1;
-            return - (remainderNanos + (difference * nanosPerSlot));
+            return -(remainderNanos + (difference * nanosPerSlot));
         }
 
         @Override
@@ -208,18 +208,13 @@ public class CircularBuffer<T> {
             if (difference == 0) {
                 return 0;
             } else {
-                return - (remainderNanos + ((difference - 1) * nanosPerSlot));
+                return -(remainderNanos + ((difference - 1) * nanosPerSlot));
             }
         }
 
         @Override
         public void remove() {
             throw new UnsupportedOperationException("remove");
-        }
-
-        @Override
-        public Iterator<T> iterator() {
-            return this;
         }
     }
 }

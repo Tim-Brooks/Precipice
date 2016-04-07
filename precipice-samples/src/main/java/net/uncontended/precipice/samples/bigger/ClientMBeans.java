@@ -18,7 +18,7 @@
 package net.uncontended.precipice.samples.bigger;
 
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.ReadableCountMetrics;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.result.TimeoutableResult;
@@ -32,7 +32,7 @@ public class ClientMBeans {
     private final AtomicLong lastUpdateTimestamp = new AtomicLong(0);
     private volatile Map<Object, Object> currentMetrics;
 
-    public ClientMBeans(String name, final Rolling<CountMetrics<TimeoutableResult>> countMetrics) {
+    public ClientMBeans(String name, final Rolling<ReadableCountMetrics<TimeoutableResult>> countMetrics) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {
@@ -89,7 +89,7 @@ public class ClientMBeans {
 
     }
 
-    public ClientMBeans(String name, final Rolling<CountMetrics<TimeoutableResult>> countMetrics, final DefaultCircuitBreaker<Rejected> breaker) {
+    public ClientMBeans(String name, final Rolling<ReadableCountMetrics<TimeoutableResult>> countMetrics, final DefaultCircuitBreaker<Rejected> breaker) {
 
         try {
             ManagementFactory.getPlatformMBeanServer().registerMBean(new ExampleMetric() {

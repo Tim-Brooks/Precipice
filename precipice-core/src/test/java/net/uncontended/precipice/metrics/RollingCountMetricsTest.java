@@ -114,7 +114,7 @@ public class RollingCountMetricsTest {
         assertEquals(0, metrics.getCountForPeriod(TimeoutableResult.ERROR, resolution, unit));
         assertEquals(0, metrics.getCountForPeriod(TimeoutableResult.SUCCESS, resolution, unit));
         assertEquals(1, metrics.getCountForPeriod(TimeoutableResult.SUCCESS, resolution * 2, unit));
-        assertEquals(1, metrics.getCount(TimeoutableResult.ERROR));
+        assertEquals(1, metrics.totalCounter().getCount(TimeoutableResult.ERROR));
     }
 
     @Test
@@ -133,7 +133,7 @@ public class RollingCountMetricsTest {
 
         long currentTime = TimeUnit.SECONDS.toNanos(30);
         assertEquals(1, metrics.getCountForPeriod(TimeoutableResult.SUCCESS, 10, TimeUnit.SECONDS), currentTime);
-        assertEquals(4, metrics.getCount(TimeoutableResult.SUCCESS));
+        assertEquals(4, metrics.totalCounter().getCount(TimeoutableResult.SUCCESS));
     }
 
     @Test
@@ -182,7 +182,7 @@ public class RollingCountMetricsTest {
         fireThreads(metrics, currentTime, 10);
 
         long nanoTime = 6000L * 1000L * 1000L;
-        IntervalIterable<CountMetrics<TimeoutableResult>> intervals = metrics.intervalsForPeriod(5, TimeUnit.SECONDS, nanoTime);
+        IntervalIterator<ReadableCountMetrics<TimeoutableResult>> intervals = metrics.intervalsForPeriod(5, TimeUnit.SECONDS, nanoTime);
         assertEquals(5000, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS));
         intervals = metrics.intervalsForPeriod(5, TimeUnit.SECONDS, nanoTime);
         assertEquals(5000, Accumulator.countForPeriod(intervals, TimeoutableResult.ERROR));

@@ -19,7 +19,7 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.ReadableCountMetrics;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternCallable;
 import net.uncontended.precipice.pattern.WritableSequence;
@@ -84,9 +84,9 @@ public class ThreadPoolPatternTest {
     @Mock
     private PrecipiceSemaphore semaphore;
     @Mock
-    private CountMetrics<TimeoutableResult> metrics;
+    private ReadableCountMetrics<TimeoutableResult> metrics;
     @Mock
-    private CountMetrics<PatternRejected> rejectedMetrics;
+    private ReadableCountMetrics<PatternRejected> rejectedMetrics;
     @Mock
     private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock

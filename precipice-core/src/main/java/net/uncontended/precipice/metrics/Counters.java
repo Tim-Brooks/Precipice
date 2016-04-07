@@ -33,14 +33,14 @@ public final class Counters {
     private static class IncrementingFactory implements CounterFactory {
 
         @Override
-        public <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz) {
+        public <T extends Enum<T>> ReadableCountMetrics<T> newCounter(Class<T> clazz) {
             return new IncrementCounter<>(clazz);
         }
     }
 
     private static class AddFactory implements CounterFactory {
         @Override
-        public <T extends Enum<T>> CountMetrics<T> newCounter(Class<T> clazz) {
+        public <T extends Enum<T>> ReadableCountMetrics<T> newCounter(Class<T> clazz) {
             return new AddCounter<>(clazz);
         }
     }

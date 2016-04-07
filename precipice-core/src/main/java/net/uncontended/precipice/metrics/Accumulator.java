@@ -17,11 +17,15 @@
 
 package net.uncontended.precipice.metrics;
 
+import java.util.Iterator;
+
 public final class Accumulator {
 
-    public static <T extends Enum<T>> long countForPeriod(Iterable<CountMetrics<T>> intervals, T type) {
+    public static <T extends Enum<T>> long countForPeriod(Iterator<ReadableCountMetrics<T>> intervals, T type) {
         long count = 0;
-        for (CountMetrics<T> metricCounter : intervals) {
+        ReadableCountMetrics<T> metricCounter;
+        while (intervals.hasNext()) {
+            metricCounter = intervals.next();
             count += metricCounter.getCount(type);
         }
         return count;

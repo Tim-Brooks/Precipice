@@ -109,7 +109,7 @@ public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBr
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
-        CountMetrics<Result> metrics = guardRail.getResultMetrics();
+        WritableCountMetrics<Result> metrics = guardRail.getResultMetrics();
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {

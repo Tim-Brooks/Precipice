@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.CountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.WritableCountMetrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -28,8 +28,8 @@ import java.util.List;
 public class GuardRailProperties<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
     public String name;
-    public CountMetrics<Result> resultMetrics;
-    public CountMetrics<Rejected> rejectedMetrics;
+    public WritableCountMetrics<Result> resultMetrics;
+    public WritableCountMetrics<Rejected> rejectedMetrics;
     public LatencyMetrics<Result> resultLatency;
     public List<BackPressure<Rejected>> backPressureList = new ArrayList<>();
     public Clock clock = new SystemTime();

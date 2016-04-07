@@ -18,10 +18,11 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.ReadableCountMetrics;
 import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -44,18 +45,18 @@ public class HealthGauge {
         return new HealthSnapshot(total, failures);
     }
 
-    public <Result extends Enum<Result> & Failable> void add(Rolling<CountMetrics<Result>> metrics) {
+    public <Result extends Enum<Result> & Failable> void add(Rolling<ReadableCountMetrics<Result>> metrics) {
         gauges.add(new InternalGauge<>(metrics));
     }
 
     private class InternalGauge<Result extends Enum<Result> & Failable> {
 
-        private final Rolling<CountMetrics<Result>> metrics;
+        private final Rolling<ReadableCountMetrics<Result>> metrics;
         private final Class<Result> type;
         private long total = 0;
         private long failures = 0;
 
-        private InternalGauge(Rolling<CountMetrics<Result>> metrics) {
+        private InternalGauge(Rolling<ReadableCountMetrics<Result>> metrics) {
             this.metrics = metrics;
             type = metrics.currentInterval().getMetricClazz();
         }
@@ -63,10 +64,12 @@ public class HealthGauge {
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
             total = 0;
             failures = 0;
-            Iterable<CountMetrics<Result>> counters = metrics.intervalsForPeriod(timePeriod, timeUnit, nanoTime);
+            Iterator<ReadableCountMetrics<Result>> counters = metrics.intervalsForPeriod(timePeriod, timeUnit, nanoTime);
 
             // TODO: explore what implications this has for metric permit changes
-            for (CountMetrics<Result> metricCounter : counters) {
+            ReadableCountMetrics<Result> metricCounter;
+            while (counters.hasNext()) {
+                metricCounter = counters.next();
                 for (Result result : type.getEnumConstants()) {
                     long metricCount = metricCounter.getCount(result);
                     total += metricCount;

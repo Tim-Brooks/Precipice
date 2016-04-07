@@ -17,16 +17,17 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.CountMetrics;
+import net.uncontended.precipice.metrics.ReadableCountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.WritableCountMetrics;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.List;
 
 public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private final CountMetrics<Result> resultMetrics;
-    private final CountMetrics<Rejected> rejectedMetrics;
+    private final WritableCountMetrics<Result> resultMetrics;
+    private final WritableCountMetrics<Rejected> rejectedMetrics;
     private final LatencyMetrics<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
@@ -176,7 +177,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the result metrics
      */
-    public CountMetrics<Result> getResultMetrics() {
+    public WritableCountMetrics<Result> getResultMetrics() {
         return resultMetrics;
     }
 
@@ -185,7 +186,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the rejected metrics
      */
-    public CountMetrics<Rejected> getRejectedMetrics() {
+    public WritableCountMetrics<Rejected> getRejectedMetrics() {
         return rejectedMetrics;
     }
 
