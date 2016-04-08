@@ -17,6 +17,6 @@ public interface IntervalIterator<T> extends Iterator<T> {
 
     long intervalEnd();
 
-    void limit(long duration, TimeUnit unit);
+    IntervalIterator<T> limit(long duration, TimeUnit unit);
 
 }

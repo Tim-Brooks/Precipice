@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice.metrics;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -90,6 +89,7 @@ public class CircularBuffer<T> {
     }
 
     public IntervalIterator<T> intervals(long slots, long nanoTime, T dead) {
+        // TODO: Issue when the absolute slot is negative
         long diff = nanoTime - startNanos;
         long absoluteSlot = diff / nanosPerSlot;
         long startSlot = 1 + absoluteSlot - slots;
@@ -202,15 +202,16 @@ public class CircularBuffer<T> {
         }
 
         @Override
-        public void limit(long duration, TimeUnit unit) {
+        public IntervalIterator<T> limit(long duration, TimeUnit unit) {
             // TODO: Check logic
             long slots = convertToSlots(duration, unit);
             long startSlot = 1 + maxIndex - slots;
             index = startSlot >= 0 ? startSlot : 0;
+            return this;
         }
 
-        public void reset() {
-
+        public IntervalIterator<T> reset() {
+            return this;
         }
     }
 }
