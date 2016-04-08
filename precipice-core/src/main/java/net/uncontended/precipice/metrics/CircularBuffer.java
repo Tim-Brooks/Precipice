@@ -81,22 +81,6 @@ public class CircularBuffer<T> {
         }
     }
 
-    public Iterator<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return valuesForTimePeriod(timePeriod, timeUnit, nanoTime, null);
-    }
-
-    public Iterator<T> valuesForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
-        return values(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
-    }
-
-    public Iterator<T> values(long slots, long nanoTime, T dead) {
-        long diff = nanoTime - startNanos;
-        long absoluteSlot = diff / nanosPerSlot;
-        long startSlot = 1 + absoluteSlot - slots;
-        long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-        return new Intervals(adjustedStartSlot, absoluteSlot, -1, dead);
-    }
-
     public IntervalIterator<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         return intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
     }

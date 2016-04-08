@@ -94,7 +94,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     }
 
     public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        Iterator<PartitionedCount<T>> slots = buffer.valuesForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
+        Iterator<PartitionedCount<T>> slots = buffer.intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, noOpCounter);
         return Accumulator.count(slots, metric);
     }
 
