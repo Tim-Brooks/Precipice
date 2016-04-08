@@ -24,7 +24,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
 
     private final CounterFactory counterFactory;
     private final Clock clock;
-    private Recorder<ReadableCountMetrics<T>> recorder;
+    private Recorder<PartitionedCount<T>> recorder;
 
     public VariableIntervalCounts(Class<T> clazz) {
         this(clazz, Counters.adding());
@@ -34,7 +34,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
         this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.newCounter(clazz), System.nanoTime()));
     }
 
-    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Recorder<ReadableCountMetrics<T>> recorder) {
+    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Recorder<PartitionedCount<T>> recorder) {
         this(clazz, counterFactory, recorder, new SystemTime());
     }
 
@@ -43,7 +43,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
     }
 
     public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory,
-                                  Recorder<ReadableCountMetrics<T>> recorder, Clock clock) {
+                                  Recorder<PartitionedCount<T>> recorder, Clock clock) {
         super(clazz);
         this.recorder = recorder;
         this.counterFactory = counterFactory;
@@ -61,7 +61,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
         recorder.active().add(metric, delta, nanoTime);
     }
 
-    public synchronized ReadableCountMetrics<T> flip() {
+    public synchronized PartitionedCount<T> flip() {
         return recorder.flip(clock.nanoTime(), counterFactory.newCounter(clazz));
     }
 

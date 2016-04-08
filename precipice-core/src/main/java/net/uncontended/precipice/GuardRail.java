@@ -17,7 +17,6 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.ReadableCountMetrics;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.metrics.WritableCountMetrics;
 import net.uncontended.precipice.time.Clock;

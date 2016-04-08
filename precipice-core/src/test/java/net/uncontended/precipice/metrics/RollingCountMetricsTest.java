@@ -44,19 +44,20 @@ public class RollingCountMetricsTest {
 
     @Test
     public void testMetricsEdgeScenario() {
-        when(systemTime.nanoTime()).thenReturn(0L * 1000L * 1000L);
+        long nanoTime = 0L * 1000L * 1000L;
+        when(systemTime.nanoTime()).thenReturn(nanoTime);
         metrics = new RollingCountMetrics<>(TimeoutableResult.class, 1, 1, TimeUnit.SECONDS, systemTime);
 
-        when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
-        metrics.add(TimeoutableResult.SUCCESS, 1L);
-        when(systemTime.nanoTime()).thenReturn(2L * 1000L * 1000L);
-        metrics.add(TimeoutableResult.SUCCESS, 1L);
+        nanoTime = 1L * 1000L * 1000L;
+        metrics.add(TimeoutableResult.SUCCESS, 1L, nanoTime);
+        nanoTime = 2L * 1000L * 1000L;
+        metrics.add(TimeoutableResult.SUCCESS, 1L, nanoTime);
 
-        when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getCountForPeriod(TimeoutableResult.SUCCESS, 1, TimeUnit.SECONDS));
+        nanoTime = 999L * 1000L * 1000L;
+        assertEquals(2, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.SUCCESS, 1,   TimeUnit.SECONDS));
 
-        when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(0, metrics.getCountForPeriod(TimeoutableResult.SUCCESS, 1, TimeUnit.SECONDS));
+        nanoTime = 1000L * 1000L * 1000L;
+        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.SUCCESS, 1,  TimeUnit.SECONDS));
     }
 
     @Test
@@ -182,12 +183,9 @@ public class RollingCountMetricsTest {
         fireThreads(metrics, currentTime, 10);
 
         long nanoTime = 6000L * 1000L * 1000L;
-        IntervalIterator<ReadableCountMetrics<TimeoutableResult>> intervals = metrics.intervalsForPeriod(5, TimeUnit.SECONDS, nanoTime);
-        assertEquals(5000, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS));
-        intervals = metrics.intervalsForPeriod(5, TimeUnit.SECONDS, nanoTime);
-        assertEquals(5000, Accumulator.countForPeriod(intervals, TimeoutableResult.ERROR));
-        intervals = metrics.intervalsForPeriod(5, TimeUnit.SECONDS, nanoTime);
-        assertEquals(5000, Accumulator.countForPeriod(intervals, TimeoutableResult.TIMEOUT));
+        assertEquals(5000, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.SUCCESS, 5, TimeUnit.SECONDS));
+        assertEquals(5000, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 5, TimeUnit.SECONDS));
+        assertEquals(5000, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.TIMEOUT, 5, TimeUnit.SECONDS));
 
         assertEquals(1000, metrics.getCountForPeriod(TimeoutableResult.SUCCESS, 1, TimeUnit.SECONDS));
         assertEquals(1000, metrics.getCountForPeriod(TimeoutableResult.ERROR, 1, TimeUnit.SECONDS));

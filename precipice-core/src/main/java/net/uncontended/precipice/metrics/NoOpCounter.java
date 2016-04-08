@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implements ReadableCountMetrics<T> {
+public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedCount<T> {
 
     public NoOpCounter(Class<T> clazz) {
         super(clazz);

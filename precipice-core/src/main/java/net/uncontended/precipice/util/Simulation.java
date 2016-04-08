@@ -20,7 +20,7 @@ package net.uncontended.precipice.util;
 import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.ReadableCountMetrics;
+import net.uncontended.precipice.metrics.PartitionedCount;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -80,8 +80,8 @@ public class Simulation<R extends Enum<R> & Failable> {
             gauge.allowNext = true;
         }
 
-        assertMetrics((ReadableCountMetrics) guardRail.getResultMetrics(), resultTypes, resultCounts);
-        assertRejectedMetrics((ReadableCountMetrics) guardRail.getRejectedMetrics(), rejectedCounts);
+        assertMetrics((PartitionedCount) guardRail.getResultMetrics(), resultTypes, resultCounts);
+        assertRejectedMetrics((PartitionedCount) guardRail.getRejectedMetrics(), rejectedCounts);
     }
 
     private void wireUpGauge(GuardRail<R, SimulationRejected> guardRail) {
@@ -95,7 +95,7 @@ public class Simulation<R extends Enum<R> & Failable> {
         }
     }
 
-    private void assertRejectedMetrics(ReadableCountMetrics<SimulationRejected> rejectedMetrics, long rejectedCounts) {
+    private void assertRejectedMetrics(PartitionedCount<SimulationRejected> rejectedMetrics, long rejectedCounts) {
         long actualCount = rejectedMetrics.getCount(SimulationRejected.SIMULATION_REJECTION);
         String message = String.format("Expected: %s rejected counts to be returned for %s. Actual: %s.",
                 rejectedCounts, SimulationRejected.SIMULATION_REJECTION, actualCount);
@@ -103,7 +103,7 @@ public class Simulation<R extends Enum<R> & Failable> {
         assert actualCount == rejectedCounts : message;
     }
 
-    private <T extends Enum<T>> void assertMetrics(ReadableCountMetrics<T> metrics, List<T> types, long[] counts) {
+    private <T extends Enum<T>> void assertMetrics(PartitionedCount<T> metrics, List<T> types, long[] counts) {
         for (int i = 0; i < types.size(); ++i) {
 
             T type = types.get(i);

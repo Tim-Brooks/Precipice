@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.Eventual;
-import net.uncontended.precipice.metrics.ReadableCountMetrics;
+import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.LatencyMetrics;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
@@ -35,9 +35,9 @@ import static org.mockito.Mockito.*;
 public class GuardRailTest {
 
     @Mock
-    private ReadableCountMetrics<TestResult> resultMetrics;
+    private PartitionedCount<TestResult> resultMetrics;
     @Mock
-    private ReadableCountMetrics<Rejected> rejectedMetrics;
+    private PartitionedCount<Rejected> rejectedMetrics;
     @Mock
     private LatencyMetrics<TestResult> latencyMetrics;
     @Mock

@@ -19,7 +19,7 @@ package net.uncontended.precipice.pattern;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
-import net.uncontended.precipice.metrics.ReadableCountMetrics;
+import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.result.TimeoutableResult;
 import org.junit.Before;
@@ -110,7 +110,7 @@ public class PatternTest {
     @Test
     public void getAcquiresPermitsInTheCorrectOrder() {
         Integer[] indices = {2, 0, 1};
-        ReadableCountMetrics<Rejected> metrics = mock(ReadableCountMetrics.class);
+        PartitionedCount<Rejected> metrics = mock(PartitionedCount.class);
 
         when(strategy.nextIndices()).thenReturn(getIterable(indices));
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);

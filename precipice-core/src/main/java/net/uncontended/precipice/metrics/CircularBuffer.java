@@ -197,6 +197,11 @@ public class CircularBuffer<T> {
         }
 
         @Override
+        public void remove() {
+            throw new UnsupportedOperationException("remove");
+        }
+
+        @Override
         public long intervalStart() {
             long difference = maxIndex - index + 1;
             return -(remainderNanos + (difference * nanosPerSlot));
@@ -213,8 +218,11 @@ public class CircularBuffer<T> {
         }
 
         @Override
-        public void remove() {
-            throw new UnsupportedOperationException("remove");
+        public void limit(long duration, TimeUnit unit) {
+            // TODO: Check logic
+            long slots = convertToSlots(duration, unit);
+            long startSlot = 1 + maxIndex - slots;
+            index = startSlot >= 0 ? startSlot : 0;
         }
     }
 }

@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.ReadableCountMetrics;
+import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.ArrayList;
@@ -45,18 +45,18 @@ public class HealthGauge {
         return new HealthSnapshot(total, failures);
     }
 
-    public <Result extends Enum<Result> & Failable> void add(Rolling<ReadableCountMetrics<Result>> metrics) {
+    public <Result extends Enum<Result> & Failable> void add(Rolling<PartitionedCount<Result>> metrics) {
         gauges.add(new InternalGauge<>(metrics));
     }
 
     private class InternalGauge<Result extends Enum<Result> & Failable> {
 
-        private final Rolling<ReadableCountMetrics<Result>> metrics;
+        private final Rolling<PartitionedCount<Result>> metrics;
         private final Class<Result> type;
         private long total = 0;
         private long failures = 0;
 
-        private InternalGauge(Rolling<ReadableCountMetrics<Result>> metrics) {
+        private InternalGauge(Rolling<PartitionedCount<Result>> metrics) {
             this.metrics = metrics;
             type = metrics.currentInterval().getMetricClazz();
         }
@@ -64,10 +64,10 @@ public class HealthGauge {
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
             total = 0;
             failures = 0;
-            Iterator<ReadableCountMetrics<Result>> counters = metrics.intervalsForPeriod(timePeriod, timeUnit, nanoTime);
+            Iterator<PartitionedCount<Result>> counters = metrics.intervalsForPeriod(timePeriod, timeUnit, nanoTime);
 
             // TODO: explore what implications this has for metric permit changes
-            ReadableCountMetrics<Result> metricCounter;
+            PartitionedCount<Result> metricCounter;
             while (counters.hasNext()) {
                 metricCounter = counters.next();
                 for (Result result : type.getEnumConstants()) {

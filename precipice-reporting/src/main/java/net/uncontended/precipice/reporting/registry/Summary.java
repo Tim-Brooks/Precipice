@@ -19,7 +19,7 @@ package net.uncontended.precipice.reporting.registry;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.IntervalIterator;
-import net.uncontended.precipice.metrics.ReadableCountMetrics;
+import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.WritableCountMetrics;
 
@@ -80,9 +80,9 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         long localEndEpoch = 0L;
 
         if (resultMetrics instanceof Rolling) {
-            Rolling<ReadableCountMetrics<Result>> rollingMetrics = (Rolling<ReadableCountMetrics<Result>>) resultMetrics;
-            IntervalIterator<ReadableCountMetrics<Result>> intervals = rollingMetrics.intervals(nanoTime);
-            ReadableCountMetrics<Result> interval;
+            Rolling<PartitionedCount<Result>> rollingMetrics = (Rolling<PartitionedCount<Result>>) resultMetrics;
+            IntervalIterator<PartitionedCount<Result>> intervals = rollingMetrics.intervals(nanoTime);
+            PartitionedCount<Result> interval;
             while (intervals.hasNext()) {
                 interval = intervals.next();
                 long startDiffMillis = TimeUnit.NANOSECONDS.toMillis(intervals.intervalStart());
@@ -99,9 +99,9 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         }
 
         if (rejectedMetrics instanceof Rolling) {
-            Rolling<ReadableCountMetrics<Rejected>> rollingMetrics = (Rolling<ReadableCountMetrics<Rejected>>) rejectedMetrics;
-            IntervalIterator<ReadableCountMetrics<Rejected>> intervals = rollingMetrics.intervals();
-            ReadableCountMetrics<Rejected> interval;
+            Rolling<PartitionedCount<Rejected>> rollingMetrics = (Rolling<PartitionedCount<Rejected>>) rejectedMetrics;
+            IntervalIterator<PartitionedCount<Rejected>> intervals = rollingMetrics.intervals();
+            PartitionedCount<Rejected> interval;
             while (intervals.hasNext()) {
                 interval = intervals.next();
                 long relativeStart = intervals.intervalStart();
