@@ -165,9 +165,9 @@ public class CircularBuffer<T> {
     private class Intervals implements IntervalIterator<T> {
 
         private final long remainderNanos;
-        private final T dead;
         private final long maxIndex;
         private long index;
+        private final T dead;
 
         private Intervals(long index, long maxIndex, long remainderNanos, T dead) {
             this.index = index;
@@ -223,6 +223,10 @@ public class CircularBuffer<T> {
             long slots = convertToSlots(duration, unit);
             long startSlot = 1 + maxIndex - slots;
             index = startSlot >= 0 ? startSlot : 0;
+        }
+
+        public void reset() {
+
         }
     }
 }

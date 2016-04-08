@@ -44,11 +44,11 @@ public final class Accumulator {
         Class<T> metricClazz = null;
         while (intervals.hasNext()) {
             metricCounter = intervals.next();
-            long[] countArray = counts.counts;
+            long[] countArray = counts.array();
             if (countArray == null) {
                 metricClazz = metricCounter.getMetricClazz();
                 counts.init(metricClazz);
-                countArray = counts.counts;
+                countArray = counts.array();
             }
 
             for (T type : metricClazz.getEnumConstants()) {
@@ -65,18 +65,22 @@ public final class Accumulator {
         return counts(intervals);
     }
 
-    private static class Counts<T extends Enum<T>> {
+    public static class Counts<T extends Enum<T>> {
         private long[] counts = null;
-
-        private void init(Class<T> clazz) {
-            counts = new long[clazz.getEnumConstants().length];
-        }
 
         public long get(T type) {
             if (counts != null) {
                 return counts[type.ordinal()];
             }
             return 0L;
+        }
+
+        void init(Class<T> clazz) {
+            counts = new long[clazz.getEnumConstants().length];
+        }
+
+        long[] array() {
+            return counts;
         }
 
     }

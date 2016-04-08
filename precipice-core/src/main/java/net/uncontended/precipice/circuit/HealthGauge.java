@@ -18,6 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
+import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
 
@@ -64,7 +65,8 @@ public class HealthGauge {
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
             total = 0;
             failures = 0;
-            Iterator<PartitionedCount<Result>> counters = metrics.intervalsForPeriod(timePeriod, timeUnit, nanoTime);
+            IntervalIterator<PartitionedCount<Result>> counters = metrics.intervals(nanoTime);
+            counters.limit(timePeriod, timeUnit);
 
             // TODO: explore what implications this has for metric permit changes
             PartitionedCount<Result> metricCounter;
