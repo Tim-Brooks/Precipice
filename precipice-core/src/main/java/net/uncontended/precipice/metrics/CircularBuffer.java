@@ -88,7 +88,6 @@ public class CircularBuffer<T> {
     }
 
     public IntervalIterator<T> intervals(long nanoTime, T dead) {
-        // TODO: Issue when the absolute slot is negative
         Intervals intervals = new Intervals(dead);
         intervals.reset(nanoTime);
         return intervals;
