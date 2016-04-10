@@ -19,4 +19,6 @@ public interface IntervalIterator<T> extends Iterator<T> {
 
     IntervalIterator<T> limit(long duration, TimeUnit unit);
 
+    IntervalIterator<T> reset(long nanoTime);
+
 }

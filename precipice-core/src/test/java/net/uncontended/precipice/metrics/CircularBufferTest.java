@@ -19,13 +19,10 @@ package net.uncontended.precipice.metrics;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Date;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class CircularBufferTest {
 
@@ -43,6 +40,27 @@ public class CircularBufferTest {
             missed[i] = new AtomicLong();
         }
     }
+
+//    @Test
+//    public void thing() {
+//        startTime = 0;
+//        buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
+//        long resolution = TimeUnit.SECONDS.toNanos(1);
+//
+//        for (int i = 3; i >= 0; --i) {
+//            long nanoTime = Long.MAX_VALUE - (resolution * i) + (resolution * 2);
+//            buffer.putOrGet(nanoTime, new AtomicLong(i));
+//        }
+//
+//        IntervalIterator<AtomicLong> intervals = buffer.intervals(Long.MAX_VALUE + resolution * 2, null);
+//        while (intervals.hasNext()) {
+//            System.out.println("\n");
+//            System.out.println(intervals.intervalStart());
+//            System.out.println(intervals.next());
+//            System.out.println(intervals.intervalEnd());
+//            System.out.println("\n");
+//        }
+//    }
 
     @Test
     public void testThatValuesAlign() throws InterruptedException {
@@ -76,7 +94,6 @@ public class CircularBufferTest {
         }
 
 
-
         for (int i = 0; i < 8; ++i) {
             assertEquals(expectedValues[i].longValue(), atomicLongs[i].longValue() + missed[i].longValue());
         }
@@ -84,7 +101,7 @@ public class CircularBufferTest {
 
     @Test
     public void testIntervalTimes() throws InterruptedException {
-        startTime = System.nanoTime() -  TimeUnit.SECONDS.toNanos(10);
+        startTime = System.nanoTime() - TimeUnit.SECONDS.toNanos(10);
         buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
 
         // TODO: Implement

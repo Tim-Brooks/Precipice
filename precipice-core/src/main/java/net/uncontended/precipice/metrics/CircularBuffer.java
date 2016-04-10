@@ -45,7 +45,7 @@ public class CircularBuffer<T> {
         this.buffer = new AtomicReferenceArray<>(arraySlot);
 
         for (int i = 0; i < arraySlot; ++i) {
-            this.buffer.set(i, new Slot<T>(-1, null));
+            this.buffer.set(i, new Slot<T>(null, 0, 0));
         }
     }
 
@@ -54,7 +54,10 @@ public class CircularBuffer<T> {
         int relativeSlot = toRelative(absoluteSlot);
         Slot<T> slot = buffer.get(relativeSlot);
 
-        if (slot != null && slot.absoluteSlot == absoluteSlot) {
+        long endDiff = slot.endNanos - nanoTime;
+        long startDiff = nanoTime - slot.startNanos;
+
+        if (endDiff > 0 && startDiff >= 0) {
             return slot.object;
         } else {
             return null;
@@ -67,12 +70,16 @@ public class CircularBuffer<T> {
 
         for (; ; ) {
             Slot<T> slot = buffer.get(relativeSlot);
-            if (slot.absoluteSlot == absoluteSlot) {
+            long endDiff = slot.endNanos - nanoTime;
+            long startDiff = nanoTime - slot.startNanos;
+            if (endDiff > 0 && startDiff >= 0) {
                 return slot.object;
-            } else if (slot.absoluteSlot > absoluteSlot) {
+            } else if (startDiff < 0) {
                 return null;
             } else {
-                Slot<T> newSlot = new Slot<>(absoluteSlot, object);
+                long startNanos = this.startNanos + absoluteSlot * nanosPerSlot;
+                long endNanos = startNanos + nanosPerSlot;
+                Slot<T> newSlot = new Slot<>(object, startNanos, endNanos);
                 if (buffer.compareAndSet(relativeSlot, slot, newSlot)) {
                     return newSlot.object;
                 }
@@ -80,22 +87,11 @@ public class CircularBuffer<T> {
         }
     }
 
-    public IntervalIterator<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        return intervalsForTimePeriod(timePeriod, timeUnit, nanoTime, null);
-    }
-
-    public IntervalIterator<T> intervalsForTimePeriod(long timePeriod, TimeUnit timeUnit, long nanoTime, T dead) {
-        return intervals(convertToSlots(timePeriod, timeUnit), nanoTime, dead);
-    }
-
-    public IntervalIterator<T> intervals(long slots, long nanoTime, T dead) {
+    public IntervalIterator<T> intervals(long nanoTime, T dead) {
         // TODO: Issue when the absolute slot is negative
-        long diff = nanoTime - startNanos;
-        long absoluteSlot = diff / nanosPerSlot;
-        long startSlot = 1 + absoluteSlot - slots;
-        long remainderNanos = diff % nanosPerSlot;
-        long adjustedStartSlot = startSlot >= 0 ? startSlot : 0;
-        return new Intervals(adjustedStartSlot, absoluteSlot, remainderNanos, dead);
+        Intervals intervals = new Intervals(dead);
+        intervals.reset(nanoTime);
+        return intervals;
     }
 
     private int toRelative(long absoluteSlot) {
@@ -103,21 +99,7 @@ public class CircularBuffer<T> {
     }
 
     private long currentAbsoluteSlot(long nanoTime) {
-        return (nanoTime - startNanos) / nanosPerSlot;
-    }
-
-    private long convertToSlots(long timePeriod, TimeUnit timeUnit) {
-        long slotCount = timeUnit.toNanos(timePeriod) / nanosPerSlot;
-
-        if (slotCount > totalSlots) {
-            String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]", totalSlots, slotCount);
-            throw new IllegalArgumentException(message);
-        }
-        if (slotCount <= 0) {
-            String message = String.format("Time period must be greater than 0. Found: [%s timePeriod]", timePeriod);
-            throw new IllegalArgumentException(message);
-        }
-        return slotCount;
+        return ((nanoTime - startNanos) / nanosPerSlot);
     }
 
     private static void validateSlotSize(long nanosPerSlot) {
@@ -138,31 +120,40 @@ public class CircularBuffer<T> {
 
     private static class Slot<T> {
         private final T object;
-        private final long absoluteSlot;
+        private final long startNanos;
+        private final long endNanos;
 
-        private Slot(long absoluteSlot, T object) {
-            this.absoluteSlot = absoluteSlot;
+        private Slot(T object, long startNanos, long endNanos) {
             this.object = object;
+            this.startNanos = startNanos;
+            this.endNanos = endNanos;
+        }
+
+        @Override
+        public String toString() {
+            return "Slot{" +
+                    "object=" + object +
+                    ", startNanos=" + startNanos +
+                    ", endNanos=" + endNanos +
+                    '}';
         }
     }
 
     private class Intervals implements IntervalIterator<T> {
 
-        private final long remainderNanos;
-        private final long maxIndex;
-        private long index;
         private final T dead;
+        private long remainderNanos;
+        private long maxIndex;
+        private long index;
+        private long nextIndicator = 0;
 
-        private Intervals(long index, long maxIndex, long remainderNanos, T dead) {
-            this.index = index;
-            this.maxIndex = maxIndex;
-            this.remainderNanos = remainderNanos;
+        private Intervals(T dead) {
             this.dead = dead;
         }
 
         @Override
         public boolean hasNext() {
-            return index <= maxIndex;
+            return nextIndicator < totalSlots;
         }
 
         @Override
@@ -170,10 +161,12 @@ public class CircularBuffer<T> {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
+            ++nextIndicator;
             long absoluteSlot = index++;
             int relativeSlot = toRelative(absoluteSlot);
             Slot<T> slot = buffer.get(relativeSlot);
-            if (slot.absoluteSlot == absoluteSlot && slot.object != null) {
+            long start = startNanos + absoluteSlot * nanosPerSlot;
+            if (slot.startNanos == start && slot.object != null) {
                 return slot.object;
             } else {
                 return dead;
@@ -210,8 +203,31 @@ public class CircularBuffer<T> {
             return this;
         }
 
-        public IntervalIterator<T> reset() {
+        public IntervalIterator<T> reset(long nanoTime) {
+            long diff = nanoTime - startNanos;
+            long absoluteSlot = diff / nanosPerSlot;
+            System.out.println(absoluteSlot);
+
+            long index = (1 + absoluteSlot - totalSlots);
+
+            this.remainderNanos = diff % nanosPerSlot;
+            this.index = index;
+            this.maxIndex = absoluteSlot;
             return this;
+        }
+
+        private long convertToSlots(long timePeriod, TimeUnit timeUnit) {
+            long slotCount = timeUnit.toNanos(timePeriod) / nanosPerSlot;
+
+            if (slotCount > totalSlots) {
+                String message = String.format("Slots greater than slots tracked: [Tracked: %s, Argument: %s]", totalSlots, slotCount);
+                throw new IllegalArgumentException(message);
+            }
+            if (slotCount <= 0) {
+                String message = String.format("Time period must be greater than 0. Found: [%s timePeriod]", timePeriod);
+                throw new IllegalArgumentException(message);
+            }
+            return slotCount;
         }
     }
 }
