@@ -17,17 +17,11 @@
 
 package net.uncontended.precipice.metrics;
 
-import java.util.concurrent.TimeUnit;
-
 public interface Rolling<T> {
 
     T currentInterval();
 
     T currentInterval(long nanoTime);
-
-    IntervalIterator<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit);
-
-    IntervalIterator<T> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime);
 
     IntervalIterator<T> intervals();
 

@@ -109,18 +109,6 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     }
 
     @Override
-    public IntervalIterator<PartitionedCount<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit) {
-        return intervalsForPeriod(timePeriod, timeUnit, clock.nanoTime());
-    }
-
-    @Override
-    public IntervalIterator<PartitionedCount<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        IntervalIterator<PartitionedCount<T>> intervals = buffer.intervals(nanoTime, noOpCounter);
-        intervals.limit(timePeriod, timeUnit);
-        return intervals;
-    }
-
-    @Override
     public IntervalIterator<PartitionedCount<T>> intervals() {
         return intervals(clock.nanoTime());
     }
