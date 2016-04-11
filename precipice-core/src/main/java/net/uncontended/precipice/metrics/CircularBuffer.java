@@ -54,10 +54,7 @@ public class CircularBuffer<T> {
         int relativeSlot = toRelative(absoluteSlot);
         Slot<T> slot = buffer.get(relativeSlot);
 
-        long endDiff = slot.endNanos - nanoTime;
-        long startDiff = nanoTime - slot.startNanos;
-        
-        if (endDiff > 0 && startDiff >= 0) {
+        if (slot.endNanos - nanoTime > 0 && nanoTime - slot.startNanos >= 0) {
             return slot.object;
         } else {
             return null;
