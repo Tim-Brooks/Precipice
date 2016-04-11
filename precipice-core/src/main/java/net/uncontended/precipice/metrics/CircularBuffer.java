@@ -57,6 +57,7 @@ public class CircularBuffer<T> {
         long endDiff = slot.endNanos - nanoTime;
         long startDiff = nanoTime - slot.startNanos;
 
+
         if (endDiff > 0 && startDiff >= 0) {
             return slot.object;
         } else {
@@ -187,7 +188,11 @@ public class CircularBuffer<T> {
 
         @Override
         public IntervalIterator<T> limit(long duration, TimeUnit unit) {
-            this.currentInterval = nanoTime - unit.toNanos(duration);
+            // TODO: Look into exploring resolution
+            long limitedInterval = nanoTime - unit.toNanos(duration) + nanosPerSlot;
+            if (currentInterval - limitedInterval < 0) {
+                this.currentInterval = limitedInterval;
+            }
             return this;
         }
 
@@ -195,12 +200,8 @@ public class CircularBuffer<T> {
             this.nanoTime = nanoTime;
             this.remainderNanos = (nanoTime - startNanos) % nanosPerSlot;
 
-            currentInterval = nanoTime - (totalSlots * nanosPerSlot);
+            currentInterval = nanoTime - ((totalSlots - 1) * nanosPerSlot);
             return this;
-        }
-
-        private long convertToSlots(long timePeriod, TimeUnit timeUnit) {
-            return timeUnit.toNanos(timePeriod) / nanosPerSlot;
         }
     }
 }
