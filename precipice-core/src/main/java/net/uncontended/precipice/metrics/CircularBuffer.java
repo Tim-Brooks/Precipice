@@ -56,8 +56,7 @@ public class CircularBuffer<T> {
 
         long endDiff = slot.endNanos - nanoTime;
         long startDiff = nanoTime - slot.startNanos;
-
-
+        
         if (endDiff > 0 && startDiff >= 0) {
             return slot.object;
         } else {
@@ -71,19 +70,21 @@ public class CircularBuffer<T> {
 
         for (; ; ) {
             Slot<T> slot = buffer.get(relativeSlot);
-            long endDiff = slot.endNanos - nanoTime;
             long startDiff = nanoTime - slot.startNanos;
-            if (endDiff > 0 && startDiff >= 0) {
-                return slot.object;
-            } else if (startDiff < 0) {
-                return null;
-            } else {
-                long startNanos = this.startNanos + absoluteSlot * nanosPerSlot;
-                long endNanos = startNanos + nanosPerSlot;
-                Slot<T> newSlot = new Slot<>(object, startNanos, endNanos);
-                if (buffer.compareAndSet(relativeSlot, slot, newSlot)) {
-                    return newSlot.object;
+            if (startDiff >= 0) {
+                long endDiff = slot.endNanos - nanoTime;
+                if (endDiff > 0) {
+                    return slot.object;
+                } else {
+                    long startNanos = this.startNanos + absoluteSlot * nanosPerSlot;
+                    long endNanos = startNanos + nanosPerSlot;
+                    Slot<T> newSlot = new Slot<>(object, startNanos, endNanos);
+                    if (buffer.compareAndSet(relativeSlot, slot, newSlot)) {
+                        return newSlot.object;
+                    }
                 }
+            } else {
+                return null;
             }
         }
     }
