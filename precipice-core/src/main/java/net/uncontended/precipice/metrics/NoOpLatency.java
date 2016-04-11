@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T> {
+public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatencyMetrics<T> {
 
     public NoOpLatency(Class<T> clazz) {
         super(clazz);

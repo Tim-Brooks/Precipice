@@ -19,7 +19,7 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.metrics.PartitionedCount;
-import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.WritableLatencyMetrics;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
 import net.uncontended.precipice.time.Clock;
@@ -39,7 +39,7 @@ public class GuardRailTest {
     @Mock
     private PartitionedCount<Rejected> rejectedMetrics;
     @Mock
-    private LatencyMetrics<TestResult> latencyMetrics;
+    private WritableLatencyMetrics<TestResult> latencyMetrics;
     @Mock
     private BackPressure<Rejected> backPressure;
     @Mock

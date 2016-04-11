@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.LatencyMetrics;
+import net.uncontended.precipice.metrics.WritableLatencyMetrics;
 import net.uncontended.precipice.metrics.WritableCountMetrics;
 import net.uncontended.precipice.time.Clock;
 
@@ -27,7 +27,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     private final WritableCountMetrics<Result> resultMetrics;
     private final WritableCountMetrics<Rejected> rejectedMetrics;
-    private final LatencyMetrics<Result> latencyMetrics;
+    private final WritableLatencyMetrics<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
     private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
@@ -194,7 +194,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the latency object
      */
-    public LatencyMetrics<Result> getLatencyMetrics() {
+    public WritableLatencyMetrics<Result> getLatencyMetrics() {
         return latencyMetrics;
     }
 

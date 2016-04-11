@@ -24,7 +24,7 @@ import org.HdrHistogram.Recorder;
 
 import java.util.concurrent.TimeUnit;
 
-public class IntervalLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T> {
+public class IntervalLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatencyMetrics<T> {
 
     private final LatencyBucket[] buckets;
     private final long highestTrackableValue;

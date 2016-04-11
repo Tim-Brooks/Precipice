@@ -22,13 +22,13 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T>,
-        Rolling<LatencyMetrics<T>> {
+public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatencyMetrics<T>,
+        Rolling<WritableLatencyMetrics<T>> {
 
     private final LatencyFactory factory;
     private final Clock clock;
-    private final LatencyMetrics<T> totalLatency;
-    private final CircularBuffer<LatencyMetrics<T>> buffer;
+    private final WritableLatencyMetrics<T> totalLatency;
+    private final CircularBuffer<WritableLatencyMetrics<T>> buffer;
     private final NoOpLatency<T> noOpLatency;
     private long intervalsToBuffer;
 
@@ -74,7 +74,7 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
 
     @Override
     public void record(T metric, long number, long nanoLatency, long nanoTime) {
-        LatencyMetrics<T> latencyMetrics = buffer.getSlot(nanoTime);
+        WritableLatencyMetrics<T> latencyMetrics = buffer.getSlot(nanoTime);
         if (latencyMetrics == null) {
             latencyMetrics = buffer.putOrGet(nanoTime, factory.newLatency(clazz));
         }
@@ -84,35 +84,35 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
     }
 
     @Override
-    public LatencyMetrics<T> currentInterval() {
+    public WritableLatencyMetrics<T> currentInterval() {
         return currentInterval(clock.nanoTime());
     }
 
     @Override
-    public LatencyMetrics<T> currentInterval(long nanoTime) {
-        LatencyMetrics<T> latency = buffer.getSlot(nanoTime);
+    public WritableLatencyMetrics<T> currentInterval(long nanoTime) {
+        WritableLatencyMetrics<T> latency = buffer.getSlot(nanoTime);
         return latency != null ? latency : noOpLatency;
     }
 
     @Override
-    public IntervalIterator<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit) {
+    public IntervalIterator<WritableLatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit) {
         return intervalsForPeriod(timePeriod, timeUnit, clock.nanoTime());
     }
 
     @Override
-    public IntervalIterator<LatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        IntervalIterator<LatencyMetrics<T>> intervals = buffer.intervals(nanoTime, noOpLatency);
+    public IntervalIterator<WritableLatencyMetrics<T>> intervalsForPeriod(long timePeriod, TimeUnit timeUnit, long nanoTime) {
+        IntervalIterator<WritableLatencyMetrics<T>> intervals = buffer.intervals(nanoTime, noOpLatency);
         intervals.limit(timePeriod, timeUnit);
         return intervals;
     }
 
     @Override
-    public IntervalIterator<LatencyMetrics<T>> intervals() {
+    public IntervalIterator<WritableLatencyMetrics<T>> intervals() {
         return intervals(clock.nanoTime());
     }
 
     @Override
-    public IntervalIterator<LatencyMetrics<T>> intervals(long nanoTime) {
+    public IntervalIterator<WritableLatencyMetrics<T>> intervals(long nanoTime) {
         return buffer.intervals(nanoTime, noOpLatency);
     }
 }

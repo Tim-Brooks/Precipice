@@ -22,7 +22,7 @@ import org.HdrHistogram.Histogram;
 
 import java.util.concurrent.TimeUnit;
 
-public class AtomicHDRHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements LatencyMetrics<T> {
+public class AtomicHDRHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatencyMetrics<T> {
 
     private final HDRWrapper[] histograms;
 
