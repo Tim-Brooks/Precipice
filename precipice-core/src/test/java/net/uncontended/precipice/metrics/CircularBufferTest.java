@@ -41,28 +41,27 @@ public class CircularBufferTest {
         }
     }
 
-//    @Test
-//    public void thing() {
-//        startTime = 0;
-//        buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
-//        long resolution = TimeUnit.SECONDS.toNanos(1);
-//
-//        for (int i = 0; i < 4; ++i) {
-//            // Long.MAX_VALUE -
-//            long nanoTime = (resolution * i);
-//            buffer.putOrGet(nanoTime, new AtomicLong(i));
-//        }
-//
-//        // Long.MAX_VALUE +
-//        IntervalIterator<AtomicLong> intervals = buffer.intervals(resolution * 4 + 10, null);
-//        while (intervals.hasNext()) {
-//            System.out.println("\n");
-//            System.out.println(intervals.next());
-//            System.out.println(intervals.intervalStart());
-//            System.out.println(intervals.intervalEnd());
-//            System.out.println("\n");
-//        }
-//    }
+    @Test
+    public void thing() {
+        startTime = 0;
+        buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
+        long resolution = TimeUnit.SECONDS.toNanos(1);
+
+        for (int i = 3; i >= 0; --i) {
+            long nanoTime = Long.MAX_VALUE - (resolution * i) + resolution;
+            buffer.putOrGet(nanoTime, new AtomicLong(i));
+        }
+
+        IntervalIterator<AtomicLong> intervals = buffer.intervals(Long.MAX_VALUE + resolution, null);
+        while (intervals.hasNext()) {
+            System.out.println("\n");
+            System.out.println(intervals.next());
+            System.out.println(intervals.intervalStart());
+            System.out.println(intervals.intervalEnd());
+            System.out.println(intervals.intervalEnd() - intervals.intervalStart());
+            System.out.println("\n");
+        }
+    }
 
     @Test
     public void testThatValuesAlign() throws InterruptedException {

@@ -141,9 +141,9 @@ public class CircularBuffer<T> {
     private class Intervals implements IntervalIterator<T> {
 
         private final T dead;
+        private long nanoTime;
+        private long currentInterval;
         private long remainderNanos;
-        private long maxIndex;
-        private long index;
 
         private Intervals(T dead) {
             this.dead = dead;
@@ -151,7 +151,8 @@ public class CircularBuffer<T> {
 
         @Override
         public boolean hasNext() {
-            return index <= maxIndex;
+            long diff = nanoTime - currentInterval;
+            return diff >= 0;
         }
 
         @Override
@@ -159,12 +160,11 @@ public class CircularBuffer<T> {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            long absoluteSlot = index++;
-            int relativeSlot = toRelative(absoluteSlot);
-            Slot<T> slot = buffer.get(relativeSlot);
-            long start = startNanos + absoluteSlot * nanosPerSlot;
-            if (slot.startNanos == start && slot.object != null) {
-                return slot.object;
+            long currentInterval = this.currentInterval;
+            this.currentInterval += nanosPerSlot;
+            T object = getSlot(currentInterval);
+            if (object != null) {
+                return object;
             } else {
                 return dead;
             }
@@ -177,36 +177,25 @@ public class CircularBuffer<T> {
 
         @Override
         public long intervalStart() {
-            return -(remainderNanos + ((maxIndex - index + 1) * nanosPerSlot));
+            return -(nanoTime - currentInterval + nanosPerSlot + remainderNanos);
         }
 
         @Override
         public long intervalEnd() {
-            long difference = maxIndex - index;
-            if (difference == -1) {
-                return 0;
-            } else {
-                return -(remainderNanos + (difference * nanosPerSlot));
-            }
+            return -(nanoTime - currentInterval + remainderNanos);
         }
 
         @Override
         public IntervalIterator<T> limit(long duration, TimeUnit unit) {
-            long slots = convertToSlots(duration, unit);
-            long startSlot = 1 + maxIndex - slots;
-            index = startSlot >= 0 ? startSlot : 0;
+            this.currentInterval = nanoTime - unit.toNanos(duration);
             return this;
         }
 
         public IntervalIterator<T> reset(long nanoTime) {
-            long diff = nanoTime - startNanos;
-            long absoluteSlot = diff / nanosPerSlot;
+            this.nanoTime = nanoTime;
+            this.remainderNanos = (nanoTime - startNanos) % nanosPerSlot;
 
-            long index = (1 + absoluteSlot - totalSlots);
-
-            this.remainderNanos = diff % nanosPerSlot;
-            this.index = index;
-            this.maxIndex = absoluteSlot;
+            currentInterval = nanoTime - (totalSlots * nanosPerSlot);
             return this;
         }
 
