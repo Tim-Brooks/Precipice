@@ -24,7 +24,7 @@ public class StrictRecorder<V> extends Recorder<V> {
     private final WriterReaderPhaser phaser = new WriterReaderPhaser();
 
     public StrictRecorder(V initialValue, long nanoTime) {
-        activeHolder.metrics = initialValue;
+        activeHolder.object = initialValue;
         activeHolder.endNanos = nanoTime;
     }
 
@@ -45,13 +45,13 @@ public class StrictRecorder<V> extends Recorder<V> {
         try {
             Holder<V> old = this.activeHolder;
             Holder<V> newHolder = this.inactiveHolder;
-            newHolder.metrics = newValue;
+            newHolder.object = newValue;
             newHolder.startNanos = nanoTime;
             old.endNanos = nanoTime;
             this.activeHolder = newHolder;
             inactiveHolder = old;
             phaser.flipPhase(500000L);
-            return old.metrics;
+            return old.object;
         } finally {
             phaser.readerUnlock();
         }

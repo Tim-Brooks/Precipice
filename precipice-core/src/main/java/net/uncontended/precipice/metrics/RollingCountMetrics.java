@@ -30,7 +30,6 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     private final PartitionedCount<T> noOpCounter;
     private final CircularBuffer<PartitionedCount<T>> buffer;
     private final CounterFactory factory;
-    private final int intervalsToBuffer;
     private final Clock clock;
 
     public RollingCountMetrics(Class<T> type) {
@@ -56,7 +55,6 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     public RollingCountMetrics(Class<T> clazz, CounterFactory factory, boolean trackTotalCounts, int slotsToTrack,
                                long resolution, TimeUnit slotUnit, Clock clock) {
         super(clazz);
-        this.intervalsToBuffer = slotsToTrack;
         this.clock = clock;
         this.factory = factory;
 

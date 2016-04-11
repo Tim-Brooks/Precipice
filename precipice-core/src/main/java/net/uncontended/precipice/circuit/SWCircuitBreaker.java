@@ -95,7 +95,7 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {
-            throw new IllegalArgumentException("SWCircuitBreaker requires rolling result metrics");
+            throw new IllegalArgumentException("SWCircuitBreaker requires rolling result object");
         }
     }
 

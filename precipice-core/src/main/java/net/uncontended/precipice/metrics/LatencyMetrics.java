@@ -23,5 +23,4 @@ public interface LatencyMetrics<T extends Enum<T>> extends Metrics<T> {
 
     void record(T result, long number, long nanoLatency, long nanoTime);
 
-    PrecipiceHistogram getHistogram(T metric);
 }

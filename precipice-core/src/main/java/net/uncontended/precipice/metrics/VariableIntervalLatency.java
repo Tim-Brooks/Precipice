@@ -59,11 +59,6 @@ public class VariableIntervalLatency<T extends Enum<T>> extends AbstractMetrics<
         recorder.active().record(result, number, nanoLatency, nanoTime);
     }
 
-    @Override
-    public PrecipiceHistogram getHistogram(T metric) {
-        return null;
-    }
-
     public synchronized LatencyMetrics<T> flip() {
         return recorder.flip(clock.nanoTime(), latencyFactory.newLatency(clazz));
     }

@@ -31,9 +31,4 @@ public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implement
     public void record(T metric, long number, long nanoLatency, long nanoTime) {
     }
 
-    @Override
-    public PrecipiceHistogram getHistogram(T metric) {
-        return null;
-    }
-
 }

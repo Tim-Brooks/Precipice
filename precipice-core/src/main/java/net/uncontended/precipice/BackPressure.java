@@ -57,7 +57,7 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
     /**
      * This method will register a guard rail with this back pressure mechanism. It is called
      * when when constructing a guard rail. This allows back pressure decisions to be made
-     * based upon the metrics associated with guard rail.
+     * based upon the object associated with guard rail.
      *
      * @param guardRail   the guard rail registered
      */

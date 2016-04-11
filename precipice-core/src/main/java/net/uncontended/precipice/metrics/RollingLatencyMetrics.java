@@ -84,12 +84,6 @@ public class RollingLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T>
     }
 
     @Override
-    public PrecipiceHistogram getHistogram(T metric) {
-        // TODO: Implement
-        return null;
-    }
-
-    @Override
     public LatencyMetrics<T> currentInterval() {
         return currentInterval(clock.nanoTime());
     }

@@ -95,7 +95,7 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {
-            throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result metrics");
+            throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result object");
         }
     }
 

@@ -22,13 +22,13 @@ public class RollingLatencyMetricsTest {
 //    private static final long TWO_MINUTES = TimeUnit.MINUTES.toNanos(2);
 //    private static final long TEN_MINUTES = TimeUnit.MINUTES.toNanos(10);
 //
-//    private RollingLatencyMetrics metrics;
+//    private RollingLatencyMetrics object;
 //    private long startTime;
 //
 //    @Before
 //    public void setup() {
 //        startTime = System.nanoTime();
-//        metrics = new RollingLatencyMetrics(startTime);
+//        object = new RollingLatencyMetrics(startTime);
 //    }
 //
 //    @Test
@@ -41,10 +41,10 @@ public class RollingLatencyMetricsTest {
 //        ThreadLocalRandom currentInterval = ThreadLocalRandom.currentInterval();
 //        for (int i = 1; i <= 100000; ++i) {
 //            int n = currentInterval.nextInt(3);
-//            metrics.record(metricArray[n], i);
+//            object.record(metricArray[n], i);
 //        }
 //
-//        LatencySnapshot snapshot = metrics.latencySnapshot();
+//        LatencySnapshot snapshot = object.latencySnapshot();
 //
 //        assertEquals(100, snapshot.latencyMax / 1000);
 //        assertEquals(50, snapshot.latency50 / 1000);
@@ -59,16 +59,16 @@ public class RollingLatencyMetricsTest {
 //    @Test
 //    public void latencyIsPartitionedByMetric() {
 //        for (int i = 1; i <= 100000; ++i) {
-//            metrics.record(Metric.SUCCESS, i);
+//            object.record(Metric.SUCCESS, i);
 //        }
 //        for (int i = 100001; i <= 200000; ++i) {
-//            metrics.record(Metric.ERROR, i);
+//            object.record(Metric.ERROR, i);
 //        }
 //        for (int i = 200001; i <= 300000; ++i) {
-//            metrics.record(Metric.TIMEOUT, i);
+//            object.record(Metric.TIMEOUT, i);
 //        }
 //
-//        LatencySnapshot successSnapshot = metrics.latencySnapshot(Metric.SUCCESS);
+//        LatencySnapshot successSnapshot = object.latencySnapshot(Metric.SUCCESS);
 //        assertEquals(100, successSnapshot.latencyMax / 1000);
 //        assertEquals(50, successSnapshot.latency50 / 1000);
 //        assertEquals(90, successSnapshot.latency90 / 1000);
@@ -78,7 +78,7 @@ public class RollingLatencyMetricsTest {
 //        assertEquals(100, successSnapshot.latency99999 / 1000);
 //        assertEquals(50, (long) successSnapshot.latencyMean / 1000);
 //
-//        LatencySnapshot errorSnapshot = metrics.latencySnapshot(Metric.ERROR);
+//        LatencySnapshot errorSnapshot = object.latencySnapshot(Metric.ERROR);
 //        assertEquals(200, errorSnapshot.latencyMax / 1000);
 //        assertEquals(150, errorSnapshot.latency50 / 1000);
 //        assertEquals(190, errorSnapshot.latency90 / 1000);
@@ -88,7 +88,7 @@ public class RollingLatencyMetricsTest {
 //        assertEquals(200, errorSnapshot.latency99999 / 1000);
 //        assertEquals(150, (long) errorSnapshot.latencyMean / 1000);
 //
-//        LatencySnapshot timeoutSnapshot = metrics.latencySnapshot(Metric.TIMEOUT);
+//        LatencySnapshot timeoutSnapshot = object.latencySnapshot(Metric.TIMEOUT);
 //        assertEquals(301, timeoutSnapshot.latencyMax / 1000);
 //        assertEquals(250, timeoutSnapshot.latency50 / 1000);
 //        assertEquals(290, timeoutSnapshot.latency90 / 1000);
@@ -98,7 +98,7 @@ public class RollingLatencyMetricsTest {
 //        assertEquals(301, timeoutSnapshot.latency99999 / 1000);
 //        assertEquals(250, (long) timeoutSnapshot.latencyMean / 1000);
 //
-//        LatencySnapshot snapshot = metrics.latencySnapshot();
+//        LatencySnapshot snapshot = object.latencySnapshot();
 //        assertEquals(301, snapshot.latencyMax / 1000);
 //        assertEquals(150, snapshot.latency50 / 1000);
 //        assertEquals(270, snapshot.latency90 / 1000);
@@ -113,7 +113,7 @@ public class RollingLatencyMetricsTest {
 //    public void testNoRecords() {
 //        int count = 0;
 //        long time = startTime + (TWO_MINUTES * 4);
-//        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time)) {
+//        for (LatencySnapshot s : object.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time)) {
 //            ++count;
 //            assertEquals(RollingLatencyMetrics.DEFAULT_SNAPSHOT, s);
 //        }
@@ -122,7 +122,7 @@ public class RollingLatencyMetricsTest {
 //
 //        int count2 = 0;
 //        long time2 = startTime + (TWO_MINUTES * 25);
-//        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time2)) {
+//        for (LatencySnapshot s : object.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time2)) {
 //            assertEquals(defaultSnapshot(startTime + count2 * TEN_MINUTES, startTime + (count2 + 1) * TEN_MINUTES), s);
 //            ++count2;
 //        }
@@ -130,7 +130,7 @@ public class RollingLatencyMetricsTest {
 //
 //        int count3 = 0;
 //        long time3 = startTime + (TWO_MINUTES * 50);
-//        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time3)) {
+//        for (LatencySnapshot s : object.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, time3)) {
 //            ++count3;
 //            assertEquals(RollingLatencyMetrics.DEFAULT_SNAPSHOT, s);
 //        }
@@ -141,17 +141,17 @@ public class RollingLatencyMetricsTest {
 //    public void testRollingSnapshots() {
 //        populateLatency(Metric.SUCCESS, startTime);
 //
-//        for (LatencySnapshot s : metrics.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, startTime + TEN_MINUTES)) {
+//        for (LatencySnapshot s : object.snapshotsForPeriod(Metric.SUCCESS, 1, TimeUnit.HOURS, startTime + TEN_MINUTES)) {
 //            // TODO: bug if a record has not been made since window changed.
 //            System.out.println(s);
 //        }
 //    }
 //
 //    private void populateLatency(Metric metric, long windowStart) {
-//        metrics.record(metric, 5L, windowStart + TWO_MINUTES);
-//        metrics.record(metric, 5L, windowStart + (TWO_MINUTES * 2));
-//        metrics.record(metric, 5L, windowStart + (TWO_MINUTES * 3));
-//        metrics.record(metric, 5L, windowStart + (TWO_MINUTES * 4));
+//        object.record(metric, 5L, windowStart + TWO_MINUTES);
+//        object.record(metric, 5L, windowStart + (TWO_MINUTES * 2));
+//        object.record(metric, 5L, windowStart + (TWO_MINUTES * 3));
+//        object.record(metric, 5L, windowStart + (TWO_MINUTES * 4));
 //    }
 //
 //    private LatencySnapshot defaultSnapshot(long startTime, long endTime) {

@@ -113,7 +113,7 @@ public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBr
         if (metrics instanceof RollingCountMetrics) {
             healthGauge.add((RollingCountMetrics<Result>) metrics);
         } else {
-            throw new IllegalArgumentException("NoOpenCircuit requires rolling result metrics");
+            throw new IllegalArgumentException("NoOpenCircuit requires rolling result object");
         }
     }
 

@@ -79,7 +79,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     /**
      * Release acquired permits without result. Since there is not a known result the result
-     * count metrics and latency will not be updated.
+     * count object and latency will not be updated.
      *
      * @param number of permits to release
      */
@@ -89,7 +89,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     /**
      * Release acquired permits without result. Since there is not a known result the result
-     * count metrics and latency will not be updated.
+     * count object and latency will not be updated.
      *
      * @param number   of permits to release
      * @param nanoTime currentInterval nano time
@@ -102,7 +102,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     /**
      * Release acquired permits with known result. Since there is a known result the result
-     * count metrics and latency will be updated.
+     * count object and latency will be updated.
      *
      * @param context context of the task execution
      * @param result  of the execution
@@ -113,7 +113,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     /**
      * Release acquired permits with known result. Since there is a known result the result
-     * count metrics and latency will be updated.
+     * count object and latency will be updated.
      *
      * @param context  context of the task execution
      * @param result   of the execution
@@ -125,7 +125,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     /**
      * Release acquired permits with known result. Since there is a known result the result
-     * count metrics and latency will be updated.
+     * count object and latency will be updated.
      *
      * @param number     of permits to release
      * @param result     of the execution
@@ -137,7 +137,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
 
     /**
      * Release acquired permits with known result. Since there is a known result the result
-     * count metrics and latency will be updated.
+     * count object and latency will be updated.
      *
      * @param number     of permits to release
      * @param result     of the execution
@@ -172,27 +172,27 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     }
 
     /**
-     * Return the result metrics used by the GuardRail.
+     * Return the result object used by the GuardRail.
      *
-     * @return the result metrics
+     * @return the result object
      */
     public WritableCountMetrics<Result> getResultMetrics() {
         return resultMetrics;
     }
 
     /**
-     * Return the rejected metrics used by the GuardRail.
+     * Return the rejected object used by the GuardRail.
      *
-     * @return the rejected metrics
+     * @return the rejected object
      */
     public WritableCountMetrics<Rejected> getRejectedMetrics() {
         return rejectedMetrics;
     }
 
     /**
-     * Return the latency metrics used by the GuardRail.
+     * Return the latency object used by the GuardRail.
      *
-     * @return the latency metrics
+     * @return the latency object
      */
     public LatencyMetrics<Result> getLatencyMetrics() {
         return latencyMetrics;

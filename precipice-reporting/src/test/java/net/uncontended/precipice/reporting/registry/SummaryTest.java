@@ -17,6 +17,7 @@
 package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.GuardRailBuilder;
+import net.uncontended.precipice.metrics.CircularBuffer;
 import net.uncontended.precipice.metrics.RollingCountMetrics;
 import net.uncontended.precipice.result.SimpleResult;
 import org.junit.Before;

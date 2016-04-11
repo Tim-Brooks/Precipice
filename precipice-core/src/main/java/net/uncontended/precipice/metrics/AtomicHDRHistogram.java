@@ -51,7 +51,6 @@ public class AtomicHDRHistogram<T extends Enum<T>> extends AbstractMetrics<T> im
         histogram.recordValueWithCount(nanoLatency, number);
     }
 
-    @Override
     public PrecipiceHistogram getHistogram(T metric) {
         return histograms[metric.ordinal()];
     }

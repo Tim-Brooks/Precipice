@@ -55,11 +55,6 @@ public class IntervalLatencyMetrics<T extends Enum<T>> extends AbstractMetrics<T
         bucket.record(nanoLatency, count);
     }
 
-    @Override
-    public PrecipiceHistogram getHistogram(T metric) {
-        return null;
-    }
-
     public Histogram totalHistogram(T result) {
         return totalHistogram(result, true);
     }

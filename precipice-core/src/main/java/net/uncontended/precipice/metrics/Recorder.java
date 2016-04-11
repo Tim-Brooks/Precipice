@@ -22,7 +22,7 @@ public abstract class Recorder<V> {
     protected volatile Holder<V> inactiveHolder = new Holder<>();
 
     public V active() {
-        return activeHolder.metrics;
+        return activeHolder.object;
     }
 
     public abstract long startRecord();
@@ -34,6 +34,6 @@ public abstract class Recorder<V> {
     protected static class Holder<V> {
         protected long startNanos;
         protected long endNanos;
-        protected V metrics;
+        protected V object;
     }
 }
