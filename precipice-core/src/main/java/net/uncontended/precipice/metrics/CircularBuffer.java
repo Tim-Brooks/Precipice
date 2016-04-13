@@ -34,8 +34,8 @@ public class CircularBuffer<T> {
     }
 
     public CircularBuffer(int slotsToTrack, long resolution, TimeUnit timeUnit, long startNanos) {
+        validateSlotSize(resolution, timeUnit);
         this.nanosPerSlot = timeUnit.toNanos(resolution);
-        validateSlotSize(nanosPerSlot);
 
         this.startNanos = startNanos;
         this.totalSlots = slotsToTrack;
@@ -67,10 +67,8 @@ public class CircularBuffer<T> {
 
         for (; ; ) {
             Slot<T> slot = buffer.get(relativeSlot);
-            long startDiff = nanoTime - slot.startNanos;
-            if (startDiff >= 0) {
-                long endDiff = slot.endNanos - nanoTime;
-                if (endDiff > 0) {
+            if (nanoTime - slot.startNanos >= 0) {
+                if (slot.endNanos - nanoTime > 0) {
                     return slot.object;
                 } else {
                     long startNanos = this.startNanos + absoluteSlot * nanosPerSlot;
@@ -100,11 +98,12 @@ public class CircularBuffer<T> {
         return ((nanoTime - startNanos) / nanosPerSlot);
     }
 
-    private static void validateSlotSize(long nanosPerSlot) {
-        if (nanosPerSlot < 0) {
-            String message = "Nanoseconds per slot must be positive. Found: [%s nanoseconds]";
+    private static void validateSlotSize(long duration, TimeUnit unit) {
+        if (duration < 0) {
+            String message = "Duration per slot must be positive. Found: [%s duration]";
             throw new IllegalArgumentException(String.format(message, Integer.MAX_VALUE));
         }
+        long nanosPerSlot = unit.toNanos(duration);
         if (TimeUnit.MILLISECONDS.toNanos(100) > nanosPerSlot) {
             throw new IllegalArgumentException(String.format("Too low of resolution: [%s nanoseconds]. 100 " +
                     "milliseconds is the minimum resolution.", nanosPerSlot));

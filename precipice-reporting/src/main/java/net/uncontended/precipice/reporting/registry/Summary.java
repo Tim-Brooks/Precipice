@@ -21,7 +21,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
-import net.uncontended.precipice.metrics.WritableCountMetrics;
+import net.uncontended.precipice.metrics.WritableCounts;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -73,8 +73,8 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         Arrays.fill(resultCounts, 0);
         Arrays.fill(rejectedCounts, 0);
 
-        WritableCountMetrics<Result> resultMetrics = guardRail.getResultMetrics();
-        WritableCountMetrics<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
+        WritableCounts<Result> resultMetrics = guardRail.getResultMetrics();
+        WritableCounts<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
 
         long localStartEpoch = Long.MAX_VALUE;
         long localEndEpoch = 0L;

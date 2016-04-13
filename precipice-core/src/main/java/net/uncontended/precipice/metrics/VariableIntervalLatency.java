@@ -20,9 +20,9 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class VariableIntervalLatency<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatencyMetrics<T> {
+public class VariableIntervalLatency<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T> {
 
-    private final Recorder<WritableLatencyMetrics<T>> recorder;
+    private final Recorder<PartitionedHistogram<T>> recorder;
     private final Clock clock;
     private final LatencyFactory latencyFactory;
 
@@ -38,11 +38,11 @@ public class VariableIntervalLatency<T extends Enum<T>> extends AbstractMetrics<
         this(clazz, latencyFactory, new RelaxedRecorder<>(latencyFactory.newLatency(clazz), clock.nanoTime()), clock);
     }
 
-    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory, Recorder<WritableLatencyMetrics<T>> recorder) {
+    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory, Recorder<PartitionedHistogram<T>> recorder) {
         this(clazz, latencyFactory, recorder, new SystemTime());
     }
 
-    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory, Recorder<WritableLatencyMetrics<T>> recorder, Clock clock) {
+    public VariableIntervalLatency(Class<T> clazz, LatencyFactory latencyFactory, Recorder<PartitionedHistogram<T>> recorder, Clock clock) {
         super(clazz);
         this.latencyFactory = latencyFactory;
         this.recorder = recorder;
@@ -59,7 +59,7 @@ public class VariableIntervalLatency<T extends Enum<T>> extends AbstractMetrics<
         recorder.active().record(result, number, nanoLatency, nanoTime);
     }
 
-    public synchronized WritableLatencyMetrics<T> flip() {
+    public synchronized WritableLatency<T> flip() {
         return recorder.flip(clock.nanoTime(), latencyFactory.newLatency(clazz));
     }
 

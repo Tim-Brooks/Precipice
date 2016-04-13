@@ -17,8 +17,11 @@
 
 package net.uncontended.precipice.metrics;
 
-@FunctionalInterface
-public interface CounterFactory {
+import org.HdrHistogram.Histogram;
 
-    <T extends Enum<T>> PartitionedCount<T> newCounter(Class<T> clazz);
+public interface PartitionedHistogram<T extends Enum<T>> extends WritableLatency<T> {
+
+    Histogram getHistogram(T metric);
+
+    void reset();
 }

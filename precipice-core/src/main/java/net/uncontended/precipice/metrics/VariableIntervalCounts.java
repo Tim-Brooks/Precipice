@@ -20,29 +20,30 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCountMetrics<T> {
+public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T> {
 
-    private final CounterFactory counterFactory;
+    private final Allocator counterFactory;
     private final Clock clock;
     private Recorder<PartitionedCount<T>> recorder;
 
     public VariableIntervalCounts(Class<T> clazz) {
-        this(clazz, Counters.adding());
+        this(clazz, Counters.longAdder());
     }
 
-    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory) {
-        this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.newCounter(clazz), System.nanoTime()));
+    public VariableIntervalCounts(Class<T> clazz, Allocator counterFactory) {
+        this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.allocateNew(clazz), System.nanoTime()));
     }
 
-    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Recorder<PartitionedCount<T>> recorder) {
+    public VariableIntervalCounts(Class<T> clazz, Allocator counterFactory,
+                                  Recorder<PartitionedCount<T>> recorder) {
         this(clazz, counterFactory, recorder, new SystemTime());
     }
 
-    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory, Clock clock) {
-        this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.newCounter(clazz), clock.nanoTime()), clock);
+    public VariableIntervalCounts(Class<T> clazz, Allocator counterFactory, Clock clock) {
+        this(clazz, counterFactory, new RelaxedRecorder<>(counterFactory.allocateNew(clazz), clock.nanoTime()), clock);
     }
 
-    public VariableIntervalCounts(Class<T> clazz, CounterFactory counterFactory,
+    public VariableIntervalCounts(Class<T> clazz, Allocator counterFactory,
                                   Recorder<PartitionedCount<T>> recorder, Clock clock) {
         super(clazz);
         this.recorder = recorder;
@@ -62,7 +63,7 @@ public class VariableIntervalCounts<T extends Enum<T>> extends AbstractMetrics<T
     }
 
     public synchronized PartitionedCount<T> flip() {
-        return recorder.flip(clock.nanoTime(), counterFactory.newCounter(clazz));
+        return recorder.flip(clock.nanoTime(), counterFactory.allocateNew(clazz));
     }
 
 }

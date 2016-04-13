@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Timothy Brooks
+ * Copyright 2014 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.concurrent.util.LongAdder;
 
-public class IncrementCounter<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedCount<T> {
+public class LongAdderCounter<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedCount<T> {
 
     private final LongAdder[] metrics;
 
-    public IncrementCounter(Class<T> clazz) {
+    public LongAdderCounter(Class<T> clazz) {
         super(clazz);
         T[] metricValues = clazz.getEnumConstants();
 
@@ -31,17 +31,16 @@ public class IncrementCounter<T extends Enum<T>> extends AbstractMetrics<T> impl
         for (T metric : metricValues) {
             metrics[metric.ordinal()] = new LongAdder();
         }
-
     }
 
     @Override
     public void add(T metric, long delta) {
-        metrics[metric.ordinal()].add(1L);
+        metrics[metric.ordinal()].add(delta);
     }
 
     @Override
     public void add(T metric, long delta, long nanoTime) {
-        metrics[metric.ordinal()].add(1L);
+        metrics[metric.ordinal()].add(delta);
     }
 
     @Override

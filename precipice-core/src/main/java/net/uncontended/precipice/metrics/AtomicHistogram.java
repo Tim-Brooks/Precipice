@@ -17,66 +17,48 @@
 
 package net.uncontended.precipice.metrics;
 
-import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.Histogram;
 
 import java.util.concurrent.TimeUnit;
 
-public class AtomicHDRHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatencyMetrics<T> {
+public class AtomicHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedHistogram<T> {
 
-    private final HDRWrapper[] histograms;
+    private final Histogram[] histograms;
 
-    public AtomicHDRHistogram(Class<T> clazz) {
+    public AtomicHistogram(Class<T> clazz) {
         this(clazz, TimeUnit.HOURS.toNanos(1), 2);
     }
 
-    public AtomicHDRHistogram(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
+    public AtomicHistogram(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
         super(clazz);
         T[] enumConstants = clazz.getEnumConstants();
-        histograms = new HDRWrapper[enumConstants.length];
+        histograms = new Histogram[enumConstants.length];
         for (int i = 0; i < enumConstants.length; ++i) {
-            histograms[i] = new HDRWrapper(new AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits));
+            histograms[i] = new org.HdrHistogram.AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         }
     }
 
     @Override
     public void record(T result, long number, long nanoLatency) {
-        Histogram histogram = histograms[result.ordinal()].hdrHistogram;
+        Histogram histogram = histograms[result.ordinal()];
         histogram.recordValueWithCount(nanoLatency, number);
     }
 
     @Override
     public void record(T result, long number, long nanoLatency, long nanoTime) {
-        Histogram histogram = histograms[result.ordinal()].hdrHistogram;
+        Histogram histogram = histograms[result.ordinal()];
         histogram.recordValueWithCount(nanoLatency, number);
     }
 
-    public PrecipiceHistogram getHistogram(T metric) {
+    @Override
+    public Histogram getHistogram(T metric) {
         return histograms[metric.ordinal()];
     }
 
+    @Override
     public void reset() {
-        for (HDRWrapper histogram : histograms) {
-            histogram.hdrHistogram.reset();
-        }
-    }
-
-    private static class HDRWrapper implements PrecipiceHistogram {
-
-        public final Histogram hdrHistogram;
-
-        private HDRWrapper(Histogram hdrHistogram) {
-            this.hdrHistogram = hdrHistogram;
-        }
-
-        @Override
-        public long getValueAtPercentile(double percentile) {
-            return hdrHistogram.getValueAtPercentile(percentile);
-        }
-
-        @Override
-        public Histogram hdrHistogram() {
-            return hdrHistogram;
+        for (Histogram histogram : histograms) {
+            histogram.reset();
         }
     }
 }

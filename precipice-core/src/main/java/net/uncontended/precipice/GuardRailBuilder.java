@@ -17,9 +17,9 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.WritableLatencyMetrics;
+import net.uncontended.precipice.metrics.WritableLatency;
 import net.uncontended.precipice.metrics.NoOpLatency;
-import net.uncontended.precipice.metrics.WritableCountMetrics;
+import net.uncontended.precipice.metrics.WritableCounts;
 import net.uncontended.precipice.time.Clock;
 
 public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
@@ -37,17 +37,17 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> resultMetrics(WritableCountMetrics<Result> resultMetrics) {
+    public GuardRailBuilder<Result, Rejected> resultMetrics(WritableCounts<Result> resultMetrics) {
         this.properties.resultMetrics = resultMetrics;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> rejectedMetrics(WritableCountMetrics<Rejected> rejectedMetrics) {
+    public GuardRailBuilder<Result, Rejected> rejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
         this.properties.rejectedMetrics = rejectedMetrics;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> resultLatency(WritableLatencyMetrics<Result> resultLatency) {
+    public GuardRailBuilder<Result, Rejected> resultLatency(WritableLatency<Result> resultLatency) {
         this.properties.resultLatency = resultLatency;
         return this;
     }

@@ -22,26 +22,14 @@ public final class Counters {
     private Counters() {
     }
 
-    public static CounterFactory incrementing() {
-        return new IncrementingFactory();
+    public static Allocator longAdder() {
+        return new LongAdderFactory();
     }
 
-    public static CounterFactory adding() {
-        return new AddFactory();
-    }
-
-    private static class IncrementingFactory implements CounterFactory {
-
+    private static class LongAdderFactory implements Allocator {
         @Override
-        public <T extends Enum<T>> PartitionedCount<T> newCounter(Class<T> clazz) {
-            return new IncrementCounter<>(clazz);
-        }
-    }
-
-    private static class AddFactory implements CounterFactory {
-        @Override
-        public <T extends Enum<T>> PartitionedCount<T> newCounter(Class<T> clazz) {
-            return new AddCounter<>(clazz);
+        public <T extends Enum<T>> PartitionedCount<T> allocateNew(Class<T> clazz) {
+            return new LongAdderCounter<>(clazz);
         }
     }
 }

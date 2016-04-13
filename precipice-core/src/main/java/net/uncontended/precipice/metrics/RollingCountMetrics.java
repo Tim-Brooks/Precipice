@@ -20,23 +20,22 @@ package net.uncontended.precipice.metrics;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCountMetrics<T>,
+public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>,
         Rolling<PartitionedCount<T>> {
 
     private final PartitionedCount<T> totalCounter;
     private final PartitionedCount<T> noOpCounter;
     private final CircularBuffer<PartitionedCount<T>> buffer;
-    private final CounterFactory factory;
+    private final Allocator factory;
     private final Clock clock;
 
     public RollingCountMetrics(Class<T> type) {
-        this(type, Counters.adding());
+        this(type, Counters.longAdder());
     }
 
-    public RollingCountMetrics(Class<T> type, CounterFactory factory) {
+    public RollingCountMetrics(Class<T> type, Allocator factory) {
         this(type, factory, true, (int) TimeUnit.MINUTES.toSeconds(15), 1, TimeUnit.SECONDS, new SystemTime());
     }
 
@@ -44,15 +43,15 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public RollingCountMetrics(Class<T> type, CounterFactory factory, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+    public RollingCountMetrics(Class<T> type, Allocator factory, int slotsToTrack, long resolution, TimeUnit slotUnit) {
         this(type, factory, true, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
     public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock clock) {
-        this(type, Counters.adding(), true, slotsToTrack, resolution, slotUnit, clock);
+        this(type, Counters.longAdder(), true, slotsToTrack, resolution, slotUnit, clock);
     }
 
-    public RollingCountMetrics(Class<T> clazz, CounterFactory factory, boolean trackTotalCounts, int slotsToTrack,
+    public RollingCountMetrics(Class<T> clazz, Allocator factory, boolean trackTotalCounts, int slotsToTrack,
                                long resolution, TimeUnit slotUnit, Clock clock) {
         super(clazz);
         this.clock = clock;
@@ -61,7 +60,11 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         long startNanos = clock.nanoTime();
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
-        totalCounter = trackTotalCounts ? factory.newCounter(this.clazz) : new NoOpCounter<>(clazz);
+        if (trackTotalCounts) {
+            totalCounter = factory.allocateNew(this.clazz);
+        } else {
+            totalCounter = new NoOpCounter<>(clazz);
+        }
         noOpCounter = new NoOpCounter<>(clazz);
     }
 
@@ -75,7 +78,8 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         totalCounter.add(metric, delta);
         PartitionedCount<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
-            currentMetricCounter = buffer.putOrGet(nanoTime, factory.newCounter(clazz));
+            PartitionedCount<T> newCounter = factory.allocateNew(clazz);
+            currentMetricCounter = buffer.putOrGet(nanoTime, newCounter);
         }
         if (currentMetricCounter != null) {
             currentMetricCounter.add(metric, delta);
@@ -84,17 +88,6 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
 
     public PartitionedCount<T> totalCounter() {
         return totalCounter;
-    }
-
-
-    public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit) {
-        return getCountForPeriod(metric, timePeriod, timeUnit, clock.nanoTime());
-    }
-
-    public long getCountForPeriod(T metric, long timePeriod, TimeUnit timeUnit, long nanoTime) {
-        IntervalIterator<PartitionedCount<T>> intervals = buffer.intervals(nanoTime, noOpCounter);
-        intervals.limit(timePeriod, timeUnit);
-        return Accumulator.count(intervals, metric);
     }
 
     @Override

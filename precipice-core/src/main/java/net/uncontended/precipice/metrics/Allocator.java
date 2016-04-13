@@ -17,12 +17,8 @@
 
 package net.uncontended.precipice.metrics;
 
-import org.HdrHistogram.Histogram;
+@FunctionalInterface
+public interface Allocator {
 
-public interface PrecipiceHistogram {
-
-    long getValueAtPercentile(double percentile);
-
-    Histogram hdrHistogram();
-
+    <T extends Enum<T>> PartitionedCount<T> allocateNew(Class<T> clazz);
 }

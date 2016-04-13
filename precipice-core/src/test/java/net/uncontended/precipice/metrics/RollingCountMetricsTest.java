@@ -66,31 +66,33 @@ public class RollingCountMetricsTest {
         long startTime = 0L;
         int slotsToTrack = 2;
 
-        when(systemTime.nanoTime()).thenReturn(startTime * 1000L * 1000L);
+        long nanoTime = startTime * 1000L * 1000L;
+
+        when(systemTime.nanoTime()).thenReturn(nanoTime);
         metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsToTrack, 1, unit, systemTime);
 
-        when(systemTime.nanoTime()).thenReturn(1L * 1000L * 1000L);
-        metrics.add(TimeoutableResult.ERROR, 1L);
-        when(systemTime.nanoTime()).thenReturn(2L * 1000L * 1000L);
-        metrics.add(TimeoutableResult.ERROR, 1L);
+        nanoTime = 1L * 1000L * 1000L;
+        metrics.add(TimeoutableResult.ERROR, 1L, nanoTime);
+        nanoTime = 2L * 1000L * 1000L;
+        metrics.add(TimeoutableResult.ERROR, 1L, nanoTime);
 
-        when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getCountForPeriod(TimeoutableResult.ERROR, 1, unit));
+        nanoTime = 999L * 1000L * 1000L;
+        assertEquals(2, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 1, unit));
 
-        when(systemTime.nanoTime()).thenReturn(999L * 1000L * 1000L);
-        assertEquals(2, metrics.getCountForPeriod(TimeoutableResult.ERROR, 2, unit));
+        nanoTime = 999L * 1000L * 1000L;
+        assertEquals(2, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 2, unit));
 
-        when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(0, metrics.getCountForPeriod(TimeoutableResult.ERROR, 1, unit));
+        nanoTime = 1000L * 1000L * 1000L;
+        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 1, unit));
 
-        when(systemTime.nanoTime()).thenReturn(1000L * 1000L * 1000L);
-        assertEquals(2, metrics.getCountForPeriod(TimeoutableResult.ERROR, 2, unit));
+        nanoTime = 1000L * 1000L * 1000L;
+        assertEquals(2, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 2, unit));
 
-        when(systemTime.nanoTime()).thenReturn(2000L * 1000L * 1000L);
-        assertEquals(0, metrics.getCountForPeriod(TimeoutableResult.ERROR, 1, unit));
+        nanoTime = 2000L * 1000L * 1000L;
+        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 1, unit));
 
-        when(systemTime.nanoTime()).thenReturn(2000L * 1000L * 1000L);
-        assertEquals(0, metrics.getCountForPeriod(TimeoutableResult.ERROR, 2, unit));
+        nanoTime = 2000L * 1000L * 1000L;
+        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 2, unit));
     }
 
     @Test

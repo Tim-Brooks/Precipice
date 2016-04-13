@@ -53,14 +53,14 @@ public class MetricRegistryTest {
 //        long circuitOpenN = random.nextInt(50);
 //        long allRejectedN = random.nextInt(50);
 //
-//        AddCounter<TimeoutableResult> counter = new AddCounter<>(TimeoutableResult.class);
+//        LongAdderCounter<TimeoutableResult> counter = new LongAdderCounter<>(TimeoutableResult.class);
 //        incrementCounts(counter, TimeoutableResult.SUCCESS, successN);
 //        incrementCounts(counter, TimeoutableResult.ERROR, errorN);
 //        incrementCounts(counter, TimeoutableResult.TIMEOUT, timeoutN);
-//        List<AddCounter<TimeoutableResult>> counters = new ArrayList<>();
+//        List<LongAdderCounter<TimeoutableResult>> counters = new ArrayList<>();
 //        int bucketCount = random.nextInt(10);
 //        for (int i = 0; i < bucketCount; ++i) {
-//            AddCounter<TimeoutableResult> mc = new AddCounter<>(TimeoutableResult.class);
+//            LongAdderCounter<TimeoutableResult> mc = new LongAdderCounter<>(TimeoutableResult.class);
 //            incrementCounts(mc, TimeoutableResult.SUCCESS, successN);
 //            incrementCounts(mc, TimeoutableResult.ERROR, errorN);
 //            incrementCounts(mc, TimeoutableResult.TIMEOUT, timeoutN);
@@ -121,7 +121,7 @@ public class MetricRegistryTest {
 //                startTime + 10000L);
 //    }
 //
-//    private static void incrementCounts(AddCounter<TimeoutableResult> counter, TimeoutableResult metric, long n) {
+//    private static void incrementCounts(LongAdderCounter<TimeoutableResult> counter, TimeoutableResult metric, long n) {
 //        for (long i = 0; i < n; ++i) {
 //            counter.incrementMetric(metric);
 //        }
