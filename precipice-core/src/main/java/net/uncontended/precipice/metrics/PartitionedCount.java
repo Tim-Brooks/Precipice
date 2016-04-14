@@ -17,7 +17,9 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface PartitionedCount<T extends Enum<T>> extends WritableCounts<T> {
+import net.uncontended.precipice.metrics.experimental.Resettable;
+
+public interface PartitionedCount<T extends Enum<T>> extends WritableCounts<T>, Resettable {
 
     long getCount(T metric);
 

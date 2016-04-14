@@ -23,11 +23,6 @@ public class StrictRecorder<V> extends Recorder<V> {
 
     private final WriterReaderPhaser phaser = new WriterReaderPhaser();
 
-    public StrictRecorder(V initialValue, long nanoTime) {
-        activeHolder.object = initialValue;
-        activeHolder.endNanos = nanoTime;
-    }
-
     @Override
     public long startRecord() {
         return phaser.writerCriticalSectionEnter();
@@ -39,19 +34,14 @@ public class StrictRecorder<V> extends Recorder<V> {
     }
 
     @Override
-    public synchronized V flip(long nanoTime, V newValue) {
+    public synchronized V flip(V newValue) {
         phaser.readerLock();
 
         try {
-            Holder<V> old = this.activeHolder;
-            Holder<V> newHolder = this.inactiveHolder;
-            newHolder.object = newValue;
-            newHolder.startNanos = nanoTime;
-            old.endNanos = nanoTime;
-            this.activeHolder = newHolder;
-            inactiveHolder = old;
+            V old = this.active;
+            this.active = newValue;
             phaser.flipPhase(500000L);
-            return old.object;
+            return old;
         } finally {
             phaser.readerUnlock();
         }

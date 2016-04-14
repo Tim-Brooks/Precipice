@@ -19,11 +19,6 @@ package net.uncontended.precipice.metrics;
 
 public class RelaxedRecorder<V> extends Recorder<V> {
 
-    public RelaxedRecorder(V initialValue, long nanoTime) {
-        activeHolder.object = initialValue;
-        activeHolder.endNanos = nanoTime;
-    }
-
     public long startRecord() {
         return 0L;
     }
@@ -31,14 +26,9 @@ public class RelaxedRecorder<V> extends Recorder<V> {
     public void endRecord(long permit) {
     }
 
-    public synchronized V flip(long nanoTime, V newValue) {
-        Holder<V> old = this.activeHolder;
-        Holder<V> newHolder = this.inactiveHolder;
-        newHolder.object = newValue;
-        newHolder.startNanos = nanoTime;
-        old.endNanos = nanoTime;
-        activeHolder = newHolder;
-        inactiveHolder = old;
-        return old.object;
+    public synchronized V flip(V newValue) {
+        V old = this.active;
+        this.active = newValue;
+        return old;
     }
 }

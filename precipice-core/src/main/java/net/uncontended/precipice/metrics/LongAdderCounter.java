@@ -57,4 +57,10 @@ public class LongAdderCounter<T extends Enum<T>> extends AbstractMetrics<T> impl
         return total;
     }
 
+    @Override
+    public void reset() {
+        for (LongAdder adder : metrics) {
+            adder.reset();
+        }
+    }
 }

@@ -15,19 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.experimental;
 
-public abstract class Recorder<V> {
-    protected volatile V active;
-    protected volatile V inactiveHolder;
+public interface Resettable {
 
-    public V active() {
-        return active;
-    }
-
-    public abstract long startRecord();
-
-    public abstract void endRecord(long permit);
-
-    public abstract V flip(V newValue);
+    void reset();
 }
