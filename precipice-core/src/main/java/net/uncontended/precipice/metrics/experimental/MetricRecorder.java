@@ -18,13 +18,23 @@
 package net.uncontended.precipice.metrics.experimental;
 
 import net.uncontended.precipice.metrics.Recorder;
+import net.uncontended.precipice.metrics.RelaxedRecorder;
 
 public class MetricRecorder<T> implements NewMetrics<T> {
 
-    private final Recorder<T> recorder;
     private final T total;
+    private final Recorder<T> recorder;
 
-    public MetricRecorder(Recorder<T> recorder, T initialActive, T total) {
+    public MetricRecorder(T total) {
+        this(null, total, new RelaxedRecorder<T>());
+    }
+
+    public MetricRecorder(T initialActive, T total) {
+        this(initialActive, total, new RelaxedRecorder<T>());
+    }
+
+
+    public MetricRecorder(T initialActive, T total, Recorder<T> recorder) {
         this.recorder = recorder;
         this.recorder.flip(initialActive);
         this.total = total;

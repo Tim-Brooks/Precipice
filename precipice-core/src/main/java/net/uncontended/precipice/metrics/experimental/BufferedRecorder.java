@@ -109,7 +109,7 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
         }
     }
 
-    private class Iter implements IntervalIterator<T> {
+    private class BufferedIterator implements IntervalIterator<T> {
 
         private long index;
         private long maxIndex;
@@ -154,7 +154,7 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
             long newIndex = index;
             while (maxIndex - index >= 0) {
                 long absolute = newIndex++;
-                if (buffer.get((int) absolute & mask).startNanos - limitTime <=0) {
+                if (buffer.get((int) absolute & mask).startNanos - limitTime <= 0) {
                     break;
                 }
             }
