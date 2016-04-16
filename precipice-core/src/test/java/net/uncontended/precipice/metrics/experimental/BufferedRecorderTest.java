@@ -17,25 +17,80 @@
 
 package net.uncontended.precipice.metrics.experimental;
 
-import net.uncontended.precipice.metrics.LongAdderCounter;
-import net.uncontended.precipice.metrics.NoOpCounter;
-import net.uncontended.precipice.metrics.PartitionedCount;
-import net.uncontended.precipice.result.SimpleResult;
+import net.uncontended.precipice.metrics.IntervalIterator;
+import net.uncontended.precipice.time.Clock;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.mockito.Mockito.when;
 
 public class BufferedRecorderTest {
 
+    @Mock
+    private Clock clock;
+
+    private long currentValue = 0L;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        when(clock.nanoTime()).thenReturn(0L);
+    }
+
     @Test
     public void testThing() {
-        PartitionedCount<SimpleResult> noOpCounter = new NoOpCounter<>(SimpleResult.class);
-        MetricRecorder<PartitionedCount<SimpleResult>> metricRecorder = new MetricRecorder<>(noOpCounter);
-        BufferedRecorder<PartitionedCount<SimpleResult>> buffered = new BufferedRecorder<>(metricRecorder,
-                new NewAllocator<PartitionedCount<SimpleResult>>() {
-                    @Override
-                    public PartitionedCount<SimpleResult> allocateNew() {
-                        return new LongAdderCounter<>(SimpleResult.class);
-                    }
-                }, 4);
+        LongWrapper total = new LongWrapper();
+        total.value = -1;
+        MetricRecorder<LongWrapper> metricRecorder = new MetricRecorder<>(total);
+        BufferedRecorder<LongWrapper> buffered = new BufferedRecorder<>(metricRecorder, longAdderAllocator(), 4);
+        buffered.advance(1L);
+        System.out.println(buffered.current());
+        buffered.advance(2L);
+        System.out.println(buffered.current());
+        buffered.advance(3L);
+        System.out.println(buffered.current());
+        buffered.advance(4L);
+        System.out.println(buffered.current());
+        buffered.advance(4L);
+        System.out.println(buffered.current());
 
+        System.out.println("\nIterate\n");
+
+        IntervalIterator<LongWrapper> intervals = buffered.intervals(10L);
+        while(intervals.hasNext()) {
+            System.out.println(intervals.next());
+        }
+
+
+    }
+
+    private NewAllocator<LongWrapper> longAdderAllocator() {
+        return new NewAllocator<LongWrapper>() {
+            @Override
+            public LongWrapper allocateNew() {
+                LongWrapper longWrapper = new LongWrapper();
+                longWrapper.value = currentValue++;
+                return longWrapper;
+            }
+        };
+    }
+
+    private class LongWrapper implements Resettable {
+
+        private long value;
+
+        @Override
+        public void reset() {
+            value = currentValue++;
+        }
+
+        @Override
+        public String toString() {
+            return "LongWrapper{" +
+                    "value=" + value +
+                    '}';
+        }
     }
 }

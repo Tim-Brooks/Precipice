@@ -29,12 +29,17 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
     private final MetricRecorder<T> metricRecorder;
     private final int bufferSize;
     private final AtomicReferenceArray<Interval<T>> buffer;
-    private final Clock clock = new SystemTime();
+    private final Clock clock;
     private final int mask;
     private volatile long currentIndex;
     private Interval<T> inactive;
 
     public BufferedRecorder(MetricRecorder<T> metricRecorder, NewAllocator<T> allocator, int bufferSize) {
+        this(metricRecorder, allocator, bufferSize, new SystemTime());
+    }
+
+    public BufferedRecorder(MetricRecorder<T> metricRecorder, NewAllocator<T> allocator, int bufferSize, Clock clock) {
+        this.clock = clock;
         this.metricRecorder = metricRecorder;
         this.bufferSize = bufferSize;
         bufferSize = nextPositivePowerOfTwo(bufferSize);
@@ -69,6 +74,16 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
     @Override
     public T total() {
         return metricRecorder.total();
+    }
+
+    public IntervalIterator<T> intervals() {
+        return intervals(clock.nanoTime());
+    }
+
+    public IntervalIterator<T> intervals(long nanoTime) {
+        BufferedIterator bufferedIterator = new BufferedIterator();
+        bufferedIterator.reset(nanoTime);
+        return bufferedIterator;
     }
 
     public synchronized void advance() {
