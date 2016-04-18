@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics.experimental;
 
+import net.uncontended.precipice.metrics.Allocator;
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
@@ -34,11 +35,11 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
     private volatile long currentIndex;
     private Interval<T> inactive;
 
-    public BufferedRecorder(MetricRecorder<T> metricRecorder, NewAllocator<T> allocator, int bufferSize) {
+    public BufferedRecorder(MetricRecorder<T> metricRecorder, Allocator<T> allocator, int bufferSize) {
         this(metricRecorder, allocator, bufferSize, new SystemTime());
     }
 
-    public BufferedRecorder(MetricRecorder<T> metricRecorder, NewAllocator<T> allocator, int bufferSize, Clock clock) {
+    public BufferedRecorder(MetricRecorder<T> metricRecorder, Allocator<T> allocator, int bufferSize, Clock clock) {
         this.clock = clock;
         this.metricRecorder = metricRecorder;
         this.bufferSize = bufferSize;

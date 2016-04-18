@@ -22,13 +22,20 @@ public final class Counters {
     private Counters() {
     }
 
-    public static Allocator longAdder() {
-        return new LongAdderFactory();
+    public static <T extends Enum<T>> Allocator<PartitionedCount<T>> longAdder(Class<T> clazz) {
+        return new LongAdderFactory<>(clazz);
     }
 
-    private static class LongAdderFactory implements Allocator {
+    private static class LongAdderFactory<T extends Enum<T>> implements Allocator<PartitionedCount<T>> {
+
+        private final Class<T> clazz;
+
+        public LongAdderFactory(Class<T> clazz) {
+            this.clazz = clazz;
+        }
+
         @Override
-        public <T extends Enum<T>> PartitionedCount<T> allocateNew(Class<T> clazz) {
+        public PartitionedCount<T> allocateNew() {
             return new LongAdderCounter<>(clazz);
         }
     }

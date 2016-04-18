@@ -18,7 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 @FunctionalInterface
-public interface Allocator {
+public interface Allocator<T> {
 
-    <T extends Enum<T>> PartitionedCount<T> allocateNew(Class<T> clazz);
+    T allocateNew();
 }

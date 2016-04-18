@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics.experimental;
 
+import net.uncontended.precipice.metrics.Allocator;
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -66,8 +67,8 @@ public class BufferedRecorderTest {
 
     }
 
-    private NewAllocator<LongWrapper> longAdderAllocator() {
-        return new NewAllocator<LongWrapper>() {
+    private Allocator<LongWrapper> longAdderAllocator() {
+        return new Allocator<LongWrapper>() {
             @Override
             public LongWrapper allocateNew() {
                 LongWrapper longWrapper = new LongWrapper();

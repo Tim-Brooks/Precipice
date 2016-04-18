@@ -28,14 +28,14 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     private final PartitionedCount<T> totalCounter;
     private final PartitionedCount<T> noOpCounter;
     private final CircularBuffer<PartitionedCount<T>> buffer;
-    private final Allocator factory;
+    private final Allocator<PartitionedCount<T>> factory;
     private final Clock clock;
 
     public RollingCountMetrics(Class<T> type) {
-        this(type, Counters.longAdder());
+        this(type, Counters.longAdder(type));
     }
 
-    public RollingCountMetrics(Class<T> type, Allocator factory) {
+    public RollingCountMetrics(Class<T> type, Allocator<PartitionedCount<T>> factory) {
         this(type, factory, true, (int) TimeUnit.MINUTES.toSeconds(15), 1, TimeUnit.SECONDS, new SystemTime());
     }
 
@@ -43,16 +43,17 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         this(type, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
-    public RollingCountMetrics(Class<T> type, Allocator factory, int slotsToTrack, long resolution, TimeUnit slotUnit) {
+    public RollingCountMetrics(Class<T> type, Allocator<PartitionedCount<T>> factory, int slotsToTrack, long resolution,
+                               TimeUnit slotUnit) {
         this(type, factory, true, slotsToTrack, resolution, slotUnit, new SystemTime());
     }
 
     public RollingCountMetrics(Class<T> type, int slotsToTrack, long resolution, TimeUnit slotUnit, Clock clock) {
-        this(type, Counters.longAdder(), true, slotsToTrack, resolution, slotUnit, clock);
+        this(type, Counters.longAdder(type), true, slotsToTrack, resolution, slotUnit, clock);
     }
 
-    public RollingCountMetrics(Class<T> clazz, Allocator factory, boolean trackTotalCounts, int slotsToTrack,
-                               long resolution, TimeUnit slotUnit, Clock clock) {
+    public RollingCountMetrics(Class<T> clazz, Allocator<PartitionedCount<T>> factory, boolean trackTotalCounts,
+                               int slotsToTrack, long resolution, TimeUnit slotUnit, Clock clock) {
         super(clazz);
         this.clock = clock;
         this.factory = factory;
@@ -61,7 +62,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
 
         buffer = new CircularBuffer<>(slotsToTrack, resolution, slotUnit, startNanos);
         if (trackTotalCounts) {
-            totalCounter = factory.allocateNew(this.clazz);
+            totalCounter = factory.allocateNew();
         } else {
             totalCounter = new NoOpCounter<>(clazz);
         }
@@ -78,7 +79,7 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         totalCounter.add(metric, delta);
         PartitionedCount<T> currentMetricCounter = buffer.getSlot(nanoTime);
         if (currentMetricCounter == null) {
-            PartitionedCount<T> newCounter = factory.allocateNew(clazz);
+            PartitionedCount<T> newCounter = factory.allocateNew();
             currentMetricCounter = buffer.putOrGet(nanoTime, newCounter);
         }
         if (currentMetricCounter != null) {
