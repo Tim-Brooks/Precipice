@@ -56,6 +56,7 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
 
         Interval<T> interval = buffer.get(0);
         interval.startNanos = nanoTime;
+        interval.isInit = true;
         metricRecorder.flip(interval.object);
     }
 
@@ -94,7 +95,9 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
         int newRelativeIndex = (int) newIndex & mask;
         Interval<T> reuse = buffer.get(newRelativeIndex);
         inactive.startNanos = nanoTime;
+        inactive.startNanos = nanoTime - 1;
         buffer.set(newRelativeIndex, inactive);
+        inactive.isInit = true;
         metricRecorder.flip(inactive.object);
         Interval<T> closingInterval = buffer.get((int) oldIndex & mask);
         closingInterval.endNanos = nanoTime;
@@ -111,6 +114,7 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
         private T object;
         private long startNanos;
         private long endNanos;
+        private boolean isInit = false;
 
         private Interval(T object, long startNanos, long endNanos) {
             this.object = object;
@@ -124,6 +128,7 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
                     "object=" + object +
                     ", startNanos=" + startNanos +
                     ", endNanos=" + endNanos +
+                    ", isInit=" + isInit +
                     '}';
         }
     }
@@ -159,12 +164,16 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
 
         @Override
         public long intervalStart() {
-            return value.startNanos;
+            return value.startNanos - nanoTime;
         }
 
         @Override
         public long intervalEnd() {
-            return value.endNanos;
+            if (value.endNanos - value.startNanos >= 0) {
+                return value.endNanos - nanoTime;
+            } else {
+                return 0L;
+            }
         }
 
         @Override
@@ -186,6 +195,13 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
             this.nanoTime = nanoTime;
             maxIndex = currentIndex;
             index = maxIndex - (bufferSize - 1);
+
+            while (maxIndex - index >= 0) {
+                if (buffer.get((int) index & mask).isInit) {
+                    break;
+                }
+                ++index;
+            }
             return this;
         }
     }

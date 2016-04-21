@@ -26,7 +26,6 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class BufferedRecorderTest {
@@ -85,6 +84,21 @@ public class BufferedRecorderTest {
         buffered.advance(5L);
         assertEquals(6, buffered.current().value);
         assertEquals(3, buffered.current().pastValue);
+    }
+
+    @Test
+    public void testIterator() {
+        BufferedRecorder<LongWrapper> buffered = new BufferedRecorder<>(metricRecorder, longAdderAllocator(), 2, clock);
+
+        IntervalIterator<LongWrapper> intervals = buffered.intervals(10L);
+
+        // TODO: Decide on intervals.start and end logical representations
+
+        while(intervals.hasNext()) {
+            assertEquals(0, intervals.next().value);
+            assertEquals(-10, intervals.intervalStart());
+            assertEquals(0, intervals.intervalEnd());
+        }
     }
 
     private Allocator<LongWrapper> longAdderAllocator() {
