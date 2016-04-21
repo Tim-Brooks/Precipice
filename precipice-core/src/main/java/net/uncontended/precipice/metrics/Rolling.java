@@ -17,11 +17,7 @@
 
 package net.uncontended.precipice.metrics;
 
-public interface Rolling<T> {
-
-    T currentInterval();
-
-    T currentInterval(long nanoTime);
+public interface Rolling<T> extends NewMetrics<T> {
 
     IntervalIterator<T> intervals();
 

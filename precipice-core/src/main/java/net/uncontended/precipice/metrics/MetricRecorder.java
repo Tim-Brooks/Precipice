@@ -15,10 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
-
-import net.uncontended.precipice.metrics.Recorder;
-import net.uncontended.precipice.metrics.RelaxedRecorder;
+package net.uncontended.precipice.metrics;
 
 public class MetricRecorder<T> implements NewMetrics<T> {
 
@@ -26,15 +23,15 @@ public class MetricRecorder<T> implements NewMetrics<T> {
     private final Recorder<T> recorder;
 
     public MetricRecorder(T total) {
-        this(null, total, new RelaxedRecorder<T>());
+        this(total, null);
     }
 
-    public MetricRecorder(T initialActive, T total) {
-        this(initialActive, total, new RelaxedRecorder<T>());
+    public MetricRecorder(T total, T initialActive) {
+        this(total, initialActive, new RelaxedRecorder<T>());
     }
 
 
-    public MetricRecorder(T initialActive, T total, Recorder<T> recorder) {
+    public MetricRecorder(T total, T initialActive, Recorder<T> recorder) {
         this.recorder = recorder;
         this.recorder.flip(initialActive);
         this.total = total;

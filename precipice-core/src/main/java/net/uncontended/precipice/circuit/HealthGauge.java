@@ -59,7 +59,7 @@ public class HealthGauge {
 
         private InternalGauge(Rolling<PartitionedCount<Result>> metrics) {
             this.metrics = metrics;
-            type = metrics.currentInterval().getMetricClazz();
+            type = metrics.current().getMetricClazz();
         }
 
         private void refreshHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {

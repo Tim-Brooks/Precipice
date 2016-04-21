@@ -21,7 +21,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
-import net.uncontended.precipice.metrics.WritableCounts;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;

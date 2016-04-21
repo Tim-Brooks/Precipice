@@ -79,7 +79,7 @@ public class CircularBuffer<T> {
                     }
                 }
             } else {
-                return null;
+                return object;
             }
         }
     }

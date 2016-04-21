@@ -15,10 +15,8 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.Allocator;
-import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 

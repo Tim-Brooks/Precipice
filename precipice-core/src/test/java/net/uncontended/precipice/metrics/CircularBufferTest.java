@@ -82,7 +82,7 @@ public class CircularBufferTest {
             if (atomicLong == null) {
                 atomicLong = buffer.putOrGet(nanoTime, atomicLongs[j]);
             }
-            assertNull(atomicLong);
+            assertEquals(atomicLongs[j], atomicLong);
         }
 
         for (int j = 4; j < 8; ++j) {

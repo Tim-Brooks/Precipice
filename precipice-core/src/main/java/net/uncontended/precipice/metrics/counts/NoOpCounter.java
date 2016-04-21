@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,37 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.counts;
 
-public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T> {
+import net.uncontended.precipice.metrics.AbstractMetrics;
+import net.uncontended.precipice.metrics.PartitionedCount;
 
-    public NoOpLatency(Class<T> clazz) {
+public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedCount<T> {
+
+    public NoOpCounter(Class<T> clazz) {
         super(clazz);
     }
 
     @Override
-    public void record(T metric, long number, long nanoLatency) {
+    public void add(T metric, long delta) {
     }
 
     @Override
-    public void record(T metric, long number, long nanoLatency, long nanoTime) {
+    public void add(T metric, long delta, long nanoTime) {
     }
 
+    @Override
+    public long getCount(T metric) {
+        return 0;
+    }
+
+    @Override
+    public long total() {
+        return 0;
+    }
+
+    @Override
+    public void reset() {
+
+    }
 }

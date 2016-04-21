@@ -19,7 +19,6 @@ package net.uncontended.precipice.metrics;
 
 public abstract class Recorder<V> {
     protected volatile V active;
-    protected volatile V inactiveHolder;
 
     public V active() {
         return active;

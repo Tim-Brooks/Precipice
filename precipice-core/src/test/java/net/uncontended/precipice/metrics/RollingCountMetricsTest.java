@@ -122,7 +122,7 @@ public class RollingCountMetricsTest {
 
         intervals = metrics.intervals(nanoTime);
         assertEquals(1, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, resolution * 2, unit));
-        assertEquals(1, metrics.totalCounter().getCount(TimeoutableResult.ERROR));
+        assertEquals(1, metrics.total().getCount(TimeoutableResult.ERROR));
     }
 
     @Test
@@ -142,7 +142,7 @@ public class RollingCountMetricsTest {
         long currentTime = TimeUnit.SECONDS.toNanos(30);
         IntervalIterator<PartitionedCount<TimeoutableResult>> intervals = metrics.intervals(currentTime);
         assertEquals(1, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, 10, TimeUnit.SECONDS));
-        assertEquals(4, metrics.totalCounter().getCount(TimeoutableResult.SUCCESS));
+        assertEquals(4, metrics.total().getCount(TimeoutableResult.SUCCESS));
     }
 
     @Test

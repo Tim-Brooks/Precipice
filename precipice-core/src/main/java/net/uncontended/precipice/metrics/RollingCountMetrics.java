@@ -17,6 +17,9 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.metrics.counts.Counters;
+import net.uncontended.precipice.metrics.counts.NoOpCounter;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -87,21 +90,6 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
         }
     }
 
-    public PartitionedCount<T> totalCounter() {
-        return totalCounter;
-    }
-
-    @Override
-    public PartitionedCount<T> currentInterval() {
-        return currentInterval(clock.nanoTime());
-    }
-
-    @Override
-    public PartitionedCount<T> currentInterval(long nanoTime) {
-        PartitionedCount<T> counter = buffer.getSlot(nanoTime);
-        return counter != null ? counter : noOpCounter;
-    }
-
     @Override
     public IntervalIterator<PartitionedCount<T>> intervals() {
         return intervals(clock.nanoTime());
@@ -110,5 +98,20 @@ public class RollingCountMetrics<T extends Enum<T>> extends AbstractMetrics<T> i
     @Override
     public IntervalIterator<PartitionedCount<T>> intervals(long nanoTime) {
         return buffer.intervals(nanoTime, noOpCounter);
+    }
+
+    @Override
+    public PartitionedCount<T> current() {
+        return current(clock.nanoTime());
+    }
+
+    @Override
+    public PartitionedCount<T> current(long nanoTime) {
+        return buffer.getSlot(nanoTime);
+    }
+
+    @Override
+    public PartitionedCount<T> total() {
+        return totalCounter;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Timothy Brooks
+ * Copyright 2016 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.histogram;
 
-public interface WritableLatency<T extends Enum<T>> extends Metrics<T> {
+import org.HdrHistogram.Histogram;
 
-    void record(T result, long number, long nanoLatency);
+public interface PartitionedHistogram<T extends Enum<T>> extends WritableLatency<T> {
 
-    void record(T result, long number, long nanoLatency, long nanoTime);
+    Histogram getHistogram(T metric);
 
+    void reset();
 }

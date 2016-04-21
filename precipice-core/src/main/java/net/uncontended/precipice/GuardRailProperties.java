@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.WritableLatency;
-import net.uncontended.precipice.metrics.WritableCounts;
+import net.uncontended.precipice.metrics.histogram.WritableLatency;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 

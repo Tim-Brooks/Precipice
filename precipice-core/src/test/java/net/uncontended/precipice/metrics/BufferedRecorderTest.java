@@ -15,10 +15,8 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.Allocator;
-import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,7 +58,7 @@ public class BufferedRecorderTest {
         System.out.println("\nIterate\n");
 
         IntervalIterator<LongWrapper> intervals = buffered.intervals(10L);
-        while(intervals.hasNext()) {
+        while (intervals.hasNext()) {
             System.out.println(intervals.next());
         }
 

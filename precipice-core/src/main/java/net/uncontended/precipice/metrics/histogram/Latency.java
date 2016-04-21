@@ -15,28 +15,30 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.histogram;
 
-public final class Counters {
+import net.uncontended.precipice.metrics.Allocator;
 
-    private Counters() {
+public final class Latency {
+
+    private Latency() {
     }
 
-    public static <T extends Enum<T>> Allocator<PartitionedCount<T>> longAdder(Class<T> clazz) {
-        return new LongAdderFactory<>(clazz);
+    public static <T extends Enum<T>> Allocator<PartitionedHistogram<T>> atomicHDRHistogram(Class<T> clazz) {
+        return new AtomicHDRHistogramFactory<>(clazz);
     }
 
-    private static class LongAdderFactory<T extends Enum<T>> implements Allocator<PartitionedCount<T>> {
+    private static class AtomicHDRHistogramFactory<T extends Enum<T>> implements Allocator<PartitionedHistogram<T>> {
 
         private final Class<T> clazz;
 
-        public LongAdderFactory(Class<T> clazz) {
+        public AtomicHDRHistogramFactory(Class<T> clazz) {
             this.clazz = clazz;
         }
 
         @Override
-        public PartitionedCount<T> allocateNew() {
-            return new LongAdderCounter<>(clazz);
+        public PartitionedHistogram<T> allocateNew() {
+            return new AtomicHistogram<>(clazz);
         }
     }
 }

@@ -15,8 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.histogram;
 
+import net.uncontended.precipice.metrics.AbstractMetrics;
 import org.HdrHistogram.Histogram;
 
 import java.util.concurrent.TimeUnit;

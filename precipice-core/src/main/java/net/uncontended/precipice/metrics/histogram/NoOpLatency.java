@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Timothy Brooks
+ * Copyright 2015 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,34 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.histogram;
 
-public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedCount<T> {
+import net.uncontended.precipice.metrics.AbstractMetrics;
+import org.HdrHistogram.Histogram;
 
-    public NoOpCounter(Class<T> clazz) {
+public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedHistogram<T> {
+
+    private final Histogram generic = new Histogram(1);
+
+    public NoOpLatency(Class<T> clazz) {
         super(clazz);
     }
 
     @Override
-    public void add(T metric, long delta) {
+    public void record(T metric, long number, long nanoLatency) {
     }
 
     @Override
-    public void add(T metric, long delta, long nanoTime) {
+    public void record(T metric, long number, long nanoLatency, long nanoTime) {
     }
 
     @Override
-    public long getCount(T metric) {
-        return 0;
-    }
-
-    @Override
-    public long total() {
-        return 0;
+    public Histogram getHistogram(T metric) {
+        return generic;
     }
 
     @Override
     public void reset() {
-
+        generic.reset();
     }
 }

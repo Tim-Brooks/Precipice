@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.LongAdderCounter;
+import net.uncontended.precipice.metrics.counts.LongAdderCounter;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;

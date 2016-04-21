@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
 public interface Resettable {
 

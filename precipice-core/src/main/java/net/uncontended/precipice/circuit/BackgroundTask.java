@@ -15,21 +15,8 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.circuit;
 
-public final class Latency {
-
-    private Latency() {
-    }
-
-    public static LatencyFactory atomicHDRHistogram() {
-        return new AtomicHDRHistogramFactory();
-    }
-
-    private static class AtomicHDRHistogramFactory implements LatencyFactory {
-        @Override
-        public <T extends Enum<T>> PartitionedHistogram<T> newLatency(Class<T> clazz) {
-            return new AtomicHistogram<>(clazz);
-        }
-    }
+public interface BackgroundTask {
+    void tick(long nanoTime);
 }

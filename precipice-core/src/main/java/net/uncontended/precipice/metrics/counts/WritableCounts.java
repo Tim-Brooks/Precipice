@@ -15,12 +15,13 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics.counts;
 
-public interface NewMetrics<T> {
-    T current();
+import net.uncontended.precipice.metrics.Metrics;
 
-    T current(long nanoTime);
+public interface WritableCounts<T extends Enum<T>> extends Metrics<T> {
 
-    T total();
+    void add(T metric, long delta);
+
+    void add(T metric, long delta, long nanoTime);
 }

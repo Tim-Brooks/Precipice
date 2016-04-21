@@ -15,21 +15,18 @@
  *
  */
 
-package net.uncontended.precipice.metrics.experimental;
+package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.Allocator;
-import net.uncontended.precipice.metrics.CircularBuffer;
-import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.time.Clock;
 
-public class NewRoller<T> implements NewMetrics<T> {
+public class RollingMetrics<T> implements NewMetrics<T>, Rolling<T> {
 
     private final Allocator<T> allocator;
     private final Clock clock;
     private final T total;
     private final CircularBuffer<T> buffer;
 
-    public NewRoller(T total, Allocator<T> allocator, CircularBuffer<T> buffer, Clock clock) {
+    public RollingMetrics(T total, Allocator<T> allocator, CircularBuffer<T> buffer, Clock clock) {
         this.total = total;
         this.buffer = buffer;
         this.clock = clock;
@@ -45,10 +42,7 @@ public class NewRoller<T> implements NewMetrics<T> {
     public T current(long nanoTime) {
         T current = buffer.getSlot(nanoTime);
         if (current == null) {
-            T newCurrent = allocator.allocateNew();
-            // TODO: Consider whether null is the correct return value
-            buffer.putOrGet(nanoTime, newCurrent);
-            current = allocator.allocateNew();
+            current = buffer.putOrGet(nanoTime, allocator.allocateNew());
         }
         return current;
     }
