@@ -23,12 +23,19 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class BufferedRecorderTest {
 
     @Mock
     private Clock clock;
+
+    private final LongWrapper total = new LongWrapper();
+    private MetricRecorder<LongWrapper> metricRecorder = new MetricRecorder<>(total);
 
     private long currentValue = 0L;
 
@@ -39,30 +46,45 @@ public class BufferedRecorderTest {
     }
 
     @Test
-    public void testThing() {
-        LongWrapper total = new LongWrapper();
-        total.value = -1;
-        MetricRecorder<LongWrapper> metricRecorder = new MetricRecorder<>(total);
-        BufferedRecorder<LongWrapper> buffered = new BufferedRecorder<>(metricRecorder, longAdderAllocator(), 4);
+    public void gettersDelegateToRecorder() {
+        MetricRecorder recorder = mock(MetricRecorder.class);
+        BufferedRecorder<LongWrapper> buffer = new BufferedRecorder<>(recorder, longAdderAllocator(), 4, clock);
+
+        when(recorder.total()).thenReturn(total);
+
+        assertSame(total, buffer.total());
+
+        LongWrapper current = new LongWrapper();
+        when(recorder.current()).thenReturn(current);
+
+        assertSame(current, buffer.current());
+
+        when(recorder.current(100L)).thenReturn(current);
+
+        assertSame(current, buffer.current(100L));
+    }
+
+    @Test
+    public void testAdvancesSlotsAsExpected() {
+        BufferedRecorder<LongWrapper> buffered = new BufferedRecorder<>(metricRecorder, longAdderAllocator(), 2, clock);
+
+        assertEquals(0, buffered.current().value);
+        assertEquals(0, buffered.current().pastValue);
         buffered.advance(1L);
-        System.out.println(buffered.current());
+        assertEquals(2, buffered.current().value);
+        assertEquals(2, buffered.current().pastValue);
         buffered.advance(2L);
-        System.out.println(buffered.current());
+        assertEquals(3, buffered.current().value);
+        assertEquals(1, buffered.current().pastValue);
         buffered.advance(3L);
-        System.out.println(buffered.current());
+        assertEquals(4, buffered.current().value);
+        assertEquals(0, buffered.current().pastValue);
         buffered.advance(4L);
-        System.out.println(buffered.current());
-        buffered.advance(4L);
-        System.out.println(buffered.current());
-
-        System.out.println("\nIterate\n");
-
-        IntervalIterator<LongWrapper> intervals = buffered.intervals(10L);
-        while (intervals.hasNext()) {
-            System.out.println(intervals.next());
-        }
-
-
+        assertEquals(5, buffered.current().value);
+        assertEquals(2, buffered.current().pastValue);
+        buffered.advance(5L);
+        assertEquals(6, buffered.current().value);
+        assertEquals(3, buffered.current().pastValue);
     }
 
     private Allocator<LongWrapper> longAdderAllocator() {
@@ -71,6 +93,7 @@ public class BufferedRecorderTest {
             public LongWrapper allocateNew() {
                 LongWrapper longWrapper = new LongWrapper();
                 longWrapper.value = currentValue++;
+                longWrapper.pastValue = longWrapper.value;
                 return longWrapper;
             }
         };
@@ -78,17 +101,20 @@ public class BufferedRecorderTest {
 
     private class LongWrapper implements Resettable {
 
+        private long pastValue;
         private long value;
 
         @Override
         public void reset() {
+            pastValue = value;
             value = currentValue++;
         }
 
         @Override
         public String toString() {
             return "LongWrapper{" +
-                    "value=" + value +
+                    "pastValue=" + pastValue +
+                    ", value=" + value +
                     '}';
         }
     }

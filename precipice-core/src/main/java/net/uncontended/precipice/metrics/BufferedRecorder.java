@@ -56,7 +56,6 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
 
         Interval<T> interval = buffer.get(0);
         interval.startNanos = nanoTime;
-        interval.isOpen = true;
         metricRecorder.flip(interval.object);
     }
 
@@ -95,11 +94,9 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
         int newRelativeIndex = (int) newIndex & mask;
         Interval<T> reuse = buffer.get(newRelativeIndex);
         inactive.startNanos = nanoTime;
-        inactive.isOpen = true;
         buffer.set(newRelativeIndex, inactive);
         metricRecorder.flip(inactive.object);
         Interval<T> closingInterval = buffer.get((int) oldIndex & mask);
-        closingInterval.isOpen = false;
         closingInterval.endNanos = nanoTime;
         this.currentIndex = newIndex;
         inactive = reuse;
@@ -114,12 +111,20 @@ public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
         private T object;
         private long startNanos;
         private long endNanos;
-        private boolean isOpen;
 
         private Interval(T object, long startNanos, long endNanos) {
             this.object = object;
             this.startNanos = startNanos;
             this.endNanos = endNanos;
+        }
+
+        @Override
+        public String toString() {
+            return "Interval{" +
+                    "object=" + object +
+                    ", startNanos=" + startNanos +
+                    ", endNanos=" + endNanos +
+                    '}';
         }
     }
 
