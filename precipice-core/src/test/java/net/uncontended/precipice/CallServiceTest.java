@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice;
 
+import net.uncontended.precipice.metrics.MetricRecorder;
+import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.LongAdderCounter;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;
@@ -128,10 +130,11 @@ public class CallServiceTest {
     @Test
     public void simulationTest() {
         final Random random = ThreadLocalRandom.current();
-        GuardRailBuilder<TimeoutableResult, SimulationRejected> builder = new GuardRailBuilder<>();
-        builder.name("Simulation")
-                .resultMetrics(new LongAdderCounter<>(TimeoutableResult.class))
-                .rejectedMetrics(new LongAdderCounter<>(SimulationRejected.class));
+        GuardRailBuilder<TimeoutableResult, SimulationRejected> builder = new GuardRailBuilder<TimeoutableResult, SimulationRejected>().name("Simulation")
+                .resultMetrics(new MetricRecorder<PartitionedCount<TimeoutableResult>>(new LongAdderCounter<>
+                        (TimeoutableResult.class), new LongAdderCounter<>(TimeoutableResult.class)))
+                .rejectedMetrics(new MetricRecorder<PartitionedCount<SimulationRejected>>(new LongAdderCounter<>
+                        (SimulationRejected.class), new LongAdderCounter<>(SimulationRejected.class)));
 
         GuardRail<TimeoutableResult, SimulationRejected> guardRail = builder.build();
         final CallService<SimulationRejected> callService = new CallService<>(guardRail);

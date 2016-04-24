@@ -33,10 +33,6 @@ public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implement
     }
 
     @Override
-    public void record(T metric, long number, long nanoLatency, long nanoTime) {
-    }
-
-    @Override
     public Histogram getHistogram(T metric) {
         return generic;
     }

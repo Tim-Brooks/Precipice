@@ -19,6 +19,7 @@ package net.uncontended.precipice.reporting.registry;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.IntervalIterator;
+import net.uncontended.precipice.metrics.NewMetrics;
 import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
@@ -48,12 +49,12 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     public Summary(SummaryProperties properties, GuardRail<Result, Rejected> guardRail) {
         this.guardRail = guardRail;
 
-        resultClazz = guardRail.getResultMetrics().getMetricClazz();
+        resultClazz = guardRail.getResultMetrics().total().getMetricClazz();
         int resultLength = resultClazz.getEnumConstants().length;
         totalResultCounts = new long[resultLength];
         resultCounts = new long[resultLength];
 
-        rejectedClazz = guardRail.getRejectedMetrics().getMetricClazz();
+        rejectedClazz = guardRail.getRejectedMetrics().total().getMetricClazz();
         int rejectedLength = rejectedClazz.getEnumConstants().length;
         totalRejectedCounts = new long[rejectedLength];
         rejectedCounts = new long[rejectedLength];
@@ -73,8 +74,8 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         Arrays.fill(resultCounts, 0);
         Arrays.fill(rejectedCounts, 0);
 
-        WritableCounts<Result> resultMetrics = guardRail.getResultMetrics();
-        WritableCounts<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
+        NewMetrics<PartitionedCount<Result>> resultMetrics = guardRail.getResultMetrics();
+        NewMetrics<PartitionedCount<Rejected>> rejectedMetrics = guardRail.getRejectedMetrics();
 
         long localStartEpoch = Long.MAX_VALUE;
         long localEndEpoch = 0L;

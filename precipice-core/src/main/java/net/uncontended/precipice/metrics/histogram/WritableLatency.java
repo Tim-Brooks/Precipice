@@ -23,6 +23,4 @@ public interface WritableLatency<T extends Enum<T>> extends Metrics<T> {
 
     void record(T result, long number, long nanoLatency);
 
-    void record(T result, long number, long nanoLatency, long nanoTime);
-
 }

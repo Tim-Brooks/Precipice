@@ -94,7 +94,7 @@ public class BufferedRecorderTest {
 
         // TODO: Decide on intervals.start and end logical representations
 
-        while(intervals.hasNext()) {
+        while (intervals.hasNext()) {
             assertEquals(0, intervals.next().value);
             assertEquals(-10, intervals.intervalStart());
             assertEquals(0, intervals.intervalEnd());

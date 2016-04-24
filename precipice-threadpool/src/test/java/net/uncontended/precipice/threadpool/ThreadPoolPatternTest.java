@@ -19,6 +19,7 @@ package net.uncontended.precipice.threadpool;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
+import net.uncontended.precipice.metrics.MetricRecorder;
 import net.uncontended.precipice.metrics.PartitionedCount;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternCallable;
@@ -84,9 +85,15 @@ public class ThreadPoolPatternTest {
     @Mock
     private PrecipiceSemaphore semaphore;
     @Mock
+    private MetricRecorder<PartitionedCount<TimeoutableResult>> resultRecorder;
+    @Mock
+    private MetricRecorder<PartitionedCount<PatternRejected>> rejectedRecorder;
+    @Mock
     private PartitionedCount<TimeoutableResult> metrics;
     @Mock
     private PartitionedCount<PatternRejected> rejectedMetrics;
+    @Mock
+    private PartitionedCount<PatternRejected> rejectedMetricsTotal;
     @Mock
     private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock
@@ -124,8 +131,12 @@ public class ThreadPoolPatternTest {
         when(service3.getTimeoutService()).thenReturn(timeoutService3);
 
         when(guardRail.getClock()).thenReturn(clock);
-        when(guardRail.getResultMetrics()).thenReturn(metrics);
-        when(guardRail.getRejectedMetrics()).thenReturn(rejectedMetrics);
+        when(guardRail.getResultMetrics()).thenReturn(resultRecorder);
+        when(guardRail.getRejectedMetrics()).thenReturn(rejectedRecorder);
+        when(resultRecorder.current(anyLong())).thenReturn(metrics);
+        when(resultRecorder.total()).thenReturn(metrics);
+        when(rejectedRecorder.current(anyLong())).thenReturn(rejectedMetrics);
+        when(rejectedRecorder.total()).thenReturn(rejectedMetricsTotal);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
 
         when(action.call(context1)).thenReturn("Service1");
@@ -177,7 +188,8 @@ public class ThreadPoolPatternTest {
         }
 
         verify(guardRail).releasePermitsWithoutResult(1, submitTimeNanos);
-        verify(rejectedMetrics).add(PatternRejected.ALL_REJECTED, 1L, submitTimeNanos);
+        verify(rejectedMetrics).add(PatternRejected.ALL_REJECTED, 1L);
+        verify(rejectedMetricsTotal).add(PatternRejected.ALL_REJECTED, 1L);
 
         verifyZeroInteractions(service1);
         verifyZeroInteractions(service2);

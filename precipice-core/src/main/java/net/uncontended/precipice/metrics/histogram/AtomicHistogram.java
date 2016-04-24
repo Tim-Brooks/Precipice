@@ -46,12 +46,6 @@ public class AtomicHistogram<T extends Enum<T>> extends AbstractMetrics<T> imple
     }
 
     @Override
-    public void record(T result, long number, long nanoLatency, long nanoTime) {
-        Histogram histogram = histograms[result.ordinal()];
-        histogram.recordValueWithCount(nanoLatency, number);
-    }
-
-    @Override
     public Histogram getHistogram(T metric) {
         return histograms[metric.ordinal()];
     }

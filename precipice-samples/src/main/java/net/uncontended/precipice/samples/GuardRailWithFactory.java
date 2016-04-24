@@ -35,30 +35,30 @@ import java.net.URLConnection;
 public class GuardRailWithFactory {
 
     public static void main(String[] args) {
-        PartitionedCount<SimpleResult> resultMetrics = new LongAdderCounter<>(SimpleResult.class);
-        PartitionedCount<Unrejectable> rejectedMetrics = new NoOpCounter<>(Unrejectable.class);
-
-        GuardRailBuilder<SimpleResult, Unrejectable> builder = new GuardRailBuilder<>();
-        builder.name("Example")
-                .resultMetrics(resultMetrics)
-                .rejectedMetrics(rejectedMetrics)
-                .addBackPressure(new UnlimitedSemaphore<Unrejectable>());
-
-        GuardRail<SimpleResult, Unrejectable> guardRail = builder.build();
-
-        CompletionContext<SimpleResult, String> completable = Synchronous.acquireSinglePermitAndCompletable(guardRail);
-
-        try {
-            URL url = new URL("http://www.google.com");
-            URLConnection urlConnection = url.openConnection();
-            completable.complete(SimpleResult.SUCCESS, readToString(urlConnection.getInputStream()));
-        } catch (Exception ex) {
-            completable.completeExceptionally(SimpleResult.ERROR, ex);
-        }
-
-        completable.getValue();
-        // or
-        completable.getError();
+//        PartitionedCount<SimpleResult> resultMetrics = new LongAdderCounter<>(SimpleResult.class);
+//        PartitionedCount<Unrejectable> rejectedMetrics = new NoOpCounter<>(Unrejectable.class);
+//
+//        GuardRailBuilder<SimpleResult, Unrejectable> builder = new GuardRailBuilder<>();
+//        builder.name("Example")
+//                .resultMetrics(resultMetrics)
+//                .rejectedMetrics(rejectedMetrics)
+//                .addBackPressure(new UnlimitedSemaphore<Unrejectable>());
+//
+//        GuardRail<SimpleResult, Unrejectable> guardRail = builder.build();
+//
+//        CompletionContext<SimpleResult, String> completable = Synchronous.acquireSinglePermitAndCompletable(guardRail);
+//
+//        try {
+//            URL url = new URL("http://www.google.com");
+//            URLConnection urlConnection = url.openConnection();
+//            completable.complete(SimpleResult.SUCCESS, readToString(urlConnection.getInputStream()));
+//        } catch (Exception ex) {
+//            completable.completeExceptionally(SimpleResult.ERROR, ex);
+//        }
+//
+//        completable.getValue();
+//        // or
+//        completable.getError();
     }
 
     private static String readToString(InputStream inputStream) {

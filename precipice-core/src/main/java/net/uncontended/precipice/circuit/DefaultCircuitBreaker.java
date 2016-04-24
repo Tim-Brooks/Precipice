@@ -92,9 +92,9 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
-        WritableCounts<Result> metrics = guardRail.getResultMetrics();
-        if (metrics instanceof RollingCountMetrics) {
-            healthGauge.add((RollingCountMetrics<Result>) metrics);
+        NewMetrics<PartitionedCount<Result>> metrics = guardRail.getResultMetrics();
+        if (metrics instanceof Rolling) {
+            healthGauge.add((Rolling<PartitionedCount<Result>>) metrics);
         } else {
             throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result object");
         }
