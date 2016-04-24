@@ -17,16 +17,10 @@
 package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.GuardRailBuilder;
-import net.uncontended.precipice.metrics.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
-import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.result.SimpleResult;
 import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 public class SummaryTest {
 
@@ -40,8 +34,8 @@ public class SummaryTest {
         SummaryProperties properties = new SummaryProperties();
         properties.bufferSize = 4;
 
-        resultMetrics = new RollingCountMetrics<>(SimpleResult.class, 8, 500, TimeUnit.MILLISECONDS);
-        rejectedMetrics = new RollingCountMetrics<>(Rejected.class, 8, 500, TimeUnit.MILLISECONDS);
+//        resultMetrics = new RollingCountMetrics<>(SimpleResult.class, 8, 500, TimeUnit.MILLISECONDS);
+//        rejectedMetrics = new RollingCountMetrics<>(Rejected.class, 8, 500, TimeUnit.MILLISECONDS);
         startTime = System.nanoTime();
 
         GuardRailBuilder<SimpleResult, Rejected> builder = new GuardRailBuilder<>();

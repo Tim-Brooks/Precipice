@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.time.SystemTime;
 
 public class RollingMetrics<T> implements NewMetrics<T>, Rolling<T> {
 
@@ -26,7 +27,15 @@ public class RollingMetrics<T> implements NewMetrics<T>, Rolling<T> {
     private final T total;
     private final CircularBuffer<T> buffer;
 
-    public RollingMetrics(T total, Allocator<T> allocator, CircularBuffer<T> buffer, Clock clock) {
+    public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer) {
+        this(allocator, buffer, allocator.allocateNew());
+    }
+
+    public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer, T total) {
+        this(allocator, buffer, total, new SystemTime());
+    }
+
+    public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer, T total, Clock clock) {
         this.total = total;
         this.buffer = buffer;
         this.clock = clock;

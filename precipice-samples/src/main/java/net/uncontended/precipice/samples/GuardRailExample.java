@@ -17,44 +17,39 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.*;
-import net.uncontended.precipice.metrics.RollingCountMetrics;
-import net.uncontended.precipice.rejected.RejectedException;
-import net.uncontended.precipice.semaphore.LongSemaphore;
+import net.uncontended.precipice.Failable;
 
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 
 public class GuardRailExample {
 
     public static void main(String[] args) {
-        RollingCountMetrics<Result> resultMetrics = new RollingCountMetrics<>(Result.class);
-        RollingCountMetrics<RejectedReason> rejectedMetrics = new RollingCountMetrics<>(RejectedReason.class);
-
-        GuardRailBuilder<Result, RejectedReason> builder = new GuardRailBuilder<>();
-        builder.name("Example")
-                .resultMetrics(resultMetrics)
-                .rejectedMetrics(rejectedMetrics)
-                .addBackPressure(new LongSemaphore<>(RejectedReason.MAX_CONCURRENCY, 10));
-
-        GuardRail<Result, RejectedReason> guardRail = builder.build();
-
-        long startNanoTime = guardRail.getClock().nanoTime();
-        RejectedReason rejected = guardRail.acquirePermits(1L, startNanoTime);
-        if (rejected != null) {
-            throw new RejectedException(rejected);
-        }
-
-        String response = null;
-        try {
-            URL url = new URL("http://www.google.com");
-            URLConnection urlConnection = url.openConnection();
-            response = readToString(urlConnection.getInputStream());
-            guardRail.releasePermits(1L, Result.SUCCESS, startNanoTime);
-        } catch (Exception ex) {
-            guardRail.releasePermits(1L, Result.EXCEPTION, startNanoTime);
-        }
+//        RollingCountMetrics<Result> resultMetrics = new RollingCountMetrics<>(Result.class);
+//        RollingCountMetrics<RejectedReason> rejectedMetrics = new RollingCountMetrics<>(RejectedReason.class);
+//
+//        GuardRailBuilder<Result, RejectedReason> builder = new GuardRailBuilder<>();
+//        builder.name("Example")
+//                .resultMetrics(resultMetrics)
+//                .rejectedMetrics(rejectedMetrics)
+//                .addBackPressure(new LongSemaphore<>(RejectedReason.MAX_CONCURRENCY, 10));
+//
+//        GuardRail<Result, RejectedReason> guardRail = builder.build();
+//
+//        long startNanoTime = guardRail.getClock().nanoTime();
+//        RejectedReason rejected = guardRail.acquirePermits(1L, startNanoTime);
+//        if (rejected != null) {
+//            throw new RejectedException(rejected);
+//        }
+//
+//        String response = null;
+//        try {
+//            URL url = new URL("http://www.google.com");
+//            URLConnection urlConnection = url.openConnection();
+//            response = readToString(urlConnection.getInputStream());
+//            guardRail.releasePermits(1L, Result.SUCCESS, startNanoTime);
+//        } catch (Exception ex) {
+//            guardRail.releasePermits(1L, Result.EXCEPTION, startNanoTime);
+//        }
     }
 
     private static String readToString(InputStream inputStream) {

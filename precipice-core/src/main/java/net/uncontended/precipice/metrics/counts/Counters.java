@@ -18,7 +18,6 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.Allocator;
-import net.uncontended.precipice.metrics.PartitionedCount;
 
 public final class Counters {
 

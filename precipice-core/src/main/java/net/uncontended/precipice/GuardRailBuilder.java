@@ -19,7 +19,7 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.metrics.MetricRecorder;
 import net.uncontended.precipice.metrics.NewMetrics;
-import net.uncontended.precipice.metrics.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.metrics.histogram.NoOpLatency;
 import net.uncontended.precipice.metrics.histogram.PartitionedHistogram;

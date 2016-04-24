@@ -19,7 +19,6 @@ package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.concurrent.util.LongAdder;
 import net.uncontended.precipice.metrics.AbstractMetrics;
-import net.uncontended.precipice.metrics.PartitionedCount;
 
 public class LongAdderCounter<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedCount<T> {
 

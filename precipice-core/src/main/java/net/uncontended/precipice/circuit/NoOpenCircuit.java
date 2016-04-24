@@ -20,7 +20,7 @@ package net.uncontended.precipice.circuit;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.NewMetrics;
-import net.uncontended.precipice.metrics.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.concurrent.TimeUnit;

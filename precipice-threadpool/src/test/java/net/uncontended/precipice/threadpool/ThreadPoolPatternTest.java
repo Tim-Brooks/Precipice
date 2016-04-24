@@ -20,7 +20,7 @@ package net.uncontended.precipice.threadpool;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.metrics.MetricRecorder;
-import net.uncontended.precipice.metrics.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternCallable;
 import net.uncontended.precipice.pattern.WritableSequence;

@@ -20,7 +20,7 @@ package net.uncontended.precipice.circuit;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.*;
-import net.uncontended.precipice.metrics.counts.WritableCounts;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;

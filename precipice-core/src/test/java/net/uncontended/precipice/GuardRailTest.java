@@ -19,7 +19,7 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.metrics.NewMetrics;
-import net.uncontended.precipice.metrics.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.histogram.PartitionedHistogram;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;

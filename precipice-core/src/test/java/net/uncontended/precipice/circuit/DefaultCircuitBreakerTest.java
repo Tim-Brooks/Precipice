@@ -18,7 +18,7 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.NoOpCounter;
 import net.uncontended.precipice.rejected.Rejected;

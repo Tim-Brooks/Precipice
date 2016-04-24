@@ -17,20 +17,7 @@
 
 package net.uncontended.precipice.samples;
 
-import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.GuardRailBuilder;
-import net.uncontended.precipice.CompletionContext;
-import net.uncontended.precipice.factories.Synchronous;
-import net.uncontended.precipice.metrics.counts.LongAdderCounter;
-import net.uncontended.precipice.metrics.PartitionedCount;
-import net.uncontended.precipice.metrics.counts.NoOpCounter;
-import net.uncontended.precipice.rejected.Unrejectable;
-import net.uncontended.precipice.result.SimpleResult;
-import net.uncontended.precipice.semaphore.UnlimitedSemaphore;
-
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 
 public class GuardRailWithFactory {
 

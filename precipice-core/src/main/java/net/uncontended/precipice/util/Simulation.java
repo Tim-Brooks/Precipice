@@ -20,7 +20,7 @@ package net.uncontended.precipice.util;
 import net.uncontended.precipice.BackPressure;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.PartitionedCount;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
