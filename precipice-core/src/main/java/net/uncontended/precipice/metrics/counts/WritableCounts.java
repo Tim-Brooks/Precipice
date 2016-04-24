@@ -23,5 +23,4 @@ public interface WritableCounts<T extends Enum<T>> extends Metrics<T> {
 
     void add(T metric, long delta);
 
-    void add(T metric, long delta, long nanoTime);
 }
