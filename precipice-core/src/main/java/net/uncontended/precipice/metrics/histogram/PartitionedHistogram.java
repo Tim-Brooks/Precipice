@@ -17,11 +17,14 @@
 
 package net.uncontended.precipice.metrics.histogram;
 
+import net.uncontended.precipice.metrics.Metrics;
 import org.HdrHistogram.Histogram;
 
-public interface PartitionedHistogram<T extends Enum<T>> extends WritableLatency<T> {
+public interface PartitionedHistogram<T extends Enum<T>> extends Metrics<T> {
 
     Histogram getHistogram(T metric);
 
     void reset();
+
+    void record(T result, long number, long nanoLatency);
 }

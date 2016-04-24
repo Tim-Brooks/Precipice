@@ -30,10 +30,6 @@ public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implement
     }
 
     @Override
-    public void add(T metric, long delta, long nanoTime) {
-    }
-
-    @Override
     public long getCount(T metric) {
         return 0;
     }

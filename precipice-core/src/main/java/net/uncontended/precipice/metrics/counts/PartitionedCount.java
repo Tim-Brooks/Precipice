@@ -17,13 +17,14 @@
 
 package net.uncontended.precipice.metrics.counts;
 
+import net.uncontended.precipice.metrics.Metrics;
 import net.uncontended.precipice.metrics.Resettable;
-import net.uncontended.precipice.metrics.counts.WritableCounts;
 
-public interface PartitionedCount<T extends Enum<T>> extends WritableCounts<T>, Resettable {
+public interface PartitionedCount<T extends Enum<T>> extends Metrics<T>, Resettable {
 
     long getCount(T metric);
 
     long total();
 
+    void add(T metric, long delta);
 }

@@ -38,12 +38,7 @@ public class LongAdderCounter<T extends Enum<T>> extends AbstractMetrics<T> impl
     public void add(T metric, long delta) {
         metrics[metric.ordinal()].add(delta);
     }
-
-    @Override
-    public void add(T metric, long delta, long nanoTime) {
-        metrics[metric.ordinal()].add(delta);
-    }
-
+    
     @Override
     public long getCount(T metric) {
         return metrics[metric.ordinal()].longValue();
