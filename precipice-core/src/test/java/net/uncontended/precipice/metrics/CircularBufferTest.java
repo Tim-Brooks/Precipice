@@ -16,6 +16,8 @@
  */
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.metrics.tools.CircularBuffer;
+import net.uncontended.precipice.metrics.tools.IntervalIterator;
 import org.junit.Before;
 import org.junit.Test;
 

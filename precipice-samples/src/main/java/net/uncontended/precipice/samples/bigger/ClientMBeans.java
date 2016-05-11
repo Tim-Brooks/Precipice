@@ -19,7 +19,7 @@ package net.uncontended.precipice.samples.bigger;
 
 import net.uncontended.precipice.circuit.DefaultCircuitBreaker;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.Rolling;
+import net.uncontended.precipice.metrics.tools.Rolling;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.result.TimeoutableResult;
 

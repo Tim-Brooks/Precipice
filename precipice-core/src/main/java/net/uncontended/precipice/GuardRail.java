@@ -17,18 +17,17 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.NewMetrics;
-import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.histogram.PartitionedHistogram;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
+import net.uncontended.precipice.metrics.histogram.WritableLatency;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.List;
 
 public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private final NewMetrics<PartitionedCount<Result>> resultMetrics;
-    private final NewMetrics<PartitionedCount<Rejected>> rejectedMetrics;
-    private final NewMetrics<PartitionedHistogram<Result>> latencyMetrics;
+    private final WritableCounts<Result> resultMetrics;
+    private final WritableCounts<Rejected> rejectedMetrics;
+    private final WritableLatency<Result> latencyMetrics;
     private final String name;
     private final Clock clock;
     private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
@@ -71,8 +70,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
             Rejected rejected = bp.acquirePermit(number, nanoTime);
             if (rejected != null) {
                 number = !singleIncrement ? number : 1;
-                rejectedMetrics.total().add(rejected, number);
-                rejectedMetrics.current(nanoTime).add(rejected, number);
+                rejectedMetrics.write(rejected, number, nanoTime);
                 for (int j = 0; j < i; ++j) {
                     backPressureList.get(j).releasePermit(number, nanoTime);
                 }
@@ -151,10 +149,8 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      */
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
         number = !singleIncrement ? number : 1;
-        resultMetrics.total().add(result, number);
-        resultMetrics.current(nanoTime).add(result, number);
-        latencyMetrics.total().record(result, number, nanoTime - startNanos);
-        latencyMetrics.current(nanoTime).record(result, number, nanoTime - startNanos);
+        resultMetrics.write(result, number, nanoTime);
+        latencyMetrics.write(result, number, nanoTime - startNanos, nanoTime);
         for (BackPressure backPressure : backPressureList) {
             backPressure.releasePermit(number, result, nanoTime);
         }
@@ -184,7 +180,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the result object
      */
-    public NewMetrics<PartitionedCount<Result>> getResultMetrics() {
+    public WritableCounts<Result> getResultMetrics() {
         return resultMetrics;
     }
 
@@ -193,7 +189,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the rejected object
      */
-    public NewMetrics<PartitionedCount<Rejected>> getRejectedMetrics() {
+    public WritableCounts<Rejected> getRejectedMetrics() {
         return rejectedMetrics;
     }
 
@@ -202,7 +198,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the latency object
      */
-    public NewMetrics<PartitionedHistogram<Result>> getLatencyMetrics() {
+    public WritableLatency<Result> getLatencyMetrics() {
         return latencyMetrics;
     }
 

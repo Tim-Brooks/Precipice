@@ -15,10 +15,20 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
-@FunctionalInterface
-public interface Allocator<T> {
+public class RelaxedRecorder<V> extends Recorder<V> {
 
-    T allocateNew();
+    public long startRecord() {
+        return 0L;
+    }
+
+    public void endRecord(long permit) {
+    }
+
+    public synchronized V flip(V newValue) {
+        V old = this.active;
+        this.active = newValue;
+        return old;
+    }
 }

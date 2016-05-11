@@ -19,7 +19,8 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.Rolling;
+import net.uncontended.precipice.metrics.counts.RollingCounts;
+import net.uncontended.precipice.metrics.tools.Rolling;
 import net.uncontended.precipice.metrics.counts.NoOpCounter;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
@@ -38,7 +39,7 @@ public class DefaultCircuitBreakerTest {
     @Mock
     private GuardRail<TestResult, Rejected> guardRail;
     @Mock
-    private Rolling<PartitionedCount<TestResult>> countMetrics;
+    private RollingCounts<TestResult> countMetrics;
     @Mock
     private HealthGauge healthGauge;
 

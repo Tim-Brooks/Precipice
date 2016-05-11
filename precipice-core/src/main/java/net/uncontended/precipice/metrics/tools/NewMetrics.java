@@ -15,9 +15,13 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
-public interface Resettable {
+public interface NewMetrics<T> {
 
-    void reset();
+    T current();
+
+    T current(long nanoTime);
+
+    T total();
 }

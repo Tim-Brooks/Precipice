@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;

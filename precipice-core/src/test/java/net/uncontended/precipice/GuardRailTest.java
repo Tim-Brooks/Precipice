@@ -18,9 +18,8 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.Eventual;
-import net.uncontended.precipice.metrics.NewMetrics;
-import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.histogram.PartitionedHistogram;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
+import net.uncontended.precipice.metrics.histogram.WritableLatency;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
 import net.uncontended.precipice.time.Clock;
@@ -37,23 +36,11 @@ import static org.mockito.Mockito.*;
 public class GuardRailTest {
 
     @Mock
-    private NewMetrics<PartitionedCount<TestResult>> resultMetrics;
+    private WritableCounts<TestResult> resultMetrics;
     @Mock
-    private NewMetrics<PartitionedCount<Rejected>> rejectedMetrics;
+    private WritableCounts<Rejected> rejectedMetrics;
     @Mock
-    private NewMetrics<PartitionedHistogram<TestResult>> latencyMetrics;
-    @Mock
-    private PartitionedCount<TestResult> resultCounter;
-    @Mock
-    private PartitionedCount<Rejected> rejectedCounter;
-    @Mock
-    private PartitionedHistogram<TestResult> latencyHistogram;
-    @Mock
-    private PartitionedCount<TestResult> totalResultCounter;
-    @Mock
-    private PartitionedCount<Rejected> totalRejectedCounter;
-    @Mock
-    private PartitionedHistogram<TestResult> totalLatencyHistogram;
+    private WritableLatency<TestResult> latencyMetrics;
     @Mock
     private BackPressure<Rejected> backPressure;
     @Mock
@@ -75,13 +62,6 @@ public class GuardRailTest {
         builder.addBackPressure(backPressure);
         builder.addBackPressure(backPressure2);
         builder.clock(clock);
-
-        when(resultMetrics.current(anyLong())).thenReturn(resultCounter);
-        when(rejectedMetrics.current(anyLong())).thenReturn(rejectedCounter);
-        when(latencyMetrics.current(anyLong())).thenReturn(latencyHistogram);
-        when(resultMetrics.total()).thenReturn(totalResultCounter);
-        when(rejectedMetrics.total()).thenReturn(totalRejectedCounter);
-        when(latencyMetrics.total()).thenReturn(totalLatencyHistogram);
     }
 
     @Test
@@ -128,6 +108,8 @@ public class GuardRailTest {
         inOrder.verify(backPressure).releasePermit(2L, 22L);
     }
 
+    // TODO: Add tests for rejected metrics
+
     @Test
     public void releaseCausesBackPressureReleasesToBeCalled() {
         guardRail = builder.build();
@@ -146,10 +128,8 @@ public class GuardRailTest {
 
         guardRail.releasePermits(2L, result, 10L, 100L);
 
-        verify(resultCounter).add(result, 2L);
-        verify(totalResultCounter).add(result, 2L);
-        verify(latencyHistogram).record(result, 2L, 90L);
-        verify(totalLatencyHistogram).record(result, 2L, 90L);
+        verify(resultMetrics).write(result, 2L, 100L);
+        verify(latencyMetrics).write(result, 2L, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
         inOrder.verify(backPressure).releasePermit(2L, result, 100L);
@@ -165,10 +145,8 @@ public class GuardRailTest {
 
         guardRail.releasePermits(context, result, 100L);
 
-        verify(resultCounter).add(result, 2L);
-        verify(totalResultCounter).add(result, 2L);
-        verify(latencyHistogram).record(result, 2L, 90L);
-        verify(totalLatencyHistogram).record(result, 2L, 90L);
+        verify(resultMetrics).write(result, 2L, 100L);
+        verify(latencyMetrics).write(result, 2L, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
         inOrder.verify(backPressure).releasePermit(2L, result, 100L);
@@ -187,10 +165,8 @@ public class GuardRailTest {
         TestResult result = TestResult.ERROR;
         fn.apply(result, context);
 
-        verify(resultCounter).add(result, 2L);
-        verify(totalResultCounter).add(result, 2L);
-        verify(latencyHistogram).record(result, 2L, 100L);
-        verify(totalLatencyHistogram).record(result, 2L, 100L);
+        verify(resultMetrics).write(result, 2L, 110L);
+        verify(latencyMetrics).write(result, 2L, 100L, 110L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
         inOrder.verify(backPressure).releasePermit(2L, result, 110L);

@@ -16,9 +16,8 @@
 
 package net.uncontended.precipice.reporting.registry;
 
-import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.Rolling;
+import net.uncontended.precipice.metrics.tools.Rolling;
 import net.uncontended.precipice.result.SimpleResult;
 import org.junit.Before;
 
@@ -36,13 +35,13 @@ public class SummaryTest {
 
 //        resultMetrics = new RollingCountMetrics<>(SimpleResult.class, 8, 500, TimeUnit.MILLISECONDS);
 //        rejectedMetrics = new RollingCountMetrics<>(Rejected.class, 8, 500, TimeUnit.MILLISECONDS);
-        startTime = System.nanoTime();
-
-        GuardRailBuilder<SimpleResult, Rejected> builder = new GuardRailBuilder<>();
-        builder.name("Test");
-        builder.resultMetrics(resultMetrics);
-        builder.rejectedMetrics(rejectedMetrics);
-        summary = new Summary<>(properties, builder.build());
+//        startTime = System.nanoTime();
+//
+//        GuardRailBuilder<SimpleResult, Rejected> builder = new GuardRailBuilder<>();
+//        builder.name("Test");
+//        builder.resultMetrics(resultMetrics);
+//        builder.rejectedMetrics(rejectedMetrics);
+//        summary = new Summary<>(properties, builder.build());
     }
 
 //    @Test

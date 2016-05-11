@@ -17,11 +17,12 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.MetricRecorder;
-import net.uncontended.precipice.metrics.NewMetrics;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.metrics.histogram.NoOpLatency;
 import net.uncontended.precipice.metrics.histogram.PartitionedHistogram;
+import net.uncontended.precipice.metrics.histogram.WritableLatency;
+import net.uncontended.precipice.metrics.tools.MetricRecorder;
 import net.uncontended.precipice.time.Clock;
 
 public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
@@ -39,17 +40,17 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> resultMetrics(NewMetrics<PartitionedCount<Result>> resultMetrics) {
+    public GuardRailBuilder<Result, Rejected> resultMetrics(WritableCounts<Result> resultMetrics) {
         this.properties.resultMetrics = resultMetrics;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> rejectedMetrics(NewMetrics<PartitionedCount<Rejected>> rejectedMetrics) {
+    public GuardRailBuilder<Result, Rejected> rejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
         this.properties.rejectedMetrics = rejectedMetrics;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> resultLatency(NewMetrics<PartitionedHistogram<Result>> resultLatency) {
+    public GuardRailBuilder<Result, Rejected> resultLatency(WritableLatency<Result> resultLatency) {
         this.properties.resultLatency = resultLatency;
         return this;
     }
@@ -69,10 +70,10 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         }
 
         if (properties.resultLatency == null) {
-            PartitionedCount<Result> total = properties.resultMetrics.total();
-            NoOpLatency<Result> totalLatency = new NoOpLatency<>(total.getMetricClazz());
-            NoOpLatency<Result> currentLatency = new NoOpLatency<>(total.getMetricClazz());
-            properties.resultLatency = new MetricRecorder<PartitionedHistogram<Result>>(totalLatency, currentLatency);
+//            PartitionedCount<Result> total = properties.resultMetrics.total();
+//            NoOpLatency<Result> totalLatency = new NoOpLatency<>(total.getMetricClazz());
+//            NoOpLatency<Result> currentLatency = new NoOpLatency<>(total.getMetricClazz());
+//            properties.resultLatency = new MetricRecorder<PartitionedHistogram<Result>>(totalLatency, currentLatency);
         }
 
         return GuardRail.create(properties);

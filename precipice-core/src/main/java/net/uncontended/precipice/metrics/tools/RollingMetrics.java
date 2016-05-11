@@ -15,8 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
+import net.uncontended.precipice.metrics.tools.*;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 

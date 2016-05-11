@@ -18,9 +18,9 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
-import net.uncontended.precipice.metrics.IntervalIterator;
+import net.uncontended.precipice.metrics.tools.IntervalIterator;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.Rolling;
+import net.uncontended.precipice.metrics.tools.Rolling;
 
 import java.util.ArrayList;
 import java.util.List;

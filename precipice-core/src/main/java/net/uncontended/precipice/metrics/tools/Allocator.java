@@ -15,16 +15,10 @@
  *
  */
 
-package net.uncontended.precipice.metrics.counts;
+package net.uncontended.precipice.metrics.tools;
 
-import net.uncontended.precipice.metrics.Metrics;
-import net.uncontended.precipice.metrics.tools.Resettable;
+@FunctionalInterface
+public interface Allocator<T> {
 
-public interface PartitionedCount<T extends Enum<T>> extends WritableCounts<T>, Metrics<T>, Resettable {
-
-    long getCount(T metric);
-
-    long total();
-
-    void add(T metric, long delta);
+    T allocateNew();
 }

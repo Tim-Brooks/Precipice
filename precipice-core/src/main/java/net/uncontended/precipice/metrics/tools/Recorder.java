@@ -15,12 +15,18 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
-public interface NewMetrics<T> {
-    T current();
+public abstract class Recorder<V> {
+    protected volatile V active;
 
-    T current(long nanoTime);
+    public V active() {
+        return active;
+    }
 
-    T total();
+    public abstract long startRecord();
+
+    public abstract void endRecord(long permit);
+
+    public abstract V flip(V newValue);
 }

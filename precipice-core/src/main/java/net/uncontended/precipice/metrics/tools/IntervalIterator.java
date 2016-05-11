@@ -1,4 +1,4 @@
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;

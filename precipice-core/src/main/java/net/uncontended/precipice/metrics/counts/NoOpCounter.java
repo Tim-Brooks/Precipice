@@ -41,6 +41,9 @@ public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implement
 
     @Override
     public void reset() {
+    }
 
+    @Override
+    public void write(T result, long number, long nanoTime) {
     }
 }

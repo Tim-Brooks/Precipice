@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics.histogram;
 
-import net.uncontended.precipice.metrics.Allocator;
+import net.uncontended.precipice.metrics.tools.Allocator;
 
 public final class Latency {
 

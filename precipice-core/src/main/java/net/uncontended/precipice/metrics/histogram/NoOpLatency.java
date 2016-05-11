@@ -20,7 +20,8 @@ package net.uncontended.precipice.metrics.histogram;
 import net.uncontended.precipice.metrics.AbstractMetrics;
 import org.HdrHistogram.Histogram;
 
-public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedHistogram<T> {
+public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedHistogram<T>,
+        WritableLatency<T> {
 
     private final Histogram generic = new Histogram(1);
 
@@ -40,5 +41,9 @@ public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implement
     @Override
     public void reset() {
         generic.reset();
+    }
+
+    @Override
+    public void write(T result, long number, long nanoLatency, long nanoTime) {
     }
 }

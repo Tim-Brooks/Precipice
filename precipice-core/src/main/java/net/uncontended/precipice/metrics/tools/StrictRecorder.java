@@ -15,8 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
+import net.uncontended.precipice.metrics.tools.Recorder;
 import org.HdrHistogram.WriterReaderPhaser;
 
 public class StrictRecorder<V> extends Recorder<V> {

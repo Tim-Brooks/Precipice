@@ -15,20 +15,10 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
-public class RelaxedRecorder<V> extends Recorder<V> {
+public interface Resettable {
 
-    public long startRecord() {
-        return 0L;
-    }
+    void reset();
 
-    public void endRecord(long permit) {
-    }
-
-    public synchronized V flip(V newValue) {
-        V old = this.active;
-        this.active = newValue;
-        return old;
-    }
 }

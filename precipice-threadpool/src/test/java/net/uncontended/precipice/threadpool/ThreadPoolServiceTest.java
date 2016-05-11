@@ -22,9 +22,8 @@ import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.metrics.MetricRecorder;
-import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.LongAdderCounter;
+import net.uncontended.precipice.metrics.histogram.NoOpLatency;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;
@@ -182,10 +181,9 @@ public class ThreadPoolServiceTest {
         GuardRailBuilder<TimeoutableResult, SimulationRejected> builder =
                 new GuardRailBuilder<TimeoutableResult, SimulationRejected>()
                         .name("Simulation")
-                        .resultMetrics(new MetricRecorder<PartitionedCount<TimeoutableResult>>(new LongAdderCounter<>
-                                (TimeoutableResult.class), new LongAdderCounter<>(TimeoutableResult.class)))
-                        .rejectedMetrics(new MetricRecorder<PartitionedCount<SimulationRejected>>(new LongAdderCounter<>
-                                (SimulationRejected.class), new LongAdderCounter<>(SimulationRejected.class)));
+                        .resultMetrics(new LongAdderCounter<>(TimeoutableResult.class))
+                        .rejectedMetrics(new LongAdderCounter<>(SimulationRejected.class))
+                        .resultLatency(new NoOpLatency<>(TimeoutableResult.class));
 
         GuardRail<TimeoutableResult, SimulationRejected> guardRail = builder.build();
         final ThreadPoolService<SimulationRejected> callService = new ThreadPoolService<>(5, 10, guardRail);

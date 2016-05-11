@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.metrics.tools.MetricRecorder;
+import net.uncontended.precipice.metrics.tools.Recorder;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicLong;

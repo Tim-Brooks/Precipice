@@ -18,10 +18,10 @@ package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.IntervalIterator;
-import net.uncontended.precipice.metrics.NewMetrics;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.Rolling;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
+import net.uncontended.precipice.metrics.tools.IntervalIterator;
+import net.uncontended.precipice.metrics.tools.Rolling;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -48,12 +48,12 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
     public Summary(SummaryProperties properties, GuardRail<Result, Rejected> guardRail) {
         this.guardRail = guardRail;
 
-        resultClazz = guardRail.getResultMetrics().total().getMetricClazz();
+        resultClazz = null;
         int resultLength = resultClazz.getEnumConstants().length;
         totalResultCounts = new long[resultLength];
         resultCounts = new long[resultLength];
 
-        rejectedClazz = guardRail.getRejectedMetrics().total().getMetricClazz();
+        rejectedClazz = null;
         int rejectedLength = rejectedClazz.getEnumConstants().length;
         totalRejectedCounts = new long[rejectedLength];
         rejectedCounts = new long[rejectedLength];
@@ -73,8 +73,8 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         Arrays.fill(resultCounts, 0);
         Arrays.fill(rejectedCounts, 0);
 
-        NewMetrics<PartitionedCount<Result>> resultMetrics = guardRail.getResultMetrics();
-        NewMetrics<PartitionedCount<Rejected>> rejectedMetrics = guardRail.getRejectedMetrics();
+        WritableCounts<Result> resultMetrics = guardRail.getResultMetrics();
+        WritableCounts<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
 
         long localStartEpoch = Long.MAX_VALUE;
         long localEndEpoch = 0L;

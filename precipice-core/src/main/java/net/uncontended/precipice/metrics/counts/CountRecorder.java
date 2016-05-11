@@ -15,11 +15,13 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.counts;
 
-public interface Rolling<T> extends NewMetrics<T> {
+public class CountRecorder<T extends Enum<T>> implements WritableCounts<T> {
 
-    IntervalIterator<T> intervals();
 
-    IntervalIterator<T> intervals(long nanoTime);
+    @Override
+    public void write(T result, long number, long nanoTime) {
+
+    }
 }
