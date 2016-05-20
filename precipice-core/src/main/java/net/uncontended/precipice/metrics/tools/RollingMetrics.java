@@ -20,7 +20,7 @@ package net.uncontended.precipice.metrics.tools;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RollingMetrics<T> implements NewMetrics<T>, Rolling<T> {
+public class RollingMetrics<T> implements Positional<T>, Rolling<T> {
 
     private final Allocator<T> allocator;
     private final Clock clock;

@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics.tools;
 
-public interface NewMetrics<T> {
+public interface Positional<T> {
 
     T current();
 

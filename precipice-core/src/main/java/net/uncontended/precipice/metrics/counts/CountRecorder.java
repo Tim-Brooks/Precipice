@@ -17,11 +17,46 @@
 
 package net.uncontended.precipice.metrics.counts;
 
-public class CountRecorder<T extends Enum<T>> implements WritableCounts<T> {
+import net.uncontended.precipice.metrics.AbstractMetrics;
+import net.uncontended.precipice.metrics.tools.Allocator;
+import net.uncontended.precipice.metrics.tools.Recorder;
+import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
+public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T> {
+
+    private final Allocator<? extends WritableCounts<T>> allocator;
+    private final Recorder<WritableCounts<T>> recorder;
+
+    public CountRecorder(Class<T> clazz) {
+        this(clazz, Counters.longAdder(clazz), new RelaxedRecorder<WritableCounts<T>>());
+    }
+
+    public CountRecorder(Class<T> clazz, Allocator<? extends WritableCounts<T>> allocator) {
+        this(clazz, allocator, new RelaxedRecorder<WritableCounts<T>>());
+    }
+
+    public CountRecorder(Class<T> clazz, Allocator<? extends WritableCounts<T>> allocator, Recorder<WritableCounts<T>> recorder) {
+        super(clazz);
+        this.allocator = allocator;
+        this.recorder = recorder;
+        this.recorder.flip(allocator.allocateNew());
+    }
 
     @Override
     public void write(T result, long number, long nanoTime) {
+        long permit = recorder.startRecord();
+        try {
+            recorder.active().write(result, number, nanoTime);
+        } finally {
+            recorder.endRecord(permit);
+        }
+    }
 
+    public WritableCounts<T> capture() {
+        return recorder.flip(allocator.allocateNew());
+    }
+
+    public WritableCounts<T> capture(WritableCounts<T> newCounter) {
+        return recorder.flip(newCounter);
     }
 }

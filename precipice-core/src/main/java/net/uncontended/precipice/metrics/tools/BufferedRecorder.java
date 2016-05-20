@@ -23,7 +23,7 @@ import net.uncontended.precipice.time.SystemTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-public class BufferedRecorder<T extends Resettable> implements NewMetrics<T> {
+public class BufferedRecorder<T extends Resettable> implements Positional<T> {
 
     private final MetricRecorder<T> metricRecorder;
     private final int bufferSize;

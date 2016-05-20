@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics.tools;
 
-public interface Rolling<T> extends NewMetrics<T> {
+public interface Rolling<T> extends Positional<T> {
 
     IntervalIterator<T> intervals();
 

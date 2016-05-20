@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics.tools;
 
-public class MetricRecorder<T> implements NewMetrics<T> {
+public class MetricRecorder<T> implements Positional<T> {
 
     private final T total;
     private final Recorder<T> recorder;
