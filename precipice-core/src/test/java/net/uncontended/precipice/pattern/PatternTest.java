@@ -20,8 +20,6 @@ package net.uncontended.precipice.pattern;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
-import net.uncontended.precipice.metrics.tools.NewMetrics;
-import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.result.TimeoutableResult;
 import org.junit.Before;

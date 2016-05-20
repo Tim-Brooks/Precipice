@@ -59,7 +59,7 @@ public interface BackPressure<Rejected extends Enum<Rejected>> {
      * when when constructing a guard rail. This allows back pressure decisions to be made
      * based upon the object associated with guard rail.
      *
-     * @param guardRail   the guard rail registered
+     * @param guardRail the guard rail registered
      */
     <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail);
 }

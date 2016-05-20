@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * contention. Method {@link #sum} (or, equivalently, {@link
  * #longValue}) returns the currentInterval total combined across the
  * variables maintaining the sum.
- *
+ * <p>
  * <p> This class is usually preferable to {@link AtomicLong} when
  * multiple threads update a common sum that is used for purposes such
  * as collecting statistics, not for fine-grained synchronization
@@ -28,17 +28,17 @@ import java.util.concurrent.atomic.AtomicLong;
  * characteristics. But under high contention, expected throughput of
  * this class is significantly higher, at the expense of higher space
  * consumption.
- *
+ * <p>
  * <p>This class extends {@link Number}, but does <em>not</em> define
  * methods such as {@code hashCode} and {@code compareTo} because
  * instances are expected to be mutated, and so are not useful as
  * collection keys.
- *
+ * <p>
  * <p><em>jsr166e note: This class is targeted to be placed in
  * java.util.concurrent.atomic<em>
  *
- * @since 1.8
  * @author Doug Lea
+ * @since 1.8
  */
 public class LongAdder extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
@@ -46,7 +46,9 @@ public class LongAdder extends Striped64 implements Serializable {
     /**
      * Version of plus for use in retryUpdate
      */
-    final long fn(long v, long x) { return v + x; }
+    final long fn(long v, long x) {
+        return v + x;
+    }
 
     /**
      * Creates a new adder with initial sum of zero.
@@ -60,13 +62,17 @@ public class LongAdder extends Striped64 implements Serializable {
      * @param x the value to add
      */
     public void add(long x) {
-        Cell[] as; long b, v; HashCode hc; Cell a; int n;
+        Cell[] as;
+        long b, v;
+        HashCode hc;
+        Cell a;
+        int n;
         if ((as = cells) != null || !casBase(b = base, b + x)) {
             boolean uncontended = true;
             int h = (hc = threadHashCode.get()).code;
             if (as == null || (n = as.length) < 1 ||
-                (a = as[(n - 1) & h]) == null ||
-                !(uncontended = a.cas(v = a.value, v + x)))
+                    (a = as[(n - 1) & h]) == null ||
+                    !(uncontended = a.cas(v = a.value, v + x)))
                 retryUpdate(x, hc, uncontended);
         }
     }
@@ -148,6 +154,7 @@ public class LongAdder extends Striped64 implements Serializable {
 
     /**
      * Returns the String representation of the {@link #sum}.
+     *
      * @return the String representation of the {@link #sum}
      */
     public String toString() {
@@ -168,7 +175,7 @@ public class LongAdder extends Striped64 implements Serializable {
      * primitive conversion.
      */
     public int intValue() {
-        return (int)sum();
+        return (int) sum();
     }
 
     /**
@@ -176,7 +183,7 @@ public class LongAdder extends Striped64 implements Serializable {
      * after a widening primitive conversion.
      */
     public float floatValue() {
-        return (float)sum();
+        return (float) sum();
     }
 
     /**
@@ -184,17 +191,17 @@ public class LongAdder extends Striped64 implements Serializable {
      * primitive conversion.
      */
     public double doubleValue() {
-        return (double)sum();
+        return (double) sum();
     }
 
     private void writeObject(java.io.ObjectOutputStream s)
-        throws IOException {
+            throws IOException {
         s.defaultWriteObject();
         s.writeLong(sum());
     }
 
     private void readObject(ObjectInputStream s)
-        throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
         s.defaultReadObject();
         busy = 0;
         cells = null;

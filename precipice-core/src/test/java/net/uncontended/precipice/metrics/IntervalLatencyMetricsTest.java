@@ -16,13 +16,6 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.test_utils.TestResult;
-import org.HdrHistogram.Histogram;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-
 public class IntervalLatencyMetricsTest {
 
 //    private IntervalLatencyMetrics<TestResult> metrics;

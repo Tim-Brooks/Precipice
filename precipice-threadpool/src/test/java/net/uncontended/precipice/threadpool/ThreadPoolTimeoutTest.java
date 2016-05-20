@@ -31,7 +31,7 @@ public class ThreadPoolTimeoutTest {
     @Test
     public void taskCancelledIfTimeout() {
         CancellableTask<TimeoutableResult, String> task = mock(CancellableTask.class);
-        ThreadPoolTimeout<String> timeout =  new ThreadPoolTimeout<>(task);
+        ThreadPoolTimeout<String> timeout = new ThreadPoolTimeout<>(task);
 
         timeout.timeout();
 

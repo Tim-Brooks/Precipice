@@ -20,7 +20,6 @@ package net.uncontended.precipice.threadpool;
 import net.uncontended.precipice.Cancellable;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.result.TimeoutableResult;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;

@@ -71,7 +71,7 @@ public class ExchangingQueue<T> {
     }
 
     public T blockingPoll() throws InterruptedException {
-        for (;;) {
+        for (; ; ) {
             T element = poll();
             if (element != null) {
                 return element;

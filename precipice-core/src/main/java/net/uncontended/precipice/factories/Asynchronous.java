@@ -17,15 +17,16 @@
 
 package net.uncontended.precipice.factories;
 
+import net.uncontended.precipice.Completable;
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.rejected.RejectedException;
-import net.uncontended.precipice.Completable;
 import net.uncontended.precipice.concurrent.Eventual;
+import net.uncontended.precipice.rejected.RejectedException;
 
 public class Asynchronous {
 
-    private Asynchronous() {}
+    private Asynchronous() {
+    }
 
     public static <Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>, R> Eventual<Result, R>
     acquireSinglePermitAndPromise(GuardRail<Result, Rejected> guardRail) {

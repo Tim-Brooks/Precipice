@@ -17,8 +17,8 @@
 
 package net.uncontended.precipice.metrics;
 
-import net.uncontended.precipice.metrics.tools.IntervalIterator;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
+import net.uncontended.precipice.metrics.tools.IntervalIterator;
 
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;

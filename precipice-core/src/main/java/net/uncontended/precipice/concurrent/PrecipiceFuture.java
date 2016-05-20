@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  * A context containing the result of an asynchronous computation.
  *
  * @param <Result> the type of the result for this future
- * @param <V> the type of the value for this future
+ * @param <V>      the type of the value for this future
  */
 public interface PrecipiceFuture<Result extends Failable, V> extends Future<V>, ResultView<Result, V> {
 

@@ -18,7 +18,6 @@
 package net.uncontended.precipice.concurrent;
 
 import net.uncontended.precipice.*;
-import net.uncontended.precipice.ResultView;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;

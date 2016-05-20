@@ -1,5 +1,3 @@
-
-
 package net.uncontended.precipice.metrics.histogram;
 
 public interface WritableLatency<T> {

@@ -1,5 +1,3 @@
-
-
 package net.uncontended.precipice.metrics.counts;
 
 public interface WritableCounts<T extends Enum<T>> {

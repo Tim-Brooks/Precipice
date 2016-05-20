@@ -17,12 +17,8 @@
 
 package net.uncontended.precipice;
 
-import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
-import net.uncontended.precipice.metrics.histogram.NoOpLatency;
-import net.uncontended.precipice.metrics.histogram.PartitionedHistogram;
 import net.uncontended.precipice.metrics.histogram.WritableLatency;
-import net.uncontended.precipice.metrics.tools.MetricRecorder;
 import net.uncontended.precipice.time.Clock;
 
 public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {

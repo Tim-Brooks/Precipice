@@ -19,17 +19,17 @@ import java.io.Serializable;
  * variables may grow dynamically to reduce contention.  Method {@link
  * #max} (or, equivalently, {@link #longValue}) returns the currentInterval
  * maximum across the variables maintaining updates.
- *
+ * <p>
  * <p>This class extends {@link Number}, but does <em>not</em> define
  * methods such as {@code hashCode} and {@code compareTo} because
  * instances are expected to be mutated, and so are not useful as
  * collection keys.
- *
+ * <p>
  * <p><em>jsr166e note: This class is targeted to be placed in
  * java.util.concurrent.atomic<em>
  *
- * @since 1.8
  * @author Doug Lea
+ * @since 1.8
  */
 public class LongMaxUpdater extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
@@ -37,7 +37,9 @@ public class LongMaxUpdater extends Striped64 implements Serializable {
     /**
      * Version of max for use in retryUpdate
      */
-    final long fn(long v, long x) { return v > x ? v : x; }
+    final long fn(long v, long x) {
+        return v > x ? v : x;
+    }
 
     /**
      * Creates a new instance with initial maximum of {@code
@@ -53,14 +55,18 @@ public class LongMaxUpdater extends Striped64 implements Serializable {
      * @param x the value to update
      */
     public void update(long x) {
-        Cell[] as; long b, v; HashCode hc; Cell a; int n;
+        Cell[] as;
+        long b, v;
+        HashCode hc;
+        Cell a;
+        int n;
         if ((as = cells) != null ||
-            (b = base) < x && !casBase(b, x)) {
+                (b = base) < x && !casBase(b, x)) {
             boolean uncontended = true;
             int h = (hc = threadHashCode.get()).code;
             if (as == null || (n = as.length) < 1 ||
-                (a = as[(n - 1) & h]) == null ||
-                ((v = a.value) < x && !(uncontended = a.cas(v, x))))
+                    (a = as[(n - 1) & h]) == null ||
+                    ((v = a.value) < x && !(uncontended = a.cas(v, x))))
                 retryUpdate(x, hc, uncontended);
         }
     }
@@ -132,6 +138,7 @@ public class LongMaxUpdater extends Striped64 implements Serializable {
 
     /**
      * Returns the String representation of the {@link #max}.
+     *
      * @return the String representation of the {@link #max}
      */
     public String toString() {
@@ -152,7 +159,7 @@ public class LongMaxUpdater extends Striped64 implements Serializable {
      * primitive conversion.
      */
     public int intValue() {
-        return (int)max();
+        return (int) max();
     }
 
     /**
@@ -160,7 +167,7 @@ public class LongMaxUpdater extends Striped64 implements Serializable {
      * after a widening primitive conversion.
      */
     public float floatValue() {
-        return (float)max();
+        return (float) max();
     }
 
     /**
@@ -168,17 +175,17 @@ public class LongMaxUpdater extends Striped64 implements Serializable {
      * primitive conversion.
      */
     public double doubleValue() {
-        return (double)max();
+        return (double) max();
     }
 
     private void writeObject(java.io.ObjectOutputStream s)
-        throws IOException {
+            throws IOException {
         s.defaultWriteObject();
         s.writeLong(max());
     }
 
     private void readObject(ObjectInputStream s)
-        throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
         s.defaultReadObject();
         busy = 0;
         cells = null;

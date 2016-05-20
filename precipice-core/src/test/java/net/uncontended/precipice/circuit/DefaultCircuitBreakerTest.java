@@ -18,10 +18,8 @@
 package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.GuardRail;
-import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.counts.RollingCounts;
-import net.uncontended.precipice.metrics.tools.Rolling;
 import net.uncontended.precipice.metrics.counts.NoOpCounter;
+import net.uncontended.precipice.metrics.counts.RollingCounts;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;

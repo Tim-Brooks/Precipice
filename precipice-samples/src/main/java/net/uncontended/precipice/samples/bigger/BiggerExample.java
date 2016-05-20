@@ -17,10 +17,6 @@
 
 package net.uncontended.precipice.samples.bigger;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 public class BiggerExample {
 
 //    public static void main(String[] args) {
