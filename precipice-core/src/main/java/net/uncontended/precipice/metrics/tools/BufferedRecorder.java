@@ -23,28 +23,31 @@ import net.uncontended.precipice.time.SystemTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-public class BufferedRecorder<T extends Resettable> implements Positional<T> {
+public class BufferedRecorder<T> extends Recorder<T> {
 
-    private final MetricRecorder<T> metricRecorder;
     private final int bufferSize;
     private final AtomicReferenceArray<Interval<T>> buffer;
+    private final Recorder<T> recorder;
     private final Clock clock;
     private final int mask;
     private volatile long currentIndex;
     private Interval<T> inactive;
 
-    public BufferedRecorder(MetricRecorder<T> metricRecorder, Allocator<T> allocator, int bufferSize) {
-        this(metricRecorder, allocator, bufferSize, new SystemTime());
+    public BufferedRecorder(Recorder<T> recorder, int bufferSize) {
+        this(recorder, bufferSize, new SystemTime());
     }
 
-    public BufferedRecorder(MetricRecorder<T> metricRecorder, Allocator<T> allocator, int bufferSize, Clock clock) {
+    public BufferedRecorder(Recorder<T> recorder, int bufferSize, Clock clock) {
+        this.recorder = recorder;
         this.clock = clock;
-        this.metricRecorder = metricRecorder;
         this.bufferSize = bufferSize;
         bufferSize = nextPositivePowerOfTwo(bufferSize);
         this.mask = bufferSize - 1;
         this.buffer = new AtomicReferenceArray<>(bufferSize);
+        inactive = new Interval<>(null, -1, -1);
+    }
 
+    public void init(Allocator<T> allocator) {
         int length = buffer.length();
         long nanoTime = clock.nanoTime();
         for (int i = 0; i < length; ++i) {
@@ -52,27 +55,15 @@ public class BufferedRecorder<T extends Resettable> implements Positional<T> {
             long endTime = nanoTime - difference;
             buffer.set(i, new Interval<>(allocator.allocateNew(), endTime - 1, endTime));
         }
-        inactive = new Interval<>(allocator.allocateNew(), -1, -1);
 
         Interval<T> interval = buffer.get(0);
         interval.startNanos = nanoTime;
         interval.isInit = true;
-        metricRecorder.flip(interval.object);
+        recorder.flip(interval.object);
     }
 
-    @Override
-    public T current() {
-        return metricRecorder.current();
-    }
-
-    @Override
-    public T current(long nanoTime) {
-        return metricRecorder.current(nanoTime);
-    }
-
-    @Override
-    public T total() {
-        return metricRecorder.total();
+    public T get() {
+        return recorder.active();
     }
 
     public IntervalIterator<T> intervals() {
@@ -85,29 +76,44 @@ public class BufferedRecorder<T extends Resettable> implements Positional<T> {
         return bufferedIterator;
     }
 
-    public synchronized void advance() {
-        advance(clock.nanoTime());
+    private static int nextPositivePowerOfTwo(int bufferSize) {
+        return 1 << 32 - Integer.numberOfLeadingZeros(bufferSize - 1);
     }
 
-    public synchronized void advance(long nanoTime) {
+    @Override
+    public long startRecord() {
+        return recorder.startRecord();
+    }
+
+    @Override
+    public void endRecord(long permit) {
+        recorder.endRecord(permit);
+    }
+
+    @Override
+    public T flip(T newValue) {
+        return advance(newValue, clock.nanoTime());
+    }
+
+    public T advance(T newValue, long nanoTime) {
+
         long oldIndex = this.currentIndex;
         long newIndex = oldIndex + 1;
         int newRelativeIndex = (int) newIndex & mask;
         Interval<T> reuse = buffer.get(newRelativeIndex);
         inactive.startNanos = nanoTime;
         inactive.startNanos = nanoTime - 1;
+        inactive.object = newValue;
         buffer.set(newRelativeIndex, inactive);
         inactive.isInit = true;
-        metricRecorder.flip(inactive.object);
+        recorder.flip(inactive.object);
         Interval<T> closingInterval = buffer.get((int) oldIndex & mask);
         closingInterval.endNanos = nanoTime;
         this.currentIndex = newIndex;
+        T returned = reuse.object;
+        reuse.object = null;
         inactive = reuse;
-        reuse.object.reset();
-    }
-
-    private static int nextPositivePowerOfTwo(int bufferSize) {
-        return 1 << 32 - Integer.numberOfLeadingZeros(bufferSize - 1);
+        return returned;
     }
 
     private static class Interval<T> {
