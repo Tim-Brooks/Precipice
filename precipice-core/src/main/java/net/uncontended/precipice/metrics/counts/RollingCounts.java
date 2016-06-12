@@ -16,27 +16,17 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
     }
 
     @Override
+    public PartitionedCount<T> current() {
+        return null;
+    }
+
+    @Override
     public IntervalIterator<PartitionedCount<T>> intervals() {
         return null;
     }
 
     @Override
     public IntervalIterator<PartitionedCount<T>> intervals(long nanoTime) {
-        return null;
-    }
-
-    @Override
-    public PartitionedCount<T> current() {
-        return null;
-    }
-
-    @Override
-    public PartitionedCount<T> current(long nanoTime) {
-        return null;
-    }
-
-    @Override
-    public PartitionedCount<T> total() {
         return null;
     }
 }

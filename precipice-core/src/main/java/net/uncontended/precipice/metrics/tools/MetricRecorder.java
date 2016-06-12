@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics.tools;
 
-public class MetricRecorder<T> implements Positional<T> {
+public class MetricRecorder<T> {
 
     private final T total;
     private final Recorder<T> recorder;
@@ -37,17 +37,14 @@ public class MetricRecorder<T> implements Positional<T> {
         this.total = total;
     }
 
-    @Override
     public T current() {
         return this.recorder.active();
     }
 
-    @Override
     public T current(long nanoTime) {
         return this.recorder.active();
     }
-
-    @Override
+    
     public T total() {
         return total;
     }
