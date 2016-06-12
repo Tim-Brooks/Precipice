@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 public interface IntervalIterator<T> extends Iterator<T> {
+
     @Override
     boolean hasNext();
 
