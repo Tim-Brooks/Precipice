@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice.metrics.tools;
 
+import net.uncontended.precipice.metrics.IntervalIterator;
+
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;

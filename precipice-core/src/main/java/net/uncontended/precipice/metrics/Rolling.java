@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics.tools;
+package net.uncontended.precipice.metrics;
 
 public interface Rolling<T> {
 

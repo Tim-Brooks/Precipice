@@ -17,7 +17,7 @@
 package net.uncontended.precipice.reporting.registry;
 
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
-import net.uncontended.precipice.metrics.tools.Rolling;
+import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.result.SimpleResult;
 import org.junit.Before;
 

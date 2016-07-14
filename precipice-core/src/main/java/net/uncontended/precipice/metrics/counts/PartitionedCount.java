@@ -18,7 +18,7 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.Metrics;
-import net.uncontended.precipice.metrics.tools.Resettable;
+import net.uncontended.precipice.metrics.Resettable;
 
 public interface PartitionedCount<T extends Enum<T>> extends Metrics<T>, Resettable {
 

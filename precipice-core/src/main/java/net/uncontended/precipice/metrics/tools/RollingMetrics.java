@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice.metrics.tools;
 
+import net.uncontended.precipice.metrics.IntervalIterator;
+import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 

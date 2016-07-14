@@ -2,8 +2,8 @@ package net.uncontended.precipice.metrics.histogram;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.tools.Allocator;
-import net.uncontended.precipice.metrics.tools.IntervalIterator;
-import net.uncontended.precipice.metrics.tools.Rolling;
+import net.uncontended.precipice.metrics.IntervalIterator;
+import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 
 public class RollingHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Rolling<PartitionedHistogram<T>> {

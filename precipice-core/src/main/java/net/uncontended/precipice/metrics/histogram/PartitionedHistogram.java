@@ -18,7 +18,7 @@
 package net.uncontended.precipice.metrics.histogram;
 
 import net.uncontended.precipice.metrics.Metrics;
-import net.uncontended.precipice.metrics.tools.Resettable;
+import net.uncontended.precipice.metrics.Resettable;
 import org.HdrHistogram.Histogram;
 
 public interface PartitionedHistogram<T extends Enum<T>> extends Metrics<T>, Resettable {

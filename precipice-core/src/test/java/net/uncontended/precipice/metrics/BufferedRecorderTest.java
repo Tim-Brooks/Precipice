@@ -18,12 +18,8 @@
 package net.uncontended.precipice.metrics;
 
 import net.uncontended.precipice.metrics.tools.Allocator;
-import net.uncontended.precipice.metrics.tools.BufferedRecorder;
-import net.uncontended.precipice.metrics.tools.IntervalIterator;
-import net.uncontended.precipice.metrics.tools.Resettable;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
-import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
