@@ -22,7 +22,7 @@ import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
-import net.uncontended.precipice.metrics.counts.LongAdderCounter;
+import net.uncontended.precipice.metrics.counts.SingleCounter;
 import net.uncontended.precipice.metrics.histogram.NoOpLatency;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;
@@ -181,8 +181,8 @@ public class ThreadPoolServiceTest {
         GuardRailBuilder<TimeoutableResult, SimulationRejected> builder =
                 new GuardRailBuilder<TimeoutableResult, SimulationRejected>()
                         .name("Simulation")
-                        .resultMetrics(new LongAdderCounter<>(TimeoutableResult.class))
-                        .rejectedMetrics(new LongAdderCounter<>(SimulationRejected.class))
+                        .resultMetrics(new SingleCounter<TimeoutableResult>(TimeoutableResult.class))
+                        .rejectedMetrics(new SingleCounter<>(SimulationRejected.class))
                         .resultLatency(new NoOpLatency<>(TimeoutableResult.class));
 
         GuardRail<TimeoutableResult, SimulationRejected> guardRail = builder.build();

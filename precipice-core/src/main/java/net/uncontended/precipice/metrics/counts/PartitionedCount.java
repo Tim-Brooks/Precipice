@@ -20,7 +20,7 @@ package net.uncontended.precipice.metrics.counts;
 import net.uncontended.precipice.metrics.Metrics;
 import net.uncontended.precipice.metrics.tools.Resettable;
 
-public interface PartitionedCount<T extends Enum<T>> extends WritableCounts<T>, Metrics<T>, Resettable {
+public interface PartitionedCount<T extends Enum<T>> extends Metrics<T>, Resettable {
 
     long getCount(T metric);
 

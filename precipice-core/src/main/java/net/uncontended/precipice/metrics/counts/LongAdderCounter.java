@@ -59,9 +59,4 @@ public class LongAdderCounter<T extends Enum<T>> extends AbstractMetrics<T> impl
             adder.reset();
         }
     }
-
-    @Override
-    public void write(T metric, long delta, long nanoTime) {
-        metrics[metric.ordinal()].add(delta);
-    }
 }

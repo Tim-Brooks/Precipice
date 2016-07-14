@@ -19,27 +19,43 @@ package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
 
-public class NoOpCounter<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedCount<T> {
+public class SingleCounter<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, PartitionedCount<T> {
 
-    public NoOpCounter(Class<T> clazz) {
+    private final PartitionedCount<T> counter;
+
+    public SingleCounter(PartitionedCount<T> counter) {
+        super(counter.getMetricClazz());
+        this.counter = counter;
+    }
+
+    public SingleCounter(Class<T> clazz) {
         super(clazz);
+        counter = new LongAdderCounter<>(clazz);
     }
 
     @Override
-    public void add(T metric, long delta) {
+    public void write(T result, long number, long nanoTime) {
+        counter.add(result, number);
     }
 
     @Override
     public long getCount(T metric) {
-        return 0;
+        return counter.getCount(metric);
     }
 
     @Override
     public long total() {
-        return 0;
+        return counter.total();
+    }
+
+    @Override
+    public void add(T metric, long delta) {
+        counter.add(metric, delta);
+
     }
 
     @Override
     public void reset() {
+        counter.reset();
     }
 }
