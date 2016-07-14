@@ -21,6 +21,8 @@ public interface Rolling<T> {
 
     T current();
 
+    T current(long nanoTime);
+
     IntervalIterator<T> intervals();
 
     IntervalIterator<T> intervals(long nanoTime);

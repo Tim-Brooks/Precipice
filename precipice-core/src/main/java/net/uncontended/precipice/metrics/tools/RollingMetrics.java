@@ -20,26 +20,30 @@ package net.uncontended.precipice.metrics.tools;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
+import java.util.concurrent.TimeUnit;
+
 public class RollingMetrics<T> implements Rolling<T> {
 
     private final Allocator<T> allocator;
     private final Clock clock;
     private final CircularBuffer<T> buffer;
 
-    public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer) {
-        this(allocator, buffer, new SystemTime());
+    public RollingMetrics(Allocator<T> allocator) {
+        this(allocator, new SystemTime());
     }
 
-    public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer, Clock clock) {
-        this.buffer = buffer;
+    public RollingMetrics(Allocator<T> allocator, Clock clock) {
+        this.buffer = new CircularBuffer<>(60, 1, TimeUnit.SECONDS);
         this.clock = clock;
         this.allocator = allocator;
     }
 
+    @Override
     public T current() {
         return buffer.getSlot(clock.nanoTime());
     }
 
+    @Override
     public T current(long nanoTime) {
         T current = buffer.getSlot(nanoTime);
         if (current == null) {
@@ -48,10 +52,12 @@ public class RollingMetrics<T> implements Rolling<T> {
         return current;
     }
 
+    @Override
     public IntervalIterator<T> intervals() {
         return intervals(clock.nanoTime());
     }
 
+    @Override
     public IntervalIterator<T> intervals(long nanoTime) {
         return buffer.intervals(nanoTime, null);
     }

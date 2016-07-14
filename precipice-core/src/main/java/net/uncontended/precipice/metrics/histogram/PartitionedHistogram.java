@@ -18,13 +18,15 @@
 package net.uncontended.precipice.metrics.histogram;
 
 import net.uncontended.precipice.metrics.Metrics;
+import net.uncontended.precipice.metrics.tools.Resettable;
 import org.HdrHistogram.Histogram;
 
-public interface PartitionedHistogram<T extends Enum<T>> extends Metrics<T> {
+public interface PartitionedHistogram<T extends Enum<T>> extends Metrics<T>, Resettable {
+
+    void record(T result, long number, long nanoLatency);
 
     Histogram getHistogram(T metric);
 
+    @Override
     void reset();
-
-    void record(T result, long number, long nanoLatency);
 }
