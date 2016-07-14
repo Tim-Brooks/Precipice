@@ -46,7 +46,7 @@ public class CircularBufferTest {
     @Test
     public void thing() {
         startTime = 0;
-        buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
+        buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
         long resolution = TimeUnit.SECONDS.toNanos(1);
 
         for (int i = 3; i >= 0; --i) {
@@ -68,7 +68,7 @@ public class CircularBufferTest {
     @Test
     public void testThatValuesAlign() throws InterruptedException {
         startTime = System.nanoTime();
-        buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
+        buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
         final CountDownLatch latch = new CountDownLatch(5);
 
         ExecutorService es = Executors.newFixedThreadPool(5);
@@ -105,7 +105,7 @@ public class CircularBufferTest {
     @Test
     public void testIntervalTimes() throws InterruptedException {
         startTime = System.nanoTime() - TimeUnit.SECONDS.toNanos(10);
-        buffer = new CircularBuffer<>(4, 1, TimeUnit.SECONDS, startTime);
+        buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
 
         // TODO: Implement
     }

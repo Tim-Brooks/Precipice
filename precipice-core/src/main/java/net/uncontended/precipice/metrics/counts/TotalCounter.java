@@ -23,14 +23,14 @@ public class TotalCounter<T extends Enum<T>> extends AbstractMetrics<T> implemen
 
     private final PartitionedCount<T> counter;
 
-    public TotalCounter(PartitionedCount<T> counter) {
-        super(counter.getMetricClazz());
-        this.counter = counter;
-    }
-
     public TotalCounter(Class<T> clazz) {
         super(clazz);
         counter = new LongAdderCounter<>(clazz);
+    }
+
+    public TotalCounter(PartitionedCount<T> counter) {
+        super(counter.getMetricClazz());
+        this.counter = counter;
     }
 
     @Override

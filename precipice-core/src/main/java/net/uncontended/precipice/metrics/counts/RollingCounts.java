@@ -1,17 +1,24 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
-import net.uncontended.precipice.metrics.tools.Allocator;
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.Rolling;
+import net.uncontended.precipice.metrics.tools.Allocator;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 
 public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Rolling<PartitionedCount<T>> {
 
     private final RollingMetrics<PartitionedCount<T>> rolling;
 
+    // Need: Clazz or Allocator
+    // Optional: Clock, Bucket count and resolution
+
     public RollingCounts(Class<T> clazz) {
         this(clazz, Counters.longAdder(clazz));
+    }
+
+    public RollingCounts(Allocator<PartitionedCount<T>> allocator) {
+        this(allocator.allocateNew().getMetricClazz(), allocator);
     }
 
     public RollingCounts(Class<T> clazz, Allocator<PartitionedCount<T>> allocator) {
