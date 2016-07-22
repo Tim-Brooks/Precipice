@@ -15,22 +15,22 @@
  *
  */
 
-package net.uncontended.precipice.metrics.counts;
+package net.uncontended.precipice.metrics.histogram;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
-public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T> {
+public class HistogramRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T> {
 
-    private final Recorder<PartitionedCount<T>> recorder;
-    private PartitionedCount<T> inactive;
+    private final Recorder<PartitionedHistogram<T>> recorder;
+    private PartitionedHistogram<T> inactive;
 
-    public CountRecorder(PartitionedCount<T> active, PartitionedCount<T> inactive) {
-        this(active, inactive, new RelaxedRecorder<PartitionedCount<T>>());
+    public HistogramRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive) {
+        this(active, inactive, new RelaxedRecorder<PartitionedHistogram<T>>());
     }
 
-    public CountRecorder(PartitionedCount<T> active, PartitionedCount<T> inactive, Recorder<PartitionedCount<T>> recorder) {
+    public HistogramRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive, Recorder<PartitionedHistogram<T>> recorder) {
         super(active.getMetricClazz());
         this.recorder = recorder;
         this.recorder.flip(active);
@@ -38,23 +38,23 @@ public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> impleme
     }
 
     @Override
-    public void write(T result, long number, long nanoTime) {
+    public void write(T result, long number, long nanoLatency, long nanoTime) {
         long permit = recorder.startRecord();
         try {
-            recorder.active().add(result, number);
+            recorder.active().record(result, number, nanoLatency);
         } finally {
             recorder.endRecord(permit);
         }
     }
 
-    public synchronized PartitionedCount<T> captureInterval() {
-        PartitionedCount<T> newlyInactive = recorder.flip(inactive);
+    public synchronized PartitionedHistogram<T> captureInterval() {
+        PartitionedHistogram<T> newlyInactive = recorder.flip(inactive);
         inactive = newlyInactive;
         return newlyInactive;
     }
 
-    public synchronized PartitionedCount<T> captureInterval(PartitionedCount<T> newCounter) {
-        PartitionedCount<T> newlyInactive = recorder.flip(newCounter);
+    public synchronized PartitionedHistogram<T> captureInterval(PartitionedHistogram<T> newCounter) {
+        PartitionedHistogram<T> newlyInactive = recorder.flip(newCounter);
         inactive = newlyInactive;
         return newlyInactive;
     }
