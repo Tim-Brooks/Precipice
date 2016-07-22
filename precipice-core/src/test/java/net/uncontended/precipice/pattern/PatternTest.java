@@ -216,7 +216,7 @@ public class PatternTest {
         }
     }
 
-    private SingleReaderArrayIterable getIterable(Integer[] indices) {
+    private static SingleReaderArrayIterable getIterable(Integer[] indices) {
         SingleReaderArrayIterable iterable = new SingleReaderArrayIterable(indices.length);
         Integer[] indices1 = iterable.getIndices();
         System.arraycopy(indices, 0, indices1, 0, indices.length);

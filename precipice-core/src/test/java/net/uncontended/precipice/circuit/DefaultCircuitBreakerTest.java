@@ -189,7 +189,5 @@ public class DefaultCircuitBreakerTest {
 
         assertNull(circuitBreaker.acquirePermit(1L, 3L));
         assertFalse(circuitBreaker.isOpen());
-
     }
-
 }

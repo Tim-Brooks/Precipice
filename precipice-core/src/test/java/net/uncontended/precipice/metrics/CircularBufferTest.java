@@ -136,10 +136,9 @@ public class CircularBufferTest {
     }
 
 
-    private long addSeconds(long startTime, int seconds) {
+    private static long addSeconds(long startTime, int seconds) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         long bufferSeconds = random.nextLong(TimeUnit.MILLISECONDS.toNanos(500));
         return startTime + TimeUnit.SECONDS.toNanos(seconds) + bufferSeconds;
-
     }
 }
