@@ -17,23 +17,36 @@
 
 package net.uncontended.precipice.metrics;
 
+import net.uncontended.precipice.metrics.counts.RollingCounts;
+import net.uncontended.precipice.result.TimeoutableResult;
+import net.uncontended.precipice.time.Clock;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
 public class RollingCountMetricsTest {
 
-//    @Mock
-//    private Clock systemTime;
-//
-//    private RollingCountMetrics<TimeoutableResult> metrics;
-//
-//    @Before
-//    public void setUp() {
-//        MockitoAnnotations.initMocks(this);
-//    }
-//
-//    @Test
-//    public void testMetricsEdgeScenario() {
+    @Mock
+    private Clock systemTime;
+
+    private RollingCounts<TimeoutableResult> metrics;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
+
+    @Test
+    public void testMetricsEdgeScenario() {
 //        long nanoTime = 0L * 1000L * 1000L;
 //        when(systemTime.nanoTime()).thenReturn(nanoTime);
-//        metrics = new RollingCountMetrics<>(TimeoutableResult.class, 1, 1, TimeUnit.SECONDS, systemTime);
+//        metrics = new RollingCounts<>(TimeoutableResult.class, 1, 1, TimeUnit.SECONDS, systemTime);
 //
 //        nanoTime = 1L * 1000L * 1000L;
 //        metrics.add(TimeoutableResult.SUCCESS, 1L, nanoTime);
@@ -45,8 +58,8 @@ public class RollingCountMetricsTest {
 //
 //        nanoTime = 1000L * 1000L * 1000L;
 //        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.SUCCESS, 1, TimeUnit.SECONDS));
-//    }
-//
+    }
+
 //    @Test
 //    public void testMetricsTrackingTwoSeconds() {
 //        TimeUnit unit = TimeUnit.SECONDS;

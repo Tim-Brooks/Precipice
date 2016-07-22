@@ -4,7 +4,11 @@ import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.tools.Allocator;
+import net.uncontended.precipice.metrics.tools.CircularBuffer;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
+import net.uncontended.precipice.time.SystemTime;
+
+import java.util.concurrent.TimeUnit;
 
 public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Rolling<PartitionedCount<T>> {
 
@@ -23,12 +27,14 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
 
     public RollingCounts(Class<T> clazz, Allocator<PartitionedCount<T>> allocator) {
         super(clazz);
-        rolling = new RollingMetrics<PartitionedCount<T>>(allocator);
+        SystemTime clock = new SystemTime();
+        CircularBuffer<PartitionedCount<T>> buffer = new CircularBuffer<>(60, TimeUnit.SECONDS.toNanos(1), clock.nanoTime());
+        rolling = new RollingMetrics<PartitionedCount<T>>(allocator, buffer, clock);
     }
 
     @Override
     public void write(T metric, long number, long nanoTime) {
-        rolling.current(nanoTime).add(metric, number);
+        current(nanoTime).add(metric, number);
     }
 
     @Override
