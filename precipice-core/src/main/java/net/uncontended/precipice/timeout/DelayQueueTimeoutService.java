@@ -82,11 +82,11 @@ public class DelayQueueTimeoutService implements TimeoutService {
 
     private static class TimeoutHolder implements Delayed {
 
-        private final net.uncontended.precipice.timeout.Timeout task;
+        private final Timeout task;
         public final long nanosAbsoluteTimeout;
         public final long millisRelativeTimeout;
 
-        public TimeoutHolder(net.uncontended.precipice.timeout.Timeout task, long millisRelativeTimeout, long nanosAbsoluteStart) {
+        private TimeoutHolder(Timeout task, long millisRelativeTimeout, long nanosAbsoluteStart) {
             this.task = task;
             this.millisRelativeTimeout = millisRelativeTimeout;
             nanosAbsoluteTimeout = TimeUnit.NANOSECONDS.convert(millisRelativeTimeout, TimeUnit.MILLISECONDS) + nanosAbsoluteStart;
