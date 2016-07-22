@@ -19,10 +19,12 @@ package net.uncontended.precipice.metrics.tools;
 
 public class RelaxedRecorder<V> extends Recorder<V> {
 
+    @Override
     public long startRecord() {
         return 0L;
     }
 
+    @Override
     public void endRecord(long permit) {
     }
 

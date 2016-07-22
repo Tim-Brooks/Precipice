@@ -44,6 +44,6 @@ public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implement
     }
 
     @Override
-    public void write(T result, long number, long nanoLatency, long nanoTime) {
+    public void write(T metric, long number, long nanoLatency, long nanoTime) {
     }
 }

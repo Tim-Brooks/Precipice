@@ -23,7 +23,7 @@ import org.HdrHistogram.Histogram;
 
 public interface PartitionedHistogram<T extends Enum<T>> extends Metrics<T>, Resettable {
 
-    void record(T result, long number, long nanoLatency);
+    void record(T metric, long number, long nanoLatency);
 
     Histogram getHistogram(T metric);
 

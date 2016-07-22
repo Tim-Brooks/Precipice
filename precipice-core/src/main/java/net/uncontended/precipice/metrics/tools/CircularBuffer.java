@@ -31,6 +31,10 @@ public class CircularBuffer<T> {
     private final long nanosPerSlot;
     private final long startNanos;
 
+    public CircularBuffer(int slotsToTrack, long nanosPerSlot) {
+        this(slotsToTrack, nanosPerSlot, System.nanoTime());
+    }
+
     public CircularBuffer(int slotsToTrack, long nanosPerSlot, long startNanos) {
         validateSlotSize(nanosPerSlot);
 

@@ -35,9 +35,17 @@ public class RollingMetrics<T> implements Rolling<T> {
     }
 
     public RollingMetrics(Allocator<T> allocator, Clock clock) {
+        this(allocator, new CircularBuffer<T>(60, TimeUnit.SECONDS.toNanos(1), clock.nanoTime()), clock);
+    }
+
+    public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer) {
+        this(allocator, buffer, new SystemTime());
+    }
+
+    public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer, Clock clock) {
         this.clock = clock;
         this.allocator = allocator;
-        this.buffer = new CircularBuffer<>(60, TimeUnit.SECONDS.toNanos(1), clock.nanoTime());
+        this.buffer = buffer;
     }
 
     @Override
