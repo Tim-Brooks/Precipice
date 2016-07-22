@@ -48,6 +48,7 @@ public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> impleme
     }
 
     public synchronized PartitionedCount<T> captureInterval() {
+        inactive.reset();
         PartitionedCount<T> newlyInactive = recorder.flip(inactive);
         inactive = newlyInactive;
         return newlyInactive;

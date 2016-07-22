@@ -48,6 +48,7 @@ public class HistogramRecorder<T extends Enum<T>> extends AbstractMetrics<T> imp
     }
 
     public synchronized PartitionedHistogram<T> captureInterval() {
+        inactive.reset();
         PartitionedHistogram<T> newlyInactive = recorder.flip(inactive);
         inactive = newlyInactive;
         return newlyInactive;
