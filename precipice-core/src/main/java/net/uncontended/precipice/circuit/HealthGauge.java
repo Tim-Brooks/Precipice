@@ -39,8 +39,8 @@ public class HealthGauge {
 
         for (InternalGauge<?> gauge : gauges) {
             gauge.refreshHealth(timePeriod, timeUnit, nanoTime);
-            total = total + gauge.total;
-            failures = failures + gauge.failures;
+            total += gauge.total;
+            failures += gauge.failures;
         }
         return new HealthSnapshot(total, failures);
     }
@@ -49,7 +49,7 @@ public class HealthGauge {
         gauges.add(new InternalGauge<>(metrics));
     }
 
-    private class InternalGauge<Result extends Enum<Result> & Failable> {
+    private static class InternalGauge<Result extends Enum<Result> & Failable> {
 
         private final Rolling<PartitionedCount<Result>> metrics;
         private final Class<Result> type;

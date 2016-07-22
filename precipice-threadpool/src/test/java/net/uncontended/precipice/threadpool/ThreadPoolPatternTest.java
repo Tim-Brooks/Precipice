@@ -184,7 +184,7 @@ public class ThreadPoolPatternTest {
         verifyZeroInteractions(service3);
     }
 
-    private WritableSequence<ThreadPoolService<?>> prepIterable(ThreadPoolService... services) {
+    private static WritableSequence<ThreadPoolService<?>> prepIterable(ThreadPoolService... services) {
         WritableSequence<ThreadPoolService<?>> iterable = new WritableSequence<>(services.length);
 
         for (ThreadPoolService<?> service : services) {

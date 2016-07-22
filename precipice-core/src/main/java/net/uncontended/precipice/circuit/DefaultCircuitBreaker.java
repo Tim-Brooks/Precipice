@@ -19,9 +19,9 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
-import net.uncontended.precipice.metrics.Rolling;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +32,7 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;
 
+    private final Object gaugeLock = new Object();
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastHealthTime = new AtomicLong(0);
     private final HealthGauge healthGauge;
@@ -130,10 +131,11 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
         long lastHealthTime = this.lastHealthTime.get();
         if (lastHealthTime + config.healthRefreshMillis < currentTime) {
             if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS,
-                        currentTime);
-                health = newHealth;
-                return newHealth;
+                synchronized (gaugeLock) {
+                    HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS, currentTime);
+                    health = newHealth;
+                    return newHealth;
+                }
             }
         }
         return health;
