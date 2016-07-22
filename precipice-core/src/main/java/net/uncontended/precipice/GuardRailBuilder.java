@@ -18,6 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.metrics.counts.WritableCounts;
+import net.uncontended.precipice.metrics.histogram.NoOpLatency;
 import net.uncontended.precipice.metrics.histogram.WritableLatency;
 import net.uncontended.precipice.time.Clock;
 
@@ -66,10 +67,9 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         }
 
         if (properties.resultLatency == null) {
-//            PartitionedCount<Result> total = properties.resultMetrics.total();
-//            NoOpLatency<Result> totalLatency = new NoOpLatency<>(total.getMetricClazz());
-//            NoOpLatency<Result> currentLatency = new NoOpLatency<>(total.getMetricClazz());
-//            properties.resultLatency = new MetricRecorder<PartitionedHistogram<Result>>(totalLatency, currentLatency);
+            Class<Result> metricClazz = properties.resultMetrics.getMetricClazz();
+            NoOpLatency<Result> latency = new NoOpLatency<>(metricClazz);
+            properties.resultLatency = latency;
         }
 
         return GuardRail.create(properties);
