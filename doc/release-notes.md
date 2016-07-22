@@ -8,7 +8,7 @@
 ### ActionMetrics updates
 - Added tracking of latency for actions. The tracking is currently for the lifetime of the service. There is no
 rolling latency measure.
-- Added total metric counts to default action metrics.
+- Added total metric counts to default callable metrics.
 - The snapshot function returns both these new features.
 
 ## 0.5.0

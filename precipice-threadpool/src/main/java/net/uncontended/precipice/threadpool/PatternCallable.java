@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.pattern;
+package net.uncontended.precipice.threadpool;
 
 public interface PatternCallable<T, C> {
 

@@ -17,22 +17,20 @@
 
 package net.uncontended.precipice.threadpool;
 
-import net.uncontended.precipice.pattern.PatternCallable;
-
 import java.util.concurrent.Callable;
 
 class CallableWithContext<T, C> implements Callable<T> {
 
-    private final PatternCallable<T, C> action;
+    private final PatternCallable<T, C> callable;
     private final C context;
 
-    CallableWithContext(PatternCallable<T, C> action, C context) {
-        this.action = action;
+    CallableWithContext(PatternCallable<T, C> callable, C context) {
+        this.callable = callable;
         this.context = context;
     }
 
     @Override
     public T call() throws Exception {
-        return action.call(context);
+        return callable.call(context);
     }
 }

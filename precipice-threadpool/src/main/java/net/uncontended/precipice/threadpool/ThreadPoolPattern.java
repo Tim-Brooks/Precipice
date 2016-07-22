@@ -22,7 +22,6 @@ import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.factories.Asynchronous;
 import net.uncontended.precipice.pattern.Pattern;
-import net.uncontended.precipice.pattern.PatternCallable;
 import net.uncontended.precipice.pattern.PatternStrategy;
 import net.uncontended.precipice.pattern.Sequence;
 import net.uncontended.precipice.rejected.RejectedException;

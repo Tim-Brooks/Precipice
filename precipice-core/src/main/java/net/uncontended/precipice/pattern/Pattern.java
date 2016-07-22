@@ -37,7 +37,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     }
 
     public Pattern(Collection<C> precipices, PatternStrategy strategy, SequenceFactory<C> sequenceFactory) {
-        if (precipices.size() == 0) {
+        if (precipices.isEmpty()) {
             throw new IllegalArgumentException("Cannot create Pattern with 0 Precipices.");
         } else if (strategy.acquireCount() > precipices.size()) {
             throw new IllegalArgumentException("Attempt count cannot be greater than the number of precipices.");
@@ -82,8 +82,7 @@ public class Pattern<Result extends Enum<Result> & Failable, C extends Precipice
     }
 
     private WritableSequence<C> getPrecipiceSequence() {
-        WritableSequence<C> precipices = sequenceFactory.getSequence(strategy.acquireCount());
-        return precipices;
+        return sequenceFactory.getSequence(strategy.acquireCount());
 
     }
 
