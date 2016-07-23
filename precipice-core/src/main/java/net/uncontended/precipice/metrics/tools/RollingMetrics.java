@@ -56,4 +56,8 @@ public class RollingMetrics<T> implements Rolling<T> {
     public IntervalIterator<T> intervals(long nanoTime) {
         return buffer.intervals(nanoTime, null);
     }
+
+    public IntervalIterator<T> intervalsWithDefault(long nanoTime, T default0) {
+        return buffer.intervals(nanoTime, default0);
+    }
 }
