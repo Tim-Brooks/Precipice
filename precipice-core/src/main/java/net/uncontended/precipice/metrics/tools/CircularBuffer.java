@@ -47,7 +47,7 @@ public class CircularBuffer<T> {
         this.buffer = new AtomicReferenceArray<>(arraySlot);
 
         for (int i = 0; i < arraySlot; ++i) {
-            this.buffer.set(i, new Slot<T>(null, 0, 0));
+            this.buffer.set(i, new Slot<T>(null, startNanos, startNanos));
         }
     }
 

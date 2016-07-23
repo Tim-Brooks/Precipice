@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -44,19 +45,19 @@ public class RollingMetricsTest {
 
     @Test
     public void testMetricsEdgeScenario() {
-        long nanoTime = 0L;
-        CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(1, TimeUnit.SECONDS.toNanos(1), nanoTime);
+        long startTime = ThreadLocalRandom.current().nextLong();
+        CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(1, TimeUnit.SECONDS.toNanos(1), startTime);
         metrics = new RollingMetrics<AtomicLong>(new LongAllocator(), buffer, systemTime);
 
-        nanoTime = TimeUnit.MILLISECONDS.toNanos(1);
+        long nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(1);
         metrics.current(nanoTime).getAndIncrement();
-        nanoTime = TimeUnit.MILLISECONDS.toNanos(2);
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(2);
         metrics.current(nanoTime).getAndIncrement();
 
-        nanoTime = TimeUnit.MILLISECONDS.toNanos(999);
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(999);
         assertEquals(2, countForPeriod(metrics.intervals(nanoTime), 1, TimeUnit.SECONDS));
 
-        nanoTime = TimeUnit.SECONDS.toNanos(1);
+        nanoTime = startTime + TimeUnit.SECONDS.toNanos(1);
         assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 1, TimeUnit.SECONDS));
     }
 
