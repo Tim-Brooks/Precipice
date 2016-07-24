@@ -193,6 +193,7 @@ public class CircularBuffer<T> {
             return this;
         }
 
+        @Override
         public IntervalIterator<T> reset(long nanoTime) {
             this.nanoTime = nanoTime;
             this.remainderNanos = (nanoTime - startNanos) % nanosPerSlot;

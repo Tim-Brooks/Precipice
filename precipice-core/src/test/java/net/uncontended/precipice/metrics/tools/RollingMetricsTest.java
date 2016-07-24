@@ -84,56 +84,32 @@ public class RollingMetricsTest {
         assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 1, TimeUnit.SECONDS));
         assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 2, TimeUnit.SECONDS));
     }
-//
-//    @Test
-//    public void testMultipleWraps() {
-//        TimeUnit unit = TimeUnit.SECONDS;
-//        long startTime = 0L;
-//        long resolution = 1;
-//        long offsetTime = 50L;
-//        int slotsTracked = 10;
-//        long millisResolution = resolution * 1000;
-//
-//        long nanoTime = startTime * 1000L * 1000L;
-//        when(systemTime.nanoTime()).thenReturn(nanoTime);
-//        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsTracked, resolution, unit, systemTime);
-//
-//        nanoTime = (offsetTime + millisResolution * 8) * 1000L * 1000L;
-//        metrics.add(TimeoutableResult.ERROR, 1L, nanoTime);
-//
-//        nanoTime = (offsetTime + millisResolution * 20) * 1000L * 1000L;
-//        metrics.add(TimeoutableResult.SUCCESS, 1L, nanoTime);
-//
-//        nanoTime = (offsetTime + millisResolution * 21) * 1000L * 1000L;
-//        IntervalIterator<PartitionedCount<TimeoutableResult>> intervals = metrics.intervals(nanoTime);
-//        Accumulator.Counts<TimeoutableResult> counts = Accumulator.countsForPeriod(intervals, resolution, unit);
-//        assertEquals(0, counts.get(TimeoutableResult.ERROR));
-//        assertEquals(0, counts.get(TimeoutableResult.SUCCESS));
-//
-//        intervals = metrics.intervals(nanoTime);
-//        assertEquals(1, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, resolution * 2, unit));
-//        assertEquals(1, metrics.total().getCount(TimeoutableResult.ERROR));
-//    }
-//
-//    @Test
-//    public void testTotalCount() {
-//        TimeUnit unit = TimeUnit.SECONDS;
-//        long startTime = 0L;
-//        long resolution = 1;
-//        int slotsTracked = 10;
-//        when(systemTime.nanoTime()).thenReturn(startTime);
-//        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsTracked, resolution, unit, systemTime);
-//
-//        metrics.add(TimeoutableResult.SUCCESS, 1L, TimeUnit.SECONDS.toNanos(0));
-//        metrics.add(TimeoutableResult.SUCCESS, 1L, TimeUnit.SECONDS.toNanos(10));
-//        metrics.add(TimeoutableResult.SUCCESS, 1L, TimeUnit.SECONDS.toNanos(20));
-//        metrics.add(TimeoutableResult.SUCCESS, 1L, TimeUnit.SECONDS.toNanos(30));
-//
-//        long currentTime = TimeUnit.SECONDS.toNanos(30);
-//        IntervalIterator<PartitionedCount<TimeoutableResult>> intervals = metrics.intervals(currentTime);
-//        assertEquals(1, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, 10, TimeUnit.SECONDS));
-//        assertEquals(4, metrics.total().getCount(TimeoutableResult.SUCCESS));
-//    }
+
+    @Test
+    public void testMultipleWraps() {
+        long startTime = ThreadLocalRandom.current().nextLong();
+        long offsetTime = startTime + TimeUnit.MILLISECONDS.toNanos(ThreadLocalRandom.current().nextLong(900L));
+
+        CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(10, TimeUnit.SECONDS.toNanos(1), startTime);
+        metrics = new RollingMetrics<AtomicLong>(new LongAllocator(), buffer, systemTime);
+
+        long nanoTime;
+        for (int i = 0; i < 10; ++i) {
+            nanoTime = offsetTime + TimeUnit.SECONDS.toNanos(i);
+            metrics.current(nanoTime).getAndIncrement();
+        }
+
+        nanoTime = offsetTime + TimeUnit.SECONDS.toNanos(20);
+        metrics.current(nanoTime).getAndIncrement();
+
+        nanoTime = offsetTime + TimeUnit.SECONDS.toNanos(21);
+        IntervalIterator<AtomicLong> intervals = metrics.intervalsWithDefault(nanoTime, default0);
+        countForPeriod(intervals, 1, TimeUnit.SECONDS);
+        assertEquals(0, countForPeriod(intervals, 1, TimeUnit.SECONDS));
+
+        intervals.reset(nanoTime);
+        assertEquals(1, countForPeriod(intervals, 2, TimeUnit.SECONDS));
+    }
 //
 //    @Test
 //    public void testMillisecondResolution() {
