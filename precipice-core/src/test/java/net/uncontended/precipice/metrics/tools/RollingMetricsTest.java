@@ -61,41 +61,29 @@ public class RollingMetricsTest {
         assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 1, TimeUnit.SECONDS));
     }
 
-//    @Test
+    @Test
+    public void testMetricsTrackingTwoSeconds() {
+        long startTime = ThreadLocalRandom.current().nextLong();
+        CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(2, TimeUnit.SECONDS.toNanos(1), startTime);
+        metrics = new RollingMetrics<AtomicLong>(new LongAllocator(), buffer, systemTime);
 
-//        when(systemTime.nanoTime()).thenReturn(nanoTime);
-//
-//        long nanoTime = startTime * 1000L * 1000L;
-//
-//        int slotsToTrack = 2;
-//        long startTime = 0L;
-//        TimeUnit unit = TimeUnit.SECONDS;
-//    public void testMetricsTrackingTwoSeconds() {
-//        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsToTrack, 1, unit, systemTime);
-//
-//        nanoTime = 1L * 1000L * 1000L;
-//        metrics.add(TimeoutableResult.ERROR, 1L, nanoTime);
-//        nanoTime = 2L * 1000L * 1000L;
-//        metrics.add(TimeoutableResult.ERROR, 1L, nanoTime);
-//
-//        nanoTime = 999L * 1000L * 1000L;
-//        assertEquals(2, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 1, unit));
-//
-//        nanoTime = 999L * 1000L * 1000L;
-//        assertEquals(2, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 2, unit));
-//
-//        nanoTime = 1000L * 1000L * 1000L;
-//        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 1, unit));
-//
-//        nanoTime = 1000L * 1000L * 1000L;
-//        assertEquals(2, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 2, unit));
-//
-//        nanoTime = 2000L * 1000L * 1000L;
-//        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 1, unit));
-//
-//        nanoTime = 2000L * 1000L * 1000L;
-//        assertEquals(0, Accumulator.countForPeriod(metrics.intervals(nanoTime), TimeoutableResult.ERROR, 2, unit));
-//    }
+        long nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(1);
+        metrics.current(nanoTime).getAndIncrement();
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(2);
+        metrics.current(nanoTime).getAndIncrement();
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(999L);
+        assertEquals(2, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 1, TimeUnit.SECONDS));
+        assertEquals(2, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 2, TimeUnit.SECONDS));
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(1000L);
+        assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 1, TimeUnit.SECONDS));
+        assertEquals(2, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 2, TimeUnit.SECONDS));
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(2000L);
+        assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 1, TimeUnit.SECONDS));
+        assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 2, TimeUnit.SECONDS));
+    }
 //
 //    @Test
 //    public void testMultipleWraps() {
