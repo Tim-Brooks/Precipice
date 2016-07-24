@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.counts.RollingCounts;
 import net.uncontended.precipice.result.TimeoutableResult;

@@ -14,9 +14,8 @@
  * limitations under the License.
  *
  */
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
-import net.uncontended.precipice.metrics.tools.CircularBuffer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,6 +33,8 @@ public class CircularBufferTest {
     private CircularBuffer<AtomicLong> buffer;
     private long startTime;
 
+    // TODO: Merge with RollingMetricsTest
+
     @Before
     public void setUp() {
         for (int i = 0; i < 8; ++i) {
@@ -43,27 +44,27 @@ public class CircularBufferTest {
         }
     }
 
-    @Test
-    public void thing() {
-        startTime = 0;
-        buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
-        long resolution = TimeUnit.SECONDS.toNanos(1);
-
-        for (int i = 3; i >= 0; --i) {
-            long nanoTime = Long.MAX_VALUE - (resolution * i) + resolution;
-            buffer.putOrGet(nanoTime, new AtomicLong(i));
-        }
-
-        IntervalIterator<AtomicLong> intervals = buffer.intervals(Long.MAX_VALUE + resolution, null);
-        while (intervals.hasNext()) {
-            System.out.println("\n");
-            System.out.println(intervals.next());
-            System.out.println(intervals.intervalStart());
-            System.out.println(intervals.intervalEnd());
-            System.out.println(intervals.intervalEnd() - intervals.intervalStart());
-            System.out.println("\n");
-        }
-    }
+//    @Test
+//    public void thing() {
+//        startTime = 0;
+//        buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
+//        long resolution = TimeUnit.SECONDS.toNanos(1);
+//
+//        for (int i = 3; i >= 0; --i) {
+//            long nanoTime = Long.MAX_VALUE - (resolution * i) + resolution;
+//            buffer.putOrGet(nanoTime, new AtomicLong(i));
+//        }
+//
+//        IntervalIterator<AtomicLong> intervals = buffer.intervals(Long.MAX_VALUE + resolution, null);
+//        while (intervals.hasNext()) {
+//            System.out.println("\n");
+//            System.out.println(intervals.next());
+//            System.out.println(intervals.intervalStart());
+//            System.out.println(intervals.intervalEnd());
+//            System.out.println(intervals.intervalEnd() - intervals.intervalStart());
+//            System.out.println("\n");
+//        }
+//    }
 
     @Test
     public void testThatValuesAlign() throws InterruptedException {

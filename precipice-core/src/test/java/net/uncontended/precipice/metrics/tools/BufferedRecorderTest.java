@@ -15,15 +15,14 @@
  *
  */
 
-package net.uncontended.precipice.metrics;
+package net.uncontended.precipice.metrics.tools;
 
-import net.uncontended.precipice.metrics.tools.Allocator;
+import net.uncontended.precipice.metrics.Resettable;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 public class BufferedRecorderTest {

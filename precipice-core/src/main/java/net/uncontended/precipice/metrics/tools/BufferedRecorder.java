@@ -24,6 +24,9 @@ import net.uncontended.precipice.time.SystemTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
+/**
+ * Unstable and still in development. At this time, {@link RollingMetrics} should be used.
+ */
 public class BufferedRecorder<T> extends Recorder<T> {
 
     private final int bufferSize;
