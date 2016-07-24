@@ -97,7 +97,7 @@ public class CircularBuffer<T> {
     }
 
     private long currentAbsoluteSlot(long nanoTime) {
-        return ((nanoTime - startNanos) / nanosPerSlot);
+        return (nanoTime - startNanos) / nanosPerSlot;
     }
 
     private static void validateSlotSize(long nanosPerSlot) {
@@ -198,7 +198,7 @@ public class CircularBuffer<T> {
             this.nanoTime = nanoTime;
             this.remainderNanos = (nanoTime - startNanos) % nanosPerSlot;
 
-            currentInterval = nanoTime - ((totalSlots - 1) * nanosPerSlot);
+            currentInterval = nanoTime - (totalSlots - 1) * nanosPerSlot;
             return this;
         }
     }

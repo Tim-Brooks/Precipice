@@ -110,36 +110,32 @@ public class RollingMetricsTest {
         intervals.reset(nanoTime);
         assertEquals(1, countForPeriod(intervals, 2, TimeUnit.SECONDS));
     }
-//
-//    @Test
-//    public void testMillisecondResolution() {
-//        TimeUnit unit = TimeUnit.MILLISECONDS;
-//        long startTime = 500L;
-//        long resolution = 100;
-//        long offsetTime = 550L;
-//        int slotsTracked = 1000;
-//
-//        long nanoTime = startTime * 1000L * 1000L;
-//        when(systemTime.nanoTime()).thenReturn(nanoTime);
-//        metrics = new RollingCountMetrics<>(TimeoutableResult.class, slotsTracked, resolution, unit, systemTime);
-//
-//        nanoTime = offsetTime * 1000L * 1000L;
-//        metrics.add(TimeoutableResult.SUCCESS, 1L, nanoTime);
-//
-//        nanoTime = (offsetTime + resolution) * 1000L * 1000L;
-//        IntervalIterator<PartitionedCount<TimeoutableResult>> intervals = metrics.intervals(nanoTime);
-//        assertEquals(0, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, resolution, unit));
-//        intervals = metrics.intervals(nanoTime);
-//        assertEquals(1, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, resolution * 2, unit));
-//
-//        nanoTime = (offsetTime + resolution * (slotsTracked - 1)) * 1000L * 1000L;
-//        intervals = metrics.intervals(nanoTime);
-//        assertEquals(1, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, slotsTracked * resolution, unit));
-//
-//        nanoTime = (offsetTime + resolution * slotsTracked) * 1000L * 1000L;
-//        intervals = metrics.intervals(nanoTime);
-//        assertEquals(0, Accumulator.countForPeriod(intervals, TimeoutableResult.SUCCESS, slotsTracked * resolution, unit));
-//    }
+
+    @Test
+    public void testMillisecondResolution() {
+        long startTime = ThreadLocalRandom.current().nextLong();
+        long offsetTime = startTime + ThreadLocalRandom.current().nextLong(100);
+
+        CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(1000, TimeUnit.MILLISECONDS.toNanos(100), startTime);
+        metrics = new RollingMetrics<AtomicLong>(new LongAllocator(), buffer, systemTime);
+
+        long nanoTime = offsetTime;
+        metrics.current(nanoTime).getAndIncrement();
+
+        nanoTime = offsetTime + TimeUnit.MILLISECONDS.toNanos(100);
+        IntervalIterator<AtomicLong> intervals = metrics.intervalsWithDefault(nanoTime, default0);
+        assertEquals(0, countForPeriod(intervals, 100, TimeUnit.MILLISECONDS));
+        intervals.reset(nanoTime);
+        assertEquals(1, countForPeriod(intervals, 200, TimeUnit.MILLISECONDS));
+
+        nanoTime = offsetTime + TimeUnit.MILLISECONDS.toNanos(100 * 999);
+        intervals.reset(nanoTime);
+        assertEquals(1, countForPeriod(intervals, 1000 * 100, TimeUnit.MILLISECONDS));
+
+        nanoTime = offsetTime + TimeUnit.MILLISECONDS.toNanos(100 * 1000);
+        intervals.reset(nanoTime);
+        assertEquals(0, countForPeriod(intervals, 1000 * 100, TimeUnit.MILLISECONDS));
+    }
 //
 //    @Test
 //    public void concurrentTest() throws Exception {
@@ -203,7 +199,7 @@ public class RollingMetricsTest {
 //        latch.await();
 //    }
 
-    private static long countForPeriod(IntervalIterator<AtomicLong> intervals, int duration, TimeUnit seconds) {
+    private static long countForPeriod(IntervalIterator<AtomicLong> intervals, long duration, TimeUnit seconds) {
         long total = 0;
         intervals.limit(duration, seconds);
         AtomicLong count;
