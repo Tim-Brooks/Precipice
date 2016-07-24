@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -136,68 +137,59 @@ public class RollingMetricsTest {
         intervals.reset(nanoTime);
         assertEquals(0, countForPeriod(intervals, 1000 * 100, TimeUnit.MILLISECONDS));
     }
-//
-//    @Test
-//    public void concurrentTest() throws Exception {
-//        when(systemTime.nanoTime()).thenReturn(1500L * 1000L * 1000L);
-//        metrics = new RollingCountMetrics<>(TimeoutableResult.class, 5, 1, TimeUnit.SECONDS, systemTime);
-//
-//        long currentTime = 1980L * 1000L * 1000L;
-//        fireThreads(metrics, currentTime, 10);
-//
-//        currentTime = 2620L * 1000L * 1000L;
-//        fireThreads(metrics, currentTime, 10);
-//
-//        currentTime = 3500L * 1000L * 1000L;
-//        fireThreads(metrics, currentTime, 10);
-//
-//        currentTime = 4820L * 1000L * 1000L;
-//        fireThreads(metrics, currentTime, 10);
-//
-//        currentTime = 5600L * 1000L * 1000L;
-//        fireThreads(metrics, currentTime, 10);
-//
-//        long nanoTime = 6000L * 1000L * 1000L;
-//        IntervalIterator<PartitionedCount<TimeoutableResult>> intervals = metrics.intervals(nanoTime);
-//        Accumulator.Counts<TimeoutableResult> actual = Accumulator.countsForPeriod(intervals, 5, TimeUnit.SECONDS);
-//        assertEquals(5000, actual.get(TimeoutableResult.SUCCESS));
-//        assertEquals(5000, actual.get(TimeoutableResult.ERROR));
-//        assertEquals(5000, actual.get(TimeoutableResult.TIMEOUT));
-//
-//        intervals = metrics.intervals(nanoTime);
-//        actual = Accumulator.countsForPeriod(intervals, 1, TimeUnit.SECONDS);
-//        assertEquals(1000, actual.get(TimeoutableResult.SUCCESS));
-//        assertEquals(1000, actual.get(TimeoutableResult.ERROR));
-//        assertEquals(1000, actual.get(TimeoutableResult.TIMEOUT));
-//
-//        nanoTime = 6500L * 1000L * 1000L;
-//        intervals = metrics.intervals(nanoTime);
-//        actual = Accumulator.countsForPeriod(intervals, 5, TimeUnit.SECONDS);
-//        assertEquals(4000, actual.get(TimeoutableResult.SUCCESS));
-//        assertEquals(4000, actual.get(TimeoutableResult.ERROR));
-//        assertEquals(4000, actual.get(TimeoutableResult.TIMEOUT));
-//    }
-//
-//    private static void fireThreads(final RollingCountMetrics<TimeoutableResult> metrics, final long nanoTime, int num) throws
-//            InterruptedException {
-//        final CountDownLatch latch = new CountDownLatch(num);
-//
-//        for (int i = 0; i < num; ++i) {
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    for (int j = 0; j < 100; ++j) {
-//                        metrics.add(TimeoutableResult.SUCCESS, 1L, nanoTime);
-//                        metrics.add(TimeoutableResult.ERROR, 1L, nanoTime);
-//                        metrics.add(TimeoutableResult.TIMEOUT, 1L, nanoTime);
-//                    }
-//                    latch.countDown();
-//                }
-//            }).start();
-//        }
-//
-//        latch.await();
-//    }
+
+    @Test
+    public void concurrentTest() throws Exception {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        long startTime = random.nextLong();
+
+        CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(5, TimeUnit.SECONDS.toNanos(1), startTime);
+        metrics = new RollingMetrics<AtomicLong>(new LongAllocator(), buffer, systemTime);
+
+        long nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(random.nextLong(1000L));
+        fireThreads(nanoTime, 10);
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(random.nextLong(1000L) + 1000L);
+        fireThreads(nanoTime, 10);
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(random.nextLong(1000L) + 2000L);
+        fireThreads(nanoTime, 10);
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(random.nextLong(1000L) + 3000L);
+        fireThreads(nanoTime, 10);
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(random.nextLong(1000L) + 4000L);
+        fireThreads(nanoTime, 10);
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(random.nextLong(1000L) + 4000L);
+        IntervalIterator<AtomicLong> invervals = metrics.intervalsWithDefault(nanoTime, default0);
+        assertEquals(5000, countForPeriod(invervals, 5, TimeUnit.SECONDS));
+
+        invervals.reset(nanoTime);
+        assertEquals(1000, countForPeriod(invervals, 1, TimeUnit.SECONDS));
+
+        nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(random.nextLong(1000L) + 5000L);
+        invervals.reset(nanoTime);
+        assertEquals(4000, countForPeriod(invervals, 5, TimeUnit.SECONDS));
+    }
+
+    private void fireThreads(final long nanoTime, int num) throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(num);
+
+        for (int i = 0; i < num; ++i) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int j = 0; j < 100; ++j) {
+                        metrics.current(nanoTime).getAndIncrement();
+                    }
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+    }
 
     private static long countForPeriod(IntervalIterator<AtomicLong> intervals, long duration, TimeUnit seconds) {
         long total = 0;
