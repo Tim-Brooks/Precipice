@@ -26,6 +26,32 @@ public final class Latency {
     private Latency() {
     }
 
+    public static <T extends Enum<T>> Allocator<PartitionedLatency<T>> concurrentHDRHistogram(Class<T> clazz) {
+        return concurrentHDRHistogram(clazz, TimeUnit.HOURS.toNanos(1), 2);
+    }
+
+    private static <T extends Enum<T>> Allocator<PartitionedLatency<T>> concurrentHDRHistogram(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
+        return new ConcurrentHDRHistogramFactory<>(clazz, highestTrackableValue, numberOfSignificantValueDigits);
+    }
+
+    private static class ConcurrentHDRHistogramFactory<T extends Enum<T>> implements Allocator<PartitionedLatency<T>> {
+
+        private final Class<T> clazz;
+        private final long highestTrackableValue;
+        private final int numberOfSignificantValueDigits;
+
+        public ConcurrentHDRHistogramFactory(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
+            this.clazz = clazz;
+            this.highestTrackableValue = highestTrackableValue;
+            this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
+        }
+
+        @Override
+        public PartitionedLatency<T> allocateNew() {
+            return new ConcurrentHistogram<>(clazz, highestTrackableValue, numberOfSignificantValueDigits);
+        }
+    }
+
     public static <T extends Enum<T>> Allocator<PartitionedLatency<T>> atomicHDRHistogram(Class<T> clazz) {
         return atomicHDRHistogram(clazz, TimeUnit.HOURS.toNanos(1), 2);
     }

@@ -19,19 +19,14 @@ package net.uncontended.precipice.metrics.latency;
 
 import org.HdrHistogram.Histogram;
 
-import java.util.concurrent.TimeUnit;
+public class ConcurrentHistogram<T extends Enum<T>> extends BaseHDRHistogram<T> {
 
-public class AtomicHistogram<T extends Enum<T>> extends BaseHDRHistogram<T> {
-
-    public AtomicHistogram(Class<T> clazz) {
-        this(clazz, TimeUnit.HOURS.toNanos(1), 2);
-    }
-
-    public AtomicHistogram(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
+    public ConcurrentHistogram(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
         super(clazz, new Histogram[clazz.getEnumConstants().length]);
         T[] enumConstants = clazz.getEnumConstants();
         for (int i = 0; i < enumConstants.length; ++i) {
-            histograms[i] = new org.HdrHistogram.AtomicHistogram(highestTrackableValue, numberOfSignificantValueDigits);
+            histograms[i] = new org.HdrHistogram.ConcurrentHistogram(highestTrackableValue, numberOfSignificantValueDigits);
         }
     }
+
 }

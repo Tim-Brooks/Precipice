@@ -22,19 +22,29 @@ import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
 public class LatencyRecorderBuilder<T extends Enum<T>> extends RecorderBuilder<PartitionedLatency<T>, LatencyRecorder<T>> {
 
+    private final Class<T> clazz;
+
+    public LatencyRecorderBuilder(Class<T> clazz) {
+        this.clazz = clazz;
+    }
+
     @Override
     public LatencyRecorder<T> build() {
-        if (active == null) {
-            throw new IllegalArgumentException("Initial active object cannot be null");
+        if (allocator == null) {
+            allocator = Latency.concurrentHDRHistogram(clazz);
         }
 
+        if (active == null) {
+            active = allocator.allocateNew();
+        }
         if (inactive == null) {
-            throw new IllegalArgumentException("Initial inactive object cannot be null");
+            inactive = allocator.allocateNew();
         }
 
         if (recorder == null) {
             recorder = new RelaxedRecorder<>();
         }
+
         return new LatencyRecorder<T>(active, inactive, recorder);
     }
 }

@@ -23,6 +23,7 @@ public abstract class RecorderBuilder<T, S> {
 
     protected T active;
     protected T inactive;
+    protected Allocator<T> allocator;
 
     public RecorderBuilder<T, S> initialActive(T active) {
         this.active = active;
@@ -31,6 +32,11 @@ public abstract class RecorderBuilder<T, S> {
 
     public RecorderBuilder<T, S> initialInactive(T inactive) {
         this.inactive = inactive;
+        return this;
+    }
+
+    public RecorderBuilder<T, S> withAllocator(Allocator<T> allocator) {
+        this.allocator = allocator;
         return this;
     }
 
