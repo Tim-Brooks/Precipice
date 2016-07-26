@@ -5,6 +5,7 @@ import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.tools.Allocator;
 import net.uncontended.precipice.metrics.tools.CircularBuffer;
+import net.uncontended.precipice.metrics.tools.RollingCountsBuilder;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -56,5 +57,10 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
     @Override
     public IntervalIterator<PartitionedCount<T>> intervals(long nanoTime) {
         return rolling.intervalsWithDefault(nanoTime, noOpCounter);
+    }
+
+    public static <V extends Enum<V>> RollingCountsBuilder<V> builder(Class<V> clazz) {
+        return new RollingCountsBuilder<>(clazz);
+
     }
 }

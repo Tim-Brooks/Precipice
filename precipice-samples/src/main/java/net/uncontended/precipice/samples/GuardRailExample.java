@@ -33,7 +33,10 @@ import java.util.concurrent.TimeUnit;
 public final class GuardRailExample {
 
     public static void main(String[] args) {
-        RollingCounts<Result> resultMetrics = new RollingCounts<Result>(Result.class, 60, TimeUnit.SECONDS.toNanos(1));
+        RollingCounts<Result> resultMetrics = RollingCounts.builder(Result.class)
+                .bucketCount(60)
+                .bucketResolution(1, TimeUnit.SECONDS)
+                .build();
         TotalCounter<RejectedReason> rejectedMetrics = new TotalCounter<>(RejectedReason.class);
 
         GuardRailBuilder<Result, RejectedReason> builder = new GuardRailBuilder<>();
