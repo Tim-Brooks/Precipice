@@ -2,6 +2,8 @@ package net.uncontended.precipice.metrics.latency;
 
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
+import net.uncontended.precipice.rejected.Rejected;
+import net.uncontended.precipice.rejected.Unrejectable;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
@@ -19,9 +21,9 @@ public class RollingLatencyTest {
     @Mock
     private Clock systemTime;
     @Mock
-    private RollingMetrics<PartitionedHistogram<TimeoutableResult>> baseMetrics;
+    private RollingMetrics<PartitionedLatency<TimeoutableResult>> baseMetrics;
     @Mock
-    private PartitionedHistogram<TimeoutableResult> histogram;
+    private PartitionedLatency<TimeoutableResult> histogram;
 
 
     private RollingLatency<TimeoutableResult> latencies;
@@ -53,7 +55,7 @@ public class RollingLatencyTest {
         IntervalIterator iterator = mock(IntervalIterator.class);
         when(baseMetrics.intervalsWithDefault(eq(2000L), any(NoOpLatency.class))).thenReturn(iterator);
 
-        IntervalIterator<PartitionedHistogram<TimeoutableResult>> intervals = latencies.intervals(2000L);
+        IntervalIterator<PartitionedLatency<TimeoutableResult>> intervals = latencies.intervals(2000L);
 
         assertSame(iterator, intervals);
     }

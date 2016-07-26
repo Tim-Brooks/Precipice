@@ -22,7 +22,7 @@ import org.HdrHistogram.Histogram;
 
 import java.util.concurrent.TimeUnit;
 
-public class AtomicHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedHistogram<T> {
+public class AtomicHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedLatency<T> {
 
     private final Histogram[] histograms;
 
@@ -48,6 +48,16 @@ public class AtomicHistogram<T extends Enum<T>> extends AbstractMetrics<T> imple
     @Override
     public Histogram getHistogram(T metric) {
         return histograms[metric.ordinal()];
+    }
+
+    @Override
+    public long getValueAtPercentile(T metric, double percentile) {
+        return histograms[metric.ordinal()].getValueAtPercentile(percentile);
+    }
+
+    @Override
+    public boolean isHDR() {
+        return true;
     }
 
     @Override

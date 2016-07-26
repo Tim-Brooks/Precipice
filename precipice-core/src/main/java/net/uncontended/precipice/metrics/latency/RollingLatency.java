@@ -8,22 +8,22 @@ import net.uncontended.precipice.metrics.tools.CircularBuffer;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 import net.uncontended.precipice.time.SystemTime;
 
-public class RollingLatency<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Rolling<PartitionedHistogram<T>> {
+public class RollingLatency<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Rolling<PartitionedLatency<T>> {
 
-    private final RollingMetrics<PartitionedHistogram<T>> rolling;
+    private final RollingMetrics<PartitionedLatency<T>> rolling;
     private final NoOpLatency<T> noOpLatency;
 
     public RollingLatency(Class<T> clazz, int buckets, long nanosPerBucket) {
         this(Latency.atomicHDRHistogram(clazz), buckets, nanosPerBucket);
     }
 
-    public RollingLatency(Allocator<PartitionedHistogram<T>> allocator, int buckets, long nanosPerBucket) {
-        this(new RollingMetrics<PartitionedHistogram<T>>(allocator,
-                new CircularBuffer<PartitionedHistogram<T>>(buckets, nanosPerBucket, System.nanoTime()),
+    public RollingLatency(Allocator<PartitionedLatency<T>> allocator, int buckets, long nanosPerBucket) {
+        this(new RollingMetrics<PartitionedLatency<T>>(allocator,
+                new CircularBuffer<PartitionedLatency<T>>(buckets, nanosPerBucket, System.nanoTime()),
                 new SystemTime()));
     }
 
-    public RollingLatency(RollingMetrics<PartitionedHistogram<T>> rolling) {
+    public RollingLatency(RollingMetrics<PartitionedLatency<T>> rolling) {
         super(rolling.current().getMetricClazz());
         this.rolling = rolling;
         this.noOpLatency = new NoOpLatency<>(getMetricClazz());
@@ -35,22 +35,22 @@ public class RollingLatency<T extends Enum<T>> extends AbstractMetrics<T> implem
     }
 
     @Override
-    public PartitionedHistogram<T> current() {
+    public PartitionedLatency<T> current() {
         return rolling.current();
     }
 
     @Override
-    public PartitionedHistogram<T> current(long nanoTime) {
+    public PartitionedLatency<T> current(long nanoTime) {
         return rolling.current(nanoTime);
     }
 
     @Override
-    public IntervalIterator<PartitionedHistogram<T>> intervals() {
+    public IntervalIterator<PartitionedLatency<T>> intervals() {
         return rolling.intervalsWithDefault(noOpLatency);
     }
 
     @Override
-    public IntervalIterator<PartitionedHistogram<T>> intervals(long nanoTime) {
+    public IntervalIterator<PartitionedLatency<T>> intervals(long nanoTime) {
         return rolling.intervalsWithDefault(nanoTime, noOpLatency);
     }
 }

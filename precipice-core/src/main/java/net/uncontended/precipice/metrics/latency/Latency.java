@@ -24,11 +24,11 @@ public final class Latency {
     private Latency() {
     }
 
-    public static <T extends Enum<T>> Allocator<PartitionedHistogram<T>> atomicHDRHistogram(Class<T> clazz) {
+    public static <T extends Enum<T>> Allocator<PartitionedLatency<T>> atomicHDRHistogram(Class<T> clazz) {
         return new AtomicHDRHistogramFactory<>(clazz);
     }
 
-    private static class AtomicHDRHistogramFactory<T extends Enum<T>> implements Allocator<PartitionedHistogram<T>> {
+    private static class AtomicHDRHistogramFactory<T extends Enum<T>> implements Allocator<PartitionedLatency<T>> {
 
         private final Class<T> clazz;
 
@@ -37,7 +37,7 @@ public final class Latency {
         }
 
         @Override
-        public PartitionedHistogram<T> allocateNew() {
+        public PartitionedLatency<T> allocateNew() {
             return new AtomicHistogram<>(clazz);
         }
     }

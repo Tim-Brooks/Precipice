@@ -23,14 +23,14 @@ import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
 public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T> {
 
-    private final Recorder<PartitionedHistogram<T>> recorder;
-    private PartitionedHistogram<T> inactive;
+    private final Recorder<PartitionedLatency<T>> recorder;
+    private PartitionedLatency<T> inactive;
 
-    public LatencyRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive) {
-        this(active, inactive, new RelaxedRecorder<PartitionedHistogram<T>>());
+    public LatencyRecorder(PartitionedLatency<T> active, PartitionedLatency<T> inactive) {
+        this(active, inactive, new RelaxedRecorder<PartitionedLatency<T>>());
     }
 
-    public LatencyRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive, Recorder<PartitionedHistogram<T>> recorder) {
+    public LatencyRecorder(PartitionedLatency<T> active, PartitionedLatency<T> inactive, Recorder<PartitionedLatency<T>> recorder) {
         super(active.getMetricClazz());
         this.recorder = recorder;
         this.recorder.flip(active);
@@ -47,15 +47,15 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
         }
     }
 
-    public synchronized PartitionedHistogram<T> captureInterval() {
+    public synchronized PartitionedLatency<T> captureInterval() {
         inactive.reset();
-        PartitionedHistogram<T> newlyInactive = recorder.flip(inactive);
+        PartitionedLatency<T> newlyInactive = recorder.flip(inactive);
         inactive = newlyInactive;
         return newlyInactive;
     }
 
-    public synchronized PartitionedHistogram<T> captureInterval(PartitionedHistogram<T> newCounter) {
-        PartitionedHistogram<T> newlyInactive = recorder.flip(newCounter);
+    public synchronized PartitionedLatency<T> captureInterval(PartitionedLatency<T> newCounter) {
+        PartitionedLatency<T> newlyInactive = recorder.flip(newCounter);
         inactive = newlyInactive;
         return newlyInactive;
     }

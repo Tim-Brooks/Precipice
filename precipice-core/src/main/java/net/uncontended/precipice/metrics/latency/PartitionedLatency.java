@@ -21,11 +21,15 @@ import net.uncontended.precipice.metrics.Metrics;
 import net.uncontended.precipice.metrics.Resettable;
 import org.HdrHistogram.Histogram;
 
-public interface PartitionedHistogram<T extends Enum<T>> extends Metrics<T>, Resettable {
+public interface PartitionedLatency<T extends Enum<T>> extends Metrics<T>, Resettable {
 
     void record(T metric, long number, long nanoLatency);
 
     Histogram getHistogram(T metric);
+
+    long getValueAtPercentile(T metric, double percentile);
+
+    boolean isHDR();
 
     @Override
     void reset();

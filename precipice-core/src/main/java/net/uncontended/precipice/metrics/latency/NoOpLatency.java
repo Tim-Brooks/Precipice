@@ -20,7 +20,7 @@ package net.uncontended.precipice.metrics.latency;
 import net.uncontended.precipice.metrics.AbstractMetrics;
 import org.HdrHistogram.Histogram;
 
-public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedHistogram<T>,
+public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implements PartitionedLatency<T>,
         WritableLatency<T> {
 
     private final Histogram generic = new Histogram(1);
@@ -36,6 +36,16 @@ public class NoOpLatency<T extends Enum<T>> extends AbstractMetrics<T> implement
     @Override
     public Histogram getHistogram(T metric) {
         return generic;
+    }
+
+    @Override
+    public long getValueAtPercentile(T metric, double percentile) {
+        return 0;
+    }
+
+    @Override
+    public boolean isHDR() {
+        return true;
     }
 
     @Override
