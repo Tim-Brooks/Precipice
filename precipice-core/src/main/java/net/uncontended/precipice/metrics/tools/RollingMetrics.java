@@ -28,9 +28,9 @@ public class RollingMetrics<T> implements Rolling<T> {
     private final CircularBuffer<T> buffer;
 
     public RollingMetrics(Allocator<T> allocator, CircularBuffer<T> buffer, Clock clock) {
-        this.clock = clock;
         this.allocator = allocator;
         this.buffer = buffer;
+        this.clock = clock;
     }
 
     @Override

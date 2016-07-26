@@ -17,25 +17,49 @@
 
 package net.uncontended.precipice.metrics.counts;
 
-import net.uncontended.precipice.metrics.counts.RollingCounts;
+import net.uncontended.precipice.metrics.tools.RollingMetrics;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RollingCountMetricsTest {
 
     @Mock
     private Clock systemTime;
+    @Mock
+    private RollingMetrics<PartitionedCount<TimeoutableResult>> baseMetrics;
+    @Mock
+    private PartitionedCount<TimeoutableResult> counter;
 
-    private RollingCounts<TimeoutableResult> metrics;
+
+    private RollingCounts<TimeoutableResult> counts;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        when(baseMetrics.current()).thenReturn(counter);
+        when(counter.getMetricClazz()).thenReturn(TimeoutableResult.class);
+        counts = new RollingCounts<TimeoutableResult>(baseMetrics);
     }
 
-    // TODO: Implement Tests ensuring everything is delegated properly.
+    @Test
+    public void clazzComesFromCounter() {
+        assertSame(TimeoutableResult.class, counts.getMetricClazz());
+    }
 
+    @Test
+    public void writeUsesBaseMetrics() {
+        when(baseMetrics.current(100L)).thenReturn(counter);
+
+        counts.write(TimeoutableResult.ERROR, 3, 100L);
+
+        verify(counter).add(TimeoutableResult.ERROR, 3);
+    }
 }

@@ -8,28 +8,26 @@ import net.uncontended.precipice.metrics.tools.CircularBuffer;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 import net.uncontended.precipice.time.SystemTime;
 
-import java.util.concurrent.TimeUnit;
-
 public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Rolling<PartitionedCount<T>> {
 
     private final RollingMetrics<PartitionedCount<T>> rolling;
 
-    // Need: Clazz or Allocator
-    // Optional: Clock, Bucket count and resolution
+    // Need: Clazz, Bucket count and resolution
+    // Optional: Allocator, Clock
 
-    public RollingCounts(Class<T> clazz) {
-        this(clazz, Counters.longAdder(clazz));
+    public RollingCounts(Class<T> clazz, int buckets, long nanosPerBucket) {
+        this(Counters.longAdder(clazz), buckets, nanosPerBucket);
     }
 
-    public RollingCounts(Allocator<PartitionedCount<T>> allocator) {
-        this(allocator.allocateNew().getMetricClazz(), allocator);
+    public RollingCounts(Allocator<PartitionedCount<T>> allocator, int buckets, long nanosPerBucket) {
+        this(new RollingMetrics<PartitionedCount<T>>(allocator,
+                new CircularBuffer<PartitionedCount<T>>(buckets, nanosPerBucket, System.nanoTime()),
+                new SystemTime()));
     }
 
-    public RollingCounts(Class<T> clazz, Allocator<PartitionedCount<T>> allocator) {
-        super(clazz);
-        SystemTime clock = new SystemTime();
-        CircularBuffer<PartitionedCount<T>> buffer = new CircularBuffer<>(60, TimeUnit.SECONDS.toNanos(1), clock.nanoTime());
-        rolling = new RollingMetrics<PartitionedCount<T>>(allocator, buffer, clock);
+    public RollingCounts(RollingMetrics<PartitionedCount<T>> rolling) {
+        super(rolling.current().getMetricClazz());
+        this.rolling = rolling;
     }
 
     @Override
