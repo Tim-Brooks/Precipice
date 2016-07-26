@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+
 package net.uncontended.precipice.semaphore;
 
 import net.uncontended.precipice.rejected.Unrejectable;
