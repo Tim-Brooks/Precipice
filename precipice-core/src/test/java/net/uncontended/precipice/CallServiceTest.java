@@ -120,7 +120,7 @@ public class CallServiceTest {
         try {
             service.call(TestCallables.erred(exception));
         } catch (Exception e) {
-            assertEquals(e, exception);
+            assertEquals(exception, e);
         }
 
         verify(releaseFunction).apply(eq(TimeoutableResult.TIMEOUT), any(ExecutionContext.class));
