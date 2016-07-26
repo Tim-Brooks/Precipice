@@ -5,7 +5,6 @@ import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.tools.Allocator;
 import net.uncontended.precipice.metrics.tools.CircularBuffer;
-import net.uncontended.precipice.metrics.tools.RollingCountsBuilder;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 import net.uncontended.precipice.time.SystemTime;
 

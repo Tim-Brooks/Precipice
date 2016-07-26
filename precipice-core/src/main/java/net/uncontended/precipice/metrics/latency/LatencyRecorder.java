@@ -21,16 +21,16 @@ import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
-public class HistogramRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T> {
+public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T> {
 
     private final Recorder<PartitionedHistogram<T>> recorder;
     private PartitionedHistogram<T> inactive;
 
-    public HistogramRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive) {
+    public LatencyRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive) {
         this(active, inactive, new RelaxedRecorder<PartitionedHistogram<T>>());
     }
 
-    public HistogramRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive, Recorder<PartitionedHistogram<T>> recorder) {
+    public LatencyRecorder(PartitionedHistogram<T> active, PartitionedHistogram<T> inactive, Recorder<PartitionedHistogram<T>> recorder) {
         super(active.getMetricClazz());
         this.recorder = recorder;
         this.recorder.flip(active);

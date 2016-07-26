@@ -21,7 +21,7 @@ import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.metrics.counts.RollingCounts;
-import net.uncontended.precipice.metrics.counts.TotalCounter;
+import net.uncontended.precipice.metrics.counts.TotalCounts;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.semaphore.LongSemaphore;
 
@@ -37,7 +37,7 @@ public final class GuardRailExample {
                 .bucketCount(60)
                 .bucketResolution(1, TimeUnit.SECONDS)
                 .build();
-        TotalCounter<RejectedReason> rejectedMetrics = new TotalCounter<>(RejectedReason.class);
+        TotalCounts<RejectedReason> rejectedMetrics = new TotalCounts<>(RejectedReason.class);
 
         GuardRailBuilder<Result, RejectedReason> builder = new GuardRailBuilder<>();
         builder.name("Example")

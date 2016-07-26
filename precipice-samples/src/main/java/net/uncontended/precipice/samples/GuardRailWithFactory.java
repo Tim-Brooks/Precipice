@@ -22,7 +22,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.GuardRailBuilder;
 import net.uncontended.precipice.factories.Synchronous;
 import net.uncontended.precipice.metrics.counts.NoOpCounter;
-import net.uncontended.precipice.metrics.counts.TotalCounter;
+import net.uncontended.precipice.metrics.counts.TotalCounts;
 import net.uncontended.precipice.rejected.Unrejectable;
 import net.uncontended.precipice.result.SimpleResult;
 import net.uncontended.precipice.semaphore.UnlimitedSemaphore;
@@ -34,8 +34,8 @@ import java.net.URLConnection;
 public final class GuardRailWithFactory {
 
     public static void main(String[] args) {
-        TotalCounter<SimpleResult> resultMetrics = new TotalCounter<>(SimpleResult.class);
-        TotalCounter<Unrejectable> rejectedMetrics = new TotalCounter<>(new NoOpCounter<>(Unrejectable.class));
+        TotalCounts<SimpleResult> resultMetrics = new TotalCounts<>(SimpleResult.class);
+        TotalCounts<Unrejectable> rejectedMetrics = new TotalCounts<>(new NoOpCounter<>(Unrejectable.class));
 
         GuardRailBuilder<SimpleResult, Unrejectable> builder = new GuardRailBuilder<>();
         builder.name("Example")

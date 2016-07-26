@@ -19,16 +19,16 @@ package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
 
-public class TotalCounter<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, PartitionedCount<T> {
+public class TotalCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, PartitionedCount<T> {
 
     private final PartitionedCount<T> counter;
 
-    public TotalCounter(Class<T> clazz) {
+    public TotalCounts(Class<T> clazz) {
         super(clazz);
         counter = new LongAdderCounter<>(clazz);
     }
 
-    public TotalCounter(PartitionedCount<T> counter) {
+    public TotalCounts(PartitionedCount<T> counter) {
         super(counter.getMetricClazz());
         this.counter = counter;
     }
