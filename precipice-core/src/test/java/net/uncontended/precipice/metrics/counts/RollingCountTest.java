@@ -29,7 +29,7 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RollingCountMetricsTest {
+public class RollingCountTest {
 
     @Mock
     private Clock systemTime;

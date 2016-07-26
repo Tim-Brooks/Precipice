@@ -18,7 +18,7 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.metrics.counts.TotalCounter;
-import net.uncontended.precipice.metrics.histogram.NoOpLatency;
+import net.uncontended.precipice.metrics.latency.NoOpLatency;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.rejected.RejectedException;
 import net.uncontended.precipice.result.TimeoutableResult;

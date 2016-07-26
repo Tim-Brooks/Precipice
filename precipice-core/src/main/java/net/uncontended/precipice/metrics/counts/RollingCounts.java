@@ -10,6 +10,8 @@ import net.uncontended.precipice.time.SystemTime;
 
 public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Rolling<PartitionedCount<T>> {
 
+    private final NoOpCounter<T> noOpCounter;
+
     private final RollingMetrics<PartitionedCount<T>> rolling;
 
     // Need: Clazz, Bucket count and resolution
@@ -28,6 +30,7 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
     public RollingCounts(RollingMetrics<PartitionedCount<T>> rolling) {
         super(rolling.current().getMetricClazz());
         this.rolling = rolling;
+        this.noOpCounter = new NoOpCounter<>(getMetricClazz());
     }
 
     @Override
@@ -47,11 +50,11 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
 
     @Override
     public IntervalIterator<PartitionedCount<T>> intervals() {
-        return rolling.intervals();
+        return rolling.intervalsWithDefault(noOpCounter);
     }
 
     @Override
     public IntervalIterator<PartitionedCount<T>> intervals(long nanoTime) {
-        return rolling.intervals(nanoTime);
+        return rolling.intervalsWithDefault(nanoTime, noOpCounter);
     }
 }

@@ -1,4 +1,4 @@
-package net.uncontended.precipice.metrics.histogram;
+package net.uncontended.precipice.metrics.latency;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.IntervalIterator;
@@ -10,15 +10,15 @@ import net.uncontended.precipice.time.SystemTime;
 
 import java.util.concurrent.TimeUnit;
 
-public class RollingHistogram<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Rolling<PartitionedHistogram<T>> {
+public class RollingLatency<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Rolling<PartitionedHistogram<T>> {
 
     private final RollingMetrics<PartitionedHistogram<T>> rolling;
 
-    public RollingHistogram(Class<T> clazz) {
+    public RollingLatency(Class<T> clazz) {
         this(clazz, Latency.atomicHDRHistogram(clazz));
     }
 
-    public RollingHistogram(Class<T> clazz, Allocator<PartitionedHistogram<T>> allocator) {
+    public RollingLatency(Class<T> clazz, Allocator<PartitionedHistogram<T>> allocator) {
         super(clazz);
         SystemTime clock = new SystemTime();
         CircularBuffer<PartitionedHistogram<T>> buffer = new CircularBuffer<>(60, TimeUnit.SECONDS.toNanos(1), clock.nanoTime());

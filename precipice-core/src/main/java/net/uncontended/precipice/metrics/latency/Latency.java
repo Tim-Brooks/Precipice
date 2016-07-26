@@ -15,7 +15,7 @@
  *
  */
 
-package net.uncontended.precipice.metrics.histogram;
+package net.uncontended.precipice.metrics.latency;
 
 import net.uncontended.precipice.metrics.tools.Allocator;
 

@@ -1,4 +1,4 @@
-package net.uncontended.precipice.metrics.histogram;
+package net.uncontended.precipice.metrics.latency;
 
 public interface WritableLatency<T> {
 

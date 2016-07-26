@@ -19,7 +19,7 @@ package net.uncontended.precipice;
 
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
-import net.uncontended.precipice.metrics.histogram.WritableLatency;
+import net.uncontended.precipice.metrics.latency.WritableLatency;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
 import net.uncontended.precipice.time.Clock;
