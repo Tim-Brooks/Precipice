@@ -28,7 +28,7 @@ public class RoundRobinLoadBalancerTest {
 
     @Test
     public void wrappingWorks() {
-        long start = (Long.MAX_VALUE) - 4;
+        long start = Long.MAX_VALUE - 4;
         PatternStrategy strategy = new RoundRobinLoadBalancer(3, 3, new AtomicLong(start));
 
         long expectedStart = start % 3;
