@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics.counts;
 
+import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.time.Clock;
@@ -26,6 +27,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,5 +65,15 @@ public class RollingCountTest {
         counts.write(TimeoutableResult.ERROR, 3, 100L);
 
         verify(counter).add(TimeoutableResult.ERROR, 3);
+    }
+
+    @Test
+    public void intervalsCallUsesNoOpForDefault() {
+        IntervalIterator iterator = mock(IntervalIterator.class);
+        when(baseMetrics.intervalsWithDefault(eq(100L), any(NoOpCounter.class))).thenReturn(iterator);
+
+        IntervalIterator<PartitionedCount<TimeoutableResult>> intervals = counts.intervals(100L);
+
+        assertSame(iterator, intervals);
     }
 }
