@@ -54,8 +54,8 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
         return newlyInactive;
     }
 
-    public synchronized PartitionedLatency<T> captureInterval(PartitionedLatency<T> newCounter) {
-        PartitionedLatency<T> newlyInactive = recorder.flip(newCounter);
+    public synchronized PartitionedLatency<T> captureInterval(PartitionedLatency<T> newLatency) {
+        PartitionedLatency<T> newlyInactive = recorder.flip(newLatency);
         inactive = newlyInactive;
         return newlyInactive;
     }
