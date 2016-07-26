@@ -42,7 +42,9 @@ public class AtomicHistogram<T extends Enum<T>> extends AbstractMetrics<T> imple
     @Override
     public void record(T metric, long number, long nanoLatency) {
         Histogram histogram = histograms[metric.ordinal()];
-        histogram.recordValueWithCount(nanoLatency, number);
+        long highestTrackableValue = histogram.getHighestTrackableValue();
+        long potentiallyTruncated = highestTrackableValue > nanoLatency ? nanoLatency : highestTrackableValue;
+        histogram.recordValueWithCount(potentiallyTruncated, number);
     }
 
     @Override

@@ -19,26 +19,36 @@ package net.uncontended.precipice.metrics.latency;
 
 import net.uncontended.precipice.metrics.tools.Allocator;
 
+import java.util.concurrent.TimeUnit;
+
 public final class Latency {
 
     private Latency() {
     }
 
     public static <T extends Enum<T>> Allocator<PartitionedLatency<T>> atomicHDRHistogram(Class<T> clazz) {
-        return new AtomicHDRHistogramFactory<>(clazz);
+        return atomicHDRHistogram(clazz, TimeUnit.HOURS.toNanos(1), 2);
+    }
+
+    public static <T extends Enum<T>> Allocator<PartitionedLatency<T>> atomicHDRHistogram(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
+        return new AtomicHDRHistogramFactory<>(clazz, highestTrackableValue, numberOfSignificantValueDigits);
     }
 
     private static class AtomicHDRHistogramFactory<T extends Enum<T>> implements Allocator<PartitionedLatency<T>> {
 
         private final Class<T> clazz;
+        private final long highestTrackableValue;
+        private final int numberOfSignificantValueDigits;
 
-        public AtomicHDRHistogramFactory(Class<T> clazz) {
+        public AtomicHDRHistogramFactory(Class<T> clazz, long highestTrackableValue, int numberOfSignificantValueDigits) {
             this.clazz = clazz;
+            this.highestTrackableValue = highestTrackableValue;
+            this.numberOfSignificantValueDigits = numberOfSignificantValueDigits;
         }
 
         @Override
         public PartitionedLatency<T> allocateNew() {
-            return new AtomicHistogram<>(clazz);
+            return new AtomicHistogram<>(clazz, highestTrackableValue, numberOfSignificantValueDigits);
         }
     }
 }
