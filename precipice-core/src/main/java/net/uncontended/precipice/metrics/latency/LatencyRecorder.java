@@ -59,4 +59,8 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
         inactive = newlyInactive;
         return newlyInactive;
     }
+
+    public static <T extends Enum<T>> LatencyRecorderBuilder<T> builder(Class<T> clazz) {
+        return new LatencyRecorderBuilder<>();
+    }
 }
