@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics.tools;
 
 import net.uncontended.precipice.metrics.IntervalIterator;
+import net.uncontended.precipice.metrics.latency.Capturer;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -27,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 /**
  * Unstable and still in development. At this time, {@link RollingMetrics} should be used.
  */
-public class BufferedRecorder<T> extends Recorder<T> {
+public class BufferedRecorder<T> implements Capturer<T> {
 
     private final int bufferSize;
     private final AtomicReferenceArray<Interval<T>> buffer;
@@ -85,18 +86,15 @@ public class BufferedRecorder<T> extends Recorder<T> {
     }
 
     @Override
-    public long startRecord() {
-        return recorder.startRecord();
+    public T captureInterval() {
+//        return captureInterval(inactive.object);
+        return null;
     }
 
     @Override
-    public void endRecord(long permit) {
-        recorder.endRecord(permit);
-    }
-
-    @Override
-    public T flip(T newValue) {
-        return advance(newValue, clock.nanoTime());
+    public T captureInterval(T newValue) {
+//        return advance(newValue, clock.nanoTime());
+        return null;
     }
 
     public T advance(T newValue, long nanoTime) {

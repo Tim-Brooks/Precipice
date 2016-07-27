@@ -21,7 +21,7 @@ import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
-public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T> {
+public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Capturer<PartitionedLatency<T>> {
 
     private final Recorder<PartitionedLatency<T>> recorder;
     private PartitionedLatency<T> inactive;
@@ -47,6 +47,7 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
         }
     }
 
+    @Override
     public synchronized PartitionedLatency<T> captureInterval() {
         inactive.reset();
         PartitionedLatency<T> newlyInactive = recorder.flip(inactive);
@@ -54,6 +55,7 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
         return newlyInactive;
     }
 
+    @Override
     public synchronized PartitionedLatency<T> captureInterval(PartitionedLatency<T> newLatency) {
         PartitionedLatency<T> newlyInactive = recorder.flip(newLatency);
         inactive = newlyInactive;
