@@ -18,10 +18,11 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
+import net.uncontended.precipice.metrics.latency.Capturer;
 import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
-public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T> {
+public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Capturer<PartitionedCount<T>> {
 
     private final Recorder<PartitionedCount<T>> recorder;
     private PartitionedCount<T> inactive;
@@ -47,6 +48,7 @@ public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> impleme
         }
     }
 
+    @Override
     public synchronized PartitionedCount<T> captureInterval() {
         inactive.reset();
         PartitionedCount<T> newlyInactive = recorder.flip(inactive);
@@ -54,9 +56,14 @@ public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> impleme
         return newlyInactive;
     }
 
+    @Override
     public synchronized PartitionedCount<T> captureInterval(PartitionedCount<T> newCounter) {
         PartitionedCount<T> newlyInactive = recorder.flip(newCounter);
         inactive = newlyInactive;
         return newlyInactive;
+    }
+
+    public static <T extends Enum<T>> CountRecorderBuilder<T> builder(Class<T> clazz) {
+        return new CountRecorderBuilder<>(clazz);
     }
 }
