@@ -35,7 +35,7 @@ public class RollingMetrics<T> implements Rolling<T> {
 
     @Override
     public T current() {
-        return buffer.getSlot(clock.nanoTime());
+        return current(clock.nanoTime());
     }
 
     @Override
