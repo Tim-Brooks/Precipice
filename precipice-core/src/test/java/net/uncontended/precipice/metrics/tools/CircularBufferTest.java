@@ -95,7 +95,8 @@ public class CircularBufferTest {
         latch.await();
 
         long remainder = TimeUnit.MILLISECONDS.toNanos(ThreadLocalRandom.current().nextLong(1000));
-        IntervalIterator<AtomicLong> intervals = buffer.intervals(startTime + remainder, new AtomicLong(0));
+        long nanoTime = startTime + TimeUnit.SECONDS.toNanos(5) + remainder;
+        IntervalIterator<AtomicLong> intervals = buffer.intervals(nanoTime, new AtomicLong(0));
 
         int i = 3;
         while (intervals.hasNext()) {
@@ -105,7 +106,34 @@ public class CircularBufferTest {
             intervals.next();
             --i;
         }
+    }
 
+    @Test
+    public void testLimitInterval() throws InterruptedException {
+        startTime = 0;
+        buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
+
+//        final CountDownLatch latch = new CountDownLatch(5);
+//
+//        ExecutorService es = Executors.newFixedThreadPool(5);
+//
+//        for (int i = 0; i < 5; ++i) {
+//            es.submit(getRunnable(latch));
+//        }
+//        latch.await();
+
+        long remainder = TimeUnit.MILLISECONDS.toNanos(100);
+        long nanoTime = TimeUnit.SECONDS.toNanos(4) + remainder;
+        IntervalIterator<AtomicLong> intervals = buffer.intervals(nanoTime, new AtomicLong(0));
+
+        intervals.limit(2200, TimeUnit.MILLISECONDS);
+
+
+        while (intervals.hasNext()) {
+            System.out.println(nanoTime + intervals.intervalStart());
+            System.out.println(nanoTime + intervals.intervalEnd());
+            intervals.next();
+        }
     }
 
     private Runnable getRunnable(final CountDownLatch latch) {
