@@ -16,6 +16,7 @@
  */
 package net.uncontended.precipice.metrics.tools;
 
+import net.uncontended.precipice.metrics.IntervalIterator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,9 +28,8 @@ import static org.junit.Assert.assertNotNull;
 
 public class CircularBufferTest {
 
-    private AtomicLong[] atomicLongs = new AtomicLong[8];
-    private AtomicLong[] expectedValues = new AtomicLong[8];
-    private AtomicLong[] missed = new AtomicLong[8];
+    private final AtomicLong[] atomicLongs = new AtomicLong[8];
+    private final AtomicLong[] expectedValues = new AtomicLong[8];
     private CircularBuffer<AtomicLong> buffer;
     private long startTime;
 
@@ -40,31 +40,8 @@ public class CircularBufferTest {
         for (int i = 0; i < 8; ++i) {
             atomicLongs[i] = new AtomicLong();
             expectedValues[i] = new AtomicLong();
-            missed[i] = new AtomicLong();
         }
     }
-
-//    @Test
-//    public void thing() {
-//        startTime = 0;
-//        buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
-//        long resolution = TimeUnit.SECONDS.toNanos(1);
-//
-//        for (int i = 3; i >= 0; --i) {
-//            long nanoTime = Long.MAX_VALUE - (resolution * i) + resolution;
-//            buffer.putOrGet(nanoTime, new AtomicLong(i));
-//        }
-//
-//        IntervalIterator<AtomicLong> intervals = buffer.intervals(Long.MAX_VALUE + resolution, null);
-//        while (intervals.hasNext()) {
-//            System.out.println("\n");
-//            System.out.println(intervals.next());
-//            System.out.println(intervals.intervalStart());
-//            System.out.println(intervals.intervalEnd());
-//            System.out.println(intervals.intervalEnd() - intervals.intervalStart());
-//            System.out.println("\n");
-//        }
-//    }
 
     @Test
     public void testThatValuesAlign() throws InterruptedException {
@@ -99,16 +76,36 @@ public class CircularBufferTest {
 
 
         for (int i = 0; i < 8; ++i) {
-            assertEquals(expectedValues[i].longValue(), atomicLongs[i].longValue() + missed[i].longValue());
+            assertEquals(expectedValues[i].longValue(), atomicLongs[i].longValue());
         }
     }
 
     @Test
     public void testIntervalTimes() throws InterruptedException {
-        startTime = System.nanoTime() - TimeUnit.SECONDS.toNanos(10);
+        startTime = ThreadLocalRandom.current().nextLong();
         buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
 
-        // TODO: Implement
+        final CountDownLatch latch = new CountDownLatch(5);
+
+        ExecutorService es = Executors.newFixedThreadPool(5);
+
+        for (int i = 0; i < 5; ++i) {
+            es.submit(getRunnable(latch));
+        }
+        latch.await();
+
+        long remainder = TimeUnit.MILLISECONDS.toNanos(ThreadLocalRandom.current().nextLong(1000));
+        IntervalIterator<AtomicLong> intervals = buffer.intervals(startTime + remainder, new AtomicLong(0));
+
+        int i = 3;
+        while (intervals.hasNext()) {
+            assertEquals(- (i * TimeUnit.SECONDS.toNanos(1) + remainder), intervals.intervalStart());
+            long intervalEnd = -((i - 1) * TimeUnit.SECONDS.toNanos(1) + remainder);
+            assertEquals(intervalEnd < 0 ? intervalEnd : 0, intervals.intervalEnd());
+            intervals.next();
+            --i;
+        }
+
     }
 
     private Runnable getRunnable(final CountDownLatch latch) {
@@ -126,8 +123,6 @@ public class CircularBufferTest {
                         }
                         if (atomicLong != null) {
                             atomicLong.addAndGet(1);
-                        } else {
-                            missed[j].addAndGet(1);
                         }
                     }
                 }
@@ -136,10 +131,9 @@ public class CircularBufferTest {
         };
     }
 
-
     private static long addSeconds(long startTime, int seconds) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        long bufferSeconds = random.nextLong(TimeUnit.MILLISECONDS.toNanos(500));
+        long bufferSeconds = random.nextLong(TimeUnit.MILLISECONDS.toNanos(999));
         return startTime + TimeUnit.SECONDS.toNanos(seconds) + bufferSeconds;
     }
 }

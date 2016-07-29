@@ -105,10 +105,10 @@ public class CircularBuffer<T> {
             String message = "Nanos per slot must be positive. Found: [%s duration]";
             throw new IllegalArgumentException(String.format(message, Integer.MAX_VALUE));
         }
-        if (TimeUnit.MILLISECONDS.toNanos(100) > nanosPerSlot) {
-            throw new IllegalArgumentException(String.format("Too low of resolution: [%s nanoseconds]. 100 " +
-                    "milliseconds is the minimum resolution.", nanosPerSlot));
-        }
+//        if (TimeUnit.MILLISECONDS.toNanos(100) > nanosPerSlot) {
+//            throw new IllegalArgumentException(String.format("Too low of resolution: [%s nanoseconds]. 100 " +
+//                    "milliseconds is the minimum resolution.", nanosPerSlot));
+//        }
     }
 
     private static int nextPositivePowerOfTwo(int slotsToTrack) {
@@ -175,17 +175,36 @@ public class CircularBuffer<T> {
 
         @Override
         public long intervalStart() {
-            return -(nanoTime - currentInterval + nanosPerSlot + remainderNanos);
-        }
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
 
-        @Override
-        public long intervalEnd() {
             return -(nanoTime - currentInterval + remainderNanos);
         }
 
         @Override
+        public long intervalEnd() {
+            long diff = nanoTime - currentInterval;
+            if (diff < 0) {
+                throw new NoSuchElementException();
+            } else if (diff == 0) {
+                return 0;
+            }
+
+            return -(nanoTime - currentInterval - nanosPerSlot + remainderNanos);
+        }
+
+        public long lastIntervalStart() {
+            return -(nanoTime - currentInterval + remainderNanos);
+        }
+
+        public long lastIntervalEnd() {
+            return -(nanoTime - currentInterval - nanosPerSlot + remainderNanos);
+        }
+
+        @Override
         public IntervalIterator<T> limit(long duration, TimeUnit unit) {
-            // TODO: Look into exploring resolution
+            // TODO: Look into exploring resolution - Need to truncate current interval
             long limitedInterval = nanoTime - unit.toNanos(duration) + nanosPerSlot;
             if (currentInterval - limitedInterval < 0) {
                 this.currentInterval = limitedInterval;
