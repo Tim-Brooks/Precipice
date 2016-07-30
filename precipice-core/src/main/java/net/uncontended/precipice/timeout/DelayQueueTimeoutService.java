@@ -89,7 +89,11 @@ public class DelayQueueTimeoutService implements TimeoutService {
                         Thread.interrupted();
                         break;
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        if (exceptionHandler != null) {
+                            exceptionHandler.uncaughtException(Thread.currentThread(), e);
+                        } else {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
