@@ -30,11 +30,20 @@ public class DelayQueueTimeoutService implements TimeoutService {
     private final DelayQueue<TimeoutHolder> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
+    private final Thread.UncaughtExceptionHandler exceptionHandler;
+    private volatile boolean isRunning = true;
 
     public DelayQueueTimeoutService(String name) {
+        this(name, null);
+    }
+
+    public DelayQueueTimeoutService(String name, Thread.UncaughtExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+
         timeoutThread = createThread();
         timeoutThread.setName(name + "-timeout-thread");
         // TODO: Determine correct strategy for shutting down timeout service.
+        // TODO: Probably do not need both volatiles
         timeoutThread.setDaemon(true);
     }
 
@@ -52,9 +61,15 @@ public class DelayQueueTimeoutService implements TimeoutService {
         timeoutQueue.offer(new TimeoutHolder(timeout, timeoutMillis, nanoTime));
     }
 
+    public void stop() {
+        isRunning = false;
+        timeoutThread.interrupt();
+    }
+
     public static long adjustTimeout(long millisTimeout) {
         return millisTimeout > MAX_TIMEOUT_MILLIS ? MAX_TIMEOUT_MILLIS : millisTimeout;
     }
+
 
     private void startThread() {
         if (isStarted.compareAndSet(false, true)) {
@@ -66,14 +81,15 @@ public class DelayQueueTimeoutService implements TimeoutService {
         return new Thread(new Runnable() {
             @Override
             public void run() {
-                for (; ; ) {
+                while (isRunning) {
                     try {
                         TimeoutHolder task = timeoutQueue.take();
                         task.setTimedOut();
                     } catch (InterruptedException e) {
+                        Thread.interrupted();
                         break;
                     } catch (Exception e) {
-                        // TODO: Handle
+                        e.printStackTrace();
                     }
                 }
             }
