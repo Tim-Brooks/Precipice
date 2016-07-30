@@ -21,6 +21,9 @@ import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.metrics.latency.WritableLatency;
 import net.uncontended.precipice.time.Clock;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
@@ -33,16 +36,23 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
     private final boolean singleIncrement;
     private final List<BackPressure<Rejected>> backPressureList;
+    private final List<WritableCounts<Result>> resultMetrics2;
+    private final List<WritableCounts<Rejected>> rejectedMetrics2;
+    private final List<WritableLatency<Result>> latencyList;
 
     private GuardRail(GuardRailProperties<Result, Rejected> properties) {
-        this.resultMetrics = properties.resultMetrics;
-        this.rejectedMetrics = properties.rejectedMetrics;
-        this.latencyMetrics = properties.resultLatency;
-        this.name = properties.name;
-        this.clock = properties.clock;
-        this.backPressureList = properties.backPressureList;
-        this.singleIncrement = properties.singleIncrementMetrics;
-        this.releaseFunction = new FinishingCallback();
+        resultMetrics = properties.resultMetrics;
+        rejectedMetrics = properties.rejectedMetrics;
+        latencyMetrics = properties.resultLatency;
+        name = properties.name;
+        clock = properties.clock;
+        backPressureList = properties.backPressureList;
+        singleIncrement = properties.singleIncrementMetrics;
+        releaseFunction = new FinishingCallback();
+
+        resultMetrics2 = new ArrayList<>(Collections.singletonList(resultMetrics));
+        rejectedMetrics2 = new ArrayList<>(Collections.singletonList(rejectedMetrics));
+        latencyList = new ArrayList<>(Collections.singletonList(latencyMetrics));
     }
 
     /**
