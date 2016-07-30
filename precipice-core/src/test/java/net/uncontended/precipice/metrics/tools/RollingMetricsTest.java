@@ -117,7 +117,7 @@ public class RollingMetricsTest {
 
     @Test
     public void testMillisecondResolution() {
-        long startTime = 10000000000000L; // ThreadLocalRandom.current().nextLong();
+        long startTime = ThreadLocalRandom.current().nextLong();
         long offsetTime = startTime + ThreadLocalRandom.current().nextLong(100);
 
         CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(1000, TimeUnit.MILLISECONDS.toNanos(100), startTime);
@@ -139,22 +139,6 @@ public class RollingMetricsTest {
         nanoTime = offsetTime + TimeUnit.MILLISECONDS.toNanos(100 * 1000);
         intervals.reset(nanoTime);
         assertEquals(0, countForPeriod(intervals, 1000 * 100, TimeUnit.MILLISECONDS));
-    }
-
-    @Test
-    public void testMilliseconddResolution() {
-        long startTime = 100L; // ThreadLocalRandom.current().nextLong();
-        long offsetTime = startTime + ThreadLocalRandom.current().nextLong(5) + 1;
-
-        CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(10, 10, startTime);
-        metrics = new RollingMetrics<AtomicLong>(new LongAllocator(), buffer, systemTime);
-
-        long nanoTime = offsetTime;
-        metrics.current(nanoTime).getAndIncrement();
-
-        nanoTime = offsetTime + TimeUnit.NANOSECONDS.toNanos(10);
-        IntervalIterator<AtomicLong> intervals = metrics.intervalsWithDefault(nanoTime, default0);
-        assertEquals(0, countForPeriod(intervals, 9, TimeUnit.NANOSECONDS));
     }
 
     @Test
