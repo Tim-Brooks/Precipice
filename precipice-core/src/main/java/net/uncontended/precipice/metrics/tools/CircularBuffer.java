@@ -204,29 +204,11 @@ public class CircularBuffer<T> {
 
         @Override
         public IntervalIterator<T> limit(long duration, TimeUnit unit) {
-//            long bucketsBack = unit.toNanos(duration) / nanosPerSlot;
-//            long nanosBack = bucketsBack * nanosPerSlot;
-//            long limitedInterval = nanoTime - nanosBack;
-//
-//            if (currentInterval - limitedInterval < 0) {
-//                currentInterval = nanoTime - bucketsBack * nanosPerSlot;
-//            }
-//            return this;
             long nanosLimit = unit.toNanos(duration);
-//            System.out.println("Nanotime: " + nanoTime);
-//            System.out.println("Limit " + nanosLimit);
             long limitedInterval = nanoTime - nanosLimit + nanosPerSlot;
-//            System.out.println("old: " + currentInterval);
-//            System.out.println("new: " + limitedInterval);
-//            System.out.println("remainder: " + remainderNanos);
-            long l = currentAbsoluteSlot(limitedInterval);
-//            System.out.println("Abs: " + l);
-//            System.out.println("Slo: " + nanosPerSlot);
-//            System.out.println("Start: " + startNanos);
             if (currentInterval - limitedInterval < 0) {
                 currentInterval = currentAbsoluteSlot(limitedInterval) * nanosPerSlot + startNanos + remainderNanos;
             }
-
             return this;
         }
 
