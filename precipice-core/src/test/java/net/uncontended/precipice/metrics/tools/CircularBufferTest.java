@@ -100,7 +100,7 @@ public class CircularBufferTest {
 
         int i = 3;
         while (intervals.hasNext()) {
-            assertEquals(- (i * TimeUnit.SECONDS.toNanos(1) + remainder), intervals.intervalStart());
+            assertEquals(-(i * TimeUnit.SECONDS.toNanos(1) + remainder), intervals.intervalStart());
             long intervalEnd = -((i - 1) * TimeUnit.SECONDS.toNanos(1) + remainder);
             assertEquals(intervalEnd < 0 ? intervalEnd : 0, intervals.intervalEnd());
             intervals.next();
@@ -110,29 +110,40 @@ public class CircularBufferTest {
 
     @Test
     public void testLimitInterval() throws InterruptedException {
-        startTime = 0;
+        ThreadLocalRandom current = ThreadLocalRandom.current();
+        startTime = current.nextLong();
         buffer = new CircularBuffer<>(4, TimeUnit.SECONDS.toNanos(1), startTime);
 
-//        final CountDownLatch latch = new CountDownLatch(5);
-//
-//        ExecutorService es = Executors.newFixedThreadPool(5);
-//
-//        for (int i = 0; i < 5; ++i) {
-//            es.submit(getRunnable(latch));
-//        }
-//        latch.await();
+        long nanoTime;
+        for (int i = 0; i < 5; i++) {
+            long diff = current.nextLong(TimeUnit.SECONDS.toNanos(1)) + TimeUnit.SECONDS.toNanos(i);
+            nanoTime = startTime + diff;
+            buffer.putOrGet(nanoTime, new AtomicLong()).getAndAdd(i);
+        }
 
         long remainder = TimeUnit.MILLISECONDS.toNanos(100);
-        long nanoTime = TimeUnit.SECONDS.toNanos(4) + remainder;
+        nanoTime = startTime + TimeUnit.SECONDS.toNanos(4) + remainder;
         IntervalIterator<AtomicLong> intervals = buffer.intervals(nanoTime, new AtomicLong(0));
 
         intervals.limit(2200, TimeUnit.MILLISECONDS);
 
+        assertEquals(-2100000000, intervals.intervalStart());
+        assertEquals(-1100000000, intervals.intervalEnd());
+        assertEquals(2, intervals.next().intValue());
+
+        assertEquals(-1100000000, intervals.intervalStart());
+        assertEquals(-100000000, intervals.intervalEnd());
+        assertEquals(3, intervals.next().intValue());
+
+        assertEquals(-100000000, intervals.intervalStart());
+        assertEquals(0, intervals.intervalEnd());
+        assertEquals(4, intervals.next().intValue());
+
 
         while (intervals.hasNext()) {
-            System.out.println(nanoTime + intervals.intervalStart());
-            System.out.println(nanoTime + intervals.intervalEnd());
-            intervals.next();
+            System.out.println(intervals.intervalStart());
+            System.out.println(intervals.intervalEnd());
+            System.out.println(intervals.next());
         }
     }
 
