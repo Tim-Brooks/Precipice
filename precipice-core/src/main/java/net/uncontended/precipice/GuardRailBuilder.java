@@ -18,7 +18,6 @@
 package net.uncontended.precipice;
 
 import net.uncontended.precipice.metrics.counts.WritableCounts;
-import net.uncontended.precipice.metrics.latency.NoOpLatency;
 import net.uncontended.precipice.metrics.latency.WritableLatency;
 import net.uncontended.precipice.time.Clock;
 
@@ -38,17 +37,17 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
     }
 
     public GuardRailBuilder<Result, Rejected> resultMetrics(WritableCounts<Result> resultMetrics) {
-        this.properties.resultMetrics = resultMetrics;
+        this.properties.resultMetrics.add(resultMetrics);
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> rejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
-        this.properties.rejectedMetrics = rejectedMetrics;
+        this.properties.rejectedMetrics.add(rejectedMetrics);
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> resultLatency(WritableLatency<Result> resultLatency) {
-        this.properties.resultLatency = resultLatency;
+        this.properties.resultLatency.add(resultLatency);
         return this;
     }
 
@@ -64,12 +63,6 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
             throw new IllegalArgumentException();
         } else if (properties.rejectedMetrics == null) {
             throw new IllegalArgumentException();
-        }
-
-        if (properties.resultLatency == null) {
-            Class<Result> metricClazz = properties.resultMetrics.getMetricClazz();
-            NoOpLatency<Result> latency = new NoOpLatency<>(metricClazz);
-            properties.resultLatency = latency;
         }
 
         return GuardRail.create(properties);

@@ -23,14 +23,13 @@ import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class GuardRailProperties<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
     public String name;
-    public WritableCounts<Result> resultMetrics;
-    public WritableCounts<Rejected> rejectedMetrics;
-    public WritableLatency<Result> resultLatency;
+    public ArrayList<WritableCounts<Result>> resultMetrics = new ArrayList<>();
+    public ArrayList<WritableCounts<Rejected>> rejectedMetrics = new ArrayList<>();
+    public ArrayList<WritableLatency<Result>> resultLatency = new ArrayList<>();
     public ArrayList<BackPressure<Rejected>> backPressureList = new ArrayList<>();
     public boolean singleIncrementMetrics = false;
     public Clock clock = new SystemTime();

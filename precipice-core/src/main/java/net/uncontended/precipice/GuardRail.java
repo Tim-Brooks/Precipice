@@ -22,7 +22,6 @@ import net.uncontended.precipice.metrics.latency.WritableLatency;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
@@ -38,9 +37,9 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private GuardRail(GuardRailProperties<Result, Rejected> properties) {
         name = properties.name;
         clock = properties.clock;
-        resultMetrics = new ArrayList<>(Collections.singletonList(properties.resultMetrics));
-        rejectedMetrics = new ArrayList<>(Collections.singletonList(properties.rejectedMetrics));
-        latencyMetrics = new ArrayList<>(Collections.singletonList(properties.resultLatency));
+        resultMetrics = new ArrayList<>(properties.resultMetrics);
+        rejectedMetrics = new ArrayList<>(properties.rejectedMetrics);
+        latencyMetrics = new ArrayList<>(properties.resultLatency);
         backPressureList = properties.backPressureList;
         singleIncrement = properties.singleIncrementMetrics;
         releaseFunction = new FinishingCallback();
