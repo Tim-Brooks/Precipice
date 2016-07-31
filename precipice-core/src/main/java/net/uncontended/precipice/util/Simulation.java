@@ -80,8 +80,8 @@ public class Simulation<R extends Enum<R> & Failable> {
             gauge.allowNext = true;
         }
 
-        assertMetrics((PartitionedCount<R>) guardRail.getResultMetrics(), resultTypes, resultCounts);
-        assertRejectedMetrics((PartitionedCount<SimulationRejected>) guardRail.getRejectedMetrics(), rejectedCounts);
+        assertMetrics((PartitionedCount<R>) guardRail.getResultMetrics().get("0"), resultTypes, resultCounts);
+        assertRejectedMetrics((PartitionedCount<SimulationRejected>) guardRail.getRejectedMetrics().get("0"), rejectedCounts);
     }
 
     private void wireUpGauge(GuardRail<R, SimulationRejected> guardRail) {
@@ -95,7 +95,7 @@ public class Simulation<R extends Enum<R> & Failable> {
         }
     }
 
-    private void assertRejectedMetrics(PartitionedCount<SimulationRejected> rejectedMetrics, long rejectedCounts) {
+    private static void assertRejectedMetrics(PartitionedCount<SimulationRejected> rejectedMetrics, long rejectedCounts) {
         long actualCount = rejectedMetrics.getCount(SimulationRejected.SIMULATION_REJECTION);
         String message = String.format("Expected: %s rejected counts to be returned for %s. Actual: %s.",
                 rejectedCounts, SimulationRejected.SIMULATION_REJECTION, actualCount);

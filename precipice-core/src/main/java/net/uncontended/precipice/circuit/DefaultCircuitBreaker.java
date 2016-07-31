@@ -23,6 +23,7 @@ import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -94,10 +95,17 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
-        WritableCounts<Result> metrics = guardRail.getResultMetrics();
-        if (metrics instanceof Rolling) {
-            healthGauge.add((Rolling<PartitionedCount<Result>>) metrics);
-        } else {
+        Map<String, WritableCounts<Result>> metrics = guardRail.getResultMetrics();
+        boolean isSupported = false;
+
+        for (WritableCounts<Result> m : metrics.values()) {
+            if (metrics instanceof Rolling) {
+                healthGauge.add((Rolling<PartitionedCount<Result>>) metrics);
+                isSupported = true;
+            }
+        }
+
+        if (isSupported) {
             throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result object");
         }
     }

@@ -32,7 +32,7 @@ public class GuardRailProperties<Result extends Enum<Result> & Failable, Rejecte
     public Map<String, WritableCounts<Result>> resultMetrics = new LinkedHashMap<>();
     public Map<String, WritableCounts<Rejected>> rejectedMetrics = new LinkedHashMap<>();
     public Map<String, WritableLatency<Result>> resultLatency = new LinkedHashMap<>();
-    public Map<String, BackPressure<Rejected>> backPressureList = new LinkedHashMap<>();
+    public Map<String, BackPressure<Rejected>> backPressureMap = new LinkedHashMap<>();
     public boolean singleIncrementMetrics = false;
     public Clock clock = new SystemTime();
 }

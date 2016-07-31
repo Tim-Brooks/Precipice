@@ -21,6 +21,7 @@ import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.concurrent.PrecipiceFuture;
 import net.uncontended.precipice.concurrent.PrecipicePromise;
 import net.uncontended.precipice.factories.Asynchronous;
+import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.pattern.Pattern;
 import net.uncontended.precipice.pattern.PatternStrategy;
 import net.uncontended.precipice.pattern.Sequence;
@@ -29,6 +30,7 @@ import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.threadpool.utils.TaskFactory;
 import net.uncontended.precipice.timeout.DelayQueueTimeoutService;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, PatternRejected> {
 
     private final GuardRail<TimeoutableResult, PatternRejected> guardRail;
+    private final ArrayList<WritableCounts<PatternRejected>> rejectedMetrics;
     private final Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     private final Map<ThreadPoolService<?>, C> serviceToContext;
 
@@ -50,6 +53,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
                              Pattern<TimeoutableResult, ThreadPoolService<?>> pattern) {
         this.serviceToContext = serviceToContext;
         this.guardRail = guardRail;
+        this.rejectedMetrics = new ArrayList<>(guardRail.getRejectedMetrics().values());
         this.pattern = pattern;
     }
 
@@ -86,7 +90,9 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
 
     private <T> PrecipiceFuture<TimeoutableResult, T> handleAllReject(long nanoTime) {
         guardRail.releasePermitsWithoutResult(1L, nanoTime);
-        guardRail.getRejectedMetrics().write(PatternRejected.ALL_REJECTED, 1L, nanoTime);
+        for (WritableCounts<PatternRejected> m : rejectedMetrics) {
+            m.write(PatternRejected.ALL_REJECTED, 1L, nanoTime);
+        }
         throw new RejectedException(PatternRejected.ALL_REJECTED);
     }
 

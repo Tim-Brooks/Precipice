@@ -26,18 +26,18 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
     private final GuardRailProperties<Result, Rejected> properties = new GuardRailProperties<>();
 
 
+    public GuardRailBuilder<Result, Rejected> name(String name) {
+        properties.name = name;
+        return this;
+    }
+
     public GuardRailBuilder<Result, Rejected> addBackPressure(BackPressure<Rejected> backPressure) {
-        properties.backPressureList.put(Integer.toString(properties.backPressureList.size()), backPressure);
+        properties.backPressureMap.put(Integer.toString(properties.backPressureMap.size()), backPressure);
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> addBackPressure(String name, BackPressure<Rejected> backPressure) {
-        properties.backPressureList.put(name, backPressure);
-        return this;
-    }
-
-    public GuardRailBuilder<Result, Rejected> name(String name) {
-        properties.name = name;
+        properties.backPressureMap.put(name, backPressure);
         return this;
     }
 

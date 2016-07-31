@@ -73,8 +73,9 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         Arrays.fill(resultCounts, 0);
         Arrays.fill(rejectedCounts, 0);
 
-        WritableCounts<Result> resultMetrics = guardRail.getResultMetrics();
-        WritableCounts<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
+        // TODO: Not handling multiple metrics
+        WritableCounts<Result> resultMetrics = guardRail.getResultMetrics().get("0");
+        WritableCounts<Rejected> rejectedMetrics = guardRail.getRejectedMetrics().get("0");
 
         long localStartEpoch = Long.MAX_VALUE;
         long localEndEpoch = 0L;

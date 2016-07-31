@@ -22,6 +22,7 @@ import net.uncontended.precipice.metrics.latency.WritableLatency;
 import net.uncontended.precipice.time.Clock;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
@@ -29,18 +30,26 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final Clock clock;
     private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
     private final boolean singleIncrement;
-    private final ArrayList<BackPressure<Rejected>> backPressureList;
     private final ArrayList<WritableCounts<Result>> resultMetrics;
     private final ArrayList<WritableCounts<Rejected>> rejectedMetrics;
     private final ArrayList<WritableLatency<Result>> latencyMetrics;
+    private final ArrayList<BackPressure<Rejected>> backPressureList;
+    private final Map<String, WritableCounts<Result>> resultMetricsMap;
+    private final Map<String, WritableCounts<Rejected>> rejectedMetricsMap;
+    private final Map<String, WritableLatency<Result>> latencyMetricsMap;
+    private final Map<String, BackPressure<Rejected>> backPressureMap;
 
     private GuardRail(GuardRailProperties<Result, Rejected> properties) {
         name = properties.name;
         clock = properties.clock;
-        resultMetrics = new ArrayList<>(properties.resultMetrics.values());
-        rejectedMetrics = new ArrayList<>(properties.rejectedMetrics.values());
-        latencyMetrics = new ArrayList<>(properties.resultLatency.values());
-        backPressureList = new ArrayList<>(properties.backPressureList.values());
+        resultMetricsMap = properties.resultMetrics;
+        rejectedMetricsMap = properties.rejectedMetrics;
+        resultMetrics = new ArrayList<>(resultMetricsMap.values());
+        rejectedMetrics = new ArrayList<>(rejectedMetricsMap.values());
+        latencyMetricsMap = properties.resultLatency;
+        latencyMetrics = new ArrayList<>(latencyMetricsMap.values());
+        backPressureMap = properties.backPressureMap;
+        backPressureList = new ArrayList<>(backPressureMap.values());
         singleIncrement = properties.singleIncrementMetrics;
         releaseFunction = new FinishingCallback();
     }
@@ -186,8 +195,8 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the result object
      */
-    public WritableCounts<Result> getResultMetrics() {
-        return resultMetrics.get(0);
+    public Map<String, WritableCounts<Result>> getResultMetrics() {
+        return resultMetricsMap;
     }
 
     /**
@@ -195,8 +204,8 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the rejected object
      */
-    public WritableCounts<Rejected> getRejectedMetrics() {
-        return rejectedMetrics.get(0);
+    public Map<String, WritableCounts<Rejected>> getRejectedMetrics() {
+        return rejectedMetricsMap;
     }
 
     /**
@@ -204,8 +213,17 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the latency object
      */
-    public WritableLatency<Result> getLatencyMetrics() {
-        return latencyMetrics.get(0);
+    public Map<String, WritableLatency<Result>> getLatencyMetrics() {
+        return latencyMetricsMap;
+    }
+
+    /**
+     * Return the backpressure map used by the GuardRail.
+     *
+     * @return the backpressure map
+     */
+    public Map<String, BackPressure<Rejected>> getBackPressure() {
+        return backPressureMap;
     }
 
     /**

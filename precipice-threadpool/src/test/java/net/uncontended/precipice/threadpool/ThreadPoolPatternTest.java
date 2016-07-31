@@ -110,7 +110,6 @@ public class ThreadPoolPatternTest {
         services.put(service1, context1);
         services.put(service2, context2);
         services.put(service3, context3);
-        this.poolPattern = new ThreadPoolPattern<>(services, guardRail, pattern);
 
         when(service1.guardRail()).thenReturn(guardRail1);
         when(service2.guardRail()).thenReturn(guardRail2);
@@ -123,13 +122,19 @@ public class ThreadPoolPatternTest {
         when(service3.getTimeoutService()).thenReturn(timeoutService3);
 
         when(guardRail.getClock()).thenReturn(clock);
-        when(guardRail.getResultMetrics()).thenReturn(resultMetrics);
-        when(guardRail.getRejectedMetrics()).thenReturn(rejectedMetrics);
+        Map<String, WritableCounts<TimeoutableResult>> resultMetricsMap = new LinkedHashMap<>();
+        resultMetricsMap.put("0", resultMetrics);
+        when(guardRail.getResultMetrics()).thenReturn(resultMetricsMap);
+        Map<String, WritableCounts<PatternRejected>> rejectedMetricsMap = new LinkedHashMap<>();
+        rejectedMetricsMap.put("0", rejectedMetrics);
+        when(guardRail.getRejectedMetrics()).thenReturn(rejectedMetricsMap);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
 
         when(action.call(context1)).thenReturn("Service1");
         when(action.call(context2)).thenReturn("Service2");
         when(action.call(context3)).thenReturn("Service3");
+
+        this.poolPattern = new ThreadPoolPattern<>(services, guardRail, pattern);
     }
 
     @Test

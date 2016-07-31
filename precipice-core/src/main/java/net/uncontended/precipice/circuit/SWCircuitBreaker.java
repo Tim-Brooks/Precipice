@@ -19,10 +19,11 @@ package net.uncontended.precipice.circuit;
 
 import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
+import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
-import net.uncontended.precipice.metrics.Rolling;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -92,11 +93,18 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
-        WritableCounts<Result> metrics = guardRail.getResultMetrics();
-        if (metrics instanceof Rolling) {
-            healthGauge.add((Rolling<PartitionedCount<Result>>) metrics);
-        } else {
-            throw new IllegalArgumentException("SWCircuitBreaker requires rolling result object");
+        Map<String, WritableCounts<Result>> metrics = guardRail.getResultMetrics();
+        boolean isSupported = false;
+
+        for (WritableCounts<Result> m : metrics.values()) {
+            if (metrics instanceof Rolling) {
+                healthGauge.add((Rolling<PartitionedCount<Result>>) metrics);
+                isSupported = true;
+            }
+        }
+
+        if (isSupported) {
+            throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result object");
         }
     }
 
