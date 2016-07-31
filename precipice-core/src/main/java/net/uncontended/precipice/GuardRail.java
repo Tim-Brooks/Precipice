@@ -37,10 +37,10 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private GuardRail(GuardRailProperties<Result, Rejected> properties) {
         name = properties.name;
         clock = properties.clock;
-        resultMetrics = new ArrayList<>(properties.resultMetrics);
-        rejectedMetrics = new ArrayList<>(properties.rejectedMetrics);
-        latencyMetrics = new ArrayList<>(properties.resultLatency);
-        backPressureList = properties.backPressureList;
+        resultMetrics = new ArrayList<>(properties.resultMetrics.values());
+        rejectedMetrics = new ArrayList<>(properties.rejectedMetrics.values());
+        latencyMetrics = new ArrayList<>(properties.resultLatency.values());
+        backPressureList = new ArrayList<>(properties.backPressureList.values());
         singleIncrement = properties.singleIncrementMetrics;
         releaseFunction = new FinishingCallback();
     }

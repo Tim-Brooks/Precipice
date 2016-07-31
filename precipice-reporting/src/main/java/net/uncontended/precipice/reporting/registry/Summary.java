@@ -124,7 +124,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         } else {
             for (Result t : resultClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-//                totalResultCounts[metricIndex] = resultMetrics.getCount(t);
+//                totalResultCounts[metricIndex] = addResultMetrics.getCount(t);
             }
         }
 
@@ -136,7 +136,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         } else {
             for (Rejected t : rejectedClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-//                totalRejectedCounts[metricIndex] = rejectedMetrics.getCount(t);
+//                totalRejectedCounts[metricIndex] = addRejectedMetrics.getCount(t);
             }
         }
         currentStartEpoch = localStartEpoch;

@@ -62,12 +62,12 @@ public class GuardRailTest {
         MockitoAnnotations.initMocks(this);
         builder = new GuardRailBuilder<>();
         builder.name("OldGuardRail Name");
-        builder.resultMetrics(resultMetrics);
-        builder.resultMetrics(resultMetrics2);
-        builder.rejectedMetrics(rejectedMetrics);
-        builder.rejectedMetrics(rejectedMetrics2);
-        builder.resultLatency(latencyMetrics);
-        builder.resultLatency(latencyMetrics2);
+        builder.addResultMetrics(resultMetrics);
+        builder.addResultMetrics(resultMetrics2);
+        builder.addRejectedMetrics(rejectedMetrics);
+        builder.addRejectedMetrics(rejectedMetrics2);
+        builder.addResultLatency(latencyMetrics);
+        builder.addResultLatency(latencyMetrics2);
         builder.addBackPressure(backPressure);
         builder.addBackPressure(backPressure2);
         builder.clock(clock);

@@ -23,45 +23,65 @@ import net.uncontended.precipice.time.Clock;
 
 public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
-    private GuardRailProperties<Result, Rejected> properties = new GuardRailProperties<>();
+    private final GuardRailProperties<Result, Rejected> properties = new GuardRailProperties<>();
 
 
     public GuardRailBuilder<Result, Rejected> addBackPressure(BackPressure<Rejected> backPressure) {
-        this.properties.backPressureList.add(backPressure);
+        properties.backPressureList.put(Integer.toString(properties.backPressureList.size()), backPressure);
+        return this;
+    }
+
+    public GuardRailBuilder<Result, Rejected> addBackPressure(String name, BackPressure<Rejected> backPressure) {
+        properties.backPressureList.put(name, backPressure);
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> name(String name) {
-        this.properties.name = name;
+        properties.name = name;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> resultMetrics(WritableCounts<Result> resultMetrics) {
-        this.properties.resultMetrics.add(resultMetrics);
+    public GuardRailBuilder<Result, Rejected> addResultMetrics(WritableCounts<Result> resultMetrics) {
+        properties.resultMetrics.put(Integer.toString(properties.resultMetrics.size()), resultMetrics);
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> rejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
-        this.properties.rejectedMetrics.add(rejectedMetrics);
+    public GuardRailBuilder<Result, Rejected> addResultMetrics(String name, WritableCounts<Result> resultMetrics) {
+        properties.resultMetrics.put(name, resultMetrics);
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> resultLatency(WritableLatency<Result> resultLatency) {
-        this.properties.resultLatency.add(resultLatency);
+    public GuardRailBuilder<Result, Rejected> addRejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
+        properties.rejectedMetrics.put(Integer.toString(properties.rejectedMetrics.size()), rejectedMetrics);
+        return this;
+    }
+
+    public GuardRailBuilder<Result, Rejected> addRejectedMetrics(String name, WritableCounts<Rejected> rejectedMetrics) {
+        properties.rejectedMetrics.put(name, rejectedMetrics);
+        return this;
+    }
+
+    public GuardRailBuilder<Result, Rejected> addResultLatency(WritableLatency<Result> resultLatency) {
+        properties.resultLatency.put(Integer.toString(properties.resultLatency.size()), resultLatency);
+        return this;
+    }
+
+    public GuardRailBuilder<Result, Rejected> addResultLatency(String name, WritableLatency<Result> resultLatency) {
+        properties.resultLatency.put(name, resultLatency);
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> clock(Clock clock) {
-        this.properties.clock = clock;
+        properties.clock = clock;
         return this;
     }
 
     public GuardRail<Result, Rejected> build() {
         if (properties.name == null) {
             throw new IllegalArgumentException();
-        } else if (properties.resultMetrics == null) {
+        } else if (properties.resultMetrics.isEmpty()) {
             throw new IllegalArgumentException();
-        } else if (properties.rejectedMetrics == null) {
+        } else if (properties.rejectedMetrics.isEmpty()) {
             throw new IllegalArgumentException();
         }
 

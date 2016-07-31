@@ -34,13 +34,13 @@ public class SummaryTest {
         properties.bufferSize = 4;
 
 //        resultMetrics = new RollingCountMetrics<>(SimpleResult.class, 8, 500, TimeUnit.MILLISECONDS);
-//        rejectedMetrics = new RollingCountMetrics<>(Rejected.class, 8, 500, TimeUnit.MILLISECONDS);
+//        addRejectedMetrics = new RollingCountMetrics<>(Rejected.class, 8, 500, TimeUnit.MILLISECONDS);
 //        startTime = System.nanoTime();
 //
 //        GuardRailBuilder<SimpleResult, Rejected> builder = new GuardRailBuilder<>();
 //        builder.name("Test");
-//        builder.resultMetrics(resultMetrics);
-//        builder.rejectedMetrics(rejectedMetrics);
+//        builder.addResultMetrics(addResultMetrics);
+//        builder.addRejectedMetrics(addRejectedMetrics);
 //        summary = new Summary<>(properties, builder.build());
     }
 
@@ -48,15 +48,15 @@ public class SummaryTest {
 //    public void testRefresh() {
 //
 //        for (int i = 0; i < 12; ++i) {
-//            resultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
-//            resultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            addResultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            addResultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
 //        }
 //
 //        summary.refresh(10000, startTime + TimeUnit.SECONDS.toNanos(1));
 //
 //        for (int i = 12; i < 15; ++i) {
-//            resultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
-//            resultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            addResultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            addResultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
 //        }
 //
 //        summary.refresh(11100, startTime + TimeUnit.SECONDS.toNanos(2));
