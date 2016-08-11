@@ -19,46 +19,46 @@ package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.tools.Capturer;
-import net.uncontended.precipice.metrics.tools.Recorder;
-import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
+import net.uncontended.precipice.metrics.tools.FlipControl;
+import net.uncontended.precipice.metrics.tools.RelaxedFlipControl;
 
 public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Capturer<PartitionedCount<T>> {
 
-    private final Recorder<PartitionedCount<T>> recorder;
+    private final FlipControl<PartitionedCount<T>> flipControl;
     private PartitionedCount<T> inactive;
 
     public CountRecorder(PartitionedCount<T> active, PartitionedCount<T> inactive) {
-        this(active, inactive, new RelaxedRecorder<PartitionedCount<T>>());
+        this(active, inactive, new RelaxedFlipControl<PartitionedCount<T>>());
     }
 
-    public CountRecorder(PartitionedCount<T> active, PartitionedCount<T> inactive, Recorder<PartitionedCount<T>> recorder) {
+    public CountRecorder(PartitionedCount<T> active, PartitionedCount<T> inactive, FlipControl<PartitionedCount<T>> flipControl) {
         super(active.getMetricClazz());
-        this.recorder = recorder;
-        this.recorder.flip(active);
+        this.flipControl = flipControl;
+        this.flipControl.flip(active);
         this.inactive = inactive;
     }
 
     @Override
     public void write(T result, long number, long nanoTime) {
-        long permit = recorder.startRecord();
+        long permit = flipControl.startRecord();
         try {
-            recorder.active().add(result, number);
+            flipControl.active().add(result, number);
         } finally {
-            recorder.endRecord(permit);
+            flipControl.endRecord(permit);
         }
     }
 
     @Override
     public synchronized PartitionedCount<T> captureInterval() {
         inactive.reset();
-        PartitionedCount<T> newlyInactive = recorder.flip(inactive);
+        PartitionedCount<T> newlyInactive = flipControl.flip(inactive);
         inactive = newlyInactive;
         return newlyInactive;
     }
 
     @Override
     public synchronized PartitionedCount<T> captureInterval(PartitionedCount<T> newInterval) {
-        PartitionedCount<T> newlyInactive = recorder.flip(newInterval);
+        PartitionedCount<T> newlyInactive = flipControl.flip(newInterval);
         inactive = newlyInactive;
         return newlyInactive;
     }

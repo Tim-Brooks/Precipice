@@ -17,34 +17,20 @@
 
 package net.uncontended.precipice.metrics.tools;
 
-import org.HdrHistogram.WriterReaderPhaser;
-
-public class StrictRecorder<V> extends Recorder<V> {
-
-    private final WriterReaderPhaser phaser = new WriterReaderPhaser();
+public class RelaxedFlipControl<V> extends FlipControl<V> {
 
     @Override
     public long startRecord() {
-        return phaser.writerCriticalSectionEnter();
+        return 0L;
     }
 
     @Override
     public void endRecord(long permit) {
-        phaser.writerCriticalSectionExit(permit);
     }
 
-    @Override
     public synchronized V flip(V newValue) {
-        phaser.readerLock();
-
-        try {
-            V old = this.active;
-            this.active = newValue;
-            phaser.flipPhase(500000L);
-            return old;
-        } finally {
-            phaser.readerUnlock();
-        }
+        V old = this.active;
+        this.active = newValue;
+        return old;
     }
-
 }

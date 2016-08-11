@@ -17,7 +17,7 @@
 
 package net.uncontended.precipice.metrics.tools;
 
-public abstract class Recorder<V> {
+public abstract class FlipControl<V> {
     protected volatile V active;
 
     public V active() {

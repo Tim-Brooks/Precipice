@@ -18,7 +18,7 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.tools.RecorderBuilder;
-import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
+import net.uncontended.precipice.metrics.tools.RelaxedFlipControl;
 
 public class CountRecorderBuilder<T extends Enum<T>> extends RecorderBuilder<PartitionedCount<T>, CountRecorder<T>> {
 
@@ -41,10 +41,10 @@ public class CountRecorderBuilder<T extends Enum<T>> extends RecorderBuilder<Par
             inactive = allocator.allocateNew();
         }
 
-        if (recorder == null) {
-            recorder = new RelaxedRecorder<>();
+        if (flipControl == null) {
+            flipControl = new RelaxedFlipControl<>();
         }
 
-        return new CountRecorder<T>(active, inactive, recorder);
+        return new CountRecorder<T>(active, inactive, flipControl);
     }
 }

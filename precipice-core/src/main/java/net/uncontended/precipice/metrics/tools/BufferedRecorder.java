@@ -31,18 +31,18 @@ public class BufferedRecorder<T> implements Capturer<T> {
 
     private final int bufferSize;
     private final AtomicReferenceArray<Interval<T>> buffer;
-    private final Recorder<T> recorder;
+    private final FlipControl<T> flipControl;
     private final Clock clock;
     private final int mask;
     private volatile long currentIndex;
     private Interval<T> inactive;
 
-    public BufferedRecorder(Recorder<T> recorder, int bufferSize) {
-        this(recorder, bufferSize, new SystemTime());
+    public BufferedRecorder(FlipControl<T> flipControl, int bufferSize) {
+        this(flipControl, bufferSize, new SystemTime());
     }
 
-    public BufferedRecorder(Recorder<T> recorder, int bufferSize, Clock clock) {
-        this.recorder = recorder;
+    public BufferedRecorder(FlipControl<T> flipControl, int bufferSize, Clock clock) {
+        this.flipControl = flipControl;
         this.clock = clock;
         this.bufferSize = bufferSize;
         bufferSize = nextPositivePowerOfTwo(bufferSize);
@@ -63,11 +63,11 @@ public class BufferedRecorder<T> implements Capturer<T> {
         Interval<T> interval = buffer.get(0);
         interval.startNanos = nanoTime;
         interval.isInit = true;
-        recorder.flip(interval.object);
+        flipControl.flip(interval.object);
     }
 
     public T get() {
-        return recorder.active();
+        return flipControl.active();
     }
 
     public IntervalIterator<T> intervals() {
@@ -107,7 +107,7 @@ public class BufferedRecorder<T> implements Capturer<T> {
         inactive.object = newValue;
         buffer.set(newRelativeIndex, inactive);
         inactive.isInit = true;
-        recorder.flip(inactive.object);
+        flipControl.flip(inactive.object);
         Interval<T> closingInterval = buffer.get((int) oldIndex & mask);
         closingInterval.endNanos = nanoTime;
         this.currentIndex = newIndex;

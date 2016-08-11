@@ -19,7 +19,7 @@ package net.uncontended.precipice.metrics.tools;
 
 public abstract class RecorderBuilder<T, S> {
 
-    protected Recorder<T> recorder;
+    protected FlipControl<T> flipControl;
 
     protected T active;
     protected T inactive;
@@ -40,8 +40,8 @@ public abstract class RecorderBuilder<T, S> {
         return this;
     }
 
-    public RecorderBuilder<T, S> withRecorder(Recorder<T> recorder) {
-        this.recorder = recorder;
+    public RecorderBuilder<T, S> withRecorder(FlipControl<T> flipControl) {
+        this.flipControl = flipControl;
         return this;
     }
 

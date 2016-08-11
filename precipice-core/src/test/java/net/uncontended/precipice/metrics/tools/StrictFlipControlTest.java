@@ -26,31 +26,31 @@ import java.util.concurrent.locks.LockSupport;
 
 import static org.junit.Assert.assertTrue;
 
-public class StrictRecorderTest {
+public class StrictFlipControlTest {
 
     private final Executor executors = Executors.newCachedThreadPool();
-    private final Recorder<BooleanHolder> recorder = new StrictRecorder<>();
+    private final FlipControl<BooleanHolder> flipControl = new StrictFlipControl<>();
 
     @Test
     public void testThatNoWritesHappenAfterFlip() throws InterruptedException {
-        recorder.flip(new BooleanHolder());
+        flipControl.flip(new BooleanHolder());
         for (int j = 0; j < 5; ++j) {
             final CountDownLatch latch = new CountDownLatch(5);
             for (int i = 0; i < 10; ++i) {
                 executors.execute(new Runnable() {
                     @Override
                     public void run() {
-                        long permit = recorder.startRecord();
-                        BooleanHolder active = recorder.active();
+                        long permit = flipControl.startRecord();
+                        BooleanHolder active = flipControl.active();
                         LockSupport.parkNanos(10000);
                         active.marker = false;
-                        recorder.endRecord(permit);
+                        flipControl.endRecord(permit);
                         latch.countDown();
                     }
                 });
             }
             latch.await();
-            BooleanHolder old = recorder.flip(new BooleanHolder());
+            BooleanHolder old = flipControl.flip(new BooleanHolder());
             old.marker = true;
             LockSupport.parkNanos(1000000);
 
