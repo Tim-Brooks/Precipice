@@ -15,11 +15,11 @@
  *
  */
 
-package net.uncontended.precipice.metrics.latency;
+package net.uncontended.precipice.metrics.tools;
 
 public interface Capturer<T> {
 
     T captureInterval();
 
-    T captureInterval(T newLatency);
+    T captureInterval(T newInterval);
 }

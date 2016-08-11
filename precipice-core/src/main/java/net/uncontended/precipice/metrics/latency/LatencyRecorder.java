@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics.latency;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
+import net.uncontended.precipice.metrics.tools.Capturer;
 import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
@@ -56,8 +57,8 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
     }
 
     @Override
-    public synchronized PartitionedLatency<T> captureInterval(PartitionedLatency<T> newLatency) {
-        PartitionedLatency<T> newlyInactive = recorder.flip(newLatency);
+    public synchronized PartitionedLatency<T> captureInterval(PartitionedLatency<T> newInterval) {
+        PartitionedLatency<T> newlyInactive = recorder.flip(newInterval);
         inactive = newlyInactive;
         return newlyInactive;
     }

@@ -18,7 +18,6 @@
 package net.uncontended.precipice.metrics.tools;
 
 import net.uncontended.precipice.metrics.IntervalIterator;
-import net.uncontended.precipice.metrics.latency.Capturer;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
@@ -92,7 +91,7 @@ public class BufferedRecorder<T> implements Capturer<T> {
     }
 
     @Override
-    public T captureInterval(T newValue) {
+    public T captureInterval(T newInterval) {
 //        return advance(newValue, clock.nanoTime());
         return null;
     }

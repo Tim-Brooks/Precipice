@@ -18,7 +18,7 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
-import net.uncontended.precipice.metrics.latency.Capturer;
+import net.uncontended.precipice.metrics.tools.Capturer;
 import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.RelaxedRecorder;
 
@@ -57,8 +57,8 @@ public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> impleme
     }
 
     @Override
-    public synchronized PartitionedCount<T> captureInterval(PartitionedCount<T> newCounter) {
-        PartitionedCount<T> newlyInactive = recorder.flip(newCounter);
+    public synchronized PartitionedCount<T> captureInterval(PartitionedCount<T> newInterval) {
+        PartitionedCount<T> newlyInactive = recorder.flip(newInterval);
         inactive = newlyInactive;
         return newlyInactive;
     }
