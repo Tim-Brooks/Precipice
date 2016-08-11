@@ -41,8 +41,8 @@ public final class GuardRailExample {
 
         GuardRailBuilder<Result, RejectedReason> builder = new GuardRailBuilder<>();
         builder.name("Example")
-                .addResultMetrics(resultMetrics)
-                .addRejectedMetrics(rejectedMetrics)
+                .resultMetrics(resultMetrics)
+                .rejectedMetrics(rejectedMetrics)
                 .addBackPressure(new LongSemaphore<>(RejectedReason.MAX_CONCURRENCY, 10));
 
         GuardRail<Result, RejectedReason> guardRail = builder.build();

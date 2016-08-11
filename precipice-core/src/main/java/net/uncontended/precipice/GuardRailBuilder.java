@@ -41,17 +41,17 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> addResultMetrics(WritableCounts<Result> resultMetrics) {
+    public GuardRailBuilder<Result, Rejected> resultMetrics(WritableCounts<Result> resultMetrics) {
         properties.resultMetrics = resultMetrics;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> addRejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
+    public GuardRailBuilder<Result, Rejected> rejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
         properties.rejectedMetrics = rejectedMetrics;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> addResultLatency(WritableLatency<Result> resultLatency) {
+    public GuardRailBuilder<Result, Rejected> resultLatency(WritableLatency<Result> resultLatency) {
         properties.resultLatency = resultLatency;
         return this;
     }

@@ -39,8 +39,8 @@ public class SummaryTest {
 //
 //        GuardRailBuilder<SimpleResult, Rejected> builder = new GuardRailBuilder<>();
 //        builder.name("Test");
-//        builder.addResultMetrics(addResultMetrics);
-//        builder.addRejectedMetrics(addRejectedMetrics);
+//        builder.resultMetrics(resultMetrics);
+//        builder.rejectedMetrics(rejectedMetrics);
 //        summary = new Summary<>(properties, builder.build());
     }
 
@@ -48,15 +48,15 @@ public class SummaryTest {
 //    public void testRefresh() {
 //
 //        for (int i = 0; i < 12; ++i) {
-//            addResultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
-//            addResultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            resultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            resultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
 //        }
 //
 //        summary.refresh(10000, startTime + TimeUnit.SECONDS.toNanos(1));
 //
 //        for (int i = 12; i < 15; ++i) {
-//            addResultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
-//            addResultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            resultMetrics.add(SimpleResult.SUCCESS, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
+//            resultMetrics.add(SimpleResult.ERROR, 1, startTime + (i * TimeUnit.MILLISECONDS.toNanos(100)));
 //        }
 //
 //        summary.refresh(11100, startTime + TimeUnit.SECONDS.toNanos(2));

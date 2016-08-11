@@ -181,9 +181,9 @@ public class ThreadPoolServiceTest {
         GuardRailBuilder<TimeoutableResult, SimulationRejected> builder =
                 new GuardRailBuilder<TimeoutableResult, SimulationRejected>()
                         .name("Simulation")
-                        .addResultMetrics(new TotalCounts<TimeoutableResult>(TimeoutableResult.class))
-                        .addRejectedMetrics(new TotalCounts<>(SimulationRejected.class))
-                        .addResultLatency(new NoOpLatency<>(TimeoutableResult.class));
+                        .resultMetrics(new TotalCounts<TimeoutableResult>(TimeoutableResult.class))
+                        .rejectedMetrics(new TotalCounts<>(SimulationRejected.class))
+                        .resultLatency(new NoOpLatency<>(TimeoutableResult.class));
 
         GuardRail<TimeoutableResult, SimulationRejected> guardRail = builder.build();
         final ThreadPoolService<SimulationRejected> callService = new ThreadPoolService<>(5, 10, guardRail);

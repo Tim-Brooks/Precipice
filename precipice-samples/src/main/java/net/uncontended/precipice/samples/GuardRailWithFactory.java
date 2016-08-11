@@ -39,8 +39,8 @@ public final class GuardRailWithFactory {
 
         GuardRailBuilder<SimpleResult, Unrejectable> builder = new GuardRailBuilder<>();
         builder.name("Example")
-                .addResultMetrics(resultMetrics)
-                .addRejectedMetrics(rejectedMetrics)
+                .resultMetrics(resultMetrics)
+                .rejectedMetrics(rejectedMetrics)
                 .addBackPressure(new UnlimitedSemaphore<Unrejectable>());
 
         GuardRail<SimpleResult, Unrejectable> guardRail = builder.build();

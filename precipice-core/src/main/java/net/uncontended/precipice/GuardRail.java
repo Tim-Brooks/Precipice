@@ -183,7 +183,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     }
 
     /**
-     * Return the map of result metrics used by the GuardRail.
+     * Return the result metrics used by the GuardRail.
      *
      * @return the result object
      */
@@ -192,7 +192,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     }
 
     /**
-     * Return the map of rejected metrics used by the GuardRail.
+     * Return the rejected metrics used by the GuardRail.
      *
      * @return the rejected object
      */
@@ -201,7 +201,7 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     }
 
     /**
-     * Return the map of latency metrics used by the GuardRail.
+     * Return the latency metrics used by the GuardRail.
      *
      * @return the latency object
      */
