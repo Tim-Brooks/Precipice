@@ -42,32 +42,17 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
     }
 
     public GuardRailBuilder<Result, Rejected> addResultMetrics(WritableCounts<Result> resultMetrics) {
-        properties.resultMetrics.put(Integer.toString(properties.resultMetrics.size()), resultMetrics);
-        return this;
-    }
-
-    public GuardRailBuilder<Result, Rejected> addResultMetrics(String name, WritableCounts<Result> resultMetrics) {
-        properties.resultMetrics.put(name, resultMetrics);
+        properties.resultMetrics = resultMetrics;
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> addRejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
-        properties.rejectedMetrics.put(Integer.toString(properties.rejectedMetrics.size()), rejectedMetrics);
-        return this;
-    }
-
-    public GuardRailBuilder<Result, Rejected> addRejectedMetrics(String name, WritableCounts<Rejected> rejectedMetrics) {
-        properties.rejectedMetrics.put(name, rejectedMetrics);
+        properties.rejectedMetrics = rejectedMetrics;
         return this;
     }
 
     public GuardRailBuilder<Result, Rejected> addResultLatency(WritableLatency<Result> resultLatency) {
-        properties.resultLatency.put(Integer.toString(properties.resultLatency.size()), resultLatency);
-        return this;
-    }
-
-    public GuardRailBuilder<Result, Rejected> addResultLatency(String name, WritableLatency<Result> resultLatency) {
-        properties.resultLatency.put(name, resultLatency);
+        properties.resultLatency = resultLatency;
         return this;
     }
 
@@ -79,9 +64,9 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
     public GuardRail<Result, Rejected> build() {
         if (properties.name == null) {
             throw new IllegalArgumentException();
-        } else if (properties.resultMetrics.isEmpty()) {
+        } else if (properties.resultMetrics == null) {
             throw new IllegalArgumentException();
-        } else if (properties.rejectedMetrics.isEmpty()) {
+        } else if (properties.rejectedMetrics == null) {
             throw new IllegalArgumentException();
         }
 

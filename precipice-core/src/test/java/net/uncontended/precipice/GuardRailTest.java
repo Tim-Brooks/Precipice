@@ -38,15 +38,9 @@ public class GuardRailTest {
     @Mock
     private WritableCounts<TestResult> resultMetrics;
     @Mock
-    private WritableCounts<TestResult> resultMetrics2;
-    @Mock
     private WritableCounts<Rejected> rejectedMetrics;
     @Mock
-    private WritableCounts<Rejected> rejectedMetrics2;
-    @Mock
     private WritableLatency<TestResult> latencyMetrics;
-    @Mock
-    private WritableLatency<TestResult> latencyMetrics2;
     @Mock
     private BackPressure<Rejected> backPressure;
     @Mock
@@ -63,11 +57,8 @@ public class GuardRailTest {
         builder = new GuardRailBuilder<>();
         builder.name("OldGuardRail Name");
         builder.addResultMetrics(resultMetrics);
-        builder.addResultMetrics(resultMetrics2);
         builder.addRejectedMetrics(rejectedMetrics);
-        builder.addRejectedMetrics(rejectedMetrics2);
         builder.addResultLatency(latencyMetrics);
-        builder.addResultLatency(latencyMetrics2);
         builder.addBackPressure(backPressure);
         builder.addBackPressure(backPressure2);
         builder.clock(clock);
@@ -127,7 +118,6 @@ public class GuardRailTest {
         guardRail.acquirePermits(2L, 22L);
 
         verify(rejectedMetrics).write(Rejected.CIRCUIT_OPEN, 2L, 22L);
-        verify(rejectedMetrics2).write(Rejected.CIRCUIT_OPEN, 2L, 22L);
     }
 
     @Test
@@ -149,9 +139,7 @@ public class GuardRailTest {
         guardRail.releasePermits(2L, result, 10L, 100L);
 
         verify(resultMetrics).write(result, 2L, 100L);
-        verify(resultMetrics2).write(result, 2L, 100L);
         verify(latencyMetrics).write(result, 2L, 90L, 100L);
-        verify(latencyMetrics2).write(result, 2L, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
         inOrder.verify(backPressure).releasePermit(2L, result, 100L);
@@ -168,9 +156,7 @@ public class GuardRailTest {
         guardRail.releasePermits(context, result, 100L);
 
         verify(resultMetrics).write(result, 2L, 100L);
-        verify(resultMetrics2).write(result, 2L, 100L);
         verify(latencyMetrics).write(result, 2L, 90L, 100L);
-        verify(latencyMetrics2).write(result, 2L, 90L, 100L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
         inOrder.verify(backPressure).releasePermit(2L, result, 100L);
@@ -190,9 +176,7 @@ public class GuardRailTest {
         fn.apply(result, context);
 
         verify(resultMetrics).write(result, 2L, 110L);
-        verify(resultMetrics2).write(result, 2L, 110L);
         verify(latencyMetrics).write(result, 2L, 100L, 110L);
-        verify(latencyMetrics2).write(result, 2L, 100L, 110L);
 
         InOrder inOrder = inOrder(backPressure, backPressure2);
         inOrder.verify(backPressure).releasePermit(2L, result, 110L);

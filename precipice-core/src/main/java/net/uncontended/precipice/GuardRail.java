@@ -30,24 +30,19 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final Clock clock;
     private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
     private final boolean singleIncrement;
-    private final ArrayList<WritableCounts<Result>> resultMetrics;
-    private final ArrayList<WritableCounts<Rejected>> rejectedMetrics;
-    private final ArrayList<WritableLatency<Result>> latencyMetrics;
+    private final WritableCounts<Result> resultMetrics;
+    private final WritableCounts<Rejected> rejectedMetrics;
+    private final WritableLatency<Result> latencyMetrics;
     private final ArrayList<BackPressure<Rejected>> backPressureList;
-    private final Map<String, WritableCounts<Result>> resultMetricsMap;
-    private final Map<String, WritableCounts<Rejected>> rejectedMetricsMap;
-    private final Map<String, WritableLatency<Result>> latencyMetricsMap;
+
     private final Map<String, BackPressure<Rejected>> backPressureMap;
 
     private GuardRail(GuardRailProperties<Result, Rejected> properties) {
         name = properties.name;
         clock = properties.clock;
-        resultMetricsMap = properties.resultMetrics;
-        rejectedMetricsMap = properties.rejectedMetrics;
-        resultMetrics = new ArrayList<>(resultMetricsMap.values());
-        rejectedMetrics = new ArrayList<>(rejectedMetricsMap.values());
-        latencyMetricsMap = properties.resultLatency;
-        latencyMetrics = new ArrayList<>(latencyMetricsMap.values());
+        resultMetrics = properties.resultMetrics;
+        rejectedMetrics = properties.rejectedMetrics;
+        latencyMetrics = properties.resultLatency;
         backPressureMap = properties.backPressureMap;
         backPressureList = new ArrayList<>(backPressureMap.values());
         singleIncrement = properties.singleIncrementMetrics;
@@ -79,9 +74,8 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
             Rejected rejected = bp.acquirePermit(number, nanoTime);
             if (rejected != null) {
                 number = !singleIncrement ? number : 1;
-                for (WritableCounts<Rejected> m : rejectedMetrics) {
-                    m.write(rejected, number, nanoTime);
-                }
+                rejectedMetrics.write(rejected, number, nanoTime);
+
                 for (int j = 0; j < i; ++j) {
                     backPressureList.get(j).releasePermit(number, nanoTime);
                 }
@@ -160,12 +154,10 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      */
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
         number = !singleIncrement ? number : 1;
-        for (WritableCounts<Result> m : resultMetrics) {
-            m.write(result, number, nanoTime);
-        }
-        for (WritableLatency<Result> m : latencyMetrics) {
-            m.write(result, number, nanoTime - startNanos, nanoTime);
-        }
+
+        resultMetrics.write(result, number, nanoTime);
+        latencyMetrics.write(result, number, nanoTime - startNanos, nanoTime);
+
         for (BackPressure<Rejected> backPressure : backPressureList) {
             backPressure.releasePermit(number, result, nanoTime);
         }
@@ -195,8 +187,8 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the result object
      */
-    public Map<String, WritableCounts<Result>> getResultMetrics() {
-        return resultMetricsMap;
+    public WritableCounts<Result> getResultMetrics() {
+        return resultMetrics;
     }
 
     /**
@@ -204,8 +196,8 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the rejected object
      */
-    public Map<String, WritableCounts<Rejected>> getRejectedMetrics() {
-        return rejectedMetricsMap;
+    public WritableCounts<Rejected> getRejectedMetrics() {
+        return rejectedMetrics;
     }
 
     /**
@@ -213,8 +205,8 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      *
      * @return the latency object
      */
-    public Map<String, WritableLatency<Result>> getLatencyMetrics() {
-        return latencyMetricsMap;
+    public WritableLatency<Result> getLatencyMetrics() {
+        return latencyMetrics;
     }
 
     /**

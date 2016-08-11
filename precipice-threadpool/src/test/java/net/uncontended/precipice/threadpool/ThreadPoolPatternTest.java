@@ -122,12 +122,8 @@ public class ThreadPoolPatternTest {
         when(service3.getTimeoutService()).thenReturn(timeoutService3);
 
         when(guardRail.getClock()).thenReturn(clock);
-        Map<String, WritableCounts<TimeoutableResult>> resultMetricsMap = new LinkedHashMap<>();
-        resultMetricsMap.put("0", resultMetrics);
-        when(guardRail.getResultMetrics()).thenReturn(resultMetricsMap);
-        Map<String, WritableCounts<PatternRejected>> rejectedMetricsMap = new LinkedHashMap<>();
-        rejectedMetricsMap.put("0", rejectedMetrics);
-        when(guardRail.getRejectedMetrics()).thenReturn(rejectedMetricsMap);
+        when(guardRail.getResultMetrics()).thenReturn(resultMetrics);
+        when(guardRail.getRejectedMetrics()).thenReturn(rejectedMetrics);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
 
         when(action.call(context1)).thenReturn("Service1");

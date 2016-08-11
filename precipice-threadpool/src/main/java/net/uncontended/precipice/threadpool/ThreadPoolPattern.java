@@ -30,7 +30,6 @@ import net.uncontended.precipice.result.TimeoutableResult;
 import net.uncontended.precipice.threadpool.utils.TaskFactory;
 import net.uncontended.precipice.timeout.DelayQueueTimeoutService;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +37,7 @@ import java.util.concurrent.ExecutorService;
 public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, PatternRejected> {
 
     private final GuardRail<TimeoutableResult, PatternRejected> guardRail;
-    private final ArrayList<WritableCounts<PatternRejected>> rejectedMetrics;
+    private final WritableCounts<PatternRejected> rejectedMetrics;
     private final Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     private final Map<ThreadPoolService<?>, C> serviceToContext;
 
@@ -53,7 +52,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
                              Pattern<TimeoutableResult, ThreadPoolService<?>> pattern) {
         this.serviceToContext = serviceToContext;
         this.guardRail = guardRail;
-        this.rejectedMetrics = new ArrayList<>(guardRail.getRejectedMetrics().values());
+        this.rejectedMetrics = guardRail.getRejectedMetrics();
         this.pattern = pattern;
     }
 
@@ -90,9 +89,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
 
     private <T> PrecipiceFuture<TimeoutableResult, T> handleAllReject(long nanoTime) {
         guardRail.releasePermitsWithoutResult(1L, nanoTime);
-        for (WritableCounts<PatternRejected> m : rejectedMetrics) {
-            m.write(PatternRejected.ALL_REJECTED, 1L, nanoTime);
-        }
+        rejectedMetrics.write(PatternRejected.ALL_REJECTED, 1L, nanoTime);
         throw new RejectedException(PatternRejected.ALL_REJECTED);
     }
 

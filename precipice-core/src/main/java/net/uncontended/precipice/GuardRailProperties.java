@@ -22,16 +22,15 @@ import net.uncontended.precipice.metrics.latency.WritableLatency;
 import net.uncontended.precipice.time.Clock;
 import net.uncontended.precipice.time.SystemTime;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class GuardRailProperties<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
     public String name;
-    public Map<String, WritableCounts<Result>> resultMetrics = new LinkedHashMap<>();
-    public Map<String, WritableCounts<Rejected>> rejectedMetrics = new LinkedHashMap<>();
-    public Map<String, WritableLatency<Result>> resultLatency = new LinkedHashMap<>();
+    public WritableCounts<Result> resultMetrics;
+    public WritableCounts<Rejected> rejectedMetrics;
+    public WritableLatency<Result> resultLatency;
     public Map<String, BackPressure<Rejected>> backPressureMap = new LinkedHashMap<>();
     public boolean singleIncrementMetrics = false;
     public Clock clock = new SystemTime();

@@ -117,7 +117,7 @@ public class PatternTest {
         when(guardRail3.acquirePermits(1L, nanoTime)).thenReturn(null);
         when(guardRail1.acquirePermits(1L, nanoTime)).thenReturn(Rejected.CIRCUIT_OPEN);
         when(guardRail2.acquirePermits(1L, nanoTime)).thenReturn(null);
-        when(guardRail1.getRejectedMetrics()).thenReturn(MetricsMap.create(metrics));
+        when(guardRail1.getRejectedMetrics()).thenReturn(metrics);
 
         Sequence<Precipice<TimeoutableResult, Rejected>> all = pattern.getPrecipices(1L, nanoTime);
 

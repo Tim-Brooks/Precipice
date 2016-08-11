@@ -80,8 +80,8 @@ public class Simulation<R extends Enum<R> & Failable> {
             gauge.allowNext = true;
         }
 
-        assertMetrics((PartitionedCount<R>) guardRail.getResultMetrics().get("0"), resultTypes, resultCounts);
-        assertRejectedMetrics((PartitionedCount<SimulationRejected>) guardRail.getRejectedMetrics().get("0"), rejectedCounts);
+        assertMetrics((PartitionedCount<R>) guardRail.getResultMetrics(), resultTypes, resultCounts);
+        assertRejectedMetrics((PartitionedCount<SimulationRejected>) guardRail.getRejectedMetrics(), rejectedCounts);
     }
 
     private void wireUpGauge(GuardRail<R, SimulationRejected> guardRail) {

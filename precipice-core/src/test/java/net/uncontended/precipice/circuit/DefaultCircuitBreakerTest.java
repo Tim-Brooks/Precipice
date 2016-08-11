@@ -20,17 +20,13 @@ package net.uncontended.precipice.circuit;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.metrics.counts.NoOpCounter;
 import net.uncontended.precipice.metrics.counts.RollingCounts;
-import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.rejected.Rejected;
-import net.uncontended.precipice.test_utils.MetricsMap;
 import net.uncontended.precipice.test_utils.TestResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -52,7 +48,7 @@ public class DefaultCircuitBreakerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        when(guardRail.getResultMetrics()).thenReturn(MetricsMap.create(countMetrics));
+        when(guardRail.getResultMetrics()).thenReturn(countMetrics);
         when(countMetrics.current()).thenReturn(new NoOpCounter<>(TestResult.class));
     }
 
