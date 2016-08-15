@@ -49,6 +49,11 @@ public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> impleme
     }
 
     @Override
+    public PartitionedCount<T> activeInterval() {
+        return flipControl.active();
+    }
+
+    @Override
     public synchronized PartitionedCount<T> captureInterval() {
         inactive.reset();
         PartitionedCount<T> newlyInactive = flipControl.flip(inactive);

@@ -66,10 +66,6 @@ public class BufferedRecorder<T> implements Capturer<T> {
         flipControl.flip(interval.object);
     }
 
-    public T get() {
-        return flipControl.active();
-    }
-
     public IntervalIterator<T> intervals() {
         return intervals(clock.nanoTime());
     }
@@ -82,6 +78,11 @@ public class BufferedRecorder<T> implements Capturer<T> {
 
     private static int nextPositivePowerOfTwo(int bufferSize) {
         return 1 << 32 - Integer.numberOfLeadingZeros(bufferSize - 1);
+    }
+
+    @Override
+    public T activeInterval() {
+        return flipControl.active();
     }
 
     @Override

@@ -19,6 +19,8 @@ package net.uncontended.precipice.metrics.tools;
 
 public interface Capturer<T> {
 
+    T activeInterval();
+
     T captureInterval();
 
     T captureInterval(T newInterval);

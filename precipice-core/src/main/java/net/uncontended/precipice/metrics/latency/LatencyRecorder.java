@@ -49,6 +49,11 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
     }
 
     @Override
+    public PartitionedLatency<T> activeInterval() {
+        return flipControl.active();
+    }
+
+    @Override
     public synchronized PartitionedLatency<T> captureInterval() {
         inactive.reset();
         PartitionedLatency<T> newlyInactive = flipControl.flip(inactive);
