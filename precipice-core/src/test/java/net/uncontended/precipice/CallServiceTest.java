@@ -62,7 +62,7 @@ public class CallServiceTest {
         MockitoAnnotations.initMocks(this);
         service = new CallService<>(guardRail);
 
-        when(guardRail.getClock()).thenReturn(new SystemTime());
+        when(guardRail.getClock()).thenReturn(SystemTime.getInstance());
         when(guardRail.releaseFunction()).thenReturn(releaseFunction);
     }
 

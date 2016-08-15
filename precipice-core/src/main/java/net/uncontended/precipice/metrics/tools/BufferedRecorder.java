@@ -38,7 +38,7 @@ public class BufferedRecorder<T> implements Recorder<T> {
     private Interval<T> inactive;
 
     public BufferedRecorder(FlipControl<T> flipControl, int bufferSize) {
-        this(flipControl, bufferSize, new SystemTime());
+        this(flipControl, bufferSize, SystemTime.getInstance());
     }
 
     public BufferedRecorder(FlipControl<T> flipControl, int bufferSize, Clock clock) {

@@ -19,6 +19,10 @@ package net.uncontended.precipice.time;
 
 public class SystemTime implements Clock {
 
+    private static final SystemTime DEFAULT = new SystemTime();
+
+    private SystemTime() {}
+
     @Override
     public long currentTimeMillis() {
         return System.currentTimeMillis();
@@ -27,5 +31,9 @@ public class SystemTime implements Clock {
     @Override
     public long nanoTime() {
         return System.nanoTime();
+    }
+
+    public static SystemTime getInstance() {
+        return DEFAULT;
     }
 }

@@ -24,7 +24,7 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
     public RollingCounts(Allocator<PartitionedCount<T>> allocator, int buckets, long nanosPerBucket) {
         this(new RollingMetrics<PartitionedCount<T>>(allocator,
                 new CircularBuffer<PartitionedCount<T>>(buckets, nanosPerBucket, System.nanoTime()),
-                new SystemTime()));
+                SystemTime.getInstance()));
     }
 
     public RollingCounts(RollingMetrics<PartitionedCount<T>> rolling) {

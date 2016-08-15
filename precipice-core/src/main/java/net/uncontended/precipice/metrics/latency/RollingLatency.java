@@ -20,7 +20,7 @@ public class RollingLatency<T extends Enum<T>> extends AbstractMetrics<T> implem
     public RollingLatency(Allocator<PartitionedLatency<T>> allocator, int buckets, long nanosPerBucket) {
         this(new RollingMetrics<PartitionedLatency<T>>(allocator,
                 new CircularBuffer<PartitionedLatency<T>>(buckets, nanosPerBucket, System.nanoTime()),
-                new SystemTime()));
+                SystemTime.getInstance()));
     }
 
     public RollingLatency(RollingMetrics<PartitionedLatency<T>> rolling) {

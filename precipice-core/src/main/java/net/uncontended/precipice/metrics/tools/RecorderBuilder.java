@@ -17,6 +17,8 @@
 
 package net.uncontended.precipice.metrics.tools;
 
+import net.uncontended.precipice.time.Clock;
+
 public abstract class RecorderBuilder<T, S> {
 
     protected FlipControl<T> flipControl;
@@ -24,6 +26,7 @@ public abstract class RecorderBuilder<T, S> {
     protected T active;
     protected T inactive;
     protected Allocator<T> allocator;
+    private Clock clock;
 
     public RecorderBuilder<T, S> initialActive(T active) {
         this.active = active;
@@ -42,6 +45,11 @@ public abstract class RecorderBuilder<T, S> {
 
     public RecorderBuilder<T, S> withRecorder(FlipControl<T> flipControl) {
         this.flipControl = flipControl;
+        return this;
+    }
+
+    public RecorderBuilder<T, S> withClock(Clock clock) {
+        this.clock = clock;
         return this;
     }
 

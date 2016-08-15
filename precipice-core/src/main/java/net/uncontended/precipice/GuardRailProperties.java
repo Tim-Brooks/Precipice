@@ -33,5 +33,5 @@ public class GuardRailProperties<Result extends Enum<Result> & Failable, Rejecte
     public WritableLatency<Result> resultLatency;
     public Map<String, BackPressure<Rejected>> backPressureMap = new LinkedHashMap<>();
     public boolean singleIncrementMetrics = false;
-    public Clock clock = new SystemTime();
+    public Clock clock = SystemTime.getInstance();
 }

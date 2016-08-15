@@ -18,6 +18,7 @@
 package net.uncontended.precipice.time;
 
 public interface Clock {
+
     long currentTimeMillis();
 
     long nanoTime();

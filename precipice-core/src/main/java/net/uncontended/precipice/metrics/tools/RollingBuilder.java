@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class RollingBuilder<T, S> {
 
-    protected Clock clock;
+    protected Clock clock = SystemTime.getInstance();
     protected int buckets = -1;
     protected long nanosPerBucket = -1;
     protected Allocator<T> allocator;
@@ -52,10 +52,6 @@ public abstract class RollingBuilder<T, S> {
     public abstract S build();
 
     protected RollingMetrics<T> buildRollingMetrics() {
-        CircularBuffer<T> circularBuffer = new CircularBuffer<>(buckets, nanosPerBucket, clock.nanoTime());
-        if (clock == null) {
-            clock = new SystemTime();
-        }
         if (allocator == null) {
             throw new IllegalArgumentException("Allocator cannot be null.");
         }
@@ -66,6 +62,9 @@ public abstract class RollingBuilder<T, S> {
         if (nanosPerBucket <= 0) {
             throw new IllegalArgumentException("Nano seconds per bucket must be greater than 0. Found: " + nanosPerBucket);
         }
+
+        CircularBuffer<T> circularBuffer = new CircularBuffer<>(buckets, nanosPerBucket, clock.nanoTime());
+
         return new RollingMetrics<>(allocator, circularBuffer, clock);
     }
 

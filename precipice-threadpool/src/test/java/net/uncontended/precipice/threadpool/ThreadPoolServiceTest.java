@@ -68,7 +68,7 @@ public class ThreadPoolServiceTest {
         executorService = PrecipiceExecutors.threadPoolExecutor("Test", 1, 100);
         service = new ThreadPoolService<>(executorService, guardRail);
 
-        when(guardRail.getClock()).thenReturn(new SystemTime());
+        when(guardRail.getClock()).thenReturn(SystemTime.getInstance());
     }
 
     @After
