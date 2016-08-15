@@ -18,11 +18,11 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
-import net.uncontended.precipice.metrics.tools.Capturer;
+import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.FlipControl;
 import net.uncontended.precipice.metrics.tools.RelaxedFlipControl;
 
-public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Capturer<PartitionedCount<T>> {
+public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Recorder<PartitionedCount<T>> {
 
     private final FlipControl<PartitionedCount<T>> flipControl;
     private PartitionedCount<T> inactive;

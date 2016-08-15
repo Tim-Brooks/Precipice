@@ -18,11 +18,11 @@
 package net.uncontended.precipice.metrics.latency;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
-import net.uncontended.precipice.metrics.tools.Capturer;
+import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.FlipControl;
 import net.uncontended.precipice.metrics.tools.RelaxedFlipControl;
 
-public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Capturer<PartitionedLatency<T>> {
+public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Recorder<PartitionedLatency<T>> {
 
     private final FlipControl<PartitionedLatency<T>> flipControl;
     private PartitionedLatency<T> inactive;
