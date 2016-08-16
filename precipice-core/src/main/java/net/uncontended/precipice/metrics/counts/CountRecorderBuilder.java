@@ -45,6 +45,6 @@ public class CountRecorderBuilder<T extends Enum<T>> extends RecorderBuilder<Par
             flipControl = new RelaxedFlipControl<>();
         }
 
-        return new CountRecorder<T>(active, inactive, flipControl);
+        return new CountRecorder<T>(active, inactive, flipControl, clock);
     }
 }

@@ -26,7 +26,7 @@ public abstract class RecorderBuilder<T, S> {
     protected T active;
     protected T inactive;
     protected Allocator<T> allocator;
-    private Clock clock;
+    protected Clock clock;
 
     public RecorderBuilder<T, S> initialActive(T active) {
         this.active = active;

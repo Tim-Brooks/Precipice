@@ -18,24 +18,25 @@
 package net.uncontended.precipice.metrics.latency;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
-import net.uncontended.precipice.metrics.tools.Recorder;
 import net.uncontended.precipice.metrics.tools.FlipControl;
-import net.uncontended.precipice.metrics.tools.RelaxedFlipControl;
+import net.uncontended.precipice.metrics.tools.Recorder;
+import net.uncontended.precipice.time.Clock;
 
 public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableLatency<T>, Recorder<PartitionedLatency<T>> {
 
+    private final Object lock = new Object();
     private final FlipControl<PartitionedLatency<T>> flipControl;
+    private final Clock clock;
     private PartitionedLatency<T> inactive;
+    private long intervalStart;
 
-    public LatencyRecorder(PartitionedLatency<T> active, PartitionedLatency<T> inactive) {
-        this(active, inactive, new RelaxedFlipControl<PartitionedLatency<T>>());
-    }
-
-    public LatencyRecorder(PartitionedLatency<T> active, PartitionedLatency<T> inactive, FlipControl<PartitionedLatency<T>> flipControl) {
+    public LatencyRecorder(PartitionedLatency<T> active, PartitionedLatency<T> inactive, FlipControl<PartitionedLatency<T>> flipControl, Clock clock) {
         super(active.getMetricClazz());
         this.flipControl = flipControl;
+        this.clock = clock;
         this.flipControl.flip(active);
         this.inactive = inactive;
+        this.intervalStart = clock.nanoTime();
     }
 
     @Override
@@ -54,18 +55,36 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
     }
 
     @Override
-    public synchronized PartitionedLatency<T> captureInterval() {
-        inactive.reset();
-        PartitionedLatency<T> newlyInactive = flipControl.flip(inactive);
-        inactive = newlyInactive;
-        return newlyInactive;
+    public long activeIntervalStart() {
+        synchronized (lock) {
+            return intervalStart;
+        }
     }
 
     @Override
-    public synchronized PartitionedLatency<T> captureInterval(PartitionedLatency<T> newInterval) {
-        PartitionedLatency<T> newlyInactive = flipControl.flip(newInterval);
-        inactive = newlyInactive;
-        return newlyInactive;
+    public PartitionedLatency<T> captureInterval() {
+        return captureInterval(clock.nanoTime());
+    }
+
+    @Override
+    public PartitionedLatency<T> captureInterval(long nanotime) {
+        inactive.reset();
+        return captureInterval(inactive, nanotime);
+    }
+
+    @Override
+    public PartitionedLatency<T> captureInterval(PartitionedLatency<T> newInterval) {
+        return captureInterval(newInterval, clock.nanoTime());
+    }
+
+    @Override
+    public PartitionedLatency<T> captureInterval(PartitionedLatency<T> newInterval, long nanoTime) {
+        synchronized (lock) {
+            PartitionedLatency<T> newlyInactive = flipControl.flip(newInterval);
+            inactive = newlyInactive;
+            intervalStart = nanoTime;
+            return newlyInactive;
+        }
     }
 
     public static <T extends Enum<T>> LatencyRecorderBuilder<T> builder(Class<T> clazz) {

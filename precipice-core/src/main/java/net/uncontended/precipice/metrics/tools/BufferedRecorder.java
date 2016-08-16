@@ -86,14 +86,29 @@ public class BufferedRecorder<T> implements Recorder<T> {
     }
 
     @Override
+    public long activeIntervalStart() {
+        return 0;
+    }
+
+    @Override
     public T captureInterval() {
 //        return captureInterval(inactive.object);
         return null;
     }
 
     @Override
+    public T captureInterval(long nanotime) {
+        return null;
+    }
+
+    @Override
     public T captureInterval(T newInterval) {
 //        return advance(newValue, clock.nanoTime());
+        return null;
+    }
+
+    @Override
+    public T captureInterval(T newInterval, long nanoTime) {
         return null;
     }
 

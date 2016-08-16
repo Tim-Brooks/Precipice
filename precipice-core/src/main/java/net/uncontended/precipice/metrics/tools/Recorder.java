@@ -21,13 +21,13 @@ public interface Recorder<T> {
 
     T activeInterval();
 
-//    long activeIntervalStart();
+    long activeIntervalStart();
 
     T captureInterval();
 
-//    T captureInterval(long nanotime);
+    T captureInterval(long nanotime);
 
     T captureInterval(T newInterval);
 
-//    T captureInterval(T newInterval, long nanoTime);
+    T captureInterval(T newInterval, long nanoTime);
 }

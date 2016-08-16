@@ -45,6 +45,6 @@ public class LatencyRecorderBuilder<T extends Enum<T>> extends RecorderBuilder<P
             flipControl = new RelaxedFlipControl<>();
         }
 
-        return new LatencyRecorder<T>(active, inactive, flipControl);
+        return new LatencyRecorder<T>(active, inactive, flipControl, clock);
     }
 }
