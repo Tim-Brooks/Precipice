@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics.latency;
 
+import net.uncontended.precipice.metrics.tools.MetricRecorder;
 import net.uncontended.precipice.metrics.tools.RecorderBuilder;
 import net.uncontended.precipice.metrics.tools.RelaxedFlipControl;
 
@@ -45,6 +46,6 @@ public class LatencyRecorderBuilder<T extends Enum<T>> extends RecorderBuilder<P
             flipControl = new RelaxedFlipControl<>();
         }
 
-        return new LatencyRecorder<T>(active, inactive, flipControl, clock);
+        return new LatencyRecorder<T>(new MetricRecorder<>(active, inactive, flipControl, clock));
     }
 }

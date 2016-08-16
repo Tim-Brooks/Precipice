@@ -21,7 +21,7 @@ public abstract class AbstractMetrics<T extends Enum<T>> implements Metrics<T> {
 
     protected final Class<T> clazz;
 
-    public AbstractMetrics(Class<T> clazz) {
+    protected AbstractMetrics(Class<T> clazz) {
         this.clazz = clazz;
     }
 

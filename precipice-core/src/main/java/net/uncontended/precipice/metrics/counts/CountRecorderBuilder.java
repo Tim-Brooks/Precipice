@@ -17,6 +17,7 @@
 
 package net.uncontended.precipice.metrics.counts;
 
+import net.uncontended.precipice.metrics.tools.MetricRecorder;
 import net.uncontended.precipice.metrics.tools.RecorderBuilder;
 import net.uncontended.precipice.metrics.tools.RelaxedFlipControl;
 
@@ -45,6 +46,6 @@ public class CountRecorderBuilder<T extends Enum<T>> extends RecorderBuilder<Par
             flipControl = new RelaxedFlipControl<>();
         }
 
-        return new CountRecorder<T>(active, inactive, flipControl, clock);
+        return new CountRecorder<T>(new MetricRecorder<>(active, inactive, flipControl, clock));
     }
 }

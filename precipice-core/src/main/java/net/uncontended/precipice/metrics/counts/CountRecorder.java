@@ -18,73 +18,56 @@
 package net.uncontended.precipice.metrics.counts;
 
 import net.uncontended.precipice.metrics.AbstractMetrics;
-import net.uncontended.precipice.metrics.tools.FlipControl;
+import net.uncontended.precipice.metrics.tools.MetricRecorder;
 import net.uncontended.precipice.metrics.tools.Recorder;
-import net.uncontended.precipice.time.Clock;
 
 public class CountRecorder<T extends Enum<T>> extends AbstractMetrics<T> implements WritableCounts<T>, Recorder<PartitionedCount<T>> {
 
-    private final Object lock = new Object();
-    private final FlipControl<PartitionedCount<T>> flipControl;
-    private final Clock clock;
-    private PartitionedCount<T> inactive;
-    private long intervalStart;
+    private final MetricRecorder<PartitionedCount<T>> metricRecorder;
 
-    public CountRecorder(PartitionedCount<T> active, PartitionedCount<T> inactive, FlipControl<PartitionedCount<T>> flipControl, Clock clock) {
-        super(active.getMetricClazz());
-        this.flipControl = flipControl;
-        this.clock = clock;
-        this.flipControl.flip(active);
-        this.inactive = inactive;
-        this.intervalStart = clock.nanoTime();
+    public CountRecorder(MetricRecorder<PartitionedCount<T>> metricRecorder) {
+        super(metricRecorder.activeInterval().getMetricClazz());
+        this.metricRecorder = metricRecorder;
     }
 
     @Override
     public void write(T result, long number, long nanoTime) {
-        long permit = flipControl.startRecord();
+        long permit = metricRecorder.startRecord();
         try {
-            flipControl.active().add(result, number);
+            metricRecorder.activeInterval().add(result, number);
         } finally {
-            flipControl.endRecord(permit);
+            metricRecorder.endRecord(permit);
         }
     }
 
     @Override
     public PartitionedCount<T> activeInterval() {
-        return flipControl.active();
+        return metricRecorder.activeInterval();
     }
 
     @Override
     public long activeIntervalStart() {
-        synchronized (lock) {
-            return intervalStart;
-        }
+        return metricRecorder.activeIntervalStart();
     }
 
     @Override
     public PartitionedCount<T> captureInterval() {
-        return captureInterval(clock.nanoTime());
+        return metricRecorder.captureInterval();
     }
 
     @Override
     public PartitionedCount<T> captureInterval(long nanotime) {
-        inactive.reset();
-        return captureInterval(inactive);
+        return metricRecorder.captureInterval(nanotime);
     }
 
     @Override
     public PartitionedCount<T> captureInterval(PartitionedCount<T> newInterval) {
-        return captureInterval(newInterval, clock.nanoTime());
+        return metricRecorder.captureInterval(newInterval);
     }
 
     @Override
-    public PartitionedCount<T> captureInterval(PartitionedCount<T> newInterval, long nanoTime) {
-        synchronized (lock) {
-            PartitionedCount<T> newlyInactive = flipControl.flip(newInterval);
-            inactive = newlyInactive;
-            intervalStart = nanoTime;
-            return newlyInactive;
-        }
+    public synchronized PartitionedCount<T> captureInterval(PartitionedCount<T> newInterval, long nanoTime) {
+        return metricRecorder.captureInterval(newInterval, nanoTime);
     }
 
     public static <T extends Enum<T>> CountRecorderBuilder<T> builder(Class<T> clazz) {
