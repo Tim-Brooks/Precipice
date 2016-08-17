@@ -3,7 +3,6 @@ package net.uncontended.precipice.metrics.counts;
 import net.uncontended.precipice.metrics.AbstractMetrics;
 import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.Rolling;
-import net.uncontended.precipice.metrics.tools.Allocator;
 import net.uncontended.precipice.metrics.tools.CircularBuffer;
 import net.uncontended.precipice.metrics.tools.RollingMetrics;
 import net.uncontended.precipice.time.SystemTime;
@@ -18,11 +17,7 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
     // Optional: Allocator, Clock
 
     public RollingCounts(Class<T> clazz, int buckets, long nanosPerBucket) {
-        this(Counters.longAdder(clazz), buckets, nanosPerBucket);
-    }
-
-    public RollingCounts(Allocator<PartitionedCount<T>> allocator, int buckets, long nanosPerBucket) {
-        this(new RollingMetrics<PartitionedCount<T>>(allocator,
+        this(new RollingMetrics<PartitionedCount<T>>(Counters.longAdder(clazz),
                 new CircularBuffer<PartitionedCount<T>>(buckets, nanosPerBucket, System.nanoTime()),
                 SystemTime.getInstance()));
     }

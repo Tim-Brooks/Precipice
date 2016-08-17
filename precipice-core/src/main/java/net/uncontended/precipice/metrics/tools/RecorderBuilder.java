@@ -18,6 +18,7 @@
 package net.uncontended.precipice.metrics.tools;
 
 import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.time.SystemTime;
 
 public abstract class RecorderBuilder<T, S> {
 
@@ -26,7 +27,7 @@ public abstract class RecorderBuilder<T, S> {
     protected T active;
     protected T inactive;
     protected Allocator<T> allocator;
-    protected Clock clock;
+    protected Clock clock = SystemTime.getInstance();
 
     public RecorderBuilder<T, S> initialActive(T active) {
         this.active = active;
