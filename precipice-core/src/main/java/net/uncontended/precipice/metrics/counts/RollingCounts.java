@@ -13,9 +13,6 @@ public class RollingCounts<T extends Enum<T>> extends AbstractMetrics<T> impleme
 
     private final RollingMetrics<PartitionedCount<T>> rolling;
 
-    // Need: Clazz, Bucket count and resolution
-    // Optional: Allocator, Clock
-
     public RollingCounts(Class<T> clazz, int buckets, long nanosPerBucket) {
         this(new RollingMetrics<PartitionedCount<T>>(Counters.longAdder(clazz),
                 new CircularBuffer<PartitionedCount<T>>(buckets, nanosPerBucket, System.nanoTime()),

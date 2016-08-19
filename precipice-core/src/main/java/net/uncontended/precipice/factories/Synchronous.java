@@ -23,7 +23,7 @@ import net.uncontended.precipice.Failable;
 import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.rejected.RejectedException;
 
-public class Synchronous {
+public final class Synchronous {
 
     private Synchronous() {
     }

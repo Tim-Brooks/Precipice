@@ -23,7 +23,7 @@ import net.uncontended.precipice.GuardRail;
 import net.uncontended.precipice.concurrent.Eventual;
 import net.uncontended.precipice.rejected.RejectedException;
 
-public class Asynchronous {
+public final class Asynchronous {
 
     private Asynchronous() {
     }

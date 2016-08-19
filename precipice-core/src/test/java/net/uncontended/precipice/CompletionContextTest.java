@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Timothy Brooks
+ * Copyright 2014 Timothy Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,9 @@
  *
  */
 
-package net.uncontended.precipice.test_utils;
+package net.uncontended.precipice;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+public class CompletionContextTest {
 
-public final class MetricsMap {
-
-    public static <M> Map<String, M> create(M... args) {
-        LinkedHashMap<String, M> map = new LinkedHashMap<>();
-        for (M m : args) {
-            map.put(Integer.toString(map.size()), m);
-        }
-        return map;
-    }
+    // TODO: Add tests
 }

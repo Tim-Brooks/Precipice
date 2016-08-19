@@ -83,7 +83,7 @@ public class RollingMetricsTest {
         intervals = metrics.intervalsWithDefault(nanoTime, default0);
         assertEquals(0, countForPeriod(intervals, 1, TimeUnit.SECONDS));
         assertEquals(2, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 2, TimeUnit.SECONDS));
-//
+
         nanoTime = startTime + TimeUnit.MILLISECONDS.toNanos(2000L);
         assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 1, TimeUnit.SECONDS));
         assertEquals(0, countForPeriod(metrics.intervalsWithDefault(nanoTime, default0), 2, TimeUnit.SECONDS));

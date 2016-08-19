@@ -22,7 +22,6 @@ import net.uncontended.precipice.Precipice;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.result.TimeoutableResult;
-import net.uncontended.precipice.test_utils.MetricsMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
