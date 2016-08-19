@@ -18,7 +18,6 @@
 package net.uncontended.precipice.semaphore;
 
 import net.uncontended.precipice.rejected.Rejected;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -31,18 +30,15 @@ import static junit.framework.TestCase.*;
 
 public class LongSemaphoreTest {
 
-    private Executor executor = Executors.newFixedThreadPool(4);
+    private final Executor executor = Executors.newFixedThreadPool(4);
     private LongSemaphore<Rejected> semaphore;
     private volatile long concurrencyLevel;
 
-    @Before
-    public void setUp() {
-        concurrencyLevel = ThreadLocalRandom.current().nextLong(15) + 1;
-        semaphore = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
-    }
-
     @Test
     public void semaphoreAllowsExpectedNumberOfActions() throws InterruptedException {
+        concurrencyLevel = ThreadLocalRandom.current().nextLong(15) + 1;
+        semaphore = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
+
         final AtomicBoolean isFailed = new AtomicBoolean(false);
         final CountDownLatch latch = new CountDownLatch((int) concurrencyLevel);
         for (int i = 0; i < concurrencyLevel; ++i) {
@@ -70,7 +66,7 @@ public class LongSemaphoreTest {
     @Test
     public void semaphoreSupportsMultiplePermits() throws InterruptedException {
         concurrencyLevel = 15;
-        semaphore  = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
+        semaphore = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
 
         final AtomicBoolean isFailed = new AtomicBoolean(false);
         final CountDownLatch latch = new CountDownLatch(7);
@@ -101,7 +97,7 @@ public class LongSemaphoreTest {
     @Test
     public void semaphoreSupportsReleasingPermits() throws InterruptedException {
         concurrencyLevel = 8;
-        semaphore  = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
+        semaphore = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
 
         final AtomicBoolean isFailed = new AtomicBoolean(false);
         final CountDownLatch latch = new CountDownLatch(100);
