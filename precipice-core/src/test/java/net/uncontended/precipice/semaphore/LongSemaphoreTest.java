@@ -17,7 +17,113 @@
 
 package net.uncontended.precipice.semaphore;
 
+import net.uncontended.precipice.rejected.Rejected;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static junit.framework.TestCase.*;
+
 public class LongSemaphoreTest {
 
-    // TODO: Implement tests
+    private Executor executor = Executors.newFixedThreadPool(4);
+    private LongSemaphore<Rejected> semaphore;
+    private volatile long concurrencyLevel;
+
+    @Before
+    public void setUp() {
+        concurrencyLevel = ThreadLocalRandom.current().nextLong(15) + 1;
+        semaphore = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
+    }
+
+    @Test
+    public void semaphoreAllowsExpectedNumberOfActions() throws InterruptedException {
+        final AtomicBoolean isFailed = new AtomicBoolean(false);
+        final CountDownLatch latch = new CountDownLatch((int) concurrencyLevel);
+        for (int i = 0; i < concurrencyLevel; ++i) {
+            int finalI = i;
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Rejected rejected = semaphore.acquirePermit(1, finalI);
+                    if (rejected != null) {
+                        isFailed.set(true);
+                    }
+                    latch.countDown();
+                }
+            });
+        }
+        latch.await();
+        assertFalse(isFailed.get());
+
+        assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, semaphore.acquirePermit(1, 100L));
+        assertEquals(0, semaphore.remainingCapacity());
+        assertEquals(concurrencyLevel, semaphore.maxConcurrencyLevel());
+        assertEquals(concurrencyLevel, semaphore.currentConcurrencyLevel());
+    }
+
+    @Test
+    public void semaphoreSupportsMultiplePermits() throws InterruptedException {
+        concurrencyLevel = 15;
+        semaphore  = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
+
+        final AtomicBoolean isFailed = new AtomicBoolean(false);
+        final CountDownLatch latch = new CountDownLatch(7);
+        for (int i = 0; i < 7; ++i) {
+            int finalI = i;
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Rejected rejected = semaphore.acquirePermit(2, finalI);
+                    if (rejected != null) {
+                        isFailed.set(true);
+                    }
+                    latch.countDown();
+                }
+            });
+        }
+        latch.await();
+        assertFalse(isFailed.get());
+
+        assertSame(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, semaphore.acquirePermit(2, 100L));
+        assertEquals(1, semaphore.remainingCapacity());
+        assertEquals(15, semaphore.maxConcurrencyLevel());
+        assertEquals(14, semaphore.currentConcurrencyLevel());
+        assertNull(semaphore.acquirePermit(1, 100L));
+        assertEquals(15, semaphore.currentConcurrencyLevel());
+    }
+
+    @Test
+    public void semaphoreSupportsReleasingPermits() throws InterruptedException {
+        concurrencyLevel = 8;
+        semaphore  = new LongSemaphore<>(Rejected.MAX_CONCURRENCY_LEVEL_EXCEEDED, concurrencyLevel);
+
+        final AtomicBoolean isFailed = new AtomicBoolean(false);
+        final CountDownLatch latch = new CountDownLatch(100);
+        for (int i = 0; i < 100; ++i) {
+            int finalI = i;
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Rejected rejected = semaphore.acquirePermit(2, finalI);
+                    if (rejected != null) {
+                        isFailed.set(true);
+                    }
+                    semaphore.releasePermit(2, finalI + 1);
+                    latch.countDown();
+                }
+            });
+        }
+        latch.await();
+        assertFalse(isFailed.get());
+
+        assertEquals(8, semaphore.remainingCapacity());
+        assertEquals(8, semaphore.maxConcurrencyLevel());
+        assertEquals(0, semaphore.currentConcurrencyLevel());
+    }
 }
