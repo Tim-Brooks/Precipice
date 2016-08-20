@@ -28,23 +28,24 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultHealthChecker implements HealthChecker {
 
-    private AtomicLong lastHealthNanoTime;
-    private ArrayList<InternalGauge<?>> gauges = new ArrayList<>();
-    private HealthSnapshot health = new HealthSnapshot(0, 0);
-
     private final long healthRefreshNanos;
     private final long trailingPeriodNanos;
     private final long failureThreshold;
     private final int failurePercentageThreshold;
     private final long sampleSizeThreshold;
 
-    public DefaultHealthChecker() {
-        lastHealthNanoTime = new AtomicLong(System.nanoTime());
-        healthRefreshNanos = 0;
-        trailingPeriodNanos = 0;
-        failureThreshold = 0;
-        failurePercentageThreshold = 0;
-        sampleSizeThreshold = 0;
+    private final AtomicLong lastHealthNanoTime = new AtomicLong();
+    private final ArrayList<InternalGauge<?>> gauges = new ArrayList<>();
+
+    private volatile HealthSnapshot health = new HealthSnapshot(0, 0);
+
+    public DefaultHealthChecker(long healthRefreshNanos, long trailingPeriodNanos, long failureThreshold,
+                                int failurePercentageThreshold, long sampleSizeThreshold) {
+        this.healthRefreshNanos = healthRefreshNanos;
+        this.trailingPeriodNanos = trailingPeriodNanos;
+        this.failureThreshold = failureThreshold;
+        this.failurePercentageThreshold = failurePercentageThreshold;
+        this.sampleSizeThreshold = sampleSizeThreshold;
     }
 
     @Override
@@ -58,6 +59,10 @@ public class DefaultHealthChecker implements HealthChecker {
             return false;
         }
         return true;
+    }
+
+    public void init(long nanoTime) {
+        lastHealthNanoTime.set(nanoTime);
     }
 
     private HealthSnapshot getHealthSnapshot(long currentNanoTime) {
