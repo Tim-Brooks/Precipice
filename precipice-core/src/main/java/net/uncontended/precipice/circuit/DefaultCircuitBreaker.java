@@ -97,7 +97,8 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
         } else {
             throw new IllegalArgumentException("DefaultCircuitBreaker requires rolling result object");
         }
-        lastTestedNanoTime = guardRail.getClock().nanoTime();
+        long nanotime = guardRail.getClock().nanoTime();
+        lastHealthNanoTime.set(nanotime);
     }
 
     @Override

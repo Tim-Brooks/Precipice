@@ -30,9 +30,6 @@ public class HealthGauge {
 
     private final List<InternalGauge<?>> gauges = new ArrayList<>();
 
-    /**
-     * This is absolutely not threadsafe. External synchronization is necessary.
-     */
     public synchronized HealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         long total = 0;
         long failures = 0;

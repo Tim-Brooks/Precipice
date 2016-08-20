@@ -22,6 +22,7 @@ import net.uncontended.precipice.metrics.counts.NoOpCounter;
 import net.uncontended.precipice.metrics.counts.RollingCounts;
 import net.uncontended.precipice.rejected.Rejected;
 import net.uncontended.precipice.test_utils.TestResult;
+import net.uncontended.precipice.time.Clock;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -40,6 +41,8 @@ public class DefaultCircuitBreakerTest {
     private RollingCounts<TestResult> countMetrics;
     @Mock
     private HealthGauge healthGauge;
+    @Mock
+    private Clock clock;
 
     private CircuitBreakerConfigBuilder<Rejected> builder = new CircuitBreakerConfigBuilder<>(Rejected.CIRCUIT_OPEN);
 
@@ -49,6 +52,8 @@ public class DefaultCircuitBreakerTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         when(guardRail.getResultMetrics()).thenReturn(countMetrics);
+        when(guardRail.getClock()).thenReturn(clock);
+        when(clock.nanoTime()).thenReturn(0L);
         when(countMetrics.current()).thenReturn(new NoOpCounter<>(TestResult.class));
     }
 
