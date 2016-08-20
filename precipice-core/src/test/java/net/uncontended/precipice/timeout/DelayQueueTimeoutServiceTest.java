@@ -19,14 +19,25 @@ package net.uncontended.precipice.timeout;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class DelayQueueTimeoutServiceTest {
 
+    private volatile boolean didTimeout;
     private DelayQueueTimeoutService timeoutService;
+    private ConcurrentLinkedQueue<Integer> queue;
 
     @Before
     public void setUp() {
+        didTimeout = false;
         timeoutService = new DelayQueueTimeoutService("Test-Timeout-Service");
+        queue = new ConcurrentLinkedQueue<>();
     }
 
     @After
@@ -34,5 +45,61 @@ public class DelayQueueTimeoutServiceTest {
         timeoutService.stop();
     }
 
-    // TODO: Implement tests
+    @Test
+    public void testTimeoutWillOccur() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        timeoutService.scheduleTimeout(new TestTimeout(latch), 10L);
+
+        latch.await();
+
+        assertTrue(didTimeout);
+    }
+
+    @Test
+    public void testTimeoutsWillOccurInOrder() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(3);
+
+        timeoutService.scheduleTimeout(new TestTimeout2(latch, 3), 100L);
+        timeoutService.scheduleTimeout(new TestTimeout2(latch, 1), 10L);
+        timeoutService.scheduleTimeout(new TestTimeout2(latch, 2), 50L);
+
+        latch.await();
+
+        assertEquals(1, queue.poll().intValue());
+        assertEquals(2, queue.poll().intValue());
+        assertEquals(3, queue.poll().intValue());
+    }
+
+    private class TestTimeout implements Timeout {
+
+        private final CountDownLatch latch;
+
+        private TestTimeout(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
+        @Override
+        public void timeout() {
+            didTimeout = true;
+            latch.countDown();
+        }
+    }
+
+    private class TestTimeout2 implements Timeout {
+
+        private final CountDownLatch latch;
+        private final int value;
+
+        private TestTimeout2(CountDownLatch latch, int value) {
+            this.latch = latch;
+            this.value = value;
+        }
+
+        @Override
+        public void timeout() {
+            queue.add(value);
+            latch.countDown();
+        }
+    }
 }

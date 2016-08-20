@@ -17,6 +17,9 @@
 
 package net.uncontended.precipice.timeout;
 
+import net.uncontended.precipice.time.Clock;
+import net.uncontended.precipice.time.SystemTime;
+
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -30,14 +33,16 @@ public class DelayQueueTimeoutService implements TimeoutService {
     private final DelayQueue<TimeoutHolder> timeoutQueue = new DelayQueue<>();
     private final Thread timeoutThread;
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
+    private final Clock clock;
     private final Thread.UncaughtExceptionHandler exceptionHandler;
     private volatile boolean isRunning = true;
 
     public DelayQueueTimeoutService(String name) {
-        this(name, null);
+        this(name, SystemTime.getInstance(), null);
     }
 
-    public DelayQueueTimeoutService(String name, Thread.UncaughtExceptionHandler exceptionHandler) {
+    public DelayQueueTimeoutService(String name, Clock clock, Thread.UncaughtExceptionHandler exceptionHandler) {
+        this.clock = clock;
         this.exceptionHandler = exceptionHandler;
 
         timeoutThread = createThread();
@@ -100,7 +105,7 @@ public class DelayQueueTimeoutService implements TimeoutService {
         });
     }
 
-    private static class TimeoutHolder implements Delayed {
+    private class TimeoutHolder implements Delayed {
 
         private final Timeout task;
         public final long nanosAbsoluteTimeout;
@@ -114,7 +119,7 @@ public class DelayQueueTimeoutService implements TimeoutService {
 
         @Override
         public long getDelay(TimeUnit unit) {
-            return unit.convert(nanosAbsoluteTimeout - System.nanoTime(), TimeUnit.NANOSECONDS);
+            return unit.convert(nanosAbsoluteTimeout - clock.nanoTime(), TimeUnit.NANOSECONDS);
         }
 
         @Override
