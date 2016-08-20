@@ -32,11 +32,10 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
     private static final int OPEN = 1;
     private static final int FORCED_OPEN = 2;
 
-    private final Object gaugeLock = new Object();
     private final AtomicInteger state = new AtomicInteger(0);
     private final AtomicLong lastHealthNanoTime = new AtomicLong(0);
     private final HealthGauge healthGauge;
-    private volatile long lastTestedTime = 0;
+    private volatile long lastTestedNanoTime = 0;
     private volatile CircuitBreakerConfig<Rejected> breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0);
 
@@ -54,13 +53,12 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
         CircuitBreakerConfig<Rejected> config = breakerConfig;
         int state = this.state.get();
         if (state == OPEN) {
-            long backOffTimeMillis = config.backOffTimeMillis;
-            long currentTime = currentMillisTime(nanoTime);
+            long backOffTimeNanos = config.backOffTimeNanos;
             // This potentially allows a couple of tests through. Should think about this decision
-            if (currentTime < backOffTimeMillis + lastTestedTime) {
+            if (nanoTime - (backOffTimeNanos + lastTestedNanoTime) < 0) {
                 return config.reason;
             }
-            lastTestedTime = currentTime;
+            lastTestedNanoTime = nanoTime;
         }
         return state != FORCED_OPEN ? null : config.reason;
     }
@@ -78,14 +76,13 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
             }
         } else {
             if (state.get() == CLOSED) {
-                long currentTime = currentMillisTime(nanoTime);
                 CircuitBreakerConfig<Rejected> config = breakerConfig;
                 HealthSnapshot health = getHealthSnapshot(config, nanoTime);
                 long failures = health.failures;
                 int failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
                         config.sampleSizeThreshold < health.total)) {
-                    lastTestedTime = currentTime;
+                    lastTestedNanoTime = nanoTime;
                     state.compareAndSet(CLOSED, OPEN);
                 }
             }
@@ -129,17 +126,13 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
 
     private HealthSnapshot getHealthSnapshot(CircuitBreakerConfig<Rejected> config, long currentNanoTime) {
         long lastHealthNanoTime = this.lastHealthNanoTime.get();
-        if (currentNanoTime - (lastHealthNanoTime + TimeUnit.MILLISECONDS.toNanos(config.healthRefreshMillis)) > 0) {
+        if (currentNanoTime - (lastHealthNanoTime + config.healthRefreshNanos) > 0) {
             if (this.lastHealthNanoTime.compareAndSet(lastHealthNanoTime, currentNanoTime)) {
-                HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS, currentNanoTime);
+                HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodNanos, TimeUnit.NANOSECONDS, currentNanoTime);
                 health = newHealth;
                 return newHealth;
             }
         }
         return health;
-    }
-
-    private static long currentMillisTime(long nanoTime) {
-        return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
     }
 }

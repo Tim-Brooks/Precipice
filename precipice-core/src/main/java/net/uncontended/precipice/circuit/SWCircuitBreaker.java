@@ -23,7 +23,6 @@ import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -55,7 +54,7 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
         CircuitBreakerConfig<Rejected> config = breakerConfig;
         int state = this.state.get();
         if (state == OPEN) {
-            long backOffTimeMillis = config.backOffTimeMillis;
+            long backOffTimeMillis = config.backOffTimeNanos;
             long currentTime = TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
             if (currentTime < backOffTimeMillis + lastTestedTime) {
                 return config.reason;
@@ -128,6 +127,6 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
 
     @Override
     public void tick(long nanoTime) {
-        health = healthGauge.getHealth(breakerConfig.trailingPeriodMillis, TimeUnit.MILLISECONDS, nanoTime);
+        health = healthGauge.getHealth(breakerConfig.trailingPeriodNanos, TimeUnit.MILLISECONDS, nanoTime);
     }
 }

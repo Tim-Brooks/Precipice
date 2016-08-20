@@ -16,6 +16,8 @@
  */
 package net.uncontended.precipice.circuit;
 
+import java.util.concurrent.TimeUnit;
+
 public class CircuitBreakerConfig<Rejected extends Enum<Rejected>> {
 
     public final Rejected reason;
@@ -23,9 +25,9 @@ public class CircuitBreakerConfig<Rejected extends Enum<Rejected>> {
     public final int failurePercentageThreshold;
     public final long failureThreshold;
     // TODO: Change these all to nanos to avoid computing millis time
-    public final long trailingPeriodMillis;
-    public final long healthRefreshMillis;
-    public final long backOffTimeMillis;
+    public final long trailingPeriodNanos;
+    public final long healthRefreshNanos;
+    public final long backOffTimeNanos;
     public final long sampleSizeThreshold;
 
     public CircuitBreakerConfig(Rejected reason, Rejected forcedReason, long failureThreshold, int failurePercentageThreshold,
@@ -35,9 +37,9 @@ public class CircuitBreakerConfig<Rejected extends Enum<Rejected>> {
         this.forcedReason = forcedReason;
         this.failureThreshold = failureThreshold;
         this.failurePercentageThreshold = failurePercentageThreshold;
-        this.trailingPeriodMillis = trailingPeriodMillis;
-        this.healthRefreshMillis = healthRefreshMillis;
-        this.backOffTimeMillis = backOffTimeMillis;
+        trailingPeriodNanos = TimeUnit.MILLISECONDS.toNanos(trailingPeriodMillis);
+        healthRefreshNanos = TimeUnit.MILLISECONDS.toNanos(healthRefreshMillis);
+        backOffTimeNanos = TimeUnit.MILLISECONDS.toNanos(backOffTimeMillis);
         this.sampleSizeThreshold = sampleSizeThreshold;
     }
 }

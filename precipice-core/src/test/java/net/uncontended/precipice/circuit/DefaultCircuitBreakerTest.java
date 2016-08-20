@@ -64,6 +64,7 @@ public class DefaultCircuitBreakerTest {
     @Test
     public void testCircuitOpensOnlyWhenFailuresGreaterThanThreshold() {
         long trailingPeriodInMillis = 5000;
+        long trailingPeriodInNanos = TimeUnit.MILLISECONDS.toNanos(5000);
         HealthSnapshot failingSnapshot = new HealthSnapshot(10000, 6);
         HealthSnapshot healthySnapshot = new HealthSnapshot(10000, 5);
 
@@ -76,12 +77,12 @@ public class DefaultCircuitBreakerTest {
         assertFalse(circuitBreaker.isOpen());
 
         long nanoTime = 501L * 1000L * 1000L;
-        when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(healthySnapshot);
+        when(healthGauge.getHealth(trailingPeriodInNanos, TimeUnit.NANOSECONDS, nanoTime)).thenReturn(healthySnapshot);
         circuitBreaker.releasePermit(1, TestResult.ERROR, nanoTime);
         assertFalse(circuitBreaker.isOpen());
 
         nanoTime = 1002L * 1000L * 1000L;
-        when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(failingSnapshot);
+        when(healthGauge.getHealth(trailingPeriodInNanos, TimeUnit.NANOSECONDS, nanoTime)).thenReturn(failingSnapshot);
         circuitBreaker.releasePermit(1, TestResult.ERROR, nanoTime);
         assertTrue(circuitBreaker.isOpen());
     }
@@ -89,6 +90,7 @@ public class DefaultCircuitBreakerTest {
     @Test
     public void testOpenCircuitClosesAfterSuccess() {
         long trailingPeriodInMillis = 1000;
+        long trailingPeriodInNanos = TimeUnit.MILLISECONDS.toNanos(1000);
         HealthSnapshot failureSnapshot = new HealthSnapshot(1000, 6);
 
         CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(5).trailingPeriodMillis
@@ -99,7 +101,7 @@ public class DefaultCircuitBreakerTest {
         assertFalse(circuitBreaker.isOpen());
 
         long nanoTime = 501L * 1000L * 1000L;
-        when(healthGauge.getHealth(trailingPeriodInMillis, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(failureSnapshot);
+        when(healthGauge.getHealth(trailingPeriodInNanos, TimeUnit.NANOSECONDS, nanoTime)).thenReturn(failureSnapshot);
         circuitBreaker.releasePermit(1L, TestResult.ERROR, nanoTime);
 
         assertTrue(circuitBreaker.isOpen());
@@ -118,7 +120,7 @@ public class DefaultCircuitBreakerTest {
         circuitBreaker.registerGuardRail(guardRail);
 
         long nanoTime = 501L * 1000L * 1000L;
-        when(healthGauge.getHealth(1000, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(snapshot);
+        when(healthGauge.getHealth(TimeUnit.MILLISECONDS.toNanos(1000), TimeUnit.NANOSECONDS, nanoTime)).thenReturn(snapshot);
         circuitBreaker.releasePermit(1L, TestResult.ERROR, nanoTime);
         assertFalse(circuitBreaker.isOpen());
 
@@ -144,6 +146,8 @@ public class DefaultCircuitBreakerTest {
     public void testActionAllowedIfPauseTimeHasPassed() {
         int failureThreshold = 10;
         int timePeriodInMillis = 5000;
+        long timePeriodInNanos = TimeUnit.MILLISECONDS.toNanos(timePeriodInMillis);
+
         HealthSnapshot snapshot = new HealthSnapshot(10000, 11);
 
         CircuitBreakerConfig<Rejected> breakerConfig = builder.failureThreshold(failureThreshold)
@@ -155,7 +159,7 @@ public class DefaultCircuitBreakerTest {
         assertNull(circuitBreaker.acquirePermit(1L, 0L));
 
         long nanoTime = 1000L * 1000L * 1000L;
-        when(healthGauge.getHealth(5000, TimeUnit.MILLISECONDS, nanoTime)).thenReturn(snapshot);
+        when(healthGauge.getHealth(timePeriodInNanos, TimeUnit.NANOSECONDS, nanoTime)).thenReturn(snapshot);
         circuitBreaker.releasePermit(1L, TestResult.ERROR, nanoTime);
 
         nanoTime = 1999L * 1000L * 1000L;

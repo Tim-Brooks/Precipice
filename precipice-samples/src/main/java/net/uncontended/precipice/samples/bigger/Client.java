@@ -64,8 +64,8 @@ public class Client {
 //
 //    private void addServiceToMap(Map<ThreadPoolService, Map<String, Object>> services, String name, int port) {
 //        BreakerConfigBuilder builder = new BreakerConfigBuilder()
-//                .backOffTimeMillis(2000)
-//                .trailingPeriodMillis(3000);
+//                .backOffTimeNanos(2000)
+//                .trailingPeriodNanos(3000);
 //        DefaultCountMetrics<TimeoutableResult> actionMetrics = new DefaultCountMetrics<>(TimeoutableResult.class, 20, 500, TimeUnit.MILLISECONDS);
 //        DefaultCircuitBreaker breaker = new DefaultCircuitBreaker(builder.build());
 //        ControllerProperties<TimeoutableResult> properties = new ControllerProperties<>(TimeoutableResult.class);
