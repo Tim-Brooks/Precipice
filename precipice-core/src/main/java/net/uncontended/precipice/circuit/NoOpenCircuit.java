@@ -120,9 +120,9 @@ public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBr
 
     private HealthSnapshot getHealthSnapshot(CircuitBreakerConfig<Rejected> config, long nanoTime) {
         long lastHealthNanoTime = this.lastHealthNanoTime.get();
-        if (nanoTime - (lastHealthNanoTime + TimeUnit.MILLISECONDS.toNanos(config.healthRefreshNanos)) > 0) {
+        if (nanoTime - (lastHealthNanoTime + config.healthRefreshNanos) > 0) {
             if (this.lastHealthNanoTime.compareAndSet(lastHealthNanoTime, nanoTime)) {
-                HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodNanos, TimeUnit.MILLISECONDS, nanoTime);
+                HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodNanos, TimeUnit.NANOSECONDS, nanoTime);
                 health = newHealth;
                 return newHealth;
             }

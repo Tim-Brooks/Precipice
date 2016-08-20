@@ -36,7 +36,7 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
 
     private final AtomicInteger state = new AtomicInteger(0);
     private final HealthGauge healthGauge;
-    private volatile long lastTestedTime = 0;
+    private volatile long lastTestedNanoTime = 0;
     private volatile CircuitBreakerConfig<Rejected> breakerConfig;
     private volatile HealthSnapshot health = new HealthSnapshot(0, 0);
 
@@ -54,12 +54,11 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
         CircuitBreakerConfig<Rejected> config = breakerConfig;
         int state = this.state.get();
         if (state == OPEN) {
-            long backOffTimeMillis = config.backOffTimeNanos;
-            long currentTime = TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
-            if (currentTime < backOffTimeMillis + lastTestedTime) {
+            long backOffTimeNanos = config.backOffTimeNanos;
+            if (nanoTime - (backOffTimeNanos + lastTestedNanoTime) < 0) {
                 return config.reason;
             }
-            lastTestedTime = currentTime;
+            lastTestedNanoTime = nanoTime;
         }
         return state != FORCED_OPEN ? null : config.reason;
     }
@@ -76,14 +75,13 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
             }
         } else {
             if (state.get() == CLOSED) {
-                long currentTime = TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
                 CircuitBreakerConfig<Rejected> config = breakerConfig;
                 HealthSnapshot health = this.health;
                 long failures = health.failures;
                 int failurePercentage = health.failurePercentage();
                 if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
                         config.sampleSizeThreshold < health.total)) {
-                    lastTestedTime = currentTime;
+                    lastTestedNanoTime = nanoTime;
                     state.compareAndSet(CLOSED, OPEN);
                 }
             }
@@ -127,6 +125,6 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
 
     @Override
     public void tick(long nanoTime) {
-        health = healthGauge.getHealth(breakerConfig.trailingPeriodNanos, TimeUnit.MILLISECONDS, nanoTime);
+        health = healthGauge.getHealth(breakerConfig.trailingPeriodNanos, TimeUnit.NANOSECONDS, nanoTime);
     }
 }
