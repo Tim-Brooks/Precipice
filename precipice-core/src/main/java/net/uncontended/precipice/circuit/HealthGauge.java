@@ -22,13 +22,12 @@ import net.uncontended.precipice.metrics.IntervalIterator;
 import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class HealthGauge {
 
-    private final List<InternalGauge<?>> gauges = new ArrayList<>();
+    private final CopyOnWriteArrayList<InternalGauge<?>> gauges = new CopyOnWriteArrayList<>();
 
     public synchronized HealthSnapshot getHealth(long timePeriod, TimeUnit timeUnit, long nanoTime) {
         long total = 0;
@@ -64,7 +63,6 @@ public class HealthGauge {
             IntervalIterator<PartitionedCount<Result>> counters = metrics.intervals(nanoTime);
             counters.limit(timePeriod, timeUnit);
 
-            // TODO: explore what implications this has for metric permit changes
             PartitionedCount<Result> metricCounter;
             while (counters.hasNext()) {
                 metricCounter = counters.next();
