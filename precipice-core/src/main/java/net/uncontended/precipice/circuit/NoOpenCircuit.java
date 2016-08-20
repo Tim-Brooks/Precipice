@@ -23,7 +23,6 @@ import net.uncontended.precipice.metrics.Rolling;
 import net.uncontended.precipice.metrics.counts.PartitionedCount;
 import net.uncontended.precipice.metrics.counts.WritableCounts;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,7 +36,7 @@ public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBr
     private static final int FORCED_OPEN = 2;
 
     private final AtomicInteger state = new AtomicInteger(0);
-    private final AtomicLong lastHealthTime = new AtomicLong(0);
+    private final AtomicLong lastHealthNanoTime = new AtomicLong(0);
     private final HealthGauge healthGauge;
     private final Runnable openRunnable;
     private volatile CircuitBreakerConfig<Rejected> breakerConfig;
@@ -95,9 +94,8 @@ public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBr
     @Override
     public void releasePermit(long number, Failable result, long nanoTime) {
         if (state.get() == CLOSED) {
-            long currentMillisTime = currentMillisTime(nanoTime);
             CircuitBreakerConfig<Rejected> config = breakerConfig;
-            HealthSnapshot health = getHealthSnapshot(config, currentMillisTime, nanoTime);
+            HealthSnapshot health = getHealthSnapshot(config, nanoTime);
             long failures = health.failures;
             int failurePercentage = health.failurePercentage();
             if (config.failureThreshold < failures || (config.failurePercentageThreshold < failurePercentage &&
@@ -120,20 +118,15 @@ public class NoOpenCircuit<Rejected extends Enum<Rejected>> implements CircuitBr
         }
     }
 
-    private HealthSnapshot getHealthSnapshot(CircuitBreakerConfig<Rejected> config, long currentMillisTime, long nanoTime) {
-        long lastHealthTime = this.lastHealthTime.get();
-        // TODO: Flawed way to compare time? I think it is correct, but check for negative case
-        if (lastHealthTime + config.healthRefreshMillis < currentMillisTime) {
-            if (this.lastHealthTime.compareAndSet(lastHealthTime, currentMillisTime)) {
+    private HealthSnapshot getHealthSnapshot(CircuitBreakerConfig<Rejected> config, long nanoTime) {
+        long lastHealthNanoTime = this.lastHealthNanoTime.get();
+        if (nanoTime - (lastHealthNanoTime + TimeUnit.MILLISECONDS.toNanos(config.healthRefreshMillis)) > 0) {
+            if (this.lastHealthNanoTime.compareAndSet(lastHealthNanoTime, nanoTime)) {
                 HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS, nanoTime);
                 health = newHealth;
                 return newHealth;
             }
         }
         return health;
-    }
-
-    private static long currentMillisTime(long nanoTime) {
-        return TimeUnit.MILLISECONDS.convert(nanoTime, TimeUnit.NANOSECONDS);
     }
 }
