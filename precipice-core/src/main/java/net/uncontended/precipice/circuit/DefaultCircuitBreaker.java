@@ -34,7 +34,7 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
 
     private final Object gaugeLock = new Object();
     private final AtomicInteger state = new AtomicInteger(0);
-    private final AtomicLong lastHealthTime = new AtomicLong(0);
+    private final AtomicLong lastHealthNanoTime = new AtomicLong(0);
     private final HealthGauge healthGauge;
     private volatile long lastTestedTime = 0;
     private volatile CircuitBreakerConfig<Rejected> breakerConfig;
@@ -127,15 +127,13 @@ public class DefaultCircuitBreaker<Rejected extends Enum<Rejected>> implements C
         state.set(CLOSED);
     }
 
-    private HealthSnapshot getHealthSnapshot(CircuitBreakerConfig<Rejected> config, long currentTime) {
-        long lastHealthTime = this.lastHealthTime.get();
-        if (lastHealthTime + config.healthRefreshMillis < currentTime) {
-            if (this.lastHealthTime.compareAndSet(lastHealthTime, currentTime)) {
-                synchronized (gaugeLock) {
-                    HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS, currentTime);
-                    health = newHealth;
-                    return newHealth;
-                }
+    private HealthSnapshot getHealthSnapshot(CircuitBreakerConfig<Rejected> config, long currentNanoTime) {
+        long lastHealthNanoTime = this.lastHealthNanoTime.get();
+        if (currentNanoTime - (lastHealthNanoTime + TimeUnit.MILLISECONDS.toNanos(config.healthRefreshMillis)) > 0) {
+            if (this.lastHealthNanoTime.compareAndSet(lastHealthNanoTime, currentNanoTime)) {
+                HealthSnapshot newHealth = healthGauge.getHealth(config.trailingPeriodMillis, TimeUnit.MILLISECONDS, currentNanoTime);
+                health = newHealth;
+                return newHealth;
             }
         }
         return health;
