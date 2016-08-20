@@ -21,14 +21,13 @@ import java.util.concurrent.TimeoutException;
 
 public class PrecipiceTimeoutException extends TimeoutException {
 
+    private static final long serialVersionUID = 8491894650644110527L;
     private Throwable cause;
 
     public PrecipiceTimeoutException() {
-        super();
     }
 
     public PrecipiceTimeoutException(Throwable cause) {
-        super();
         this.cause = cause;
     }
 
@@ -41,6 +40,7 @@ public class PrecipiceTimeoutException extends TimeoutException {
         this.cause = cause;
     }
 
+    @Override
     public Throwable getCause() {
         return cause;
     }
