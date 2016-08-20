@@ -68,7 +68,7 @@ public class CircuitBreakerConfigBuilder<Rejected extends Enum<Rejected>> {
 
     public CircuitBreakerConfig<Rejected> build() {
         return new CircuitBreakerConfig<>(reason, forcedReason, failureThreshold, failurePercentageThreshold,
-                trailingPeriodMillis, healthRefreshMillis, backOffTimeMillis, sampleSizeThreshold);
+                sampleSizeThreshold, trailingPeriodMillis, healthRefreshMillis, backOffTimeMillis);
     }
 
 }

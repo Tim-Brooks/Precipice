@@ -24,22 +24,20 @@ public class CircuitBreakerConfig<Rejected extends Enum<Rejected>> {
     public final Rejected forcedReason;
     public final int failurePercentageThreshold;
     public final long failureThreshold;
-    // TODO: Change these all to nanos to avoid computing millis time
+    public final long sampleSizeThreshold;
     public final long trailingPeriodNanos;
     public final long healthRefreshNanos;
     public final long backOffTimeNanos;
-    public final long sampleSizeThreshold;
 
     public CircuitBreakerConfig(Rejected reason, Rejected forcedReason, long failureThreshold, int failurePercentageThreshold,
-                                long trailingPeriodMillis, long healthRefreshMillis, long backOffTimeMillis,
-                                long sampleSizeThreshold) {
+                                long sampleSizeThreshold, long trailingPeriodMillis, long healthRefreshMillis, long backOffTimeMillis) {
         this.reason = reason;
         this.forcedReason = forcedReason;
         this.failureThreshold = failureThreshold;
         this.failurePercentageThreshold = failurePercentageThreshold;
+        this.sampleSizeThreshold = sampleSizeThreshold;
         trailingPeriodNanos = TimeUnit.MILLISECONDS.toNanos(trailingPeriodMillis);
         healthRefreshNanos = TimeUnit.MILLISECONDS.toNanos(healthRefreshMillis);
         backOffTimeNanos = TimeUnit.MILLISECONDS.toNanos(backOffTimeMillis);
-        this.sampleSizeThreshold = sampleSizeThreshold;
     }
 }
