@@ -17,7 +17,22 @@
 
 package net.uncontended.precipice.timeout;
 
+import org.junit.After;
+import org.junit.Before;
+
 public class DelayQueueTimeoutServiceTest {
+
+    private DelayQueueTimeoutService timeoutService;
+
+    @Before
+    public void setUp() {
+        timeoutService = new DelayQueueTimeoutService("Test-Timeout-Service");
+    }
+
+    @After
+    public void tearDown() {
+        timeoutService.stop();
+    }
 
     // TODO: Implement tests
 }
