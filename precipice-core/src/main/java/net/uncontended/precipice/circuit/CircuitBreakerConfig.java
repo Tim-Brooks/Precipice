@@ -22,6 +22,7 @@ public class CircuitBreakerConfig<Rejected extends Enum<Rejected>> {
     public final Rejected forcedReason;
     public final int failurePercentageThreshold;
     public final long failureThreshold;
+    // TODO: Change these all to nanos to avoid computing millis time
     public final long trailingPeriodMillis;
     public final long healthRefreshMillis;
     public final long backOffTimeMillis;
