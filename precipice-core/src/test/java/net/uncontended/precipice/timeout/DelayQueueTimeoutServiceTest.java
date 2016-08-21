@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DelayQueueTimeoutServiceTest {
 
@@ -46,7 +47,7 @@ public class DelayQueueTimeoutServiceTest {
     }
 
     @Test
-    public void testTimeoutWillOccur() throws InterruptedException {
+    public void timeoutWillOccur() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
 
         timeoutService.scheduleTimeout(new TestTimeout(latch), 10L);
@@ -57,7 +58,7 @@ public class DelayQueueTimeoutServiceTest {
     }
 
     @Test
-    public void testTimeoutsWillOccurInOrder() throws InterruptedException {
+    public void timeoutsWillOccurInOrder() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(3);
 
         timeoutService.scheduleTimeout(new TestTimeout2(latch, 3), 100L);
@@ -69,6 +70,20 @@ public class DelayQueueTimeoutServiceTest {
         assertEquals(1, queue.poll().intValue());
         assertEquals(2, queue.poll().intValue());
         assertEquals(3, queue.poll().intValue());
+    }
+
+    @Test
+    public void timeoutsCannotBeSubmittedAfterServiceStopped() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        timeoutService.stop();
+
+        try {
+            timeoutService.scheduleTimeout(new TestTimeout(latch), 1L);
+            fail("Should have thrown exception.");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Service has been stopped.", e.getMessage());
+        }
     }
 
     private class TestTimeout implements Timeout {

@@ -62,13 +62,18 @@ public class DelayQueueTimeoutService implements TimeoutService {
         if (!isStarted.get()) {
             startThread();
         }
-
-        timeoutQueue.offer(new TimeoutHolder(timeout, timeoutMillis, nanoTime));
+        if (isRunning) {
+            timeoutQueue.offer(new TimeoutHolder(timeout, timeoutMillis, nanoTime));
+        } else {
+            throw new IllegalArgumentException("Service has been stopped.");
+        }
     }
 
     public void stop() {
-        isRunning = false;
-        timeoutThread.interrupt();
+        if (isRunning) {
+            isRunning = false;
+            timeoutThread.interrupt();
+        }
     }
 
     public static long adjustTimeout(long millisTimeout) {
