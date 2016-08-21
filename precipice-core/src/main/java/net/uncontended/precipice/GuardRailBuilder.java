@@ -42,13 +42,13 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> resultMetrics(WritableCounts<Result> resultMetrics) {
-        properties.resultMetrics = resultMetrics;
+    public GuardRailBuilder<Result, Rejected> resultCounts(WritableCounts<Result> resultCounts) {
+        properties.resultCounts = resultCounts;
         return this;
     }
 
-    public GuardRailBuilder<Result, Rejected> rejectedMetrics(WritableCounts<Rejected> rejectedMetrics) {
-        properties.rejectedMetrics = rejectedMetrics;
+    public GuardRailBuilder<Result, Rejected> rejectedCounts(WritableCounts<Rejected> rejectedCounts) {
+        properties.rejectedCounts = rejectedCounts;
         return this;
     }
 
@@ -65,14 +65,14 @@ public class GuardRailBuilder<Result extends Enum<Result> & Failable, Rejected e
     public GuardRail<Result, Rejected> build() {
         if (properties.name == null) {
             throw new IllegalArgumentException("Name is required.");
-        } else if (properties.resultMetrics == null) {
-            throw new IllegalArgumentException("Result metrics are required.");
-        } else if (properties.rejectedMetrics == null) {
-            throw new IllegalArgumentException("Rejected metrics are required.");
+        } else if (properties.resultCounts == null) {
+            throw new IllegalArgumentException("Result counts are required.");
+        } else if (properties.rejectedCounts == null) {
+            throw new IllegalArgumentException("Rejected counts are required.");
         }
 
         if (properties.resultLatency == null) {
-            properties.resultLatency = new NoOpLatency<>(properties.resultMetrics.getMetricClazz());
+            properties.resultLatency = new NoOpLatency<>(properties.resultCounts.getMetricClazz());
         }
 
         return GuardRail.create(properties);

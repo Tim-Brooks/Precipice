@@ -33,19 +33,18 @@ import java.util.concurrent.TimeUnit;
 public final class GuardRailExample {
 
     public static void main(String[] args) {
-        RollingCounts<Result> resultMetrics = RollingCounts.builder(Result.class)
+        RollingCounts<Result> resultCounts = RollingCounts.builder(Result.class)
                 .bucketCount(60)
                 .bucketResolution(1, TimeUnit.SECONDS)
                 .build();
-        TotalCounts<RejectedReason> rejectedMetrics = new TotalCounts<>(RejectedReason.class);
+        TotalCounts<RejectedReason> rejectedCounts = new TotalCounts<>(RejectedReason.class);
 
         GuardRailBuilder<Result, RejectedReason> builder = new GuardRailBuilder<>();
-        builder.name("Example")
-                .resultMetrics(resultMetrics)
-                .rejectedMetrics(rejectedMetrics)
-                .addBackPressure(new LongSemaphore<>(RejectedReason.MAX_CONCURRENCY, 10));
-
-        GuardRail<Result, RejectedReason> guardRail = builder.build();
+        GuardRail<Result, RejectedReason> guardRail = builder.name("Example")
+                .resultCounts(resultCounts)
+                .rejectedCounts(rejectedCounts)
+                .addBackPressure(new LongSemaphore<>(RejectedReason.MAX_CONCURRENCY, 10))
+                .build();
 
         long startNanoTime = guardRail.getClock().nanoTime();
         RejectedReason rejected = guardRail.acquirePermits(1L, startNanoTime);

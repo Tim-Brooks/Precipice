@@ -28,8 +28,8 @@ import java.util.Map;
 public class GuardRailProperties<Result extends Enum<Result> & Failable, Rejected extends Enum<Rejected>> {
 
     public String name;
-    public WritableCounts<Result> resultMetrics;
-    public WritableCounts<Rejected> rejectedMetrics;
+    public WritableCounts<Result> resultCounts;
+    public WritableCounts<Rejected> rejectedCounts;
     public WritableLatency<Result> resultLatency;
     public Map<String, BackPressure<Rejected>> backPressureMap = new LinkedHashMap<>();
     public boolean singleIncrementMetrics = false;

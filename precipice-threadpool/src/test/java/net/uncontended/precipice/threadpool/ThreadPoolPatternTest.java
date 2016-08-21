@@ -83,9 +83,9 @@ public class ThreadPoolPatternTest {
     @Mock
     private PrecipiceSemaphore semaphore;
     @Mock
-    private WritableCounts<TimeoutableResult> resultMetrics;
+    private WritableCounts<TimeoutableResult> resultCounts;
     @Mock
-    private WritableCounts<PatternRejected> rejectedMetrics;
+    private WritableCounts<PatternRejected> rejectedCounts;
     @Mock
     private Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     @Mock
@@ -122,8 +122,8 @@ public class ThreadPoolPatternTest {
         when(service3.getTimeoutService()).thenReturn(timeoutService3);
 
         when(guardRail.getClock()).thenReturn(clock);
-        when(guardRail.getResultMetrics()).thenReturn(resultMetrics);
-        when(guardRail.getRejectedMetrics()).thenReturn(rejectedMetrics);
+        when(guardRail.getResultCounts()).thenReturn(resultCounts);
+        when(guardRail.getRejectedCounts()).thenReturn(rejectedCounts);
         when(clock.nanoTime()).thenReturn(submitTimeNanos);
 
         when(action.call(context1)).thenReturn("Service1");
@@ -177,7 +177,7 @@ public class ThreadPoolPatternTest {
         }
 
         verify(guardRail).releasePermitsWithoutResult(1, submitTimeNanos);
-        verify(rejectedMetrics).write(PatternRejected.ALL_REJECTED, 1L, submitTimeNanos);
+        verify(rejectedCounts).write(PatternRejected.ALL_REJECTED, 1L, submitTimeNanos);
 
         verifyZeroInteractions(service1);
         verifyZeroInteractions(service2);

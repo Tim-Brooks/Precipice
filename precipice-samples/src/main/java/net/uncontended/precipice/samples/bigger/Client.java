@@ -34,7 +34,7 @@ public class Client {
 //        loadBalancer = null;
 ////        loadBalancer = new ThreadPoolLoadBalancer<>(services, null);
 //
-//        clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.guardRail().getResultMetrics()));
+//        clientMBeans.add(new ClientMBeans("LoadBalancer", loadBalancer.guardRail().getResultCounts()));
 //    }
 //
 //    public void run() throws InterruptedException {

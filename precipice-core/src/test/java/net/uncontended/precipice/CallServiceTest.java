@@ -130,8 +130,8 @@ public class CallServiceTest {
     public void simulationTest() {
         final Random random = ThreadLocalRandom.current();
         GuardRailBuilder<TimeoutableResult, SimulationRejected> builder = new GuardRailBuilder<TimeoutableResult, SimulationRejected>().name("Simulation")
-                .resultMetrics(new TotalCounts<TimeoutableResult>(TimeoutableResult.class))
-                .rejectedMetrics(new TotalCounts<SimulationRejected>(SimulationRejected.class))
+                .resultCounts(new TotalCounts<TimeoutableResult>(TimeoutableResult.class))
+                .rejectedCounts(new TotalCounts<SimulationRejected>(SimulationRejected.class))
                 .resultLatency(new NoOpLatency<>(TimeoutableResult.class));
 
         GuardRail<TimeoutableResult, SimulationRejected> guardRail = builder.build();

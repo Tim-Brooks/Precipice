@@ -37,7 +37,7 @@ import java.util.concurrent.ExecutorService;
 public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, PatternRejected> {
 
     private final GuardRail<TimeoutableResult, PatternRejected> guardRail;
-    private final WritableCounts<PatternRejected> rejectedMetrics;
+    private final WritableCounts<PatternRejected> rejectedCounts;
     private final Pattern<TimeoutableResult, ThreadPoolService<?>> pattern;
     private final Map<ThreadPoolService<?>, C> serviceToContext;
 
@@ -52,7 +52,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
                              Pattern<TimeoutableResult, ThreadPoolService<?>> pattern) {
         this.serviceToContext = serviceToContext;
         this.guardRail = guardRail;
-        this.rejectedMetrics = guardRail.getRejectedMetrics();
+        this.rejectedCounts = guardRail.getRejectedCounts();
         this.pattern = pattern;
     }
 
@@ -89,7 +89,7 @@ public class ThreadPoolPattern<C> implements Precipice<TimeoutableResult, Patter
 
     private <T> PrecipiceFuture<TimeoutableResult, T> handleAllReject(long nanoTime) {
         guardRail.releasePermitsWithoutResult(1L, nanoTime);
-        rejectedMetrics.write(PatternRejected.ALL_REJECTED, 1L, nanoTime);
+        rejectedCounts.write(PatternRejected.ALL_REJECTED, 1L, nanoTime);
         throw new RejectedException(PatternRejected.ALL_REJECTED);
     }
 

@@ -74,14 +74,14 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         Arrays.fill(rejectedCounts, 0);
 
         // TODO: Not handling multiple metrics
-        WritableCounts<Result> resultMetrics = guardRail.getResultMetrics();
-        WritableCounts<Rejected> rejectedMetrics = guardRail.getRejectedMetrics();
+        WritableCounts<Result> resultCounts = guardRail.getResultCounts();
+        WritableCounts<Rejected> rejectedCounts = guardRail.getRejectedCounts();
 
         long localStartEpoch = Long.MAX_VALUE;
         long localEndEpoch = 0L;
 
-        if (resultMetrics instanceof Rolling) {
-            Rolling<PartitionedCount<Result>> rollingMetrics = (Rolling<PartitionedCount<Result>>) resultMetrics;
+        if (resultCounts instanceof Rolling) {
+            Rolling<PartitionedCount<Result>> rollingMetrics = (Rolling<PartitionedCount<Result>>) resultCounts;
             IntervalIterator<PartitionedCount<Result>> intervals = rollingMetrics.intervals(nanoTime);
             PartitionedCount<Result> interval;
             while (intervals.hasNext()) {
@@ -91,7 +91,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
                 long startEpoch = startDiffMillis + epochTime;
                 if (startEpoch >= currentEndEpoch && endDiffMillis != 0) {
                     for (Result t : resultClazz.getEnumConstants()) {
-                        resultCounts[t.ordinal()] += interval.getCount(t);
+                        this.resultCounts[t.ordinal()] += interval.getCount(t);
                     }
                     localStartEpoch = Math.min(localStartEpoch, startEpoch);
                     localEndEpoch = Math.max(localEndEpoch, endDiffMillis + epochTime);
@@ -99,8 +99,8 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
             }
         }
 
-        if (rejectedMetrics instanceof Rolling) {
-            Rolling<PartitionedCount<Rejected>> rollingMetrics = (Rolling<PartitionedCount<Rejected>>) rejectedMetrics;
+        if (rejectedCounts instanceof Rolling) {
+            Rolling<PartitionedCount<Rejected>> rollingMetrics = (Rolling<PartitionedCount<Rejected>>) rejectedCounts;
             IntervalIterator<PartitionedCount<Rejected>> intervals = rollingMetrics.intervals();
             PartitionedCount<Rejected> interval;
             while (intervals.hasNext()) {
@@ -109,7 +109,7 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
                 long relativeEnd = intervals.intervalEnd();
                 if (relativeStart >= currentEndEpoch && relativeEnd != 0) {
                     for (Rejected t : rejectedClazz.getEnumConstants()) {
-                        rejectedCounts[t.ordinal()] += interval.getCount(t);
+                        this.rejectedCounts[t.ordinal()] += interval.getCount(t);
                     }
                     localStartEpoch = Math.min(localStartEpoch, relativeStart);
                     localEndEpoch = Math.max(localEndEpoch, relativeEnd);
@@ -120,24 +120,24 @@ public class Summary<Result extends Enum<Result> & Failable, Rejected extends En
         if (properties.accumulateTotalResults) {
             for (Result t : resultClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-                totalResultCounts[metricIndex] += resultCounts[metricIndex];
+                totalResultCounts[metricIndex] += this.resultCounts[metricIndex];
             }
         } else {
             for (Result t : resultClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-//                totalResultCounts[metricIndex] = resultMetrics.getCount(t);
+//                totalResultCounts[metricIndex] = resultCounts.getCount(t);
             }
         }
 
         if (properties.accumulateTotalRejections) {
             for (Rejected t : rejectedClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-                totalRejectedCounts[metricIndex] += rejectedCounts[metricIndex];
+                totalRejectedCounts[metricIndex] += this.rejectedCounts[metricIndex];
             }
         } else {
             for (Rejected t : rejectedClazz.getEnumConstants()) {
                 int metricIndex = t.ordinal();
-//                totalRejectedCounts[metricIndex] = rejectedMetrics.getCount(t);
+//                totalRejectedCounts[metricIndex] = rejectedCounts.getCount(t);
             }
         }
         currentStartEpoch = localStartEpoch;

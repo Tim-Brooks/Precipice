@@ -34,13 +34,13 @@ import java.net.URLConnection;
 public final class GuardRailWithFactory {
 
     public static void main(String[] args) {
-        TotalCounts<SimpleResult> resultMetrics = new TotalCounts<>(SimpleResult.class);
-        TotalCounts<Unrejectable> rejectedMetrics = new TotalCounts<>(new NoOpCounter<>(Unrejectable.class));
+        TotalCounts<SimpleResult> resultCounts = new TotalCounts<>(SimpleResult.class);
+        TotalCounts<Unrejectable> rejectedCounts = new TotalCounts<>(new NoOpCounter<>(Unrejectable.class));
 
         GuardRailBuilder<SimpleResult, Unrejectable> builder = new GuardRailBuilder<>();
         builder.name("Example")
-                .resultMetrics(resultMetrics)
-                .rejectedMetrics(rejectedMetrics)
+                .resultCounts(resultCounts)
+                .rejectedCounts(rejectedCounts)
                 .addBackPressure(new UnlimitedSemaphore<Unrejectable>());
 
         GuardRail<SimpleResult, Unrejectable> guardRail = builder.build();

@@ -90,7 +90,7 @@ public class SWCircuitBreaker<Rejected extends Enum<Rejected>> implements Circui
 
     @Override
     public <Result extends Enum<Result> & Failable> void registerGuardRail(GuardRail<Result, Rejected> guardRail) {
-        WritableCounts<Result> metrics = guardRail.getResultMetrics();
+        WritableCounts<Result> metrics = guardRail.getResultCounts();
         if (metrics instanceof Rolling) {
             healthGauge.add((Rolling<PartitionedCount<Result>>) metrics);
         } else {

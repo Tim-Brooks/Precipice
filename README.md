@@ -9,9 +9,9 @@ The core abstraction of Precipice is the concept of a **GuardRail**. If you woul
 Specifically a GuardRail has:
 
 1. Name - used for identification purposes.
-2. Result metrics - counts of the different task execution results.
-3. Rejection Metrics- counts of the different task rejection reasons.
-4. Optional Latency Metrics - latencies for the different task exeuction results.
+2. Result Counts - counts of the different task execution results.
+3. Rejection Counts- counts of the different task rejection reasons.
+4. Optional Result Latency - latencies for the different task exeuction results.
 5. Zero or more back pressure mechanisms informed by these metrics.
 
 There is also a Precipice interface that has a single method to return a GuardRail. This allows the creation of specialized implementations. For example, the precipice-threadpool package includes an implementation that isolates the usage of threadpool with a GuardRail.
@@ -34,8 +34,8 @@ As a note, you must specify enumerated types to define possible results or rejec
 String name = "Identity Service";
 GuardRailBuilder builder = new GuardRailBuilder<>();
 builder.name(name);
-builder.resultMetrics(new RollingCountMetrics<>(SimpleResult.class));
-builder.rejectedMetrics(new RollingCountMetrics<>(RejectedReason.class))
+builder.resultCounts(new RollingCounts<>(SimpleResult.class, 60, TimeUnit.SECONDS.toNanos(1)));
+builder.rejectedCounts(new RollingCounts<>(RejectedReason.class, 60, TimeUnit.SECONDS.toNanos(1)))
 builder.addBackPressure(new LongSemaphore<>(RejectedReason.MAX_CONCURRENCY, 10));
 
 GuardRail guardRail = builder.build();
