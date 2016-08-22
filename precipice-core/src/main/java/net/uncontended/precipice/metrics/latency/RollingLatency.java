@@ -47,8 +47,8 @@ public class RollingLatency<T extends Enum<T>> extends AbstractMetrics<T> implem
     }
 
     @Override
-    public void write(T result, long number, long nanoLatency, long nanoTime) {
-        rolling.current(nanoTime).record(result, number, nanoLatency);
+    public void write(T metric, long number, long nanoLatency, long nanoTime) {
+        rolling.current(nanoTime).record(metric, number, nanoLatency);
     }
 
     @Override

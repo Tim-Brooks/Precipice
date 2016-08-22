@@ -31,10 +31,10 @@ public class LatencyRecorder<T extends Enum<T>> extends AbstractMetrics<T> imple
     }
 
     @Override
-    public void write(T result, long number, long nanoLatency, long nanoTime) {
+    public void write(T metric, long number, long nanoLatency, long nanoTime) {
         long permit = metricRecorder.startRecord();
         try {
-            metricRecorder.activeInterval().record(result, number, nanoLatency);
+            metricRecorder.activeInterval().record(metric, number, nanoLatency);
         } finally {
             metricRecorder.endRecord(permit);
         }

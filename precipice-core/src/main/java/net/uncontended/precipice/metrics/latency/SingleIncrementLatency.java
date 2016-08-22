@@ -29,8 +29,8 @@ public class SingleIncrementLatency<T extends Enum<T>> extends AbstractMetrics<T
     }
 
     @Override
-    public void write(T result, long number, long nanoLatency, long nanoTime) {
-        wrappedLatency.write(result, 1, nanoLatency, nanoTime);
+    public void write(T metric, long number, long nanoLatency, long nanoTime) {
+        wrappedLatency.write(metric, 1, nanoLatency, nanoTime);
     }
 
     public WritableLatency<T> getWrappedCounts() {

@@ -60,7 +60,7 @@ public class TotalLatency<T extends Enum<T>> extends AbstractMetrics<T> implemen
     }
 
     @Override
-    public void write(T result, long number, long nanoLatency, long nanoTime) {
-        record(result, number, nanoLatency);
+    public void write(T metric, long number, long nanoLatency, long nanoTime) {
+        record(metric, number, nanoLatency);
     }
 }
