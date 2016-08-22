@@ -64,7 +64,7 @@ public class RollingMetricsTest {
 
     @Test
     public void testMetricsTrackingTwoSeconds() {
-        long startTime = 0; // ThreadLocalRandom.current().nextLong();
+        long startTime = ThreadLocalRandom.current().nextLong();
         CircularBuffer<AtomicLong> buffer = new CircularBuffer<>(2, TimeUnit.SECONDS.toNanos(1), startTime);
         metrics = new RollingMetrics<AtomicLong>(new LongAllocator(), buffer, systemTime);
 

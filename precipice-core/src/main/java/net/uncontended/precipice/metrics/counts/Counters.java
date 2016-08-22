@@ -28,17 +28,53 @@ public final class Counters {
         return new LongAdderAllocator<>(clazz);
     }
 
+    public static <T extends Enum<T>> Allocator<PartitionedCount<T>> atomicLong(Class<T> clazz) {
+        return new AtomicLongAllocator<>(clazz);
+    }
+
+    public static <T extends Enum<T>> Allocator<PartitionedCount<T>> longCounter(Class<T> clazz) {
+        return new LongAllocator<>(clazz);
+    }
+
     private static class LongAdderAllocator<T extends Enum<T>> implements Allocator<PartitionedCount<T>> {
 
         private final Class<T> clazz;
 
-        public LongAdderAllocator(Class<T> clazz) {
+        private LongAdderAllocator(Class<T> clazz) {
             this.clazz = clazz;
         }
 
         @Override
         public PartitionedCount<T> allocateNew() {
             return new LongAdderCounter<>(clazz);
+        }
+    }
+
+    private static class AtomicLongAllocator<T extends Enum<T>> implements Allocator<PartitionedCount<T>> {
+
+        private final Class<T> clazz;
+
+        private AtomicLongAllocator(Class<T> clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public PartitionedCount<T> allocateNew() {
+            return new AtomicLongCounter<>(clazz);
+        }
+    }
+
+    private static class LongAllocator<T extends Enum<T>> implements Allocator<PartitionedCount<T>> {
+
+        private final Class<T> clazz;
+
+        private LongAllocator(Class<T> clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public PartitionedCount<T> allocateNew() {
+            return new LongCounter<>(clazz);
         }
     }
 }
