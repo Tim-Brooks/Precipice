@@ -40,7 +40,7 @@ public class MetricRecorderTest {
     private FlipControl<LongAdderCounter<Unrejectable>> flipControl;
 
     private MetricRecorder<LongAdderCounter<Unrejectable>> recorder;
-    private long startTime = 100;
+    private final long startTime = 100;
 
     @Before
     public void setUp() {

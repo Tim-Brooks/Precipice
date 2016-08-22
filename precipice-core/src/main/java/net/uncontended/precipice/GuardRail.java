@@ -29,7 +29,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
     private final String name;
     private final Clock clock;
     private final PrecipiceFunction<Result, ExecutionContext> releaseFunction;
-    private final boolean singleIncrement;
     private final WritableCounts<Result> resultCounts;
     private final WritableCounts<Rejected> rejectedCounts;
     private final WritableLatency<Result> resultLatency;
@@ -45,7 +44,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
         resultLatency = properties.resultLatency;
         backPressureMap = properties.backPressureMap;
         backPressureList = new ArrayList<>(backPressureMap.values());
-        singleIncrement = properties.singleIncrementMetrics;
         releaseFunction = new FinishingCallback();
     }
 
@@ -73,7 +71,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
             BackPressure<Rejected> bp = backPressureList.get(i);
             Rejected rejected = bp.acquirePermit(number, nanoTime);
             if (rejected != null) {
-                number = !singleIncrement ? number : 1;
                 rejectedCounts.write(rejected, number, nanoTime);
 
                 for (int j = 0; j < i; ++j) {
@@ -153,8 +150,6 @@ public class GuardRail<Result extends Enum<Result> & Failable, Rejected extends 
      * @param nanoTime   currentInterval nano time
      */
     public void releasePermits(long number, Result result, long startNanos, long nanoTime) {
-        number = !singleIncrement ? number : 1;
-
         resultCounts.write(result, number, nanoTime);
         resultLatency.write(result, number, nanoTime - startNanos, nanoTime);
 
